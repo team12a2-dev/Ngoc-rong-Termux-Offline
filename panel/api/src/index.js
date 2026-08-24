@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
@@ -28,6 +30,10 @@ import { startMaintenanceScheduler } from './services/maintenanceScheduler.js';
 import { getDefaultServerId } from './services/serverRegistry.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const WEB_DIST = path.resolve(__dirname, '../../web/dist');
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
@@ -70,6 +76,16 @@ app.use('/api/v1/plugins', pluginRoutes);
 app.use('/api/v1/alerts', alertRoutes);
 app.use('/api/v1/backups', backupRoutes);
 app.use('/api/v1/assets', assetRoutes);
+
+// Serve the production React panel from the same origin as the API.
+// This keeps relative /api and /ws URLs working on localhost and LAN devices.
+app.use(express.static(WEB_DIST));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/ws/')) return next();
+  res.sendFile(path.join(WEB_DIST, 'index.html'), (err) => {
+    if (err) next(err);
+  });
+});
 
 // WebSocket metrics stream
 const wss = new WebSocketServer({ server, path: '/ws/metrics' });

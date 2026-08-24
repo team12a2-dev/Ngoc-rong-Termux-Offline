@@ -15,6 +15,13 @@ CONFIG="$ROOT/Config.properties"
 SQL_FILE="$ROOT/sql/ngocrong.sql"
 CLASS_DIR="$STATE_DIR/classes"
 SOURCE_LIST="$STATE_DIR/sources.txt"
+PANEL_ROOT="$ROOT/panel"
+PANEL_API_ROOT="$PANEL_ROOT/api"
+PANEL_WEB_ROOT="$PANEL_ROOT/web"
+PANEL_PID="$STATE_DIR/panel.pid"
+PANEL_LOG="$STATE_DIR/panel.log"
+PANEL_PORT="${NRO_PANEL_PORT:-3001}"
+PANEL_ADMIN_PASSWORD_FILE="$STATE_DIR/panel-admin-password"
 
 DB_NAME="${NRO_DB_NAME:-ngocrong}"
 DB_USER="${NRO_DB_USER:-ngocrong}"
@@ -67,12 +74,23 @@ install_java() {
 
 install_dependencies() {
   need_termux
-  say "Cài các gói nền tảng Termux: Java JDK tương thích và MariaDB"
+  say "Cài các gói nền tảng Termux: Java JDK tương thích, MariaDB và Node.js cho panel"
   pkg update -y
   pkg install -y git mariadb
+  if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    local node_candidate
+    for node_candidate in nodejs nodejs-lts; do
+      say "Thử cài package Node.js: $node_candidate"
+      if pkg install -y "$node_candidate"; then
+        command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1 && break
+      fi
+    done
+  fi
   install_java
   command -v mariadb >/dev/null 2>&1 || die "Cài MariaDB client thất bại."
   command -v mariadbd >/dev/null 2>&1 || command -v mysqld >/dev/null 2>&1 || die "Không tìm thấy MariaDB server."
+  command -v node >/dev/null 2>&1 || warn "Không tìm thấy Node.js; panel sẽ không được khởi động."
+  command -v npm >/dev/null 2>&1 || warn "Không tìm thấy npm; panel sẽ không được khởi động."
 }
 
 ensure_layout() {
@@ -83,6 +101,8 @@ ensure_layout() {
   fi
   [ -f "$SQL_FILE" ] || die "Thiếu sql/ngocrong.sql trong thư mục dự án."
   [ -f "$ROOT/data/map/tile_set_info" ] || die "Thiếu data/map/tile_set_info; hãy cập nhật lại mã nguồn để sửa lỗi phân biệt hoa/thường trên Android."
+  [ -f "$PANEL_API_ROOT/package.json" ] || die "Thiếu panel/api/package.json."
+  [ -f "$PANEL_WEB_ROOT/package.json" ] || die "Thiếu panel/web/package.json."
   case "$DB_NAME" in *[!a-zA-Z0-9_]*|'') die "NRO_DB_NAME chỉ được chứa chữ, số và dấu gạch dưới.";; esac
   case "$DB_USER" in *[!a-zA-Z0-9_]*|'') die "NRO_DB_USER chỉ được chứa chữ, số và dấu gạch dưới.";; esac
 }
@@ -188,6 +208,113 @@ import_database() {
   sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
 }
 
+ensure_panel_admin_password() {
+  mkdir -p "$STATE_DIR"
+  local password="${PANEL_ADMIN_PASSWORD:-}"
+  if [ -z "$password" ]; then
+    if [ -f "$PANEL_ADMIN_PASSWORD_FILE" ]; then
+      password="$(cat "$PANEL_ADMIN_PASSWORD_FILE")"
+    else
+      password="panel_$(od -An -N12 -tx1 /dev/urandom | tr -d ' \n')"
+      printf '%s\n' "$password" > "$PANEL_ADMIN_PASSWORD_FILE"
+      chmod 600 "$PANEL_ADMIN_PASSWORD_FILE"
+    fi
+  else
+    printf '%s\n' "$password" > "$PANEL_ADMIN_PASSWORD_FILE"
+    chmod 600 "$PANEL_ADMIN_PASSWORD_FILE"
+  fi
+  PANEL_ADMIN_PASSWORD="$password"
+  export PANEL_ADMIN_PASSWORD
+}
+
+panel_dependencies_ready() {
+  [ -d "$PANEL_API_ROOT/node_modules" ] && [ -d "$PANEL_WEB_ROOT/node_modules" ]
+}
+
+install_panel_dependencies() {
+  if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    warn "Node.js/npm chưa có; bỏ qua cài panel."
+    return 0
+  fi
+  if ! panel_dependencies_ready; then
+    say "Cài dependency panel API và web bằng npm"
+    (cd "$PANEL_API_ROOT" && npm install --no-audit --no-fund) || { warn "Không cài được dependency panel API."; return 0; }
+    (cd "$PANEL_WEB_ROOT" && npm install --no-audit --no-fund) || { warn "Không cài được dependency panel web."; return 0; }
+  else
+    say "Dependency panel đã sẵn sàng."
+  fi
+  touch "$STATE_DIR/panel-deps.ok"
+}
+
+setup_panel() {
+  if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    warn "Thiếu Node.js/npm; panel không được setup."
+    return 0
+  fi
+  install_panel_dependencies
+  if ! panel_dependencies_ready; then return 0; fi
+  ensure_panel_admin_password
+  export PORT="$PANEL_PORT"
+  export JWT_SECRET="${JWT_SECRET:-$(od -An -N24 -tx1 /dev/urandom | tr -d ' \n')}"
+  say "Đồng bộ schema và tài khoản panel với database $DB_NAME"
+  (cd "$PANEL_API_ROOT" && npm run db:sync) || { warn "Panel DB sync thất bại; xem $PANEL_LOG hoặc chạy lại setup."; return 0; }
+  say "Build giao diện React panel"
+  (cd "$PANEL_WEB_ROOT" && npm run build) || { warn "Build panel web thất bại."; return 0; }
+  [ -f "$PANEL_WEB_ROOT/dist/index.html" ] || { warn "Không thấy panel/web/dist/index.html sau build."; return 0; }
+  touch "$STATE_DIR/panel-build.ok"
+  say "Panel đã được setup. Tài khoản admin: admin; mật khẩu lưu tại $PANEL_ADMIN_PASSWORD_FILE"
+}
+
+panel_alive() {
+  [ -f "$PANEL_PID" ] && kill -0 "$(cat "$PANEL_PID")" 2>/dev/null
+}
+
+start_panel() {
+  if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    warn "Node.js/npm không khả dụng; bỏ qua panel."
+    return 0
+  fi
+  if [ ! -f "$PANEL_API_ROOT/.env" ] || [ ! -f "$PANEL_WEB_ROOT/dist/index.html" ]; then
+    setup_panel
+  fi
+  if ! [ -f "$PANEL_API_ROOT/.env" ] || ! [ -f "$PANEL_WEB_ROOT/dist/index.html" ]; then
+    warn "Panel chưa đủ file runtime; game server vẫn tiếp tục chạy."
+    return 0
+  fi
+  if panel_alive; then
+    say "Panel web đang chạy với PID $(cat "$PANEL_PID") tại http://127.0.0.1:$PANEL_PORT"
+    return 0
+  fi
+  say "Khởi động panel web tại cổng $PANEL_PORT"
+  rm -f "$PANEL_PID"
+  (cd "$PANEL_API_ROOT" && PORT="$PANEL_PORT" nohup node src/index.js > "$PANEL_LOG" 2>&1 & echo $! > "$PANEL_PID")
+  local i
+  for i in $(seq 1 60); do
+    if panel_alive && curl -fsS --max-time 2 "http://127.0.0.1:$PANEL_PORT/api/v1/system/health" >/dev/null 2>&1; then
+      say "Panel web đã READY: http://127.0.0.1:$PANEL_PORT"
+      return 0
+    fi
+    sleep 1
+  done
+  tail -n 100 "$PANEL_LOG" 2>/dev/null || true
+  warn "Panel chưa phản hồi; game server vẫn đang được giữ hoạt động."
+}
+
+stop_panel() {
+  if panel_alive; then
+    local pid
+    pid="$(cat "$PANEL_PID")"
+    kill "$pid" 2>/dev/null || true
+    for _ in $(seq 1 15); do
+      panel_alive || break
+      sleep 1
+    done
+    kill -9 "$pid" 2>/dev/null || true
+    say "Đã dừng panel web."
+  fi
+  rm -f "$PANEL_PID"
+}
+
 build_server() {
   ensure_layout
   if [ "${NRO_REBUILD:-0}" != "1" ] && [ -f "$STATE_DIR/build.ok" ] && [ -f "$CLASS_DIR/nro/models/server/ServerManager.class" ]; then
@@ -266,9 +393,11 @@ start_server() {
   nohup java $jvm_opts -cp "$cp" nro.models.server.ServerManager > "$SERVER_LOG" 2>&1 &
   printf '%s\n' "$!" > "$SERVER_PID"
   wait_server_ready
+  start_panel
 }
 
 stop_server() {
+  stop_panel
   if server_alive; then
     local pid
     pid="$(cat "$SERVER_PID")"
@@ -297,6 +426,15 @@ status() {
     say "Server game: STOPPED"
   fi
   if mysql_alive; then say "MariaDB: RUNNING"; else say "MariaDB: STOPPED"; fi
+  if panel_alive; then
+    if curl -fsS --max-time 2 "http://127.0.0.1:$PANEL_PORT/api/v1/system/health" >/dev/null 2>&1; then
+      say "Panel web: READY (PID $(cat "$PANEL_PID"), http://127.0.0.1:$PANEL_PORT)"
+    else
+      say "Panel web: STARTING (PID $(cat "$PANEL_PID"))"
+    fi
+  else
+    say "Panel web: STOPPED"
+  fi
 }
 
 setup() {
@@ -307,6 +445,7 @@ setup() {
   ensure_database_user
   import_database
   build_server
+  setup_panel
   touch "$STATE_DIR/installed"
   say "Cài đặt lần đầu hoàn tất."
 }
@@ -345,13 +484,23 @@ main() {
     rebuild)
       NRO_REBUILD=1 build_server
       ;;
+    panel)
+      ensure_layout
+      install_dependencies
+      start_database
+      ensure_database_user
+      import_database
+      setup_panel
+      start_panel
+      ;;
     *)
       cat <<'USAGE'
-Sử dụng: ./nro.sh [setup|start|restart|stop|status|console|rebuild]
+Sử dụng: ./nro.sh [setup|start|restart|stop|status|console|rebuild|panel]
 
-Mặc định: tự cài lần đầu nếu cần, sau đó khởi động server game.
+Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel web.
+Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT).
 Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
-NRO_JVM_OPTS, NRO_REBUILD=1.
+NRO_PANEL_PORT, PANEL_ADMIN_PASSWORD, JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1.
 USAGE
       exit 2
       ;;

@@ -42,6 +42,7 @@
 - [Cài đặt một lệnh](#-cài-đặt-một-lệnh)
 - [Luồng khởi động](#-luồng-khởi-động)
 - [Vận hành server](#-vận-hành-server)
+- [Panel web quản trị](#-panel-web-quản-trị)
 - [Cấu hình database và JVM](#-cấu-hình-database-và-jvm)
 - [Kết nối từ thiết bị khác](#-kết-nối-từ-thiết-bị-khác)
 - [Trạng thái khởi động](#-trạng-thái-khởi-động)
@@ -52,7 +53,7 @@
 
 ## 🌌 Tổng quan
 
-Repository này đóng gói server Java Ngọc Rồng Online từ mã nguồn `cc2.rar` và cơ sở dữ liệu SQL do người dùng cung cấp. Bản Termux Edition ưu tiên **game server Java + MariaDB cục bộ**, phù hợp với thiết bị Android có đủ dung lượng và RAM. Panel Node.js trong mã nguồn gốc không được bật mặc định để giảm mức tiêu thụ tài nguyên.
+Repository này đóng gói server Java Ngọc Rồng Online từ mã nguồn `cc2.rar`, cơ sở dữ liệu SQL và **panel web quản trị Node.js/React**. Bản Termux Edition vận hành game server Java + MariaDB cục bộ, đồng thời tự build và khởi động panel production trên cùng một cổng HTTP sau khi game server đạt `READY`.
 
 Hình ảnh phía trên là banner gameplay mẫu của dự án. Tất cả dữ liệu game, hình ảnh và mã nguồn cần được người triển khai tự xác minh quyền sử dụng trước khi công khai hoặc mở server cho người khác.
 
@@ -60,13 +61,13 @@ Hình ảnh phía trên là banner gameplay mẫu của dự án. Tất cả d�
 
 | Thành phần | Trải nghiệm triển khai |
 |---|---|
-| **One-command installer** | Tải archive public, cài dependency, setup database, build Java và chạy server mà không cần nhập GitHub username/password. |
+| **One-command installer** | Tải archive public, cài dependency, setup database, build Java + React panel và chạy toàn bộ dịch vụ mà không cần nhập GitHub username/password. |
 | **Java fallback** | Tự thử `openjdk-21`, `openjdk-17`, rồi `openjdk` để phù hợp với các mirror Termux khác nhau. |
 | **MariaDB-native JDBC** | Dùng MariaDB Connector/J 3.5.10 và `jdbc:mariadb://`, tránh lỗi collation của MySQL Connector/J 5.1 cũ. |
 | **Database an toàn hơn** | Database mặc định là `ngocrong`; SQL chỉ import một lần với marker checksum để tránh ghi đè dữ liệu người chơi khi restart. |
 | **Startup observable** | Phân biệt `STARTING` và `READY`, lưu log trong `.runtime/`, chờ marker readiness thay vì chỉ kiểm tra PID. |
 | **Android case-safe assets** | Chuẩn hóa asset map `data/map/tile_set_info`, tránh lỗi phân biệt chữ hoa/thường trên Linux/Android. |
-| **Runtime-friendly** | JVM mặc định giới hạn hợp lý cho điện thoại; hỗ trợ `status`, `stop`, `restart`, `console` và `rebuild`. |
+| **Runtime-friendly** | JVM mặc định giới hạn hợp lý cho điện thoại; panel và game có PID/log riêng, hỗ trợ `status`, `stop`, `restart`, `console` và `rebuild`. |
 
 ## 🚀 Cài đặt một lệnh
 
@@ -89,7 +90,8 @@ pkg update -y && pkg install -y curl tar && mkdir -p "$HOME/ngocrong-termux" && 
 | 5 | Import SQL | 53 bảng và dữ liệu game được nạp một lần |
 | 6 | Build Java | Toàn bộ source được biên dịch với `--release 17` |
 | 7 | Tải dữ liệu game | Database, map, item, mob, NPC và service được khởi tạo |
-| 8 | Sẵn sàng phục vụ | Xuất hiện dòng `[NRO][READY]` và marker `.runtime/server.ready` |
+| 8 | Setup panel | `npm run db:sync` tạo schema panel, build React và lưu mật khẩu admin cục bộ |
+| 9 | Sẵn sàng phục vụ | Xuất hiện dòng `[NRO][READY]` và panel phản hồi tại `http://127.0.0.1:3001` |
 
 Sau lần cài đầu, những lần sau chỉ cần chạy:
 
@@ -126,8 +128,10 @@ cd ~/ngocrong-termux && bash nro.sh
                        ▼
              .runtime/server.ready
                        │
-                       ▼
-                 [NRO][READY]
+                       ├───────────────┐
+                       ▼               ▼
+                 [NRO][READY]   Panel API + React
+                                      :3001
 ```
 
 ## 🛠️ Vận hành server
@@ -142,6 +146,8 @@ cd ~/ngocrong-termux && bash nro.sh
 | `bash nro.sh restart` | Dừng và khởi động lại server |
 | `bash nro.sh console` | Chạy foreground để xem log trực tiếp |
 | `bash nro.sh rebuild` | Biên dịch lại mã Java |
+| `bash nro.sh panel` | Setup và khởi động riêng panel web |
+| `cat .runtime/panel-admin-password` | Xem mật khẩu admin panel được sinh tự động |
 
 Theo dõi log trực tiếp:
 
@@ -155,6 +161,14 @@ Kiểm tra trạng thái readiness:
 cd ~/ngocrong-termux && bash nro.sh status
 ls -l ~/ngocrong-termux/.runtime/server.ready
 ```
+
+## 🖥️ Panel web quản trị
+
+Sau khi game server đạt `READY`, launcher tự setup và khởi động panel web production. Mở trình duyệt trên điện thoại tại [http://127.0.0.1:3001](http://127.0.0.1:3001). Nếu truy cập từ thiết bị khác trong cùng Wi-Fi, dùng địa chỉ LAN của điện thoại, ví dụ `http://192.168.1.25:3001`.
+
+Panel API và giao diện React dùng chung cổng `3001`; API nằm dưới `/api/v1`, còn WebSocket metrics dùng `/ws/metrics`. Lần setup đầu tự chạy `npm install`, `npm run db:sync` và `npm run build`. Tài khoản là `admin`; mật khẩu ngẫu nhiên được lưu tại `.runtime/panel-admin-password`. Xem mật khẩu bằng `cat .runtime/panel-admin-password` rồi đổi mật khẩu sau khi đăng nhập nếu giao diện hỗ trợ.
+
+Log panel nằm tại `.runtime/panel.log`. Trạng thái panel được kiểm tra bằng endpoint health và hiển thị trong `bash nro.sh status`. Có thể đổi cổng bằng `NRO_PANEL_PORT=3002 bash nro.sh restart`; khi đó truy cập panel tại `http://127.0.0.1:3002`.
 
 ## 🗄️ Cấu hình database và JVM
 
@@ -199,6 +213,7 @@ Không nên mở cổng game trực tiếp ra Internet khi chưa có firewall, x
 | `READY` | Server đã tải xong dữ liệu và sẵn sàng nhận kết nối | Có `.runtime/server.ready` |
 | `STOPPED` | Process Java không còn tồn tại | `bash nro.sh restart` |
 | `MariaDB: RUNNING` | Database local đang phục vụ connection | `tail -n 100 .runtime/mariadb.log` |
+| `Panel web: READY` | API health phản hồi và React build đang được phục vụ | `http://127.0.0.1:3001` |
 
 > Chỉ xem server là hoạt động hoàn chỉnh khi có dòng `[NRO][READY]`. Việc process Java còn PID không đồng nghĩa dữ liệu game đã tải xong.
 
@@ -255,6 +270,10 @@ Nếu server dừng ngay khi khởi động, chạy foreground để xem stack t
 cd ~/ngocrong-termux && bash nro.sh console
 ```
 
+### Panel không khởi động được
+
+Game server không bị dừng nếu panel lỗi. Hãy xem `.runtime/panel.log`; nếu thiếu Node.js/npm, chạy `pkg install -y nodejs`, rồi chạy `bash nro.sh panel`. Nếu panel build lỗi do dependency, xóa riêng `panel/api/node_modules` và `panel/web/node_modules`, sau đó chạy lại `bash nro.sh panel`; không xóa `.runtime/` vì thư mục này chứa mật khẩu panel, trạng thái import và log.
+
 ### SQL bị import lại
 
 SQL chỉ được import khi chưa có marker `.runtime/sql-imported.sha256`. Cơ chế này tránh `DROP TABLE` và import lại mỗi lần restart. Không xóa `.runtime/` hoặc data directory nếu chưa chủ động sao lưu database.
@@ -267,7 +286,7 @@ Ngoc-rong-Termux-Offline/
 │   └── ngocrong-world.jpg       # Banner gameplay README
 ├── data/                        # Map, item, mob, NPC và game assets
 ├── lib/                         # JAR runtime, gồm MariaDB Connector/J 3.5.10
-├── panel/                       # Panel gốc, không bật mặc định trên Termux
+├── panel/                       # API Node.js + React web panel, tự build/start trên Termux
 ├── sql/
 │   └── ngocrong.sql             # Schema + dữ liệu game
 ├── src/                         # Java source
@@ -288,6 +307,7 @@ Ngoc-rong-Termux-Offline/
 | Map asset | `data/map/tile_set_info` tồn tại, đúng case và có trong branch `main` |
 | Readiness | `ServerManager` tạo `.runtime/server.ready` sau khi hoàn tất startup |
 | Runtime | Dữ liệu game khoảng 963 MB; cần tối thiểu khoảng 2–3 GB trống để tải/giải nén/build |
+| Panel | API + React production dùng cổng 3001, PID/log riêng; tự khởi động sau game server |
 
 Các kiểm thử trong sandbox không thay thế kiểm thử trực tiếp trên từng thiết bị Android. Kết quả thực tế còn phụ thuộc phiên bản Termux, mirror package, kiến trúc CPU, dung lượng trống, RAM và chính sách Android đối với tiến trình nền.
 

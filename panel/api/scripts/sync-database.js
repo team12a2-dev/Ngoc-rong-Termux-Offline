@@ -64,7 +64,8 @@ async function main() {
   }
 
   // Sync panel_servers from Config.properties
-  const hash = await bcrypt.hash('admin123', 10);
+  const adminPassword = process.env.PANEL_ADMIN_PASSWORD || 'admin123';
+  const hash = await bcrypt.hash(adminPassword, 10);
   await conn.query(
     `INSERT INTO panel_users (id, username, password_hash, role_id)
      VALUES (1, 'admin', ?, 1)
@@ -99,7 +100,7 @@ async function main() {
   );
 
   console.log('✓ panel_servers synced from Config.properties');
-  console.log(`✓ Admin user: admin / admin123`);
+  console.log('✓ Admin user: admin (password is stored by the Termux launcher)');
   console.log(`✓ Agent URL: ${agentConfig.url}`);
 
   // Write .env suggestion
