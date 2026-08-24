@@ -274,7 +274,7 @@ start_panel() {
     warn "Node.js/npm không khả dụng; bỏ qua panel."
     return 0
   fi
-  if [ ! -f "$PANEL_API_ROOT/.env" ] || [ ! -f "$PANEL_WEB_ROOT/dist/index.html" ]; then
+  if ! panel_dependencies_ready || [ ! -f "$PANEL_API_ROOT/.env" ] || [ ! -f "$PANEL_WEB_ROOT/dist/index.html" ]; then
     setup_panel
   fi
   if ! [ -f "$PANEL_API_ROOT/.env" ] || ! [ -f "$PANEL_WEB_ROOT/dist/index.html" ]; then
@@ -375,10 +375,12 @@ start_server() {
   if server_alive; then
     if server_ready; then
       say "Server game đang READY với PID $(cat "$SERVER_PID")."
+      start_panel
       return 0
     fi
     say "Server game đã có PID $(cat "$SERVER_PID"); tiếp tục chờ tải dữ liệu."
     wait_server_ready
+    start_panel
     return 0
   fi
   rm -f "$STATE_DIR/server.ready"
