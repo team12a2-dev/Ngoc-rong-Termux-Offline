@@ -1,67 +1,166 @@
-# Ngọc Rồng Online – Termux launcher
+<div align="center">
+  <img src="assets/ngocrong-world.jpg" alt="Ngọc Rồng Online - Termux Edition" width="100%" />
+</div>
 
-Repository này đóng gói mã nguồn Java Ngọc Rồng Online từ gói `cc2.rar` và cơ sở dữ liệu `ngocrong10.06.sql` do người dùng cung cấp. Mục tiêu của bản triển khai là chạy **game server Java và MariaDB cục bộ trên Android/Termux** bằng một launcher duy nhất. Nguồn ban đầu được tải từ [gói mã nguồn Google Drive](https://drive.google.com/file/d/1-kbG0JBo67gPBiKaTMU-1QI1wM4u_8ow/view?usp=drivesdk) và [file SQL Google Drive](https://drive.google.com/file/d/10gjlN69CMH9sW7ful1cc5lx5PTncm_-I/view?usp=drivesdk).
+<br />
 
-> **Lệnh vận hành chính:** sau khi chạy one-command installer hoặc tải archive repository, chạy `bash nro.sh`. Lần đầu lệnh này tự cài dependency, khởi tạo MariaDB, tạo database `ngocrong`, import SQL, biên dịch Java và khởi động server. Những lần sau cùng lệnh đó chỉ khởi động server đã setup.
+<div align="center">
 
-## Thành phần đã được chuẩn hóa
+# Ngọc Rồng Online — Termux Edition
 
-| Thành phần | Trạng thái | Mô tả |
-|---|---:|---|
-| Mã Java | Đã kiểm tra | 550 tệp nguồn, entry point `nro.models.server.ServerManager`, target Java 17 |
-| Thư viện | Đã giữ lại | 14 JAR trong `lib/`, gồm MariaDB Connector/J 3.5.10; classpath được launcher ghép tự động |
-| Dữ liệu game | Đã giữ lại | Khoảng 85.152 tệp trong `data/`, tổng dung lượng xấp xỉ 963 MB |
-| SQL | Đã chuẩn hóa | `sql/ngocrong.sql`, 53 bảng và 9.097 lệnh insert được kiểm tra import |
-| Database | Tự động | MariaDB cục bộ, mặc định database là `ngocrong` |
-| Launcher | Đã viết mới | `nro.sh` hỗ trợ `setup`, `start`, `restart`, `stop`, `status`, `console`, `rebuild` |
-| Cấu hình | An toàn hơn | `Config.properties` được tạo cục bộ từ `Config.properties.example` và bị Git bỏ qua |
+### Game server Java chạy trực tiếp trên Android với Termux và MariaDB cục bộ
 
-## Bản cập nhật đã hoàn tất
+<p>
+  <img src="https://img.shields.io/badge/Java-17%2B-ED8B00?logo=openjdk&logoColor=white" alt="Java 17+" />
+  <img src="https://img.shields.io/badge/MariaDB-10%2B-003545?logo=mariadb&logoColor=white" alt="MariaDB" />
+  <img src="https://img.shields.io/badge/Android-Termux-00AF9C?logo=android&logoColor=white" alt="Android Termux" />
+  <img src="https://img.shields.io/badge/Install-One%20Command-2EA44F?logo=gnu-bash&logoColor=white" alt="One command install" />
+  <img src="https://img.shields.io/github/commit-activity/m/team12a2-dev/Ngoc-rong-Termux-Offline?label=development&logo=github" alt="Development activity" />
+</p>
 
-| Hạng mục | Nội dung cập nhật |
+<p>
+  <a href="#-cài-đặt-một-lệnh">Cài đặt</a> ·
+  <a href="#-vận-hành-server">Vận hành</a> ·
+  <a href="#-trạng-thái-khởi-động">Trạng thái</a> ·
+  <a href="#-xử-lý-sự-cố">Xử lý sự cố</a>
+</p>
+
+</div>
+
+> **Mục tiêu:** biến mã nguồn Ngọc Rồng Online Java và cơ sở dữ liệu game thành một gói triển khai Termux dễ cài đặt, có log rõ ràng, tự khởi tạo MariaDB và chỉ báo thành công sau khi server thật sự đạt trạng thái `READY`.
+
+<div align="center">
+
+**[Bắt đầu cài đặt ngay](#-cài-đặt-một-lệnh)** · **[Xem repository](https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline)** · **[Đọc hướng dẫn đầy đủ](#-mục-lục)**
+
+</div>
+
+## 📚 Mục lục
+
+- [Tổng quan](#-tổng-quan)
+- [Điểm nổi bật](#-điểm-nổi-bật)
+- [Cài đặt một lệnh](#-cài-đặt-một-lệnh)
+- [Luồng khởi động](#-luồng-khởi-động)
+- [Vận hành server](#-vận-hành-server)
+- [Cấu hình database và JVM](#-cấu-hình-database-và-jvm)
+- [Kết nối từ thiết bị khác](#-kết-nối-từ-thiết-bị-khác)
+- [Trạng thái khởi động](#-trạng-thái-khởi-động)
+- [Xử lý sự cố](#-xử-lý-sự-cố)
+- [Cấu trúc repository](#-cấu-trúc-repository)
+- [Kiểm thử và thông số](#-kiểm-thử-và-thông-số)
+- [Lưu ý vận hành](#-lưu-ý-vận-hành)
+
+## 🌌 Tổng quan
+
+Repository này đóng gói server Java Ngọc Rồng Online từ mã nguồn `cc2.rar` và cơ sở dữ liệu SQL do người dùng cung cấp. Bản Termux Edition ưu tiên **game server Java + MariaDB cục bộ**, phù hợp với thiết bị Android có đủ dung lượng và RAM. Panel Node.js trong mã nguồn gốc không được bật mặc định để giảm mức tiêu thụ tài nguyên.
+
+Hình ảnh phía trên là banner gameplay mẫu của dự án. Tất cả dữ liệu game, hình ảnh và mã nguồn cần được người triển khai tự xác minh quyền sử dụng trước khi công khai hoặc mở server cho người khác.
+
+## ✨ Điểm nổi bật
+
+| Thành phần | Trải nghiệm triển khai |
 |---|---|
-| Cài đặt | Chuyển sang tải archive public bằng một lệnh `curl | tar`, không cần GitHub username/password hoặc thao tác `git clone` thủ công. |
-| Java trên Termux | Launcher tự thử `openjdk-21`, `openjdk-17`, rồi `openjdk`; nếu mirror không có JDK, log đầy đủ tại `.runtime/java-install.log`. |
-| Database | Thay MySQL Connector/J 5.1.23 bằng MariaDB Connector/J 3.5.10, dùng `org.mariadb.jdbc.Driver` và `jdbc:mariadb://`; đã kiểm thử kết nối MariaDB 10.11 qua Hikari/LocalManager. |
-| Khởi động | Server tạo `.runtime/server.ready` sau khi hoàn tất tải database, map, item, mob, NPC và service; launcher phân biệt `STARTING` với `READY` và chờ tối đa 180 giây. |
-| Asset bản đồ | Chuẩn hóa `data/map/tile_set_Info` thành `data/map/tile_set_info`, đúng với đường dẫn Java trên Android/Linux phân biệt hoa thường. Launcher kiểm tra asset này trước khi build. |
-| Chẩn đoán | Log cài Java và log server được lưu trong `.runtime/`, không ghi file tạm vào `/tmp` bị hạn chế quyền trên một số Termux. |
+| **One-command installer** | Tải archive public, cài dependency, setup database, build Java và chạy server mà không cần nhập GitHub username/password. |
+| **Java fallback** | Tự thử `openjdk-21`, `openjdk-17`, rồi `openjdk` để phù hợp với các mirror Termux khác nhau. |
+| **MariaDB-native JDBC** | Dùng MariaDB Connector/J 3.5.10 và `jdbc:mariadb://`, tránh lỗi collation của MySQL Connector/J 5.1 cũ. |
+| **Database an toàn hơn** | Database mặc định là `ngocrong`; SQL chỉ import một lần với marker checksum để tránh ghi đè dữ liệu người chơi khi restart. |
+| **Startup observable** | Phân biệt `STARTING` và `READY`, lưu log trong `.runtime/`, chờ marker readiness thay vì chỉ kiểm tra PID. |
+| **Android case-safe assets** | Chuẩn hóa asset map `data/map/tile_set_info`, tránh lỗi phân biệt chữ hoa/thường trên Linux/Android. |
+| **Runtime-friendly** | JVM mặc định giới hạn hợp lý cho điện thoại; hỗ trợ `status`, `stop`, `restart`, `console` và `rebuild`. |
 
-Repository không đưa `build/`, `dist/`, `node_modules/`, log, backup hoặc cấu hình mật khẩu vào Git. Việc loại bỏ các artefact này làm giảm kích thước clone và tránh phát hành thông tin cục bộ. GitHub áp dụng giới hạn 100 MB cho một Git object và khuyến nghị repository không vượt quá 10 GB trên đĩa; vì vậy các file runtime/build không nên commit vào repository.[^1]
+## 🚀 Cài đặt một lệnh
 
-## Cài đặt trên Termux
+> Repository hiện được phát hành public. Lệnh dưới đây không dùng `git clone`, không yêu cầu GitHub username/password và không cần thao tác setup thủ công từng bước.
 
-Hãy dùng Termux từ nguồn đáng tin cậy, cấp quyền bộ nhớ nếu cần, rồi chạy đúng **một lệnh** sau. Vì repository đang public, lệnh này không yêu cầu GitHub username/password.
+Mở **Termux chính thức**, dán nguyên một dòng lệnh sau rồi nhấn Enter:
 
 ```bash
 pkg update -y && pkg install -y curl tar && mkdir -p "$HOME/ngocrong-termux" && curl -fL --retry 3 "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz" | tar -xz --strip-components=1 -C "$HOME/ngocrong-termux" && cd "$HOME/ngocrong-termux" && bash nro.sh
 ```
 
-Lệnh trên tải archive public trực tiếp từ GitHub, giải nén vào `~/ngocrong-termux`, rồi gọi `bash nro.sh`. Lệnh `bash nro.sh` sẽ tự nhận diện đây là lần cài đầu. Khi khởi động, launcher chờ marker `.runtime/server.ready` được Java server tạo sau khi tải xong database, map, item, mob, NPC và các service; vì vậy dòng `Server đã READY` mới là mốc server sẵn sàng, không chỉ là mốc PID Java đã tồn tại. Launcher cài `git`, `mariadb` và tự thử các package Java theo thứ tự `openjdk-21`, `openjdk-17`, `openjdk`, đồng thời dùng MariaDB Connector/J 3.5.10 trong `lib/` thay cho MySQL Connector/J 5.1 cũ. Launcher khởi tạo data directory MariaDB trong `$PREFIX/var/lib/mysql`, khởi động database qua Unix socket, tạo database `ngocrong`, tạo user nội bộ ngẫu nhiên, import `sql/ngocrong.sql`, biên dịch Java 17 và chạy server nền. Java 21 vẫn tương thích vì mã nguồn được biên dịch với `javac --release 17`. Termux sử dụng mô hình quản lý gói kiểu `apt/pkg`; gói MariaDB là lựa chọn phù hợp với SQL dump MySQL/MariaDB này.[^2]
+### Lần chạy đầu sẽ tự động làm gì?
 
-Sau lần cài đầu, nếu chỉ muốn khởi động lại server, dùng đúng một lệnh:
+| Bước | Tác vụ | Kết quả mong đợi |
+|---:|---|---|
+| 1 | Cập nhật package Termux | Kho package sẵn sàng |
+| 2 | Cài Java và MariaDB | Có `java`, `javac`, `mariadb`, `mariadbd` |
+| 3 | Khởi tạo MariaDB local | Data directory nằm trong `$PREFIX/var/lib/mysql` |
+| 4 | Tạo database/user | Database `ngocrong` và user cục bộ được tạo |
+| 5 | Import SQL | 53 bảng và dữ liệu game được nạp một lần |
+| 6 | Build Java | Toàn bộ source được biên dịch với `--release 17` |
+| 7 | Tải dữ liệu game | Database, map, item, mob, NPC và service được khởi tạo |
+| 8 | Sẵn sàng phục vụ | Xuất hiện dòng `[NRO][READY]` và marker `.runtime/server.ready` |
+
+Sau lần cài đầu, những lần sau chỉ cần chạy:
 
 ```bash
 cd ~/ngocrong-termux && bash nro.sh
 ```
 
-## Các lệnh vận hành
+## 🔄 Luồng khởi động
+
+```text
+┌─────────────────┐
+│ Termux one-line │
+│ curl + tar      │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐     ┌──────────────────────┐
+│ nro.sh          │────▶│ Java fallback        │
+│ setup/start     │     │ openjdk-21/17/openjdk│
+└────────┬────────┘     └──────────────────────┘
+         │
+         ▼
+┌─────────────────┐     ┌──────────────────────┐
+│ MariaDB local   │────▶│ database: ngocrong   │
+│ socket + user   │     │ SQL import once       │
+└────────┬────────┘     └──────────────────────┘
+         │
+         ▼
+┌──────────────────────────────────────────────┐
+│ ServerManager                                │
+│ load database → map/assets → services        │
+└──────────────────────┬───────────────────────┘
+                       │
+                       ▼
+             .runtime/server.ready
+                       │
+                       ▼
+                 [NRO][READY]
+```
+
+## 🛠️ Vận hành server
 
 | Lệnh | Chức năng |
 |---|---|
-| `bash nro.sh` hoặc `bash nro.sh start` | Tự setup nếu chưa có, sau đó start server nền |
-| `bash nro.sh setup` | Chạy lại toàn bộ quy trình cài đặt/import/build; chỉ dùng khi làm mới môi trường |
-| `bash nro.sh status` | Xem trạng thái `STARTING`, `READY` của game server và MariaDB |
-| `bash nro.sh stop` | Dừng server game, không xóa dữ liệu database |
-| `bash nro.sh restart` | Dừng rồi khởi động lại server |
-| `bash nro.sh rebuild` | Biên dịch lại Java từ `src/` |
-| `bash nro.sh console` | Chạy Java ở foreground để xem log trực tiếp |
+| `bash nro.sh` | Tự setup nếu chưa có, sau đó chạy server nền |
+| `bash nro.sh setup` | Chạy lại dependency/database/import/build theo chủ đích |
+| `bash nro.sh start` | Khởi động server và chờ trạng thái `READY` |
+| `bash nro.sh status` | Hiển thị `STARTING`, `READY` hoặc `STOPPED` cùng PID/MariaDB |
+| `bash nro.sh stop` | Dừng server game, không xóa database |
+| `bash nro.sh restart` | Dừng và khởi động lại server |
+| `bash nro.sh console` | Chạy foreground để xem log trực tiếp |
+| `bash nro.sh rebuild` | Biên dịch lại mã Java |
 
-SQL chỉ được import khi chưa có marker `.runtime/sql-imported.sha256`. Cơ chế này bảo vệ dữ liệu người chơi khỏi bị `DROP TABLE` và import lại mỗi lần start. Muốn tạo database mới hoàn toàn, hãy dừng server, xóa database hoặc data directory theo đúng chủ đích, rồi chạy lại `setup`.
+Theo dõi log trực tiếp:
 
-## Cấu hình database và bộ nhớ
+```bash
+cd ~/ngocrong-termux && tail -f .runtime/server.log
+```
 
-Mặc định launcher tạo database `ngocrong`, user `ngocrong`, host `127.0.0.1`, port `3306`, còn mật khẩu ngẫu nhiên được lưu trong `.runtime/db-password` với quyền file hạn chế. Java server nhận các giá trị tương ứng trong `Config.properties`; file này không được commit. Có thể ghi đè trước lần chạy bằng biến môi trường:
+Kiểm tra trạng thái readiness:
+
+```bash
+cd ~/ngocrong-termux && bash nro.sh status
+ls -l ~/ngocrong-termux/.runtime/server.ready
+```
+
+## 🗄️ Cấu hình database và JVM
+
+Mặc định launcher tạo database **`ngocrong`**, host `127.0.0.1`, port `3306`, user `ngocrong` và mật khẩu ngẫu nhiên được lưu trong `.runtime/db-password`. File `Config.properties` được tạo cục bộ từ `Config.properties.example` và không được commit lên GitHub.
+
+Có thể ghi đè cấu hình database/game port trước khi chạy:
 
 ```bash
 export NRO_DB_NAME=ngocrong
@@ -72,49 +171,147 @@ export NRO_GAME_PORT=14445
 bash nro.sh
 ```
 
-Launcher mặc định dùng cấu hình JVM tiết kiệm RAM cho Android: `Xms64m`, `Xmx1024m` và G1GC. Nếu điện thoại có nhiều RAM hơn, có thể truyền tham số riêng:
+MariaDB Connector/J 3.5.10 được dùng với driver `org.mariadb.jdbc.Driver` và URL `jdbc:mariadb://`. Launcher cũng tự nâng cấp cấu hình cũ dùng `com.mysql.jdbc.Driver` để tránh lỗi `buildCollationMapping`/`NullPointerException` khi MariaDB trả về metadata collation.
+
+JVM mặc định dùng cấu hình tiết kiệm RAM:
+
+```text
+Xms64m · Xmx1024m · G1GC · MaxMetaspaceSize=160m
+```
+
+Nếu điện thoại có nhiều RAM hơn, có thể truyền JVM options riêng:
 
 ```bash
 NRO_JVM_OPTS='-server -Dfile.encoding=UTF-8 -Xms128m -Xmx1536m -XX:MaxMetaspaceSize=192m -Xss512k -XX:+UseG1GC' bash nro.sh restart
 ```
 
-Không nên đặt `Xmx` cao hơn phần RAM thực tế còn trống trên điện thoại. Khi Android thu hồi tiến trình Termux, server có thể dừng; đây là giới hạn của việc host game trực tiếp trên thiết bị di động, không phải lỗi compile.
+## 🌐 Kết nối từ thiết bị khác
 
-## Cấu hình để máy khác kết nối
+Mặc định server bind về `127.0.0.1` để không mở cổng ra mạng ngoài. Để client trong cùng Wi-Fi kết nối, sửa `server.ip` và dòng `server.sv1` trong `Config.properties` thành địa chỉ LAN của điện thoại, ví dụ `192.168.1.25`, đồng thời cho phép cổng game `14445` trong mạng nội bộ.
 
-Mặc định `server.ip=127.0.0.1` nhằm tránh mở server ra mạng ngoài. Để client trong cùng mạng Wi-Fi kết nối, sửa `server.ip` và dòng `server.sv1` trong `Config.properties` thành địa chỉ LAN của điện thoại, ví dụ `192.168.1.25`, đồng thời cho phép cổng game `14445` trên mạng nội bộ. Không nên mở cổng này trực tiếp ra Internet nếu chưa có firewall, xác thực và biện pháp chống lạm dụng.
+Không nên mở cổng game trực tiếp ra Internet khi chưa có firewall, xác thực và biện pháp chống lạm dụng. Với mạng di động, NAT của nhà mạng thường ngăn kết nối trực tiếp; có thể cần VPN mesh hoặc một máy chủ trung gian.
 
-Khi dùng mạng di động, địa chỉ IP thường bị NAT nên thiết bị khác không thể kết nối trực tiếp. Có thể cần VPN mesh hoặc một máy chủ trung gian; phần đó nằm ngoài launcher Termux hiện tại.
+## 🟢 Trạng thái khởi động
 
-## Kiểm thử đã thực hiện
+| Trạng thái | Ý nghĩa | Cách kiểm tra |
+|---|---|---|
+| `STARTING` | Java còn đang tải database, map, item, mob, NPC hoặc service | `bash nro.sh status` |
+| `READY` | Server đã tải xong dữ liệu và sẵn sàng nhận kết nối | Có `.runtime/server.ready` |
+| `STOPPED` | Process Java không còn tồn tại | `bash nro.sh restart` |
+| `MariaDB: RUNNING` | Database local đang phục vụ connection | `tail -n 100 .runtime/mariadb.log` |
 
-Bản triển khai đã được kiểm tra trong môi trường Linux tương đương runtime Java/MariaDB của Termux. Toàn bộ 550 file Java biên dịch thành công bằng `javac --release 17 -proc:none`; MariaDB Connector/J 3.5.10 mở connection thành công tới MariaDB 10.11 và Hikari/LocalManager lấy connection thành công. SQL import thành công với 53 bảng, trong đó các bảng kiểm tra có 3 account, 2.001 item template và 169 map template. Asset `data/map/tile_set_info` đã được kiểm tra đúng tên và có trong branch `main`. `ServerManager` có log `STARTING/READY`, marker readiness và launcher chờ marker thay vì chỉ kiểm tra PID; lỗi đọc stdin khi chạy `nohup` đã được sửa bằng điều kiện `Scanner.hasNextLine()`.
+> Chỉ xem server là hoạt động hoàn chỉnh khi có dòng `[NRO][READY]`. Việc process Java còn PID không đồng nghĩa dữ liệu game đã tải xong.
 
-Kết quả trên sandbox không thay thế kiểm thử trực tiếp trên từng thiết bị Android. Các khác biệt thường gặp gồm phiên bản Termux, dung lượng trống, kiến trúc CPU, quyền truy cập bộ nhớ và mức RAM còn trống.
+## 🧯 Xử lý sự cố
 
-## Xử lý sự cố
+### Không tìm thấy OpenJDK
 
-Nếu gặp lỗi không tìm thấy package Java, chạy `pkg search openjdk`. Nếu kho không liệt kê package nào, chạy `termux-change-repo`, chọn một mirror Main ổn định, rồi chạy `pkg update -y && bash nro.sh`. Launcher mới sẽ tự thử `openjdk-21`, `openjdk-17` và `openjdk`. Nếu MariaDB không khởi động, xem log bằng `tail -n 100 .runtime/mariadb.log`; kiểm tra port `3306` có bị dịch vụ khác chiếm hay không và đặt `NRO_DB_PORT` sang cổng khác. Nếu gặp stack trace `com.mysql.jdbc.ConnectionImpl.buildCollationMapping`, hãy cập nhật lại source bằng one-command installer để nhận MariaDB Connector/J 3.5.10 mới.
-
-Nếu server đang ở trạng thái `STARTING`, theo dõi tiến độ bằng `tail -f .runtime/server.log` hoặc chạy `bash nro.sh status`. Nếu quá 180 giây không có `READY`, xem 160 dòng cuối bằng `tail -n 160 .runtime/server.log`. Nếu server chạy nhưng client không kết nối, kiểm tra `server.port`, `server.ip`, `server.sv1`, địa chỉ LAN của điện thoại và firewall/router. Nếu server bị dừng ngay, dùng `bash nro.sh console` để xem stack trace đầy đủ thay vì chạy nền. Nếu gặp `FileNotFoundException: data/map/tile_set_info`, nguyên nhân là asset map bị đặt sai chữ hoa/thường; launcher mới kiểm tra file này trước khi build và repository đã chuẩn hóa tên thành `data/map/tile_set_info` để Android/Linux đọc đúng.
-
-Nếu cần biên dịch lại sau khi cập nhật source từ Git, dùng:
+Nếu gặp `Unable to locate package openjdk-17`, launcher sẽ tự thử `openjdk-21` và `openjdk`. Nếu cả ba package đều không có, kiểm tra mirror:
 
 ```bash
-git pull --ff-only
-NRO_REBUILD=1 bash nro.sh rebuild
-bash nro.sh restart
+pkg search openjdk
+termux-change-repo
+pkg update -y
 ```
 
-## Ghi chú về panel
+Sau đó chạy lại one-command installer. Log chi tiết các lần thử nằm tại:
 
-Mã nguồn gốc có `panel/` gồm API Node.js và web frontend. Bản launcher một lệnh ưu tiên game server Java + MariaDB để giảm RAM và số lượng dịch vụ trên Android. Panel không được khởi động tự động trong `nro.sh`; có thể phát triển thêm một profile `--panel` sau khi xác nhận thiết bị có đủ RAM và người dùng muốn dùng giao diện quản trị. Các script `.bat` Windows từ gói gốc không được sử dụng trong Termux.
+```bash
+cat ~/ngocrong-termux/.runtime/java-install.log
+```
 
-## Bản quyền và trách nhiệm vận hành
+### `/tmp/...: Permission denied`
 
-Mã nguồn, dữ liệu game, hình ảnh và nội dung SQL trong repository có thể thuộc các chủ sở hữu khác nhau. Người triển khai cần tự xác minh quyền sử dụng, quyền phát hành và điều khoản của client trước khi công khai repository hoặc mở server cho người khác. Không commit mật khẩu, token, private key hoặc dữ liệu người chơi thật.
+Launcher không còn ghi log Java vào `/tmp`. Log cài Java được lưu tại `.runtime/java-install.log`, còn log game nằm tại `.runtime/server.log`.
 
-## Tài liệu tham khảo
+### Lỗi JDBC collation
 
-[^1]: [GitHub Docs – Repository limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits), nêu giới hạn 100 MB cho một Git object, giới hạn push 2 GB và khuyến nghị quản lý binary lớn bằng Git LFS.
-[^2]: [Termux Wiki – Package Management](https://wiki.termux.com/wiki/Package_Management) và [Termux Wiki – MariaDB](https://wiki.termux.com/wiki/MariaDB), tham khảo mô hình package và MariaDB trên Termux.
+Nếu log có `com.mysql.jdbc.ConnectionImpl.buildCollationMapping` hoặc `TreeMap.put`, hãy cập nhật archive mới để nhận MariaDB Connector/J 3.5.10 và cấu hình `org.mariadb.jdbc.Driver`:
+
+```bash
+cd ~/ngocrong-termux && bash nro.sh stop
+# chạy lại one-command installer ở phần Cài đặt một lệnh
+```
+
+### Thiếu asset map
+
+Nếu gặp `FileNotFoundException: data/map/tile_set_info`, nguyên nhân thường là file bị đặt sai chữ hoa/thường như `tile_set_Info`. Archive mới đã chuẩn hóa tên đúng. Kiểm tra:
+
+```bash
+ls -l ~/ngocrong-termux/data/map/tile_set_info
+```
+
+### Server timeout khi chờ READY
+
+Nếu quá 180 giây chưa có `READY`, xem log cuối:
+
+```bash
+cd ~/ngocrong-termux && tail -n 160 .runtime/server.log
+```
+
+Nếu server dừng ngay khi khởi động, chạy foreground để xem stack trace đầy đủ:
+
+```bash
+cd ~/ngocrong-termux && bash nro.sh console
+```
+
+### SQL bị import lại
+
+SQL chỉ được import khi chưa có marker `.runtime/sql-imported.sha256`. Cơ chế này tránh `DROP TABLE` và import lại mỗi lần restart. Không xóa `.runtime/` hoặc data directory nếu chưa chủ động sao lưu database.
+
+## 🗂️ Cấu trúc repository
+
+```text
+Ngoc-rong-Termux-Offline/
+├── assets/
+│   └── ngocrong-world.jpg       # Banner gameplay README
+├── data/                        # Map, item, mob, NPC và game assets
+├── lib/                         # JAR runtime, gồm MariaDB Connector/J 3.5.10
+├── panel/                       # Panel gốc, không bật mặc định trên Termux
+├── sql/
+│   └── ngocrong.sql             # Schema + dữ liệu game
+├── src/                         # Java source
+├── Config.properties.example    # Cấu hình mẫu không chứa mật khẩu
+├── bootstrap.sh                 # Bootstrap archive public
+├── nro.sh                       # Launcher setup/start/stop/status
+└── README.md                    # Tài liệu triển khai này
+```
+
+## 📊 Kiểm thử và thông số
+
+| Hạng mục | Kết quả |
+|---|---:|
+| Java source | 550 tệp, biên dịch với `javac --release 17 -proc:none` |
+| Database schema | 53 bảng, 9.097 lệnh insert đã kiểm tra |
+| MariaDB JDBC | Connector/J 3.5.10 mở connection thành công tới MariaDB 10.11 |
+| Hikari/LocalManager | Lấy connection thành công với `jdbc:mariadb://` |
+| Map asset | `data/map/tile_set_info` tồn tại, đúng case và có trong branch `main` |
+| Readiness | `ServerManager` tạo `.runtime/server.ready` sau khi hoàn tất startup |
+| Runtime | Dữ liệu game khoảng 963 MB; cần tối thiểu khoảng 2–3 GB trống để tải/giải nén/build |
+
+Các kiểm thử trong sandbox không thay thế kiểm thử trực tiếp trên từng thiết bị Android. Kết quả thực tế còn phụ thuộc phiên bản Termux, mirror package, kiến trúc CPU, dung lượng trống, RAM và chính sách Android đối với tiến trình nền.
+
+## ⚠️ Lưu ý vận hành
+
+Mã nguồn, dữ liệu game, hình ảnh và nội dung SQL trong repository có thể thuộc các chủ sở hữu khác nhau. Người triển khai cần tự xác minh quyền sử dụng, quyền phát hành và điều khoản của client trước khi công khai repository hoặc mở server cho người khác.
+
+Không commit mật khẩu, token, private key hoặc dữ liệu người chơi thật. Không nên đặt `Xmx` cao hơn RAM thực tế còn trống; Android có thể thu hồi tiến trình Termux khi chạy nền lâu.
+
+## 🔗 Nguồn và tài liệu
+
+- [Repository GitHub](https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline)
+- [MariaDB Connector/J](https://mariadb.com/docs/connectors/mariadb-connector-j/about-mariadb-connector-j)
+- [MariaDB Java Client trên Maven Central](https://central.sonatype.com/artifact/org.mariadb.jdbc/mariadb-java-client)
+- [GitHub Repository Limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits)
+- [Gói mã nguồn Google Drive](https://drive.google.com/file/d/1-kbG0JBo67gPBiKaTMU-1QI1wM4u_8ow/view?usp=drivesdk)
+- [File SQL Google Drive](https://drive.google.com/file/d/10gjlN69CMH9sW7ful1cc5lx5PTncm_-I/view?usp=drivesdk)
+
+---
+
+<div align="center">
+
+**Ngọc Rồng Online — Termux Edition**
+
+Java server · MariaDB · Android · One-command setup · READY-state startup
+
+</div>
