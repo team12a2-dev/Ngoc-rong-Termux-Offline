@@ -243,9 +243,28 @@ public final class PanelActions {
     }
 
     public static void broadcast(String message) {
-        if (message != null && !message.isBlank()) {
-            Service.gI().sendThongBaoAllPlayer(message.trim());
+        broadcast(message, "info");
+    }
+
+    public static Map<String, Object> broadcast(String message, String type) {
+        String content = message == null ? "" : message.trim();
+        if (content.isBlank()) {
+            return Map.of("sent", false, "recipients", 0, "message", "Nội dung trống");
         }
+        String normalizedType = type == null ? "info" : type.trim().toLowerCase();
+        String prefix = switch (normalizedType) {
+            case "warning" -> "[CẢNH BÁO] ";
+            case "event" -> "[SỰ KIỆN] ";
+            default -> "";
+        };
+        int recipients = listOnlinePlayers().size();
+        Service.gI().sendThongBaoAllPlayer(prefix + content);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("sent", true);
+        result.put("recipients", recipients);
+        result.put("type", normalizedType);
+        result.put("message", prefix + content);
+        return result;
     }
 
     /** Giải tán bang — RAM + DB + thông báo thành viên online (thực thi trực tiếp trên server đang chạy). */

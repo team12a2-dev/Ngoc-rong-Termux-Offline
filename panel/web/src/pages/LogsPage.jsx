@@ -20,6 +20,7 @@ const ACTION_LABELS = {
   'player.delete': 'Xóa nhân vật',
   'player.currency.online': 'Cộng vàng/ngọc online',
   'player.currency.db': 'Cộng vàng/ngọc DB',
+  'server.broadcast': 'Broadcast toàn server',
 
 };
 

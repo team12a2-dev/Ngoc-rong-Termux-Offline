@@ -95,6 +95,7 @@ router.delete('/:id', requirePermission('server.config'), async (req, res) => {
 });
 
 const sid = (req) => Number(req.params.id);
+const lastBroadcastAt = new Map();
 
 router.get('/:id/ping', requirePermission('dashboard.view'), async (req, res) => {
   try {
@@ -189,12 +190,22 @@ router.post('/:id/exp-rate', requirePermission('server.config'), async (req, res
 });
 
 router.post('/:id/broadcast', requirePermission('server.broadcast'), async (req, res) => {
+  const message = String(req.body?.message || '').trim();
+  const type = String(req.body?.type || 'info').trim().toLowerCase();
+  if (!message) return res.status(400).json({ ok: false, error: 'Nội dung thông báo không được trống' });
+  if (message.length > 500) return res.status(400).json({ ok: false, error: 'Thông báo tối đa 500 ký tự' });
+  if (!['info', 'warning', 'event'].includes(type)) return res.status(400).json({ ok: false, error: 'Loại thông báo không hợp lệ' });
+  const serverId = sid(req);
+  const now = Date.now();
+  const previous = lastBroadcastAt.get(serverId) || 0;
+  if (now - previous < 3000) return res.status(429).json({ ok: false, error: 'Vui lòng chờ 3 giây giữa hai broadcast' });
+  lastBroadcastAt.set(serverId, now);
   try {
-    const result = await agentPost(sid(req), '/broadcast', req.body);
-    await auditLog({ userId: req.user.id, serverId: sid(req), action: 'server.broadcast', requestBody: req.body, response: result, ip: req.ip });
+    const result = await agentPost(serverId, '/broadcast', { message, type });
+    await auditLog({ userId: req.user.id, serverId, action: 'server.broadcast', requestBody: { message, type }, response: result, ip: req.ip });
     res.json(result);
   } catch (e) {
-    res.status(502).json({ ok: false, error: e.message });
+    res.status(e.status === 404 ? 502 : 502).json({ ok: false, error: e.message });
   }
 });
 

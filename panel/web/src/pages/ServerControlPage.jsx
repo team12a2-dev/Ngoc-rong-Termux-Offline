@@ -101,6 +101,9 @@ export default function ServerControlPage() {
   const [runtime, setRuntime] = useState(null);
   const [expRate, setExpRate] = useState(3);
   const [broadcast, setBroadcast] = useState('');
+  const [broadcastType, setBroadcastType] = useState('info');
+  const [broadcastBusy, setBroadcastBusy] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState(null);
   const [templates, setTemplates] = useState([]);
   const [maintSec, setMaintSec] = useState(60);
   const [schedules, setSchedules] = useState([]);
@@ -181,6 +184,30 @@ export default function ServerControlPage() {
       await loadRuntime();
     } catch (e) {
       fb.error(e.message);
+    }
+  }
+
+  async function sendBroadcast() {
+    const message = broadcast.trim();
+    if (!message || broadcastBusy) return;
+    if (!window.confirm(`Gửi thông báo [${broadcastType}] đến toàn bộ người chơi online?\\n\\n${message}`)) return;
+    setBroadcastBusy(true);
+    setBroadcastResult(null);
+    try {
+      const res = await api(`/servers/${getServerId()}/broadcast`, {
+        method: 'POST',
+        body: JSON.stringify({ message, type: broadcastType }),
+      });
+      const data = res.data || {};
+      const result = data.data || data;
+      setBroadcastResult({ type: 'success', text: `Đã gửi thành công đến ${result.recipients ?? 'toàn bộ'} người chơi online.` });
+      fb.success(`Broadcast đã gửi (${result.recipients ?? 0} người nhận).`);
+      setBroadcast('');
+    } catch (e) {
+      setBroadcastResult({ type: 'error', text: e.message });
+      fb.error(e.message);
+    } finally {
+      setBroadcastBusy(false);
     }
   }
 
@@ -375,9 +402,23 @@ export default function ServerControlPage() {
               ))}
             </div>
           )}
-          <textarea rows={3} placeholder="Nội dung thông báo..." value={broadcast} onChange={(e) => setBroadcast(e.target.value)} />
-          <button className="btn primary" style={{ marginTop: 8 }} onClick={() => call('/broadcast', { message: broadcast }, 'Đã gửi thông báo')} disabled={!broadcast.trim()}>
-            Gửi broadcast
+          <div className="row">
+            <select value={broadcastType} onChange={(e) => setBroadcastType(e.target.value)} aria-label="Loại thông báo">
+              <option value="info">Thông tin</option>
+              <option value="warning">Cảnh báo</option>
+              <option value="event">Sự kiện</option>
+            </select>
+            <span className="muted" style={{ marginLeft: 'auto' }}>{broadcast.length}/500 ký tự</span>
+          </div>
+          <textarea rows={3} maxLength={500} placeholder="Nội dung thông báo..." value={broadcast} onChange={(e) => setBroadcast(e.target.value)} />
+          {broadcast.trim() && (
+            <div className="help-box compact" style={{ marginTop: 8 }}>
+              Preview: {broadcastType === 'warning' ? '[CẢNH BÁO] ' : broadcastType === 'event' ? '[SỰ KIỆN] ' : ''}{broadcast.trim()}
+            </div>
+          )}
+          {broadcastResult && <div className={`alert ${broadcastResult.type === 'error' ? 'error' : ''}`} style={{ marginTop: 8 }}>{broadcastResult.text}</div>}
+          <button className="btn primary" style={{ marginTop: 8 }} onClick={sendBroadcast} disabled={!broadcast.trim() || broadcastBusy}>
+            {broadcastBusy ? 'Đang gửi...' : 'Gửi toàn server'}
           </button>
         </div>
 

@@ -184,6 +184,12 @@ Trong **Người chơi → Quản lý Player**, quản trị viên có thể b�
 
 Trong tab **Hành động**, có thể xóa nhân vật vĩnh viễn khi nhân vật đã offline. Panel chủ động từ chối thao tác nếu Agent báo player online hoặc Agent không phản hồi, nhằm tránh xóa dữ liệu khi chưa xác nhận trạng thái. Tất cả thao tác tạo, xóa và cộng tiền tệ đều được ghi vào **Audit Logs**.
 
+### Broadcast toàn server
+
+Trong **Game & Server → Server Control**, card **Thông báo toàn server** cho phép chọn mẫu có sẵn hoặc nhập thông báo mới. Quản trị viên có thể chọn ba loại `Thông tin`, `Cảnh báo` hoặc `Sự kiện`; panel hiển thị preview, đếm tối đa 500 ký tự và yêu cầu xác nhận trước khi gửi. Java Agent trả về số người chơi online đã nhận thông báo, kết quả được hiển thị ngay trên giao diện và ghi vào **Audit Logs**.
+
+Chức năng yêu cầu quyền `server.broadcast` và giới hạn tối thiểu 3 giây giữa hai lần gửi trên cùng server để tránh spam. API tương ứng là `POST /api/v1/servers/:id/broadcast` với payload `{ "message": "...", "type": "info|warning|event" }`.
+
 ## 🗄️ Cấu hình database và JVM
 
 Mặc định launcher tạo database **`ngocrong`**, host `127.0.0.1`, port `3306`, user `ngocrong` và mật khẩu ngẫu nhiên được lưu trong `.runtime/db-password`. File `Config.properties` được tạo cục bộ từ `Config.properties.example` và không được commit lên GitHub.

@@ -206,9 +206,14 @@ public final class PanelAgent {
     }
 
     private void broadcast(HttpExchange exchange, String method, String path, String body) throws IOException {
+        if (!"POST".equalsIgnoreCase(method)) {
+            writeJson(exchange, 405, error("Method not allowed"));
+            return;
+        }
         JSONObject json = parseJson(body);
-        PanelActions.broadcast(String.valueOf(json.getOrDefault("message", "")));
-        writeJson(exchange, 200, success(Map.of("ok", true)));
+        String message = String.valueOf(json.getOrDefault("message", ""));
+        String type = String.valueOf(json.getOrDefault("type", "info"));
+        writeJson(exchange, 200, success(PanelActions.broadcast(message, type)));
     }
 
     private void dissolveClan(HttpExchange exchange, String method, String path, String body) throws IOException {
