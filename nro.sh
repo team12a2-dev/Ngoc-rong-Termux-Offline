@@ -82,6 +82,7 @@ ensure_layout() {
     cp "$ROOT/Config.properties.example" "$CONFIG"
   fi
   [ -f "$SQL_FILE" ] || die "Thiếu sql/ngocrong.sql trong thư mục dự án."
+  [ -f "$ROOT/data/map/tile_set_info" ] || die "Thiếu data/map/tile_set_info; hãy cập nhật lại mã nguồn để sửa lỗi phân biệt hoa/thường trên Android."
   case "$DB_NAME" in *[!a-zA-Z0-9_]*|'') die "NRO_DB_NAME chỉ được chứa chữ, số và dấu gạch dưới.";; esac
   case "$DB_USER" in *[!a-zA-Z0-9_]*|'') die "NRO_DB_USER chỉ được chứa chữ, số và dấu gạch dưới.";; esac
 }
