@@ -37,6 +37,7 @@ const WEB_DIST = path.resolve(__dirname, '../../web/dist');
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
+const bindHost = process.env.PANEL_BIND_HOST || '127.0.0.1';
 const server = createServer(app);
 
 app.use(cors());
@@ -156,8 +157,8 @@ server.on('error', (err) => {
   process.exit(1);
 });
 
-server.listen(port, () => {
-  console.log(`NRO Panel API listening on http://localhost:${port}`);
+server.listen(port, bindHost, () => {
+  console.log(`NRO Panel listening on http://${bindHost}:${port}`);
   startAlertMonitor();
   startMaintenanceScheduler();
 });

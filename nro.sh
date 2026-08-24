@@ -38,6 +38,40 @@ prop() {
   awk -F= -v k="$key" '$1 == k {sub(/^[^=]*=/, ""); print; exit}' "$CONFIG" 2>/dev/null || true
 }
 
+lan_addresses() {
+  local out=""
+  if command -v ip >/dev/null 2>&1; then
+    out="$(ip -o -4 addr show scope global 2>/dev/null | awk '{split($4,a,"/"); print a[1]}' | paste -sd ' ' -)"
+  fi
+  if [ -z "$out" ] && command -v ifconfig >/dev/null 2>&1; then
+    out="$(ifconfig 2>/dev/null | awk '/inet / && $2 !~ /^127\\./ {print $2}' | paste -sd ' ' -)"
+  fi
+  printf '%s' "${out:-không phát hiện}"
+}
+
+print_endpoints() {
+  local game_advertised="$(prop server.ip)"
+  local game_bind="${NRO_GAME_LISTEN_HOST:-0.0.0.0}"
+  local panel_bind="${NRO_PANEL_BIND:-${PANEL_BIND_HOST:-0.0.0.0}}"
+  local lan
+  lan="$(lan_addresses)"
+  say "Endpoint dịch vụ"
+  printf '%s\n' "  Game server listen : $game_bind:$GAME_PORT (mọi interface)"
+  printf '%s\n' "  Game address/client: ${game_advertised:-127.0.0.1}:$GAME_PORT"
+  printf '%s\n' "  Panel web listen   : $panel_bind:$PANEL_PORT"
+  printf '%s\n' "  Panel URL local    : http://127.0.0.1:$PANEL_PORT"
+  printf '%s\n' "  Địa chỉ LAN        : $lan"
+  if [ "$lan" != "không phát hiện" ]; then
+    local address
+    for address in $lan; do
+      printf '%s\n' "  Panel URL LAN      : http://$address:$PANEL_PORT"
+      printf '%s\n' "  Game endpoint LAN  : $address:$GAME_PORT"
+    done
+  fi
+  printf '%s\n' "  Game log            : $SERVER_LOG"
+  printf '%s\n' "  Panel log           : $PANEL_LOG"
+}
+
 need_termux() {
   command -v pkg >/dev/null 2>&1 || die "Không tìm thấy pkg. Hãy chạy script này trong Termux chính thức."
 }
@@ -282,16 +316,18 @@ start_panel() {
     return 0
   fi
   if panel_alive; then
-    say "Panel web đang chạy với PID $(cat "$PANEL_PID") tại http://127.0.0.1:$PANEL_PORT"
+    say "Panel web đang chạy với PID $(cat "$PANEL_PID")."
+    print_endpoints
     return 0
   fi
   say "Khởi động panel web tại cổng $PANEL_PORT"
   rm -f "$PANEL_PID"
-  (cd "$PANEL_API_ROOT" && PORT="$PANEL_PORT" nohup node src/index.js > "$PANEL_LOG" 2>&1 & echo $! > "$PANEL_PID")
+  (cd "$PANEL_API_ROOT" && PORT="$PANEL_PORT" PANEL_BIND_HOST="${NRO_PANEL_BIND:-0.0.0.0}" nohup node src/index.js > "$PANEL_LOG" 2>&1 & echo $! > "$PANEL_PID")
   local i
   for i in $(seq 1 60); do
     if panel_alive && curl -fsS --max-time 2 "http://127.0.0.1:$PANEL_PORT/api/v1/system/health" >/dev/null 2>&1; then
-      say "Panel web đã READY: http://127.0.0.1:$PANEL_PORT"
+      say "Panel web đã READY."
+      print_endpoints
       return 0
     fi
     sleep 1
@@ -430,15 +466,15 @@ status() {
   if mysql_alive; then say "MariaDB: RUNNING"; else say "MariaDB: STOPPED"; fi
   if panel_alive; then
     if curl -fsS --max-time 2 "http://127.0.0.1:$PANEL_PORT/api/v1/system/health" >/dev/null 2>&1; then
-      say "Panel web: READY (PID $(cat "$PANEL_PID"), http://127.0.0.1:$PANEL_PORT)"
+      say "Panel web: READY (PID $(cat "$PANEL_PID"))"
     else
       say "Panel web: STARTING (PID $(cat "$PANEL_PID"))"
     fi
   else
     say "Panel web: STOPPED"
   fi
+  print_endpoints
 }
-
 setup() {
   ensure_layout
   install_dependencies
@@ -502,7 +538,8 @@ Sử dụng: ./nro.sh [setup|start|restart|stop|status|console|rebuild|panel]
 Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel web.
 Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT).
 Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
-NRO_PANEL_PORT, PANEL_ADMIN_PASSWORD, JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1.
+NRO_GAME_LISTEN_HOST, NRO_PANEL_PORT, NRO_PANEL_BIND, PANEL_ADMIN_PASSWORD,
+JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1.
 USAGE
       exit 2
       ;;

@@ -164,11 +164,11 @@ ls -l ~/ngocrong-termux/.runtime/server.ready
 
 ## 🖥️ Panel web quản trị
 
-Sau khi game server đạt `READY`, launcher tự setup và khởi động panel web production. Mở trình duyệt trên điện thoại tại [http://127.0.0.1:3001](http://127.0.0.1:3001). Nếu truy cập từ thiết bị khác trong cùng Wi-Fi, dùng địa chỉ LAN của điện thoại, ví dụ `http://192.168.1.25:3001`.
+Sau khi game server đạt `READY`, launcher tự setup và khởi động panel web production. Trong terminal sẽ xuất hiện nhóm **`Endpoint dịch vụ`**, gồm URL local, địa chỉ LAN, cổng game, cổng panel và đường dẫn log. Mở trình duyệt trên điện thoại tại [http://127.0.0.1:3001](http://127.0.0.1:3001). Nếu truy cập từ thiết bị khác trong cùng Wi-Fi, dùng dòng `Panel URL LAN` được launcher in ra, ví dụ `http://192.168.1.25:3001`.
 
 Panel API và giao diện React dùng chung cổng `3001`; API nằm dưới `/api/v1`, còn WebSocket metrics dùng `/ws/metrics`. Lần setup đầu tự chạy `npm install`, `npm run db:sync` và `npm run build`. Tài khoản là `admin`; mật khẩu ngẫu nhiên được lưu tại `.runtime/panel-admin-password`. Xem mật khẩu bằng `cat .runtime/panel-admin-password` rồi đổi mật khẩu sau khi đăng nhập nếu giao diện hỗ trợ.
 
-Log panel nằm tại `.runtime/panel.log`. Trạng thái panel được kiểm tra bằng endpoint health và hiển thị trong `bash nro.sh status`. Có thể đổi cổng bằng `NRO_PANEL_PORT=3002 bash nro.sh restart`; khi đó truy cập panel tại `http://127.0.0.1:3002`.
+Log panel nằm tại `.runtime/panel.log`. Trạng thái panel và toàn bộ endpoint được kiểm tra bằng `bash nro.sh status`. Panel mặc định listen trên `0.0.0.0:3001` để có thể truy cập trong cùng mạng LAN; chỉ URL `127.0.0.1` là dùng cho chính điện thoại. Có thể đổi bind host hoặc cổng bằng `NRO_PANEL_BIND` và `NRO_PANEL_PORT`, ví dụ `NRO_PANEL_BIND=127.0.0.1 NRO_PANEL_PORT=3002 bash nro.sh restart`.
 
 ## 🗄️ Cấu hình database và JVM
 
@@ -201,7 +201,7 @@ NRO_JVM_OPTS='-server -Dfile.encoding=UTF-8 -Xms128m -Xmx1536m -XX:MaxMetaspaceS
 
 ## 🌐 Kết nối từ thiết bị khác
 
-Mặc định server bind về `127.0.0.1` để không mở cổng ra mạng ngoài. Để client trong cùng Wi-Fi kết nối, sửa `server.ip` và dòng `server.sv1` trong `Config.properties` thành địa chỉ LAN của điện thoại, ví dụ `192.168.1.25`, đồng thời cho phép cổng game `14445` trong mạng nội bộ.
+Java game server mở socket trên `0.0.0.0:<server.port>` (mọi interface). Địa chỉ `server.ip` trong `Config.properties` là địa chỉ **quảng bá cho client**, không phải địa chỉ bind socket. Mặc định giá trị này là `127.0.0.1`, vì vậy client trên thiết bị khác chưa thể kết nối đúng. Khi chơi trong cùng Wi-Fi, sửa `server.ip` và dòng `server.sv1` thành địa chỉ LAN của điện thoại, ví dụ `192.168.1.25`, rồi dùng dòng `Game endpoint LAN` mà launcher in ra. Panel cũng in riêng `Panel URL LAN` trên cổng `3001`.
 
 Không nên mở cổng game trực tiếp ra Internet khi chưa có firewall, xác thực và biện pháp chống lạm dụng. Với mạng di động, NAT của nhà mạng thường ngăn kết nối trực tiếp; có thể cần VPN mesh hoặc một máy chủ trung gian.
 
@@ -213,7 +213,7 @@ Không nên mở cổng game trực tiếp ra Internet khi chưa có firewall, x
 | `READY` | Server đã tải xong dữ liệu và sẵn sàng nhận kết nối | Có `.runtime/server.ready` |
 | `STOPPED` | Process Java không còn tồn tại | `bash nro.sh restart` |
 | `MariaDB: RUNNING` | Database local đang phục vụ connection | `tail -n 100 .runtime/mariadb.log` |
-| `Panel web: READY` | API health phản hồi và React build đang được phục vụ | `http://127.0.0.1:3001` |
+| `Panel web: READY` | API health phản hồi và React build đang được phục vụ | Xem dòng `Panel URL local` hoặc `Panel URL LAN` |
 
 > Chỉ xem server là hoạt động hoàn chỉnh khi có dòng `[NRO][READY]`. Việc process Java còn PID không đồng nghĩa dữ liệu game đã tải xong.
 
