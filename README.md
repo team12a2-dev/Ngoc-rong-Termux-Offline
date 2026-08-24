@@ -20,15 +20,15 @@ Repository không đưa `build/`, `dist/`, `node_modules/`, log, backup hoặc c
 
 ## Cài đặt trên Termux
 
-Hãy dùng Termux từ nguồn đáng tin cậy, cấp quyền bộ nhớ nếu cần, rồi chạy khối lệnh sau. Thay `OWNER/REPO` bằng URL repository GitHub thực tế được bàn giao ở cuối tài liệu.
+Hãy dùng Termux từ nguồn đáng tin cậy, cấp quyền bộ nhớ nếu cần, rồi chạy đúng **một lệnh** sau. Vì repository đang public, lệnh này không yêu cầu GitHub username/password.
 
 ```bash
-pkg update -y && pkg install -y git && git clone https://github.com/OWNER/REPO.git ngocrong-termux && cd ngocrong-termux && bash nro.sh
+curl -fsSL https://raw.githubusercontent.com/team12a2-dev/Ngoc-rong-Termux-Offline/main/bootstrap.sh | bash
 ```
 
-Lệnh `bash nro.sh` sẽ tự nhận diện đây là lần cài đầu. Launcher cài `git`, `openjdk-17` và `mariadb` bằng trình quản lý gói Termux, khởi tạo data directory MariaDB trong `$PREFIX/var/lib/mysql`, khởi động database qua Unix socket, tạo database `ngocrong`, tạo user nội bộ ngẫu nhiên, import `sql/ngocrong.sql`, biên dịch Java 17 và chạy server nền. Termux sử dụng mô hình quản lý gói kiểu `apt/pkg`; gói MariaDB là lựa chọn phù hợp với SQL dump MySQL/MariaDB này.[^2]
+Bootstrap sẽ tải archive public từ GitHub, giải nén vào `~/ngocrong-termux`, rồi gọi `bash nro.sh`. Lệnh `bash nro.sh` sẽ tự nhận diện đây là lần cài đầu. Launcher cài `git`, `openjdk-17` và `mariadb` bằng trình quản lý gói Termux, khởi tạo data directory MariaDB trong `$PREFIX/var/lib/mysql`, khởi động database qua Unix socket, tạo database `ngocrong`, tạo user nội bộ ngẫu nhiên, import `sql/ngocrong.sql`, biên dịch Java 17 và chạy server nền. Termux sử dụng mô hình quản lý gói kiểu `apt/pkg`; gói MariaDB là lựa chọn phù hợp với SQL dump MySQL/MariaDB này.[^2]
 
-Nếu repository đã được clone trước đó, chỉ cần dùng đúng một lệnh:
+Sau lần cài đầu, nếu chỉ muốn khởi động lại server, dùng đúng một lệnh:
 
 ```bash
 cd ~/ngocrong-termux && bash nro.sh
