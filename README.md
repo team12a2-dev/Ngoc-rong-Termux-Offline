@@ -26,7 +26,7 @@ Hãy dùng Termux từ nguồn đáng tin cậy, cấp quyền bộ nhớ nếu 
 pkg update -y && pkg install -y curl tar && mkdir -p "$HOME/ngocrong-termux" && curl -fL --retry 3 "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz" | tar -xz --strip-components=1 -C "$HOME/ngocrong-termux" && cd "$HOME/ngocrong-termux" && bash nro.sh
 ```
 
-Lệnh trên tải archive public trực tiếp từ GitHub, giải nén vào `~/ngocrong-termux`, rồi gọi `bash nro.sh`. Lệnh `bash nro.sh` sẽ tự nhận diện đây là lần cài đầu. Launcher cài `git`, `openjdk-17` và `mariadb` bằng trình quản lý gói Termux, khởi tạo data directory MariaDB trong `$PREFIX/var/lib/mysql`, khởi động database qua Unix socket, tạo database `ngocrong`, tạo user nội bộ ngẫu nhiên, import `sql/ngocrong.sql`, biên dịch Java 17 và chạy server nền. Termux sử dụng mô hình quản lý gói kiểu `apt/pkg`; gói MariaDB là lựa chọn phù hợp với SQL dump MySQL/MariaDB này.[^2]
+Lệnh trên tải archive public trực tiếp từ GitHub, giải nén vào `~/ngocrong-termux`, rồi gọi `bash nro.sh`. Lệnh `bash nro.sh` sẽ tự nhận diện đây là lần cài đầu. Launcher cài `git`, `mariadb` và tự thử các package Java theo thứ tự `openjdk-21`, `openjdk-17`, `openjdk`, khởi tạo data directory MariaDB trong `$PREFIX/var/lib/mysql`, khởi động database qua Unix socket, tạo database `ngocrong`, tạo user nội bộ ngẫu nhiên, import `sql/ngocrong.sql`, biên dịch Java 17 và chạy server nền. Java 21 vẫn tương thích vì mã nguồn được biên dịch với `javac --release 17`. Termux sử dụng mô hình quản lý gói kiểu `apt/pkg`; gói MariaDB là lựa chọn phù hợp với SQL dump MySQL/MariaDB này.[^2]
 
 Sau lần cài đầu, nếu chỉ muốn khởi động lại server, dùng đúng một lệnh:
 
@@ -83,7 +83,7 @@ Kết quả trên sandbox không thay thế kiểm thử trực tiếp trên t�
 
 ## Xử lý sự cố
 
-Nếu gặp `javac: command not found`, chạy `pkg install -y openjdk-17` rồi chạy `bash nro.sh rebuild`. Nếu MariaDB không khởi động, xem log bằng `tail -n 100 .runtime/mariadb.log`; kiểm tra port `3306` có bị dịch vụ khác chiếm hay không và đặt `NRO_DB_PORT` sang cổng khác.
+Nếu gặp lỗi không tìm thấy package Java, chạy `pkg search openjdk`. Nếu kho không liệt kê package nào, chạy `termux-change-repo`, chọn một mirror Main ổn định, rồi chạy `pkg update -y && bash nro.sh`. Launcher mới sẽ tự thử `openjdk-21`, `openjdk-17` và `openjdk`. Nếu MariaDB không khởi động, xem log bằng `tail -n 100 .runtime/mariadb.log`; kiểm tra port `3306` có bị dịch vụ khác chiếm hay không và đặt `NRO_DB_PORT` sang cổng khác.
 
 Nếu server chạy nhưng client không kết nối, kiểm tra `server.port`, `server.ip`, `server.sv1`, địa chỉ LAN của điện thoại và firewall/router. Nếu server bị dừng ngay, dùng `bash nro.sh console` để xem stack trace đầy đủ thay vì chạy nền.
 

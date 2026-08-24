@@ -34,13 +34,38 @@ need_termux() {
   command -v pkg >/dev/null 2>&1 || die "Không tìm thấy pkg. Hãy chạy script này trong Termux chính thức."
 }
 
+install_java() {
+  if command -v java >/dev/null 2>&1 && command -v javac >/dev/null 2>&1; then
+    say "Java/Javac đã có sẵn: $(java -version 2>&1 | head -n 1)"
+    return 0
+  fi
+
+  local candidate
+  # Termux mirrors may expose different JDK package names/snapshots.
+  # Java 21 can compile/run this source with --release 17.
+  for candidate in openjdk-21 openjdk-17 openjdk; do
+    say "Thử cài package Java: $candidate"
+    if pkg install -y "$candidate" >/tmp/nro-java-install.log 2>&1; then
+      if command -v java >/dev/null 2>&1 && command -v javac >/dev/null 2>&1; then
+        say "Đã cài Java bằng package $candidate"
+        return 0
+      fi
+    fi
+  done
+
+  cat /tmp/nro-java-install.log 2>/dev/null || true
+  printf '%s\n' '[NRO][ERROR] Không tìm thấy package JDK khả dụng trong kho Termux hiện tại.' >&2
+  printf '%s\n' '[NRO][ERROR] Hãy chạy: termux-change-repo rồi chọn mirror Main ổn định, sau đó pkg update -y.' >&2
+  printf '%s\n' '[NRO][ERROR] Có thể kiểm tra package bằng: pkg search openjdk' >&2
+  die "Cần cả java và javac để biên dịch/chạy server."
+}
+
 install_dependencies() {
   need_termux
-  say "Cài các gói nền tảng Termux: Git, OpenJDK 17 và MariaDB"
+  say "Cài các gói nền tảng Termux: Java JDK tương thích và MariaDB"
   pkg update -y
-  pkg install -y git openjdk-17 mariadb
-  command -v java >/dev/null 2>&1 || die "Cài Java thất bại."
-  command -v javac >/dev/null 2>&1 || die "Không tìm thấy javac sau khi cài OpenJDK 17."
+  pkg install -y git mariadb
+  install_java
   command -v mariadb >/dev/null 2>&1 || die "Cài MariaDB client thất bại."
   command -v mariadbd >/dev/null 2>&1 || command -v mysqld >/dev/null 2>&1 || die "Không tìm thấy MariaDB server."
 }
