@@ -98,7 +98,10 @@ export async function api(path, options = {}, retried = false) {
   const json = await res.json().catch(() => ({ ok: false }));
   if (!res.ok || json.ok === false) {
     const hint = res.status === 404 ? ' — kiểm tra Panel API đã restart chưa' : '';
-    throw new Error(json.error || `Request failed (${res.status})${hint}`);
+    const error = new Error(json.error || `Request failed (${res.status})${hint}`);
+    error.status = res.status;
+    error.data = json.data;
+    throw error;
   }
   return json;
 }

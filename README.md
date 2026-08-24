@@ -196,7 +196,7 @@ Mục **Game & Server → Item Templates** quản lý trực tiếp bảng `item
 
 > **Quan trọng:** source hiện tại tạo item bằng `Manager.ITEM_TEMPLATES.get(tempId)`, vì vậy ID item phải liên tục từ `0` đến `MAX(id)`. Panel không cho xóa item và sẽ từ chối tạo nếu database đang có ID bị khuyết. Đây là điều kiện để vật phẩm tạo từ shop, giftcode hoặc inventory không làm server lỗi index.
 
-Luồng lưu item là: ghi hàng vào MariaDB → Java Agent gọi `Manager.reloadItemTemplates()` → nạp lại `item_template` và `item_option_template` → rebuild danh sách mount → các lần `ItemService.createNewItem(tempId)` tiếp theo dùng template mới. Item mới dùng được trong game nếu `type`, option ID, part/icon và logic tương ứng đã được source/client hỗ trợ; chỉ thêm một dòng database không tự tạo ra một hiệu ứng game hoàn toàn mới.
+Luồng lưu item là: ghi hàng vào MariaDB → panel đọc lại bản ghi để xác nhận persistence → Java Agent gọi `Manager.reloadItemTemplates()` → nạp lại `item_template` và `item_option_template` → rebuild danh sách mount → các lần `ItemService.createNewItem(tempId)` tiếp theo dùng template mới. Panel không bao giờ coi RAM là nơi lưu vật phẩm chính. Nếu database đã lưu nhưng Java Agent chưa reload, API trả trạng thái `databaseSaved: true, runtimeReloaded: false` và yêu cầu kiểm tra Agent; bản ghi trong database vẫn được giữ nguyên để reload lại sau. Item mới dùng được trong game nếu `type`, option ID, part/icon và logic tương ứng đã được source/client hỗ trợ; chỉ thêm một dòng database không tự tạo ra một hiệu ứng game hoàn toàn mới.
 
 ## 🗄️ Cấu hình database và JVM
 

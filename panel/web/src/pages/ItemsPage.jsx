@@ -63,11 +63,13 @@ export default function ItemsPage() {
         body: JSON.stringify(payload),
       });
       const item = res.data?.item;
-      fb.success(`${editingId == null ? 'Đã tạo' : 'Đã cập nhật'} item #${item?.id ?? editingId}. Java runtime đã reload.`);
+      fb.success(`${editingId == null ? 'Đã tạo' : 'Đã cập nhật'} item #${item?.id ?? editingId} trong database ngocrong và Java runtime đã reload.`);
       resetForm();
       await load();
     } catch (e2) {
-      fb.error(e2.message);
+      fb.error(e2.data?.databaseSaved
+        ? `${e2.message} Dữ liệu vẫn đã được lưu bền vững trong database ngocrong; hãy kiểm tra Java Agent rồi bấm Reload runtime.`
+        : e2.message);
     } finally {
       setBusy(false);
     }
@@ -92,14 +94,14 @@ export default function ItemsPage() {
     <div>
       <PageHeader
         title="Item Templates"
-        description="Tạo và chỉnh item_template đúng schema game; sau khi lưu, Java Agent reload template/options để item có thể tạo và hoạt động trong runtime."
+        description="Panel ghi trực tiếp vào MariaDB ngocrong trước; Java Agent chỉ reload bản đã lưu để server runtime sử dụng, không dùng RAM làm nơi lưu chính."
         actions={<button className="btn" type="button" onClick={reloadRuntime} disabled={busy}>Reload runtime</button>}
       />
       <PageFeedback msg={fb.msg} type={fb.type} onDismiss={fb.clear} />
 
       <div className="help-box">
         <h4>Luồng hoạt động</h4>
-        <p>Item ID phải liên tục từ 0 vì server Java truy cập template bằng index. Panel tự chọn ID kế tiếp là <strong>#{meta.nextId}</strong>; không hỗ trợ xóa để tránh làm gãy index. Lưu item sẽ ghi MariaDB rồi gọi Java Agent reload.</p>
+        <p>Item ID phải liên tục từ 0 vì server Java truy cập template bằng index. Panel tự chọn ID kế tiếp là <strong>#{meta.nextId}</strong>; không hỗ trợ xóa để tránh làm gãy index. Khi lưu, panel ghi bền vững vào MariaDB <code>ngocrong</code>, đọc lại bản ghi để xác nhận rồi mới gọi Java Agent reload.</p>
         <p className="muted">Đã nạp {options.length} option template. Item mới chỉ dùng được hiệu ứng game mà source Java đã hỗ trợ; icon/part tùy chỉnh cần asset client tương ứng.</p>
       </div>
 

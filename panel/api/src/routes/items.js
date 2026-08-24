@@ -45,6 +45,41 @@ async function reloadRuntime(serverId) {
   return agentPost(Number(serverId || await getDefaultServerId()), '/reload/items', {});
 }
 
+async function readPersistedItem(id) {
+  const rows = await query(
+    `SELECT id, type, gender, NAME, description, level, icon_id, part, is_up_to_up,
+            power_require, gold, gem, head, body, leg
+     FROM item_template WHERE id = ? LIMIT 1`,
+    [id]
+  );
+  if (!rows.length) throw new Error(`Không đọc lại được item #${id} từ database ngocrong`);
+  return rows[0];
+}
+
+async function reloadOrReportDatabaseSaved({ req, res, sid, item, action, status = 200 }) {
+  let runtime;
+  try {
+    runtime = await reloadRuntime(sid);
+  } catch (e) {
+    try {
+      await auditLog({ userId: req.user.id, serverId: sid, action, target: item.id, requestBody: item, response: { databaseSaved: true, runtimeReloaded: false, error: e.message }, ip: req.ip });
+    } catch (auditError) {
+      console.warn('[items] audit failed after database save:', auditError.message);
+    }
+    return res.status(503).json({
+      ok: false,
+      error: `Database ngocrong đã lưu item #${item.id}, nhưng Java runtime chưa reload: ${e.message}`,
+      data: { databaseSaved: true, runtimeReloaded: false, database: 'ngocrong', item },
+    });
+  }
+  try {
+    await auditLog({ userId: req.user.id, serverId: sid, action, target: item.id, requestBody: item, response: { databaseSaved: true, runtimeReloaded: true, runtime }, ip: req.ip });
+  } catch (auditError) {
+    console.warn('[items] audit failed after item persistence:', auditError.message);
+  }
+  return res.status(status).json({ ok: true, data: { databaseSaved: true, runtimeReloaded: true, database: 'ngocrong', item, runtime } });
+}
+
 router.get('/', requirePermission('giftcode.manage'), async (req, res) => {
   const q = String(req.query.q || '').trim();
   const limit = Math.min(Math.max(Number(req.query.limit || 100), 1), 500);
@@ -94,10 +129,9 @@ router.post('/', requirePermission('giftcode.manage'), async (req, res) => {
       [id, item.type, item.gender, item.NAME, item.description, item.level, item.icon_id, item.part,
         item.is_up_to_up, item.power_require, item.gold, item.gem, item.head, item.body, item.leg]
     );
+    const persisted = await readPersistedItem(id);
     const sid = Number(req.body?.serverId || await getDefaultServerId());
-    const runtime = await reloadRuntime(sid);
-    await auditLog({ userId: req.user.id, serverId: sid, action: 'item.create', target: id, requestBody: { ...item, id }, response: runtime, ip: req.ip });
-    res.status(201).json({ ok: true, data: { item: { id, ...item }, runtime } });
+    return reloadOrReportDatabaseSaved({ req, res, sid, item: persisted, action: 'item.create', status: 201 });
   } catch (e) {
     res.status(e.status ? e.status : 400).json({ ok: false, error: e.message });
   }
@@ -116,10 +150,9 @@ router.put('/:id', requirePermission('giftcode.manage'), async (req, res) => {
       [item.type, item.gender, item.NAME, item.description, item.level, item.icon_id, item.part,
         item.is_up_to_up, item.power_require, item.gold, item.gem, item.head, item.body, item.leg, id]
     );
+    const persisted = await readPersistedItem(id);
     const sid = Number(req.body?.serverId || await getDefaultServerId());
-    const runtime = await reloadRuntime(sid);
-    await auditLog({ userId: req.user.id, serverId: sid, action: 'item.update', target: id, requestBody: item, response: runtime, ip: req.ip });
-    res.json({ ok: true, data: { item: { id, ...item }, runtime } });
+    return reloadOrReportDatabaseSaved({ req, res, sid, item: persisted, action: 'item.update' });
   } catch (e) {
     res.status(e.status || 400).json({ ok: false, error: e.message });
   }
@@ -129,8 +162,8 @@ router.post('/reload', requirePermission('giftcode.manage'), async (req, res) =>
   try {
     const sid = Number(req.body?.serverId || await getDefaultServerId());
     const runtime = await reloadRuntime(sid);
-    await auditLog({ userId: req.user.id, serverId: sid, action: 'item.reload', response: runtime, ip: req.ip });
-    res.json({ ok: true, data: runtime });
+    await auditLog({ userId: req.user.id, serverId: sid, action: 'item.reload', response: { database: 'ngocrong', loadedFromDatabase: true, runtime }, ip: req.ip });
+    res.json({ ok: true, data: { database: 'ngocrong', loadedFromDatabase: true, runtime } });
   } catch (e) {
     res.status(502).json({ ok: false, error: e.message });
   }
