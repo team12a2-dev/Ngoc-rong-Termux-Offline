@@ -21,6 +21,9 @@ const ACTION_LABELS = {
   'player.currency.online': 'Cộng vàng/ngọc online',
   'player.currency.db': 'Cộng vàng/ngọc DB',
   'server.broadcast': 'Broadcast toàn server',
+  'item.create': 'Tạo item template',
+  'item.update': 'Sửa item template',
+  'item.reload': 'Reload item runtime',
 
 };
 

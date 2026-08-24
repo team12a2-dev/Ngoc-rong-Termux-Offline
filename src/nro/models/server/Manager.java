@@ -1174,6 +1174,67 @@ public final class Manager {
         }
     }
 
+    public static synchronized Map<String, Object> reloadItemTemplates() throws Exception {
+        List<ItemTemplate> nextItems = new ArrayList<>();
+        List<ItemOptionTemplate> nextOptions = new ArrayList<>();
+        try (Connection con = LocalManager.getConnection();
+                PreparedStatement itemPs = con.prepareStatement("SELECT * FROM item_template ORDER BY id");
+                ResultSet itemRs = itemPs.executeQuery()) {
+            while (itemRs.next()) {
+                ItemTemplate item = new ItemTemplate();
+                item.id = itemRs.getShort("id");
+                item.type = itemRs.getByte("type");
+                item.gender = itemRs.getByte("gender");
+                item.name = itemRs.getString("name");
+                item.description = itemRs.getString("description");
+                item.level = itemRs.getByte("level");
+                item.iconID = itemRs.getShort("icon_id");
+                item.part = itemRs.getShort("part");
+                item.isUpToUp = itemRs.getBoolean("is_up_to_up");
+                item.strRequire = itemRs.getInt("power_require");
+                item.gold = itemRs.getInt("gold");
+                item.gem = itemRs.getInt("gem");
+                item.head = itemRs.getInt("head");
+                item.body = itemRs.getInt("body");
+                item.leg = itemRs.getInt("leg");
+                if (item.id != nextItems.size()) {
+                    throw new SQLException("item_template id phải liên tục từ 0; gặp id " + item.id
+                            + " nhưng đang chờ " + nextItems.size());
+                }
+                nextItems.add(item);
+            }
+        }
+        try (Connection con = LocalManager.getConnection();
+                PreparedStatement optionPs = con.prepareStatement("SELECT id, name FROM item_option_template ORDER BY id");
+                ResultSet optionRs = optionPs.executeQuery()) {
+            while (optionRs.next()) {
+                ItemOptionTemplate option = new ItemOptionTemplate();
+                option.id = optionRs.getInt("id");
+                option.name = optionRs.getString("name");
+                if (option.id != nextOptions.size()) {
+                    throw new SQLException("item_option_template id phải liên tục từ 0; gặp id " + option.id
+                            + " nhưng đang chờ " + nextOptions.size());
+                }
+                nextOptions.add(option);
+            }
+        }
+        ITEM_TEMPLATES.clear();
+        ITEM_TEMPLATES.addAll(nextItems);
+        ITEM_OPTION_TEMPLATES.clear();
+        ITEM_OPTION_TEMPLATES.addAll(nextOptions);
+        MAP_MOUNT_NUM.clear();
+        for (ItemTemplate item : ITEM_TEMPLATES) {
+            if (item.type == 23 && getNFrameImageByName("mount_" + item.part + "_0") != 0) {
+                MAP_MOUNT_NUM.put(item.id, (short) (item.part + 30000));
+            }
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("items", ITEM_TEMPLATES.size());
+        result.put("options", ITEM_OPTION_TEMPLATES.size());
+        result.put("mounts", MAP_MOUNT_NUM.size());
+        return result;
+    }
+
     public static synchronized void reloadClans() throws Exception {
         CLANS.clear();
         try (Connection con = LocalManager.getConnection()) {

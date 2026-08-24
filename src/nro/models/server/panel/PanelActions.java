@@ -304,7 +304,12 @@ public final class PanelActions {
         }
     }
 
+    public static Map<String, Object> reloadItemTemplates() throws Exception {
+        return Manager.reloadItemTemplates();
+    }
+
     public static boolean reloadGiftcode() {
+
         try {
             GiftCodeManager mgr = GiftCodeManager.gI();
             try {

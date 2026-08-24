@@ -190,6 +190,14 @@ Trong **Game & Server → Server Control**, card **Thông báo toàn server** ch
 
 Chức năng yêu cầu quyền `server.broadcast` và giới hạn tối thiểu 3 giây giữa hai lần gửi trên cùng server để tránh spam. API tương ứng là `POST /api/v1/servers/:id/broadcast` với payload `{ "message": "...", "type": "info|warning|event" }`.
 
+### Quản lý Item Templates
+
+Mục **Game & Server → Item Templates** quản lý trực tiếp bảng `item_template`: xem/tìm kiếm, tạo item mới với ID kế tiếp, sửa tên/mô tả/type/gender/icon/part/level/yêu cầu sức mạnh/giá và gọi Java Agent reload sau khi lưu. Bảng `item_option_template` được đọc để đối chiếu option hiện có; option mới chỉ là nhãn hiển thị, còn hiệu ứng thực tế phải được Java source xử lý.
+
+> **Quan trọng:** source hiện tại tạo item bằng `Manager.ITEM_TEMPLATES.get(tempId)`, vì vậy ID item phải liên tục từ `0` đến `MAX(id)`. Panel không cho xóa item và sẽ từ chối tạo nếu database đang có ID bị khuyết. Đây là điều kiện để vật phẩm tạo từ shop, giftcode hoặc inventory không làm server lỗi index.
+
+Luồng lưu item là: ghi hàng vào MariaDB → Java Agent gọi `Manager.reloadItemTemplates()` → nạp lại `item_template` và `item_option_template` → rebuild danh sách mount → các lần `ItemService.createNewItem(tempId)` tiếp theo dùng template mới. Item mới dùng được trong game nếu `type`, option ID, part/icon và logic tương ứng đã được source/client hỗ trợ; chỉ thêm một dòng database không tự tạo ra một hiệu ứng game hoàn toàn mới.
+
 ## 🗄️ Cấu hình database và JVM
 
 Mặc định launcher tạo database **`ngocrong`**, host `127.0.0.1`, port `3306`, user `ngocrong` và mật khẩu ngẫu nhiên được lưu trong `.runtime/db-password`. File `Config.properties` được tạo cục bộ từ `Config.properties.example` và không được commit lên GitHub.

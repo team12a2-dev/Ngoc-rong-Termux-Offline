@@ -28,6 +28,7 @@ const navGroups = [
       { to: '/server', label: 'Server Control', icon: 'control' },
       { to: '/boss', label: 'Boss', icon: 'boss' },
       { to: '/giftcodes', label: 'Giftcodes', icon: 'giftcode' },
+      { to: '/items', label: 'Item Templates', icon: 'giftcode' },
       { to: '/shops', label: 'Cửa hàng', icon: 'shop' },
       { to: '/clans', label: 'Clans', icon: 'clan' },
       { to: '/rankings', label: 'Bảng xếp hạng', icon: 'ranking' },

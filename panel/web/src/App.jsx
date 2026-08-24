@@ -9,6 +9,8 @@ import AccountsPage from './pages/AccountsPage';
 import ServerControlPage from './pages/ServerControlPage';
 import BossPage from './pages/BossPage';
 import GiftcodesPage from './pages/GiftcodesPage';
+import ItemsPage from './pages/ItemsPage';
+
 import ShopsPage from './pages/ShopsPage';
 import ClansPage from './pages/ClansPage';
 import RankingsPage from './pages/RankingsPage';
@@ -41,6 +43,8 @@ export default function App() {
           <Route path="server" element={<ServerControlPage />} />
           <Route path="boss" element={<BossPage />} />
           <Route path="giftcodes" element={<GiftcodesPage />} />
+          <Route path="items" element={<ItemsPage />} />
+
           <Route path="shops" element={<ShopsPage />} />
           <Route path="clans" element={<ClansPage />} />
           <Route path="rankings" element={<RankingsPage />} />

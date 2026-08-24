@@ -60,6 +60,7 @@ public final class PanelAgent {
         server.createContext("/maintenance", exchange -> handle(exchange, this::maintenance));
         server.createContext("/config/admin-mode", exchange -> handle(exchange, this::adminMode));
         server.createContext("/config/exp", exchange -> handle(exchange, this::expRate));
+        server.createContext("/reload/items", exchange -> handle(exchange, this::reloadItems));
         server.createContext("/reload/shop", exchange -> handle(exchange, this::reloadShop));
         server.createContext("/reload/giftcode", exchange -> handle(exchange, this::reloadGiftcode));
         server.createContext("/reload/clan", exchange -> handle(exchange, this::reloadClan));
@@ -266,6 +267,14 @@ public final class PanelAgent {
         JSONObject json = parseJson(body);
         int rate = intValue(json.get("rate"), 0);
         writeJson(exchange, 200, success(Map.of("ok", PanelActions.setExpRate(rate), "rate", rate)));
+    }
+
+        private void reloadItems(HttpExchange exchange, String method, String path, String body) throws IOException {
+        try {
+            writeJson(exchange, 200, success(PanelActions.reloadItemTemplates()));
+        } catch (Exception e) {
+            writeJson(exchange, 500, error(e.getMessage()));
+        }
     }
 
     private void reloadShop(HttpExchange exchange, String method, String path, String body) throws IOException {

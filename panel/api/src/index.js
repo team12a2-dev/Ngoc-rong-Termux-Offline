@@ -22,6 +22,7 @@ import setupRoutes from './routes/setup.js';
 import alertRoutes from './routes/alerts.js';
 import backupRoutes from './routes/backups.js';
 import assetRoutes from './routes/assets.js';
+import itemRoutes from './routes/items.js';
 import runtimeRoutes from './routes/runtime.js';
 
 import { authMiddleware, getMe, getJwtSecret } from './middleware/auth.js';
@@ -79,6 +80,7 @@ app.use('/api/v1/plugins', pluginRoutes);
 app.use('/api/v1/alerts', alertRoutes);
 app.use('/api/v1/backups', backupRoutes);
 app.use('/api/v1/assets', assetRoutes);
+app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/runtime', runtimeRoutes);
 
 // Serve the production React panel from the same origin as the API.
