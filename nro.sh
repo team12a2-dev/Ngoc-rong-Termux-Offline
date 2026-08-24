@@ -35,6 +35,8 @@ need_termux() {
 }
 
 install_java() {
+  mkdir -p "$STATE_DIR"
+  local java_install_log="$STATE_DIR/java-install.log"
   if command -v java >/dev/null 2>&1 && command -v javac >/dev/null 2>&1; then
     say "Java/Javac đã có sẵn: $(java -version 2>&1 | head -n 1)"
     return 0
@@ -43,9 +45,11 @@ install_java() {
   local candidate
   # Termux mirrors may expose different JDK package names/snapshots.
   # Java 21 can compile/run this source with --release 17.
+  : > "$java_install_log"
   for candidate in openjdk-21 openjdk-17 openjdk; do
     say "Thử cài package Java: $candidate"
-    if pkg install -y "$candidate" >/tmp/nro-java-install.log 2>&1; then
+    printf '\n===== pkg install %s =====\n' "$candidate" >> "$java_install_log"
+    if pkg install -y "$candidate" >>"$java_install_log" 2>&1; then
       if command -v java >/dev/null 2>&1 && command -v javac >/dev/null 2>&1; then
         say "Đã cài Java bằng package $candidate"
         return 0
@@ -53,7 +57,7 @@ install_java() {
     fi
   done
 
-  cat /tmp/nro-java-install.log 2>/dev/null || true
+  cat "$java_install_log" 2>/dev/null || true
   printf '%s\n' '[NRO][ERROR] Không tìm thấy package JDK khả dụng trong kho Termux hiện tại.' >&2
   printf '%s\n' '[NRO][ERROR] Hãy chạy: termux-change-repo rồi chọn mirror Main ổn định, sau đó pkg update -y.' >&2
   printf '%s\n' '[NRO][ERROR] Có thể kiểm tra package bằng: pkg search openjdk' >&2
