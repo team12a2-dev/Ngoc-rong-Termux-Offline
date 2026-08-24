@@ -26,7 +26,7 @@ Hãy dùng Termux từ nguồn đáng tin cậy, cấp quyền bộ nhớ nếu 
 pkg update -y && pkg install -y curl tar && mkdir -p "$HOME/ngocrong-termux" && curl -fL --retry 3 "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz" | tar -xz --strip-components=1 -C "$HOME/ngocrong-termux" && cd "$HOME/ngocrong-termux" && bash nro.sh
 ```
 
-Lệnh trên tải archive public trực tiếp từ GitHub, giải nén vào `~/ngocrong-termux`, rồi gọi `bash nro.sh`. Lệnh `bash nro.sh` sẽ tự nhận diện đây là lần cài đầu. Launcher cài `git`, `mariadb` và tự thử các package Java theo thứ tự `openjdk-21`, `openjdk-17`, `openjdk`, khởi tạo data directory MariaDB trong `$PREFIX/var/lib/mysql`, khởi động database qua Unix socket, tạo database `ngocrong`, tạo user nội bộ ngẫu nhiên, import `sql/ngocrong.sql`, biên dịch Java 17 và chạy server nền. Java 21 vẫn tương thích vì mã nguồn được biên dịch với `javac --release 17`. Termux sử dụng mô hình quản lý gói kiểu `apt/pkg`; gói MariaDB là lựa chọn phù hợp với SQL dump MySQL/MariaDB này.[^2]
+Lệnh trên tải archive public trực tiếp từ GitHub, giải nén vào `~/ngocrong-termux`, rồi gọi `bash nro.sh`. Lệnh `bash nro.sh` sẽ tự nhận diện đây là lần cài đầu. Khi khởi động, launcher chờ marker `.runtime/server.ready` được Java server tạo sau khi tải xong database, map, item, mob, NPC và các service; vì vậy dòng `Server đã READY` mới là mốc server sẵn sàng, không chỉ là mốc PID Java đã tồn tại. Launcher cài `git`, `mariadb` và tự thử các package Java theo thứ tự `openjdk-21`, `openjdk-17`, `openjdk`, khởi tạo data directory MariaDB trong `$PREFIX/var/lib/mysql`, khởi động database qua Unix socket, tạo database `ngocrong`, tạo user nội bộ ngẫu nhiên, import `sql/ngocrong.sql`, biên dịch Java 17 và chạy server nền. Java 21 vẫn tương thích vì mã nguồn được biên dịch với `javac --release 17`. Termux sử dụng mô hình quản lý gói kiểu `apt/pkg`; gói MariaDB là lựa chọn phù hợp với SQL dump MySQL/MariaDB này.[^2]
 
 Sau lần cài đầu, nếu chỉ muốn khởi động lại server, dùng đúng một lệnh:
 
@@ -40,7 +40,7 @@ cd ~/ngocrong-termux && bash nro.sh
 |---|---|
 | `bash nro.sh` hoặc `bash nro.sh start` | Tự setup nếu chưa có, sau đó start server nền |
 | `bash nro.sh setup` | Chạy lại toàn bộ quy trình cài đặt/import/build; chỉ dùng khi làm mới môi trường |
-| `bash nro.sh status` | Hiển thị trạng thái Java server và MariaDB |
+| `bash nro.sh status` | Xem trạng thái `STARTING`, `READY` của game server và MariaDB |
 | `bash nro.sh stop` | Dừng server game, không xóa dữ liệu database |
 | `bash nro.sh restart` | Dừng rồi khởi động lại server |
 | `bash nro.sh rebuild` | Biên dịch lại Java từ `src/` |
@@ -85,7 +85,7 @@ Kết quả trên sandbox không thay thế kiểm thử trực tiếp trên t�
 
 Nếu gặp lỗi không tìm thấy package Java, chạy `pkg search openjdk`. Nếu kho không liệt kê package nào, chạy `termux-change-repo`, chọn một mirror Main ổn định, rồi chạy `pkg update -y && bash nro.sh`. Launcher mới sẽ tự thử `openjdk-21`, `openjdk-17` và `openjdk`. Nếu MariaDB không khởi động, xem log bằng `tail -n 100 .runtime/mariadb.log`; kiểm tra port `3306` có bị dịch vụ khác chiếm hay không và đặt `NRO_DB_PORT` sang cổng khác.
 
-Nếu server chạy nhưng client không kết nối, kiểm tra `server.port`, `server.ip`, `server.sv1`, địa chỉ LAN của điện thoại và firewall/router. Nếu server bị dừng ngay, dùng `bash nro.sh console` để xem stack trace đầy đủ thay vì chạy nền.
+Nếu server đang ở trạng thái `STARTING`, theo dõi tiến độ bằng `tail -f .runtime/server.log` hoặc chạy `bash nro.sh status`. Nếu quá 180 giây không có `READY`, xem 160 dòng cuối bằng `tail -n 160 .runtime/server.log`. Nếu server chạy nhưng client không kết nối, kiểm tra `server.port`, `server.ip`, `server.sv1`, địa chỉ LAN của điện thoại và firewall/router. Nếu server bị dừng ngay, dùng `bash nro.sh console` để xem stack trace đầy đủ thay vì chạy nền.
 
 Nếu cần biên dịch lại sau khi cập nhật source từ Git, dùng:
 

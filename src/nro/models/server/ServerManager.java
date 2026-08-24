@@ -1,6 +1,9 @@
 package nro.models.server;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -65,9 +68,16 @@ public class ServerManager {
     private static ServerManager instance;
     public static boolean isRunning;
     private ScheduledExecutorService topUpdater;
+    private static final Path READY_FILE = Path.of(".runtime", "server.ready");
 
     public void init() {
+        clearReadyMarker();
+        System.out.println("[NRO][LOAD] Bắt đầu tải cấu hình, database và dữ liệu game...");
         Manager.gI();
+        System.out.println("[NRO][LOAD] Đã tải dữ liệu: maps=" + Manager.MAPS.size()
+                + ", items=" + Manager.ITEM_TEMPLATES.size()
+                + ", mobs=" + Manager.MOB_TEMPLATES.size()
+                + ", npcs=" + Manager.NPCS.size());
         //TaskService.gI().loadTask();
         HistoryTransactionDAO.deleteHistory();
     }
@@ -83,6 +93,8 @@ public class ServerManager {
     public static void main(String[] args) {
         try {
             timeStart = TimeUtil.getTimeNow("dd/MM/yyyy HH:mm:ss");
+            clearReadyMarker();
+            System.out.println("[NRO][STARTING] Server bắt đầu khởi động lúc " + timeStart);
             //ShopTab.loadItem();
             new Thread(() -> {
                 try {
@@ -98,6 +110,22 @@ public class ServerManager {
         }
     }
 
+    private static void clearReadyMarker() {
+        try {
+            Files.deleteIfExists(READY_FILE);
+        } catch (IOException ignored) {
+        }
+    }
+
+    private static void writeReadyMarker() {
+        try {
+            Files.createDirectories(READY_FILE.getParent());
+            Files.writeString(READY_FILE, "ready=" + timeStart + System.lineSeparator(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            System.err.println("[NRO][WARN] Không ghi được marker server.ready: " + e.getMessage());
+        }
+    }
+
     public static void logException(Class<?> clazz, Exception e) {
         System.err.println("Lỗi tại " + clazz.getSimpleName() + ": " + e.getMessage());
         e.printStackTrace();
@@ -106,6 +134,7 @@ public class ServerManager {
     public void run() {
         try {
             isRunning = true;
+            System.out.println("[NRO][STARTING] Đang mở game socket và khởi động service...");
             activeServerSocket();
 
             // Gửi các nhiệm vụ cập nhật theo từng dịch vụ
@@ -148,7 +177,11 @@ public class ServerManager {
 
             Client.gI().startAutoSave();
             startTopUpdater();
+            writeReadyMarker();
+            System.out.println("[NRO][READY] Server đã tải xong dữ liệu và sẵn sàng nhận kết nối trên cổng " + PORT);
         } catch (Exception e) {
+            isRunning = false;
+            clearReadyMarker();
             Logger.logException(this.getClass(), e);
         }
     }

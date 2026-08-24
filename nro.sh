@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
 STATE_DIR="${NRO_STATE_DIR:-$ROOT/.runtime}"
 DB_DIR="${NRO_DB_DIR:-${PREFIX:-$HOME}/var/lib/mysql}"
 DB_RUN_DIR="${NRO_DB_RUN_DIR:-${PREFIX:-$HOME}/var/run/mysqld}"
@@ -208,6 +209,34 @@ server_alive() {
   [ -f "$SERVER_PID" ] && kill -0 "$(cat "$SERVER_PID")" 2>/dev/null
 }
 
+server_ready() {
+  [ -f "$STATE_DIR/server.ready" ]
+}
+
+wait_server_ready() {
+  local max_wait=180 elapsed=0
+  while [ "$elapsed" -lt "$max_wait" ]; do
+    if ! server_alive; then
+      tail -n 120 "$SERVER_LOG" 2>/dev/null || true
+      rm -f "$SERVER_PID" "$STATE_DIR/server.ready"
+      die "Server game dừng trước khi hoàn tất tải dữ liệu."
+    fi
+    if server_ready; then
+      say "Server đã READY sau khoảng ${elapsed}s. Log: $SERVER_LOG"
+      tail -n 20 "$SERVER_LOG" 2>/dev/null || true
+      return 0
+    fi
+    if [ "$elapsed" -eq 0 ] || [ $((elapsed % 10)) -eq 0 ]; then
+      say "Đang tải dữ liệu game... ${elapsed}/${max_wait}s"
+      tail -n 5 "$SERVER_LOG" 2>/dev/null || true
+    fi
+    sleep 2
+    elapsed=$((elapsed + 2))
+  done
+  tail -n 160 "$SERVER_LOG" 2>/dev/null || true
+  die "Server chưa READY sau ${max_wait}s; hãy xem $SERVER_LOG"
+}
+
 start_server() {
   ensure_layout
   start_database
@@ -215,9 +244,15 @@ start_server() {
   import_database
   build_server
   if server_alive; then
-    say "Server game đang chạy với PID $(cat "$SERVER_PID")."
+    if server_ready; then
+      say "Server game đang READY với PID $(cat "$SERVER_PID")."
+      return 0
+    fi
+    say "Server game đã có PID $(cat "$SERVER_PID"); tiếp tục chờ tải dữ liệu."
+    wait_server_ready
     return 0
   fi
+  rm -f "$STATE_DIR/server.ready"
   local jvm_opts cp jar
   jvm_opts="${NRO_JVM_OPTS:-}"
   if [ -z "$jvm_opts" ]; then
@@ -228,13 +263,7 @@ start_server() {
   say "Khởi động Ngọc Rồng trên cổng $GAME_PORT"
   nohup java $jvm_opts -cp "$cp" nro.models.server.ServerManager > "$SERVER_LOG" 2>&1 &
   printf '%s\n' "$!" > "$SERVER_PID"
-  sleep 3
-  if ! server_alive; then
-    tail -n 100 "$SERVER_LOG" 2>/dev/null || true
-    rm -f "$SERVER_PID"
-    die "Server game dừng ngay sau khi khởi động."
-  fi
-  say "Server đã chạy nền. Log: $SERVER_LOG"
+  wait_server_ready
 }
 
 stop_server() {
@@ -257,7 +286,11 @@ stop_server() {
 
 status() {
   if server_alive; then
-    say "Server game: RUNNING (PID $(cat "$SERVER_PID"))"
+    if server_ready; then
+      say "Server game: READY (PID $(cat "$SERVER_PID"))"
+    else
+      say "Server game: STARTING / ĐANG TẢI DỮ LIỆU (PID $(cat "$SERVER_PID"))"
+    fi
   else
     say "Server game: STOPPED"
   fi
