@@ -42,6 +42,8 @@ const navGroups = [
       { to: '/alerts', label: 'Alerts', icon: 'alert' },
       { to: '/backups', label: 'Backups', icon: 'backup' },
       { to: '/logs', label: 'Audit Logs', icon: 'logs' },
+      { to: '/runtime', label: 'Runtime & Logs', icon: 'logs' }
+
     ],
   },
 ];

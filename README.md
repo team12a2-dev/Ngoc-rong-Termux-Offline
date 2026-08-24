@@ -170,6 +170,12 @@ Panel API và giao diện React dùng chung cổng `3001`; API nằm dưới `/a
 
 Log panel nằm tại `.runtime/panel.log`. Trạng thái panel và toàn bộ endpoint được kiểm tra bằng `bash nro.sh status`. Panel mặc định listen trên `0.0.0.0:3001` để có thể truy cập trong cùng mạng LAN; chỉ URL `127.0.0.1` là dùng cho chính điện thoại. Có thể đổi bind host hoặc cổng bằng `NRO_PANEL_BIND` và `NRO_PANEL_PORT`, ví dụ `NRO_PANEL_BIND=127.0.0.1 NRO_PANEL_PORT=3002 bash nro.sh restart`.
 
+### Runtime & Diagnostics
+
+Panel có thêm mục **Runtime & Logs** để quản lý vận hành mà không cần mở terminal. Trang này hiển thị trạng thái Java Panel Agent, cổng game, địa chỉ Agent, PID và uptime Node.js, RAM Termux, tình trạng file log, đồng thời cho phép xem realtime ba log `server.log`, `panel.log` và `mariadb.log`. Log tự làm mới mỗi 5 giây, có thể chọn 100–1.000 dòng và tải xuống thành file `.txt` để gửi khi cần hỗ trợ.
+
+Các API nội bộ tương ứng là `GET /api/v1/runtime/diagnostics` và `GET /api/v1/runtime/logs?source=game|panel|mariadb`. Endpoint chỉ yêu cầu quyền panel đã đăng nhập và chỉ đọc ba file log cố định trong `.runtime`, không cho phép truyền đường dẫn tùy ý.
+
 ## 🗄️ Cấu hình database và JVM
 
 Mặc định launcher tạo database **`ngocrong`**, host `127.0.0.1`, port `3306`, user `ngocrong` và mật khẩu ngẫu nhiên được lưu trong `.runtime/db-password`. File `Config.properties` được tạo cục bộ từ `Config.properties.example` và không được commit lên GitHub.

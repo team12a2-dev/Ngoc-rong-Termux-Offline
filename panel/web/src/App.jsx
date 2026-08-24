@@ -19,6 +19,8 @@ import PluginsPage from './pages/PluginsPage';
 import ServersPage from './pages/ServersPage';
 import AlertsPage from './pages/AlertsPage';
 import BackupsPage from './pages/BackupsPage';
+import RuntimePage from './pages/RuntimePage';
+
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }) {
@@ -49,6 +51,8 @@ export default function App() {
           <Route path="servers-mgmt" element={<ServersPage />} />
           <Route path="alerts" element={<AlertsPage />} />
           <Route path="backups" element={<BackupsPage />} />
+          <Route path="runtime" element={<RuntimePage />} />
+
         </Route>
       </Routes>
     </BrowserRouter>
