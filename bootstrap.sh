@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -Eeuo pipefail
 
-REPO_URL="${NRO_REPO_URL:-https://github.com/team12a2-dev/ngocrong-termux-server.git}"
+REPO_URL="${NRO_REPO_URL:-https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline.git}"
 TARGET_DIR="${NRO_TARGET_DIR:-$HOME/ngocrong-termux}"
 
 if ! command -v pkg >/dev/null 2>&1; then
