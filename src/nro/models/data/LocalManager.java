@@ -62,6 +62,9 @@ public class LocalManager {
             if ((value = properties.get("database.driver")) != null) {
                 DRIVER = String.valueOf(value);
             }
+            if (DRIVER == null || DRIVER.equals("com.mysql.jdbc.Driver") || DRIVER.equals("com.mysql.cj.jdbc.Driver")) {
+                DRIVER = "org.mariadb.jdbc.Driver";
+            }
             if ((value = properties.get("database.host")) != null) {
                 DB_HOST = String.valueOf(value);
             }
@@ -172,7 +175,7 @@ public class LocalManager {
     config.setDriverClassName(DRIVER);
 
     config.setJdbcUrl(String.format(
-        "jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=UTC&cachePrepStmts=true&prepStmtCacheSize=250&prepStmtCacheSqlLimit=2048",
+        "jdbc:mariadb://%s:%s/%s?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSsl=false&serverTimezone=UTC&cachePrepStmts=true&prepStmtCacheSize=250&prepStmtCacheSqlLimit=2048",
         DB_HOST, DB_PORT, databaseName
     ));
 

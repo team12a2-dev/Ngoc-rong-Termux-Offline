@@ -161,6 +161,7 @@ GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'127.0.0.1';
 FLUSH PRIVILEGES;
 SQL
 
+  update_config "database.driver" "org.mariadb.jdbc.Driver"
   update_config "database.host" "$DB_HOST"
   update_config "database.port" "$DB_PORT"
   update_config "database.name" "$DB_NAME"
