@@ -2,19 +2,30 @@
 
 Repository này đóng gói mã nguồn Java Ngọc Rồng Online từ gói `cc2.rar` và cơ sở dữ liệu `ngocrong10.06.sql` do người dùng cung cấp. Mục tiêu của bản triển khai là chạy **game server Java và MariaDB cục bộ trên Android/Termux** bằng một launcher duy nhất. Nguồn ban đầu được tải từ [gói mã nguồn Google Drive](https://drive.google.com/file/d/1-kbG0JBo67gPBiKaTMU-1QI1wM4u_8ow/view?usp=drivesdk) và [file SQL Google Drive](https://drive.google.com/file/d/10gjlN69CMH9sW7ful1cc5lx5PTncm_-I/view?usp=drivesdk).
 
-> **Lệnh vận hành chính:** sau khi clone repository, chạy `bash nro.sh`. Lần đầu lệnh này tự cài dependency, khởi tạo MariaDB, tạo database `ngocrong`, import SQL, biên dịch Java và khởi động server. Những lần sau cùng lệnh đó chỉ khởi động server đã setup.
+> **Lệnh vận hành chính:** sau khi chạy one-command installer hoặc tải archive repository, chạy `bash nro.sh`. Lần đầu lệnh này tự cài dependency, khởi tạo MariaDB, tạo database `ngocrong`, import SQL, biên dịch Java và khởi động server. Những lần sau cùng lệnh đó chỉ khởi động server đã setup.
 
 ## Thành phần đã được chuẩn hóa
 
 | Thành phần | Trạng thái | Mô tả |
 |---|---:|---|
 | Mã Java | Đã kiểm tra | 550 tệp nguồn, entry point `nro.models.server.ServerManager`, target Java 17 |
-| Thư viện | Đã giữ lại | 13 JAR trong `lib/`, classpath được launcher ghép tự động |
+| Thư viện | Đã giữ lại | 14 JAR trong `lib/`, gồm MariaDB Connector/J 3.5.10; classpath được launcher ghép tự động |
 | Dữ liệu game | Đã giữ lại | Khoảng 85.152 tệp trong `data/`, tổng dung lượng xấp xỉ 963 MB |
 | SQL | Đã chuẩn hóa | `sql/ngocrong.sql`, 53 bảng và 9.097 lệnh insert được kiểm tra import |
 | Database | Tự động | MariaDB cục bộ, mặc định database là `ngocrong` |
 | Launcher | Đã viết mới | `nro.sh` hỗ trợ `setup`, `start`, `restart`, `stop`, `status`, `console`, `rebuild` |
 | Cấu hình | An toàn hơn | `Config.properties` được tạo cục bộ từ `Config.properties.example` và bị Git bỏ qua |
+
+## Bản cập nhật đã hoàn tất
+
+| Hạng mục | Nội dung cập nhật |
+|---|---|
+| Cài đặt | Chuyển sang tải archive public bằng một lệnh `curl | tar`, không cần GitHub username/password hoặc thao tác `git clone` thủ công. |
+| Java trên Termux | Launcher tự thử `openjdk-21`, `openjdk-17`, rồi `openjdk`; nếu mirror không có JDK, log đầy đủ tại `.runtime/java-install.log`. |
+| Database | Thay MySQL Connector/J 5.1.23 bằng MariaDB Connector/J 3.5.10, dùng `org.mariadb.jdbc.Driver` và `jdbc:mariadb://`; đã kiểm thử kết nối MariaDB 10.11 qua Hikari/LocalManager. |
+| Khởi động | Server tạo `.runtime/server.ready` sau khi hoàn tất tải database, map, item, mob, NPC và service; launcher phân biệt `STARTING` với `READY` và chờ tối đa 180 giây. |
+| Asset bản đồ | Chuẩn hóa `data/map/tile_set_Info` thành `data/map/tile_set_info`, đúng với đường dẫn Java trên Android/Linux phân biệt hoa thường. Launcher kiểm tra asset này trước khi build. |
+| Chẩn đoán | Log cài Java và log server được lưu trong `.runtime/`, không ghi file tạm vào `/tmp` bị hạn chế quyền trên một số Termux. |
 
 Repository không đưa `build/`, `dist/`, `node_modules/`, log, backup hoặc cấu hình mật khẩu vào Git. Việc loại bỏ các artefact này làm giảm kích thước clone và tránh phát hành thông tin cục bộ. GitHub áp dụng giới hạn 100 MB cho một Git object và khuyến nghị repository không vượt quá 10 GB trên đĩa; vì vậy các file runtime/build không nên commit vào repository.[^1]
 
@@ -77,7 +88,7 @@ Khi dùng mạng di động, địa chỉ IP thường bị NAT nên thiết b�
 
 ## Kiểm thử đã thực hiện
 
-Bản triển khai đã được kiểm tra trong môi trường Linux tương đương runtime Java/MariaDB của Termux. Toàn bộ 550 file Java biên dịch thành công bằng `javac --release 17 -proc:none`. SQL import thành công với 53 bảng, trong đó các bảng kiểm tra có 3 account, 2.001 item template và 169 map template. Smoke test đã khởi động `ServerManager` ở chế độ nền và xác nhận PID server còn sống; lỗi đọc stdin khi chạy `nohup` đã được sửa bằng điều kiện `Scanner.hasNextLine()`.
+Bản triển khai đã được kiểm tra trong môi trường Linux tương đương runtime Java/MariaDB của Termux. Toàn bộ 550 file Java biên dịch thành công bằng `javac --release 17 -proc:none`; MariaDB Connector/J 3.5.10 mở connection thành công tới MariaDB 10.11 và Hikari/LocalManager lấy connection thành công. SQL import thành công với 53 bảng, trong đó các bảng kiểm tra có 3 account, 2.001 item template và 169 map template. Asset `data/map/tile_set_info` đã được kiểm tra đúng tên và có trong branch `main`. `ServerManager` có log `STARTING/READY`, marker readiness và launcher chờ marker thay vì chỉ kiểm tra PID; lỗi đọc stdin khi chạy `nohup` đã được sửa bằng điều kiện `Scanner.hasNextLine()`.
 
 Kết quả trên sandbox không thay thế kiểm thử trực tiếp trên từng thiết bị Android. Các khác biệt thường gặp gồm phiên bản Termux, dung lượng trống, kiến trúc CPU, quyền truy cập bộ nhớ và mức RAM còn trống.
 
