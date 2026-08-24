@@ -1,0 +1,41 @@
+# Local secrets/config
+Config.properties
+
+# Build/runtime
+build/
+dist/
+*.class
+*.log
+*.pid
+.runtime/
+.run/
+logs/
+
+# Local database/runtime data
+.termux-db/
+*.sock
+*.pid
+
+# Node dependencies and local env
+node_modules/
+.env
+.env.*
+!.env.example
+
+# IDE/OS
+.idea/
+.vscode/
+.nb-gradle/
+nbproject/private/
+.DS_Store
+Thumbs.db
+
+# Windows launchers and generated backups
+*.bat
+*.bak
+*.bak-*
+*.bak*
+
+# Temporary/generated assets
+.tmp/
+tmp_*/

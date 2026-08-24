@@ -1,0 +1,14 @@
+{
+  "id": "x2-exp-weekend",
+  "label": "Bật x2 EXP cuối tuần",
+  "category": "server-control",
+  "roles": ["admin"],
+  "fields": [
+    { "name": "rate", "type": "number", "default": 2, "min": 1, "max": 50, "label": "Tỷ lệ EXP" },
+    { "name": "message", "type": "text", "default": "🔥 EXP x2 cuối tuần!", "label": "Thông báo" }
+  ],
+  "steps": [
+    { "action": "agent:POST:/config/exp", "body": { "rate": "{{rate}}" } },
+    { "action": "agent:POST:/broadcast", "body": { "message": "{{message}}" } }
+  ]
+}

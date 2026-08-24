@@ -1,0 +1,15 @@
+-proc:none
+-encoding
+UTF-8
+-source
+17
+-target
+17
+-cp
+!CP!
+-d
+d:\\cc2\\build\\classes
+d:\\cc2\\src\\nro\\models\\database\\ClanDAO.java
+d:\\cc2\\src\\nro\\models\\server\\PanelCommandService.java
+d:\\cc2\\src\\nro\\models\\server\\panel\\PanelActions.java
+d:\\cc2\\src\\nro\\models\\server\\panel\\PanelAgent.java

@@ -1,0 +1,17 @@
+services:
+  panel-api:
+    build: ./api
+    ports:
+      - "3001:3001"
+    env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  panel-web:
+    build: ./web
+    ports:
+      - "3000:80"
+    depends_on:
+      - panel-api
+    restart: unless-stopped

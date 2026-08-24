@@ -1,0 +1,29 @@
+server.local=false
+server.test=false
+server.daoautoupdater=false
+server.sv=1
+server.name=NGOC RONG
+server.ip=127.0.0.1
+server.port=14445
+server.sv1=NRO TERMUX:127.0.0.1:14445:0,0,0
+server.waitlogin=0
+server.maxperip=3
+server.maxplayer=1000
+server.expserver=3
+
+# DATABASE - nro.sh sẽ cập nhật các giá trị này khi setup
+database.driver=com.mysql.jdbc.Driver
+database.host=127.0.0.1
+database.port=3306
+database.name=ngocrong
+database.user=ngocrong
+database.pass=
+database.min=5
+database.max=20
+database.lifetime=180000
+
+# PANEL AGENT
+panel.agent.enabled=true
+panel.agent.host=127.0.0.1
+panel.agent.port=14446
+panel.agent.key=change-me-in-production
