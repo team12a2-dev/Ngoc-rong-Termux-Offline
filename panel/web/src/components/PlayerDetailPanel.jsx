@@ -83,7 +83,8 @@ function Field({ label, value, onChange, type = 'text', readOnly, hint }) {
   );
 }
 
-export default function PlayerDetailPanel({ player, onRefresh, onMessage }) {
+export default function PlayerDetailPanel({ player, onRefresh, onMessage, onDeleted }) {
+
   const [tab, setTab] = useState('overview');
   const [statsForm, setStatsForm] = useState({});
   const [invForm, setInvForm] = useState({});
@@ -99,6 +100,7 @@ export default function PlayerDetailPanel({ player, onRefresh, onMessage }) {
   const [itemSubTab, setItemSubTab] = useState('body');
   const [itemNames, setItemNames] = useState({});
   const [buffVndAmount, setBuffVndAmount] = useState('');
+  const [currencyForm, setCurrencyForm] = useState({ gold: '', gem: '' });
   const [busy, setBusy] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
   const [actionErr, setActionErr] = useState(false);
@@ -191,6 +193,60 @@ export default function PlayerDetailPanel({ player, onRefresh, onMessage }) {
       setActionMsg(msg);
       onMessage?.(msg);
       await onRefresh?.();
+    } catch (e) {
+      setActionErr(true);
+      setActionMsg(e.message);
+      onMessage?.(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addCurrency() {
+    const gold = Number(currencyForm.gold || 0);
+    const gem = Number(currencyForm.gem || 0);
+    if (gold <= 0 && gem <= 0) {
+      setActionErr(true);
+      setActionMsg('Nhập số vàng hoặc ngọc cần cộng.');
+      return;
+    }
+    if (!window.confirm(`Cộng ${gold.toLocaleString('vi-VN')} vàng và ${gem.toLocaleString('vi-VN')} ngọc cho ${player.name}?`)) return;
+    setBusy(true);
+    setActionErr(false);
+    setActionMsg('');
+    try {
+      const res = await api(`/players/${player.id}/currency`, {
+        method: 'POST',
+        body: JSON.stringify({ gold, gem, serverId: getServerId() }),
+      });
+      const data = res.data || {};
+      const msg = `Đã cộng tiền tệ (${data.mode === 'online' ? 'online' : 'database'}): vàng ${Number(data.gold || 0).toLocaleString('vi-VN')}, ngọc ${Number(data.gem || 0).toLocaleString('vi-VN')}.`;
+      setActionMsg(msg);
+      onMessage?.(msg);
+      setCurrencyForm({ gold: '', gem: '' });
+      await onRefresh?.();
+    } catch (e) {
+      setActionErr(true);
+      setActionMsg(e.message);
+      onMessage?.(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteCharacter() {
+    if (isOnline) return;
+    if (!window.confirm(`XÓA VĨNH VIỄN nhân vật ${player.name}? Dữ liệu không thể khôi phục.`)) return;
+    setBusy(true);
+    setActionErr(false);
+    setActionMsg('');
+    try {
+      await api(`/players/${player.id}`, {
+        method: 'DELETE',
+        body: JSON.stringify({ serverId: getServerId() }),
+      });
+      onMessage?.(`Đã xóa nhân vật ${player.name}.`);
+      onDeleted?.(player);
     } catch (e) {
       setActionErr(true);
       setActionMsg(e.message);
@@ -339,6 +395,16 @@ export default function PlayerDetailPanel({ player, onRefresh, onMessage }) {
           <Field label="Hồng ngọc (ruby)" type="number" value={invForm.ruby ?? player.inventory?.ruby} onChange={(v) => setInvForm({ ...invForm, ruby: v })} />
           <Field label="Coupon" type="number" value={invForm.coupon ?? player.inventory?.coupon} onChange={(v) => setInvForm({ ...invForm, coupon: v })} />
           <Field label="Event item" type="number" value={invForm.event ?? player.inventory?.event} onChange={(v) => setInvForm({ ...invForm, event: v })} />
+
+          <div className="section full-width">
+            <h4>Cộng nhanh vàng / ngọc</h4>
+            <p className="muted">Cộng dồn, không ghi đè số dư hiện tại. Player online sẽ nhận packet ngay; offline sẽ ghi vào database.</p>
+            <div className="row">
+              <Field label="Cộng vàng" type="number" value={currencyForm.gold} onChange={(v) => setCurrencyForm({ ...currencyForm, gold: v })} hint="tối đa 200 tỷ/lần" />
+              <Field label="Cộng ngọc" type="number" value={currencyForm.gem} onChange={(v) => setCurrencyForm({ ...currencyForm, gem: v })} hint="tối đa 2 tỷ/lần" />
+              <button className="btn primary" disabled={busy} type="button" onClick={addCurrency}>Cộng tiền tệ</button>
+            </div>
+          </div>
 
           <div className="section full-width">
             <h4>Teleport / Vị trí</h4>
@@ -507,8 +573,11 @@ export default function PlayerDetailPanel({ player, onRefresh, onMessage }) {
               <button className="btn danger" disabled={busy || isBanned} type="button" onClick={() => action('/ban', {}, `Ban account của ${player.name}?`)}>
                 Ban account
               </button>
-              <button className="btn" disabled={busy || !isBanned} type="button" onClick={() => action('/unban', {}, `Unban account của ${player.name}?`)}>
+                            <button className="btn" disabled={busy || !isBanned} type="button" onClick={() => action('/unban', {}, `Unban account của ${player.name}?`)}>
                 Unban account
+              </button>
+              <button className="btn danger" disabled={busy || isOnline} type="button" onClick={deleteCharacter} title={isOnline ? 'Kick và chờ nhân vật offline trước khi xóa' : undefined}>
+                {isOnline ? 'Xóa (đang online)' : 'Xóa nhân vật vĩnh viễn'}
               </button>
             </div>
           </div>

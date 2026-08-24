@@ -26,12 +26,15 @@ import nro.models.boss.Boss_Manager.BossManager;
 import nro.models.boss.spawn.BossSpawnSchedule;
 import nro.models.consts.BossStatus;
 import nro.models.database.AmodsubVN;
+import nro.models.database.PlayerDAO;
+
 import nro.models.data.LocalManager;
 import nro.models.map.service.ChangeMapService;
 import nro.models.services.PlayerService;
 import nro.models.database.ShopDAO;
 import nro.models.item.Item;
 import nro.models.managers.GiftCodeManager;
+import nro.models.player.Inventory;
 import nro.models.player.Player;
 import nro.models.server.Client;
 import nro.models.server.Maintenance;
@@ -112,7 +115,43 @@ public final class PanelActions {
         return count;
     }
 
+    public static boolean createPlayer(int accountId, String name, int gender, int hair) {
+        if (accountId <= 0 || name == null || name.isBlank() || gender < 0 || gender > 2) {
+            return false;
+        }
+        return PlayerDAO.createNewPlayer(accountId, name.toLowerCase(), (byte) gender, hair);
+    }
+
+    public static Map<String, Object> addCurrency(String name, long goldDelta, int gemDelta) {
+        Player target = Client.gI().getPlayer(name);
+        if (target == null || target.inventory == null || (goldDelta <= 0 && gemDelta <= 0)) {
+            return Map.of("updated", false, "reason", "Player offline or invalid amount");
+        }
+        long oldGold = Math.max(0L, target.inventory.gold);
+        int oldGem = Math.max(0, target.inventory.gem);
+        long safeGoldDelta = Math.max(0L, goldDelta);
+        int safeGemDelta = Math.max(0, gemDelta);
+        long newGold = safeGoldDelta > Inventory.LIMIT_GOLD - oldGold
+                ? Inventory.LIMIT_GOLD : oldGold + safeGoldDelta;
+        int newGem = (int) Math.min(2_000_000_000L, (long) oldGem + safeGemDelta);
+        target.inventory.gold = newGold;
+        target.inventory.gem = newGem;
+        InventoryService.gI().sendItemBags(target);
+        PlayerDAO.updatePlayer(target);
+        notifyPlayerSystem(target,
+                "Panel vừa cộng tiền tệ cho nhân vật. Vàng: +" + String.format("%,d", safeGoldDelta)
+                        + ", ngọc: +" + formatNumber(safeGemDelta));
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("updated", true);
+        result.put("gold", newGold);
+        result.put("gem", newGem);
+        result.put("goldDelta", safeGoldDelta);
+        result.put("gemDelta", safeGemDelta);
+        return result;
+    }
+
     public static boolean buffVnd(String name, int amount) {
+
         Player target = Client.gI().getPlayer(name);
         if (target == null || amount <= 0 || target.getSession() == null) {
             return false;

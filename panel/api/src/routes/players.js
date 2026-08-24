@@ -14,6 +14,7 @@ import {
   buildSkillsFromList,
   addItemToContainer,
   tryParseJson,
+  addInventoryCurrency,
 } from '../services/playerData.js';
 
 import { syncPlayerToGame, applyPlayerItemsOnline } from '../services/playerSync.js';
@@ -311,6 +312,37 @@ router.get('/search', requirePermission('player.view'), async (req, res) => {
   }
 });
 
+router.post('/', requirePermission('account.edit'), async (req, res) => {
+  const accountId = Number(req.body?.accountId || 0);
+  const gender = Number(req.body?.gender ?? 0);
+  const head = Number(req.body?.head ?? 0);
+  const name = String(req.body?.name || '').trim().toLowerCase();
+  if (!accountId || !/^[a-z0-9]{5,10}$/.test(name) || ![0, 1, 2].includes(gender)) {
+    return res.status(400).json({ ok: false, error: 'Cần accountId, tên 5–10 ký tự a-z/0-9 và gender 0/1/2' });
+  }
+  try {
+    const account = await query('SELECT id FROM account WHERE id = ? LIMIT 1', [accountId]);
+    if (!account.length) return res.status(404).json({ ok: false, error: 'Account không tồn tại' });
+    const duplicateName = await query('SELECT id FROM player WHERE LOWER(name) = LOWER(?) LIMIT 1', [name]);
+    if (duplicateName.length) return res.status(409).json({ ok: false, error: 'Tên nhân vật đã tồn tại' });
+    const duplicateAccount = await query('SELECT id, name FROM player WHERE account_id = ? LIMIT 1', [accountId]);
+    if (duplicateAccount.length) return res.status(409).json({ ok: false, error: `Account đã có nhân vật ${duplicateAccount[0].name}` });
+
+    const sid = Number(req.body?.serverId || await getDefaultServerId());
+    const result = await agentPost(sid, '/players/create', { accountId, name, gender, head });
+    const created = Boolean(result?.data?.created);
+    if (!created) return res.status(400).json({ ok: false, error: 'Java server không tạo được nhân vật' });
+    const rows = await query(
+      'SELECT id, account_id, name, gender, head, create_time FROM player WHERE account_id = ? LIMIT 1',
+      [accountId]
+    );
+    await auditLog({ userId: req.user.id, serverId: sid, action: 'player.create', target: rows[0]?.id || name, requestBody: req.body, response: result, ip: req.ip });
+    res.status(201).json({ ok: true, data: { player: rows[0] || { account_id: accountId, name, gender, head }, agent: result } });
+  } catch (e) {
+    res.status(e.status === 404 ? 503 : 500).json({ ok: false, error: e.message });
+  }
+});
+
 router.get('/:id', requirePermission('player.view'), async (req, res) => {
   try {
     const rows = await query(
@@ -409,6 +441,61 @@ router.put('/:id/location', requirePermission('account.edit'), async (req, res) 
     await auditLog({ userId: req.user.id, action: 'player.location', target: req.params.id, requestBody: req.body, ip: req.ip });
     const sync = await syncPlayerToGame(req.params.id, req.body?.serverId);
     res.json({ ok: true, data: { location: tryParseJson(data_location), sync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.post('/:id/currency', requirePermission('player.buff'), async (req, res) => {
+  const gold = Number(req.body?.gold || 0);
+  const gem = Number(req.body?.gem || 0);
+  if ((!Number.isFinite(gold) || gold < 0) || (!Number.isFinite(gem) || gem < 0) || (gold === 0 && gem === 0)) {
+    return res.status(400).json({ ok: false, error: 'Cần nhập gold hoặc gem dương' });
+  }
+  if (gold > 200_000_000_000 || gem > 2_000_000_000) {
+    return res.status(400).json({ ok: false, error: 'Số lượng vượt giới hạn mỗi lần cộng' });
+  }
+  try {
+    const rows = await query('SELECT name, data_inventory FROM player WHERE id = ? LIMIT 1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ ok: false, error: 'Not found' });
+    const sid = Number(req.body?.serverId || await getDefaultServerId());
+    let online = false;
+    try {
+      online = Boolean((await agentGet(sid, `/players/${encodeURIComponent(rows[0].name)}`))?.data);
+    } catch {
+      return res.status(503).json({ ok: false, error: 'Java Agent không phản hồi; không cộng để tránh lệch dữ liệu online/DB' });
+    }
+
+    if (online) {
+      const result = await agentPost(sid, `/players/${encodeURIComponent(rows[0].name)}/currency`, { gold, gem });
+      if (!result?.data?.updated) return res.status(409).json({ ok: false, error: result?.data?.reason || 'Không cập nhật được player online' });
+      await auditLog({ userId: req.user.id, serverId: sid, action: 'player.currency.online', target: rows[0].name, requestBody: req.body, response: result, ip: req.ip });
+      return res.json({ ok: true, data: { mode: 'online', ...result.data } });
+    }
+
+    const currency = addInventoryCurrency(rows[0].data_inventory, { gold, gem });
+    await query('UPDATE player SET data_inventory = ? WHERE id = ?', [currency.serialized, req.params.id]);
+    await auditLog({ userId: req.user.id, action: 'player.currency.db', target: req.params.id, requestBody: req.body, response: currency.after, ip: req.ip });
+    res.json({ ok: true, data: { mode: 'database', gold: currency.after.gold, gem: currency.after.gem, before: currency.before, after: currency.after } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.delete('/:id', requirePermission('account.edit'), async (req, res) => {
+  try {
+    const rows = await query('SELECT id, name, account_id FROM player WHERE id = ? LIMIT 1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ ok: false, error: 'Not found' });
+    const sid = Number(req.body?.serverId || await getDefaultServerId());
+    try {
+      const online = await agentGet(sid, `/players/${encodeURIComponent(rows[0].name)}`);
+      if (online?.data) return res.status(409).json({ ok: false, error: 'Không thể xóa nhân vật đang online; hãy kick trước' });
+    } catch {
+      return res.status(503).json({ ok: false, error: 'Không xác nhận được trạng thái online từ Java Agent; không xóa để bảo toàn dữ liệu' });
+    }
+    await query('DELETE FROM player WHERE id = ?', [req.params.id]);
+    await auditLog({ userId: req.user.id, action: 'player.delete', target: req.params.id, requestBody: req.body, ip: req.ip });
+    res.json({ ok: true, data: { deleted: true, id: Number(req.params.id), name: rows[0].name, accountId: rows[0].account_id } });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }

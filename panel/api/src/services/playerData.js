@@ -31,6 +31,22 @@ export function buildInventory(current, updates) {
   return JSON.stringify(arr);
 }
 
+export function addInventoryCurrency(current, deltas) {
+  const arr = tryParseJson(current) || [0, 0, 0, 0, 0];
+  const indexes = { gold: 0, gem: 1, ruby: 2 };
+  const limits = { gold: 200_000_000_000, gem: 2_000_000_000, ruby: 2_000_000_000 };
+  const before = {};
+  const after = {};
+  for (const [key, index] of Object.entries(indexes)) {
+    const currentValue = Math.max(0, Number(arr[index] || 0));
+    const delta = Number(deltas?.[key] || 0);
+    before[key] = currentValue;
+    after[key] = Math.min(limits[key], Math.max(0, currentValue + delta));
+    arr[index] = after[key];
+  }
+  return { serialized: JSON.stringify(arr), before, after };
+}
+
 const POINT_FIELDS = {
   limitPower: 0,
   power: 1,

@@ -109,6 +109,16 @@ public final class PanelAgent {
     }
 
     private void handlePlayerRoute(HttpExchange exchange, String method, String path) throws IOException {
+        if ("/players/create".equals(path) && "POST".equals(method)) {
+            JSONObject body = parseJson(readBody(exchange));
+            int accountId = intValue(body.get("accountId"), 0);
+            String name = String.valueOf(body.getOrDefault("name", ""));
+            int gender = intValue(body.get("gender"), 0);
+            int hair = intValue(body.get("head"), 0);
+            boolean created = PanelActions.createPlayer(accountId, name, gender, hair);
+            writeJson(exchange, created ? 200 : 400, success(Map.of("created", created)));
+            return;
+        }
         String[] parts = path.split("/");
         if (parts.length < 3) {
             writeJson(exchange, 404, error("Not found"));
@@ -135,6 +145,12 @@ public final class PanelAgent {
                     int amount = intValue(body.get("amount"), 0);
                     writeJson(exchange, 200, success(Map.of("ok", PanelActions.buffVnd(name, amount))));
                 }
+                case "currency" -> {
+                    long gold = longValue(body.get("gold"), 0L);
+                    int gem = intValue(body.get("gem"), 0);
+                    writeJson(exchange, 200, success(PanelActions.addCurrency(name, gold, gem)));
+                }
+
                 case "buff-item" -> {
                     Object items = body.get("items");
                     int added = items instanceof JSONArray array ? PanelActions.buffItem(name, array) : 0;
@@ -352,6 +368,17 @@ public final class PanelAgent {
         json.put("ok", false);
         json.put("error", message);
         return json;
+    }
+
+    private static long longValue(Object value, long fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        try {
+            return Long.parseLong(String.valueOf(value));
+        } catch (Exception e) {
+            return fallback;
+        }
     }
 
     private static int intValue(Object value, int fallback) {

@@ -16,6 +16,11 @@ const ACTION_LABELS = {
   'config.rollback': 'Rollback config',
   'plugin.execute': 'Chạy plugin',
   'player.kick': 'Kick player',
+  'player.create': 'Tạo nhân vật',
+  'player.delete': 'Xóa nhân vật',
+  'player.currency.online': 'Cộng vàng/ngọc online',
+  'player.currency.db': 'Cộng vàng/ngọc DB',
+
 };
 
 export default function LogsPage() {

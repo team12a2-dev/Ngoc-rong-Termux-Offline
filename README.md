@@ -176,6 +176,14 @@ Panel có thêm mục **Runtime & Logs** để quản lý vận hành mà không
 
 Các API nội bộ tương ứng là `GET /api/v1/runtime/diagnostics` và `GET /api/v1/runtime/logs?source=game|panel|mariadb`. Endpoint chỉ yêu cầu quyền panel đã đăng nhập và chỉ đọc ba file log cố định trong `.runtime`, không cho phép truyền đường dẫn tùy ý.
 
+### Quản lý tài khoản và nhân vật
+
+Trong **Người chơi → Quản lý Player**, quản trị viên có thể bấm **Tạo nhân vật** để tạo character mới cho một `Account ID`. Launcher gọi đúng starter initializer của Java server, tự sinh dữ liệu khởi đầu gồm map, chỉ số, kỹ năng và trang bị starter. Theo schema hiện tại, mỗi account chỉ có một nhân vật vì `player.account_id` là khóa duy nhất.
+
+Ở tab **Túi / Vàng**, phần **Cộng nhanh vàng / ngọc** là thao tác cộng dồn, không ghi đè số dư hiện tại. Player online nhận cập nhật ngay qua Java Panel Agent và được gửi lại inventory packet; player offline được cập nhật trong `data_inventory` của database. Mỗi lần cộng tối đa `200.000.000.000` vàng và `2.000.000.000` ngọc, với giới hạn tổng phù hợp model game.
+
+Trong tab **Hành động**, có thể xóa nhân vật vĩnh viễn khi nhân vật đã offline. Panel chủ động từ chối thao tác nếu Agent báo player online hoặc Agent không phản hồi, nhằm tránh xóa dữ liệu khi chưa xác nhận trạng thái. Tất cả thao tác tạo, xóa và cộng tiền tệ đều được ghi vào **Audit Logs**.
+
 ## 🗄️ Cấu hình database và JVM
 
 Mặc định launcher tạo database **`ngocrong`**, host `127.0.0.1`, port `3306`, user `ngocrong` và mật khẩu ngẫu nhiên được lưu trong `.runtime/db-password`. File `Config.properties` được tạo cục bộ từ `Config.properties.example` và không được commit lên GitHub.
