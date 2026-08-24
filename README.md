@@ -215,6 +215,61 @@ bash nro.sh
 
 MariaDB Connector/J 3.5.10 được dùng với driver `org.mariadb.jdbc.Driver` và URL `jdbc:mariadb://`. Launcher cũng tự nâng cấp cấu hình cũ dùng `com.mysql.jdbc.Driver` để tránh lỗi `buildCollationMapping`/`NullPointerException` khi MariaDB trả về metadata collation.
 
+### 🧾 Thay đổi database bằng file SQL trên Android Termux
+
+Có thể chạy một file SQL tùy chỉnh để thêm dữ liệu, cập nhật cấu hình game hoặc sửa bảng MariaDB. Hãy **dừng game server trước khi thay đổi dữ liệu** để tránh ghi đè hoặc đọc dữ liệu chưa đồng bộ. Các lệnh dưới đây giả sử repository nằm ở `~/ngocrong-termux`, database là `ngocrong` và MariaDB socket dùng đường dẫn mặc định của Termux.
+
+Trước tiên, nếu file SQL nằm trong thư mục Download của Android, cấp quyền truy cập bộ nhớ một lần và kiểm tra file:
+
+```bash
+termux-setup-storage
+ls -lh ~/storage/downloads/update.sql
+```
+
+Nên sao lưu database trước mỗi lần cập nhật. Lệnh sau tạo một bản dump có thời gian trong tên file:
+
+```bash
+cd ~/ngocrong-termux
+bash nro.sh stop
+mkdir -p .runtime/backups
+mariadb-dump --protocol=socket \
+  --socket="${PREFIX}/var/run/mysqld/mysqld.sock" \
+  -uroot ngocrong > ".runtime/backups/ngocrong-$(date +%Y%m%d-%H%M%S).sql"
+```
+
+Để chạy file SQL và giữ nguyên database hiện tại, dùng tài khoản game được launcher tạo sẵn. Mật khẩu được đọc từ file cục bộ `.runtime/db-password`, không commit file này lên GitHub:
+
+```bash
+cd ~/ngocrong-termux
+DB_PASS="$(cat .runtime/db-password)"
+mariadb --protocol=socket \
+  --socket="${PREFIX}/var/run/mysqld/mysqld.sock" \
+  -ungocrong -p"$DB_PASS" ngocrong < ~/storage/downloads/update.sql
+```
+
+Nếu file SQL chỉ chứa một vài câu lệnh, có thể chạy trực tiếp bằng tùy chọn `-e`:
+
+```bash
+cd ~/ngocrong-termux
+DB_PASS="$(cat .runtime/db-password)"
+mariadb --protocol=socket \
+  --socket="${PREFIX}/var/run/mysqld/mysqld.sock" \
+  -ungocrong -p"$DB_PASS" ngocrong \
+  -e "UPDATE ten_bang SET ten_cot='gia_tri_moi' WHERE id=1;"
+```
+
+Sau khi kiểm tra lệnh SQL không báo lỗi, khởi động lại server và chờ trạng thái `READY`:
+
+```bash
+cd ~/ngocrong-termux
+bash nro.sh restart
+bash nro.sh status
+```
+
+> **Cảnh báo:** Không xóa `.runtime/sql-imported.sha256` chỉ để chạy lại `sql/ngocrong.sql`. Launcher dùng marker này để tránh import lại toàn bộ dữ liệu mẫu và có thể làm mất dữ liệu người chơi. Nếu muốn thay thế toàn bộ database, hãy tạo backup trước, dừng server, dùng một database dump đã kiểm tra, rồi giữ marker để launcher không tự import lại SQL mẫu.
+
+> **Lưu ý:** File SQL phải tương thích với schema hiện tại. Nếu thay đổi `item_template`, ID item phải liên tục từ `0` đến `MAX(id)`; sau khi cập nhật nên restart server để Java nạp lại dữ liệu runtime.
+
 JVM mặc định dùng cấu hình tiết kiệm RAM:
 
 ```text
