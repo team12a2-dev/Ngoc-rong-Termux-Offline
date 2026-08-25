@@ -279,14 +279,29 @@ public final class BossSpawnSchedule {
         }
         if (!passesConcurrentLimit(boss)) {
             BossSpawnTier tier = resolveTier(boss);
+            if ((int) boss.id == BossID.BROLY) {
+                return "giới hạn BROLY (" + BrolySpawnGate.countActiveBroly() + "/"
+                        + BossSpawnConfig.effectiveBrolyLimit() + ", online="
+                        + BossSpawnConfig.onlinePlayerCount() + ")";
+            }
+            int configuredLimit = switch (tier) {
+                case ELITE -> BossSpawnConfig.maxEliteConcurrent;
+                case WORLD -> BossSpawnConfig.maxWorldConcurrent;
+                case NORMAL -> BossSpawnConfig.maxNormalConcurrent;
+                default -> 0;
+            };
+            int effectiveLimit = BossSpawnConfig.effectiveConcurrentLimit(tier, configuredLimit);
             if (tier == BossSpawnTier.ELITE) {
-                return "giới hạn ELITE (" + countActiveElite() + "/" + BossSpawnConfig.maxEliteConcurrent + ")";
+                return "giới hạn ELITE (" + countActiveElite() + "/" + effectiveLimit + ", online="
+                        + BossSpawnConfig.onlinePlayerCount() + ")";
             }
             if (tier == BossSpawnTier.WORLD) {
-                return "giới hạn WORLD (" + countActiveWorld() + "/" + BossSpawnConfig.maxWorldConcurrent + ")";
+                return "giới hạn WORLD (" + countActiveWorld() + "/" + effectiveLimit + ", online="
+                        + BossSpawnConfig.onlinePlayerCount() + ")";
             }
             if (tier == BossSpawnTier.NORMAL) {
-                return "giới hạn NORMAL (" + countActiveNormal() + "/" + BossSpawnConfig.maxNormalConcurrent + ")";
+                return "giới hạn NORMAL (" + countActiveNormal() + "/" + effectiveLimit + ", online="
+                        + BossSpawnConfig.onlinePlayerCount() + ")";
             }
         }
         if (!BossSpawnOrchestrator.passesFairnessQueue(boss)) {
@@ -299,20 +314,31 @@ public final class BossSpawnSchedule {
     }
 
     public static boolean passesConcurrentLimit(Boss boss) {
-        if ((int) boss.id == BossID.BROLY
-                && BrolySpawnGate.countActiveBroly() >= BossSpawnConfig.brolyMaxConcurrent) {
-            return false;
+        if ((int) boss.id == BossID.BROLY) {
+            int brolyLimit = BossSpawnConfig.effectiveBrolyLimit();
+            return brolyLimit > 0 && BrolySpawnGate.countActiveBroly() < brolyLimit;
         }
         BossSpawnTier tier = resolveTier(boss);
-        if (tier == BossSpawnTier.ELITE && countActiveElite() >= BossSpawnConfig.maxEliteConcurrent) {
-            return false;
-        }
-        if (tier == BossSpawnTier.WORLD && countActiveWorld() >= BossSpawnConfig.maxWorldConcurrent) {
-            return false;
-        }
-        if (tier == BossSpawnTier.NORMAL && BossSpawnConfig.maxNormalConcurrent > 0
-                && countActiveNormal() >= BossSpawnConfig.maxNormalConcurrent) {
-            return false;
+        int configuredLimit = switch (tier) {
+            case ELITE -> BossSpawnConfig.maxEliteConcurrent;
+            case WORLD -> BossSpawnConfig.maxWorldConcurrent;
+            case NORMAL -> BossSpawnConfig.maxNormalConcurrent;
+            default -> 0;
+        };
+        if (configuredLimit > 0) {
+            int effectiveLimit = BossSpawnConfig.effectiveConcurrentLimit(tier, configuredLimit);
+            if (effectiveLimit <= 0) {
+                return false;
+            }
+            if (tier == BossSpawnTier.ELITE && countActiveElite() >= effectiveLimit) {
+                return false;
+            }
+            if (tier == BossSpawnTier.WORLD && countActiveWorld() >= effectiveLimit) {
+                return false;
+            }
+            if (tier == BossSpawnTier.NORMAL && countActiveNormal() >= effectiveLimit) {
+                return false;
+            }
         }
         return true;
     }
@@ -389,7 +415,7 @@ public final class BossSpawnSchedule {
 
     private static int countActiveByTier(BossSpawnTier tier) {
         int n = 0;
-        for (Boss boss : BossManager.gI().getBosses()) {
+        for (Boss boss : BossManager.getAllBosses()) {
             if (isActiveWorldBoss(boss) && resolveTier(boss) == tier) {
                 n++;
             }

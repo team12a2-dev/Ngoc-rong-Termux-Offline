@@ -49,7 +49,8 @@ public final class BrolySpawnGate {
         if (!isWithinSuperWindow()) {
             return false;
         }
-        if (liveSuperCount() >= BossSpawnConfig.superBrolyMaxConcurrent) {
+        int superLimit = BossSpawnConfig.effectiveSuperBrolyLimit();
+        if (superLimit <= 0 || liveSuperCount() >= superLimit) {
             return false;
         }
         if (broly.zone != null
@@ -139,7 +140,8 @@ public final class BrolySpawnGate {
         if (!isWithinSuperWindow()) {
             return;
         }
-        if (liveSuperCount() >= BossSpawnConfig.superBrolyMaxConcurrent) {
+        int superLimit = BossSpawnConfig.effectiveSuperBrolyLimit();
+        if (superLimit <= 0 || liveSuperCount() >= superLimit) {
             return;
         }
         if (countActiveSuperOnMap(mapId) >= BossSpawnConfig.superBrolyMaxPerMap) {

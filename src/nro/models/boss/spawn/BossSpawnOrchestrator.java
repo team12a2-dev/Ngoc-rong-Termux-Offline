@@ -194,7 +194,7 @@ public final class BossSpawnOrchestrator {
 
     public static int countActiveOnMap(int mapId) {
         int n = 0;
-        for (Boss boss : BossManager.gI().getBosses()) {
+        for (Boss boss : BossManager.getAllBosses()) {
             if (!isActiveWorldBoss(boss) || boss.zone == null) {
                 continue;
             }
@@ -249,7 +249,7 @@ public final class BossSpawnOrchestrator {
             return true;
         }
         long myReady = readySinceMs(boss);
-        for (Boss other : BossManager.gI().getBosses()) {
+        for (Boss other : BossManager.getAllBosses()) {
             if (other == boss || !BossSpawnSchedule.appliesTo(other)) {
                 continue;
             }
@@ -272,7 +272,7 @@ public final class BossSpawnOrchestrator {
             return false;
         }
         long myLastSpawn = lastSpawnByBossId.getOrDefault((int) boss.id, 0L);
-        for (Boss other : BossManager.gI().getBosses()) {
+        for (Boss other : BossManager.getAllBosses()) {
             if (other == boss || !BossSpawnSchedule.appliesTo(other)) {
                 continue;
             }
@@ -328,7 +328,7 @@ public final class BossSpawnOrchestrator {
 
     private static int countReadyInTier(BossSpawnTier tier) {
         int n = 0;
-        for (Boss boss : BossManager.gI().getBosses()) {
+        for (Boss boss : BossManager.getAllBosses()) {
             if (!BossSpawnSchedule.appliesTo(boss)) {
                 continue;
             }

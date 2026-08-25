@@ -99,6 +99,8 @@ import nro.models.network.Message;
 import nro.models.map.service.MapService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import nro.models.boss.Baby.Baby;
 import nro.models.boss.Baby.B;
 import nro.models.boss.Boss_mini.MatTroi;
@@ -128,17 +130,30 @@ public class BossManager implements Runnable {
     }
 
     protected final List<Boss> bosses;
+    /** Registry dùng chung để scheduler nhìn thấy boss ở mọi manager chuyên biệt. */
+    private static final Set<Boss> ALL_BOSSES = ConcurrentHashMap.newKeySet();
+
+    public static List<Boss> getAllBosses() {
+        return new ArrayList<>(ALL_BOSSES);
+    }
 
     public List<Boss> getBosses() {
         return this.bosses;
     }
 
     public void addBoss(Boss boss) {
+        if (boss == null) {
+            return;
+        }
         this.bosses.add(boss);
+        ALL_BOSSES.add(boss);
     }
 
     public void removeBoss(Boss boss) {
         this.bosses.remove(boss);
+        if (boss != null) {
+            ALL_BOSSES.remove(boss);
+        }
     }
 
     public void loadBoss() {

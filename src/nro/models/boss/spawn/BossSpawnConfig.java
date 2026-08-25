@@ -8,6 +8,8 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import nro.models.player.Player;
+import nro.models.server.Client;
 import nro.models.utils.Logger;
 /**
  * Đọc {@code boss_spawn.properties} — chỉnh không cần sửa code.
@@ -31,6 +33,21 @@ public final class BossSpawnConfig {
     public static boolean fairnessEnabled = true;
     /** ELITE: false = bỏ hàng đợi FIFO (khuyến nghị khi nhiều boss ELITE). true = xoay vòng theo lần spawn gần nhất */
     public static boolean fairnessEliteEnabled = true;
+
+    /** Co giãn giới hạn boss theo số player thực đang online. */
+    public static boolean populationAdaptiveEnabled = true;
+    public static int normalPlayersPerBoss = 6;
+    public static int elitePlayersPerBoss = 12;
+    public static int worldPlayersPerBoss = 25;
+    public static int brolyPlayersPerBoss = 5;
+    public static int superBrolyPlayersPerBoss = 20;
+    public static int superBrolyMinPlayers = 8;
+    public static int normalMinPlayers = 1;
+    public static int eliteMinPlayers = 3;
+    public static int worldMinPlayers = 8;
+    public static int brolyMinPlayers = 1;
+    private static volatile long onlinePlayersCacheAt;
+    private static volatile int onlinePlayersCache;
 
     public static boolean dailyBonusEnabled = true;
     public static int dailyBonusDurationHours = 2;
@@ -158,8 +175,21 @@ public final class BossSpawnConfig {
         eliteMinGapSec = parseInt(p, "spawn.elite.min.gap.sec", 90, 0, 3600);
         worldMinGapSec = parseInt(p, "spawn.world.min.gap.sec", 1800, 0, 86400);
         normalMinGapSec = parseInt(p, "spawn.normal.min.gap.sec", 30, 0, 600);
-        fairnessEnabled = parseBool(p, "spawn.fairness.enabled", true);
+                fairnessEnabled = parseBool(p, "spawn.fairness.enabled", true);
         fairnessEliteEnabled = parseBool(p, "spawn.fairness.elite.enabled", true);
+
+        populationAdaptiveEnabled = parseBool(p, "spawn.population.adaptive.enabled", true);
+        normalPlayersPerBoss = parseInt(p, "spawn.population.normal.players.per.boss", 6, 1, 1000);
+        elitePlayersPerBoss = parseInt(p, "spawn.population.elite.players.per.boss", 12, 1, 1000);
+        worldPlayersPerBoss = parseInt(p, "spawn.population.world.players.per.boss", 25, 1, 1000);
+        brolyPlayersPerBoss = parseInt(p, "spawn.population.broly.players.per.boss", 5, 1, 1000);
+        superBrolyPlayersPerBoss = parseInt(p, "spawn.population.superbroly.players.per.boss", 20, 1, 1000);
+        superBrolyMinPlayers = parseInt(p, "spawn.population.superbroly.min.players", 8, 0, 1000);
+        normalMinPlayers = parseInt(p, "spawn.population.normal.min.players", 1, 0, 1000);
+        eliteMinPlayers = parseInt(p, "spawn.population.elite.min.players", 3, 0, 1000);
+        worldMinPlayers = parseInt(p, "spawn.population.world.min.players", 8, 0, 1000);
+        brolyMinPlayers = parseInt(p, "spawn.population.broly.min.players", 1, 0, 1000);
+        onlinePlayersCacheAt = 0L;
 
         dailyBonusEnabled = parseBool(p, "spawn.daily.bonus.enabled", true);
         dailyBonusDurationHours = parseInt(p, "spawn.daily.bonus.hours", 2, 1, 6);
@@ -256,6 +286,85 @@ public final class BossSpawnConfig {
                 + ", phân bổ=" + (distributionEnabled ? "bật" : "tắt"));
     }
 
+    /** Số player thật đang online, cache tối đa 5 giây để không quét danh sách ở mỗi boss tick. */
+    public static int onlinePlayerCount() {
+        long now = System.currentTimeMillis();
+        if (now - onlinePlayersCacheAt < 5_000L) {
+            return onlinePlayersCache;
+        }
+        int count = 0;
+        List<Player> players = Client.gI().getPlayers();
+        synchronized (players) {
+            for (Player player : players) {
+                if (player != null && player.isPl()) {
+                    count++;
+                }
+            }
+        }
+        onlinePlayersCache = count;
+        onlinePlayersCacheAt = now;
+        return count;
+    }
+
+    /**
+     * Giới hạn động: không vượt trần cấu hình, nhưng tự giảm khi server vắng.
+     * Trả 0 khi chưa đủ người chơi tối thiểu cho tier đó.
+     */
+    public static int effectiveConcurrentLimit(BossSpawnTier tier, int configuredLimit) {
+        if (configuredLimit <= 0 || !populationAdaptiveEnabled) {
+            return configuredLimit;
+        }
+        int players = onlinePlayerCount();
+        int minPlayers;
+        int playersPerBoss;
+        switch (tier) {
+            case ELITE -> {
+                minPlayers = eliteMinPlayers;
+                playersPerBoss = elitePlayersPerBoss;
+            }
+            case WORLD -> {
+                minPlayers = worldMinPlayers;
+                playersPerBoss = worldPlayersPerBoss;
+            }
+            case NORMAL -> {
+                minPlayers = normalMinPlayers;
+                playersPerBoss = normalPlayersPerBoss;
+            }
+            default -> {
+                return configuredLimit;
+            }
+        }
+        if (players < minPlayers) {
+            return 0;
+        }
+        int dynamicLimit = Math.max(1, (players + playersPerBoss - 1) / playersPerBoss);
+        return Math.min(configuredLimit, dynamicLimit);
+    }
+
+        public static int effectiveBrolyLimit() {
+        if (!populationAdaptiveEnabled || brolyMaxConcurrent <= 0) {
+            return brolyMaxConcurrent;
+        }
+        int players = onlinePlayerCount();
+        if (players < brolyMinPlayers) {
+            return 0;
+        }
+        int dynamicLimit = Math.max(1, (players + brolyPlayersPerBoss - 1) / brolyPlayersPerBoss);
+        return Math.min(brolyMaxConcurrent, dynamicLimit);
+    }
+
+    public static int effectiveSuperBrolyLimit() {
+        if (!populationAdaptiveEnabled || superBrolyMaxConcurrent <= 0) {
+            return superBrolyMaxConcurrent;
+        }
+        int players = onlinePlayerCount();
+        if (players < superBrolyMinPlayers) {
+            return 0;
+        }
+        int dynamicLimit = Math.max(1, (players + superBrolyPlayersPerBoss - 1) / superBrolyPlayersPerBoss);
+        return Math.min(superBrolyMaxConcurrent, dynamicLimit);
+    }
+
     public static HourWindows windowsFor(BossSpawnTier tier, boolean weekend) {
         return switch (tier) {
             case MINI -> miniHours;
@@ -330,6 +439,19 @@ public final class BossSpawnConfig {
         normalMinGapSec = 30;
         fairnessEnabled = true;
         fairnessEliteEnabled = true;
+        populationAdaptiveEnabled = true;
+        normalPlayersPerBoss = 6;
+        elitePlayersPerBoss = 12;
+        worldPlayersPerBoss = 25;
+        brolyPlayersPerBoss = 5;
+        superBrolyPlayersPerBoss = 20;
+        superBrolyMinPlayers = 8;
+        normalMinPlayers = 1;
+        eliteMinPlayers = 3;
+        worldMinPlayers = 8;
+        brolyMinPlayers = 1;
+        onlinePlayersCacheAt = 0L;
+        onlinePlayersCache = 0;
         dailyBonusEnabled = true;
         dailyBonusDurationHours = 2;
         dailyBonusNormal = true;
