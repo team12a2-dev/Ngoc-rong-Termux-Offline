@@ -38,7 +38,7 @@ Cài **Termux chính thức**, sau đó dán **một dòng duy nhất** sau đâ
 pkg update -y && pkg install -y curl tar && curl --http1.1 -fsSL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 120 -o "$HOME/install-termux.sh" "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" && bash "$HOME/install-termux.sh"
 ```
 
-Installer tải **một gói runtime trực tiếp từ GitHub Release**, không dùng Git, không tạo khóa SSH và không xuất hiện `Receiving objects`. File tải dở được giữ lại để tiếp tục; log chi tiết nằm tại `~/.ngocrong-termux-install.log`.
+Installer tải **một gói runtime trực tiếp từ GitHub Release**, chia thành 4 phần HTTP tải song song; không dùng Git, không tạo khóa SSH và không xuất hiện `Receiving objects`. File tải dở được giữ lại để tiếp tục; log chi tiết nằm tại `~/.ngocrong-termux-install.log`.
 
 Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`.
 
