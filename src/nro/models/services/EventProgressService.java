@@ -273,10 +273,17 @@ public final class EventProgressService {
             Service.gI().sendMoney(player);
             return "wallet";
         }
-        if ("gem".equalsIgnoreCase(rewardType) || "ruby".equalsIgnoreCase(rewardType) || "currency_gem".equalsIgnoreCase(rewardType)) {
+        if ("gem".equalsIgnoreCase(rewardType) || "currency_gem".equalsIgnoreCase(rewardType)) {
             long next = Math.min(Integer.MAX_VALUE, (long) player.inventory.gem + quantity);
             if (next == player.inventory.gem) return null;
             player.inventory.gem = (int) next;
+            Service.gI().sendMoney(player);
+            return "wallet";
+        }
+        if ("ruby".equalsIgnoreCase(rewardType) || "currency_ruby".equalsIgnoreCase(rewardType)) {
+            long next = Math.min(Integer.MAX_VALUE, (long) player.inventory.ruby + quantity);
+            if (next == player.inventory.ruby) return null;
+            player.inventory.ruby = (int) next;
             Service.gI().sendMoney(player);
             return "wallet";
         }
