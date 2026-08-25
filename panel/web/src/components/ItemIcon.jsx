@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 const ENV_ICON_BASE = import.meta.env.VITE_ITEM_ICON_BASE || '';
 
 function resolveIconUrl(iconId, tempId) {
-  const apiBase = import.meta.env.VITE_API_URL || '';
+  const configuredBase = import.meta.env.VITE_API_URL || '';
+  const apiBase = configuredBase.replace(/\/+$/, '').replace(/\/api\/v1\/?$/, '');
   const iconNum = Number(iconId);
   const tempNum = Number(tempId);
   const itemIconUrl = Number.isFinite(tempNum) && tempNum > 0
@@ -48,6 +49,7 @@ export default function ItemIcon({ iconId, iconSpec, tempId, name, size = 40 }) 
         width={size}
         height={size}
         loading="lazy"
+        decoding="async"
         title={name || (tempId != null ? `#${tempId}` : '')}
         onError={() => {
           const tempNum = Number(tempId);
