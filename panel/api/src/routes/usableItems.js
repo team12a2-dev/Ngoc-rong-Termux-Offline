@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware, requirePermission } from '../middleware/auth.js';
-import { query, exec } from '../db.js';
+import { query, exec, withTransaction } from '../db.js';
 import { getDefaultServerId } from '../services/serverRegistry.js';
 import { reloadGameResource } from '../services/liveSync.js';
 import { auditLog } from '../services/audit.js';
@@ -11,6 +11,12 @@ router.use(authMiddleware);
 
 const MAX_OPTIONS = 12;
 const MAX_DURATION_SECONDS = 30 * 24 * 60 * 60;
+// Các option có nhánh tính chỉ số trong NPoint.addOption; loại special/cosmetic.
+const SUPPORTED_STAT_OPTION_IDS = new Set([
+  0, 2, 5, 6, 7, 14, 16, 18, 19, 22, 23, 27, 28,
+  47, 48, 49, 50, 77, 80, 81, 88, 94, 95, 96, 97, 98, 99,
+  100, 101, 103, 104, 108, 109, 111, 114, 117, 147, 148, 156, 160, 162, 173, 226,
+]);
 
 function serverIdFrom(req) {
   return Number(req.body?.serverId || req.query?.serverId || 0);
@@ -43,6 +49,9 @@ function normalizeOptions(raw) {
     const id = integerValue(option?.id ?? option?.optionId, `options[${index}].id`);
     const param = integerValue(option?.param ?? 0, `options[${index}].param`, { min: -2147483648, max: 2147483647 });
     if (seen.has(id)) throw new Error(`Option #${id} bị lặp trong cùng item`);
+    if (!SUPPORTED_STAT_OPTION_IDS.has(id)) {
+      throw new Error(`Option #${id} không phải option chỉ số được Java hỗ trợ cho item bổ trợ`);
+    }
     seen.add(id);
     return { id, param, sortOrder: index };
   });
@@ -98,7 +107,10 @@ router.get('/options', requirePermission('server.config'), async (req, res) => {
        ORDER BY id LIMIT ?`,
       [q, like, like, limit]
     );
-    res.json({ ok: true, data: rows.map(enrichOption) });
+    res.json({
+      ok: true,
+      data: rows.map((row) => ({ ...enrichOption(row), runtimeSupported: SUPPORTED_STAT_OPTION_IDS.has(Number(row.id)) })),
+    });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
@@ -150,25 +162,32 @@ router.post('/', requirePermission('server.config'), async (req, res) => {
     const missing = optionIds.find((id) => !validIds.has(id));
     if (missing != null) return res.status(400).json({ ok: false, error: `Option template #${missing} không tồn tại` });
 
-    await exec(
-      `INSERT INTO panel_usable_items (template_id, duration_seconds, enabled)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE duration_seconds = VALUES(duration_seconds), enabled = VALUES(enabled)`,
-      [templateId, durationSeconds, enabled]
-    );
-    const mapping = await query('SELECT id FROM panel_usable_items WHERE template_id = ? LIMIT 1', [templateId]);
-    const usableItemId = Number(mapping[0]?.id);
-    await exec('DELETE FROM panel_usable_item_options WHERE usable_item_id = ?', [usableItemId]);
-    for (const option of options) {
-      await exec(
-        `INSERT INTO panel_usable_item_options (usable_item_id, option_id, option_param, sort_order, enabled)
-         VALUES (?, ?, ?, ?, 1)`,
-        [usableItemId, option.id, option.param, option.sortOrder]
+    await withTransaction(async (conn) => {
+      await conn.execute(
+        `INSERT INTO panel_usable_items (template_id, duration_seconds, enabled)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE duration_seconds = VALUES(duration_seconds), enabled = VALUES(enabled)`,
+        [templateId, durationSeconds, enabled]
       );
-    }
+      const [mappingRows] = await conn.execute(
+        'SELECT id FROM panel_usable_items WHERE template_id = ? LIMIT 1',
+        [templateId]
+      );
+      const usableItemId = Number(mappingRows[0]?.id);
+      if (!usableItemId) throw new Error('Không xác định được mapping item bổ trợ sau khi lưu');
+      await conn.execute('DELETE FROM panel_usable_item_options WHERE usable_item_id = ?', [usableItemId]);
+      for (const option of options) {
+        await conn.execute(
+          `INSERT INTO panel_usable_item_options (usable_item_id, option_id, option_param, sort_order, enabled)
+           VALUES (?, ?, ?, ?, 1)`,
+          [usableItemId, option.id, option.param, option.sortOrder]
+        );
+      }
+    });
 
     const sid = await resolvedServerId(serverIdFrom(req));
     const runtime = await reloadGameResource(sid, 'usable-items');
+    const responseData = { item: templates[0], templateId, durationSeconds, enabled, options, runtime };
     await auditLog({
       userId: req.user.id,
       serverId: sid,
@@ -178,7 +197,10 @@ router.post('/', requirePermission('server.config'), async (req, res) => {
       response: { runtime },
       ip: req.ip,
     });
-    res.json({ ok: true, data: { item: templates[0], templateId, durationSeconds, enabled, options, runtime } });
+    if (!runtime.reloaded) {
+      return res.status(502).json({ ok: false, error: `Đã lưu option item #${templateId} nhưng Java Agent chưa reload: ${runtime.error || 'Agent không phản hồi'}`, data: { ...responseData, databaseSaved: true } });
+    }
+    return res.json({ ok: true, data: responseData });
   } catch (e) {
     res.status(400).json({ ok: false, error: e.message });
   }
@@ -202,7 +224,8 @@ router.post('/reload', requirePermission('server.config'), async (req, res) => {
     const sid = await resolvedServerId(serverIdFrom(req));
     const runtime = await reloadGameResource(sid, 'usable-items');
     await auditLog({ userId: req.user.id, serverId: sid, action: 'usable-item.reload', response: { runtime }, ip: req.ip });
-    res.json({ ok: true, data: { runtime } });
+    if (!runtime.reloaded) return res.status(502).json({ ok: false, error: runtime.error || 'Java Agent chưa reload được item bổ trợ', data: { runtime } });
+    return res.json({ ok: true, data: { runtime } });
   } catch (e) {
     res.status(502).json({ ok: false, error: e.message });
   }

@@ -50,6 +50,22 @@ export async function exec(sql, params = []) {
   return result;
 }
 
+export async function withTransaction(work) {
+  const p = await getPool();
+  const conn = await p.getConnection();
+  try {
+    await conn.beginTransaction();
+    const result = await work(conn);
+    await conn.commit();
+    return result;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
+}
+
 export async function verifyGameDb() {
   const cfg = resolveDbConfig();
   const conn = await mysql.createConnection(cfg);

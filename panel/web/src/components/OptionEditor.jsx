@@ -58,7 +58,7 @@ function ParamDialog({ option, onConfirm, onCancel }) {
   );
 }
 
-export function OptionEditor({ options, onChange, hideIds = [], compact = false }) {
+export function OptionEditor({ options, onChange, hideIds = [], allowedOptionIds = null, compact = false }) {
   const [catalog, setCatalog] = useState({ all: [], quick: [], map: {}, categories: {} });
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
@@ -87,6 +87,7 @@ export function OptionEditor({ options, onChange, hideIds = [], compact = false 
     reloadCatalog();
   }, []);
 
+  const allowedSet = useMemo(() => (Array.isArray(allowedOptionIds) ? new Set(allowedOptionIds.map(Number)) : null), [allowedOptionIds]);
   const list = (options?.length ? options : []).filter((o) => !hideIds.includes(o.id));
 
   function setOpt(idx, patch) {
@@ -115,7 +116,7 @@ export function OptionEditor({ options, onChange, hideIds = [], compact = false 
   }
 
   const filteredCatalog = useMemo(() => {
-    let rows = catalog.all;
+    let rows = allowedSet ? catalog.all.filter((o) => allowedSet.has(Number(o.id))) : catalog.all;
     if (search.trim()) {
       const q = search.toLowerCase();
       rows = rows.filter((o) => o.name.toLowerCase().includes(q) || String(o.id) === q);
@@ -123,7 +124,7 @@ export function OptionEditor({ options, onChange, hideIds = [], compact = false 
       rows = rows.filter((o) => o.category === category);
     }
     return rows;
-  }, [catalog.all, category, search]);
+  }, [catalog.all, category, search, allowedSet]);
 
   const catEntries = Object.entries(catalog.categories || {});
   const alreadyIds = new Set((options || []).map((o) => o.id));

@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import nro.models.data.LocalManager;
 import nro.models.item.Item;
 import nro.models.player.Player;
@@ -20,6 +21,10 @@ public final class UsableItemConfigService {
 
     private static final UsableItemConfigService INSTANCE = new UsableItemConfigService();
     private static final long MAX_DURATION_MILLIS = 30L * 24 * 60 * 60 * 1000;
+    private static final Set<Integer> SUPPORTED_STAT_OPTION_IDS = Set.of(
+            0, 2, 5, 6, 7, 14, 16, 18, 19, 22, 23, 27, 28,
+            47, 48, 49, 50, 77, 80, 81, 88, 94, 95, 96, 97, 98, 99,
+            100, 101, 103, 104, 108, 109, 111, 114, 117, 147, 148, 156, 160, 162, 173, 226);
 
     private volatile Map<Integer, UsableItemConfig> configs = Collections.emptyMap();
     private volatile boolean loaded;
@@ -52,7 +57,7 @@ public final class UsableItemConfigService {
                         next.put(templateId, config);
                     }
                     int optionId = rs.getInt("option_id");
-                    if (!rs.wasNull() && optionId >= 0) {
+                    if (!rs.wasNull() && SUPPORTED_STAT_OPTION_IDS.contains(optionId)) {
                         config.options.add(new Item.ItemOption(optionId, rs.getInt("option_param")));
                     }
                 }

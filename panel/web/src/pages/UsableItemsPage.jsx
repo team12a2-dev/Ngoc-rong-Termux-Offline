@@ -6,6 +6,11 @@ import ItemIcon from '../components/ItemIcon';
 import { OptionEditor, formatOptionLabel } from '../components/OptionEditor';
 
 const EMPTY_FORM = { templateId: '', durationSeconds: 600, enabled: true, options: [] };
+const SUPPORTED_STAT_OPTION_IDS = [
+  0, 2, 6, 7, 14, 16, 18, 19, 22, 23, 27, 28,
+  47, 48, 49, 50, 77, 80, 81, 88, 94, 95, 96, 97, 98, 99,
+  100, 101, 103, 104, 108, 109, 117, 147, 153, 156, 160, 162, 173, 211, 226,
+];
 
 export default function UsableItemsPage() {
   const [rows, setRows] = useState([]);
@@ -73,7 +78,9 @@ export default function UsableItemsPage() {
       setForm(EMPTY_FORM);
       await load();
     } catch (error) {
-      fb.error(error.message);
+      fb.error(error.data?.databaseSaved
+        ? `${error.message} Cấu hình đã lưu trong database; hãy kiểm tra Java Agent rồi bấm Reload runtime.`
+        : error.message);
     } finally {
       setBusy(false);
     }
@@ -119,7 +126,7 @@ export default function UsableItemsPage() {
       <div className="help-box">
         <h4>Cơ chế hoạt động</h4>
         <p>Item phải có <code>type = 29</code>. Khi người chơi sử dụng item đã đăng ký, Java runtime lấy đúng các cặp <code>option_id:param</code> trong mapping, áp dụng tạm thời vào chỉ số nhân vật trong thời lượng đã đặt, gửi timer/icon của item và trừ một item trong túi.</p>
-        <p className="muted">Bổ huyết chỉ là một item mẫu của source, không còn là danh sách behavior của panel. Nếu option chưa được source Java hỗ trợ hiệu ứng, panel sẽ không tự tạo logic mới; hãy dùng option có gameplay effect trong catalog.</p>
+        <p className="muted">Bổ huyết chỉ là một item mẫu của source, không còn là danh sách behavior của panel. Catalog option ở dưới đã lọc còn các option chỉ số mà Java runtime hỗ trợ; option đặc biệt/cosmetic không được lưu cho item bổ trợ.</p>
       </div>
 
       <form className="control-card section usable-item-form" onSubmit={save}>
@@ -137,7 +144,7 @@ export default function UsableItemsPage() {
           </label>
           <label className="field checkbox-field"><span>Trạng thái</span><span><input type="checkbox" checked={form.enabled} onChange={(e) => patch('enabled', e.target.checked)} /> Được sử dụng trong game</span></label>
         </div>
-        <OptionEditor options={form.options} onChange={(options) => patch('options', options)} />
+        <OptionEditor options={form.options} allowedOptionIds={SUPPORTED_STAT_OPTION_IDS} onChange={(options) => patch('options', options)} />
         <div className="row form-actions"><button className="btn primary" type="submit" disabled={busy}>Lưu option & reload</button><button className="btn" type="button" onClick={() => setForm(EMPTY_FORM)} disabled={busy}>Xóa form</button></div>
       </form>
 
