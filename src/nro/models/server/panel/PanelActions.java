@@ -130,30 +130,41 @@ public final class PanelActions {
     }
 
     public static Map<String, Object> addCurrency(String name, long goldDelta, int gemDelta) {
+        return addCurrency(name, goldDelta, gemDelta, 0);
+    }
+
+    public static Map<String, Object> addCurrency(String name, long goldDelta, int gemDelta, int rubyDelta) {
         Player target = Client.gI().getPlayer(name);
-        if (target == null || target.inventory == null || (goldDelta <= 0 && gemDelta <= 0)) {
+        if (target == null || target.inventory == null || (goldDelta <= 0 && gemDelta <= 0 && rubyDelta <= 0)) {
             return Map.of("updated", false, "reason", "Player offline or invalid amount");
         }
         long oldGold = Math.max(0L, target.inventory.gold);
         int oldGem = Math.max(0, target.inventory.gem);
+        int oldRuby = Math.max(0, target.inventory.ruby);
         long safeGoldDelta = Math.max(0L, goldDelta);
         int safeGemDelta = Math.max(0, gemDelta);
+        int safeRubyDelta = Math.max(0, rubyDelta);
         long newGold = safeGoldDelta > Inventory.LIMIT_GOLD - oldGold
                 ? Inventory.LIMIT_GOLD : oldGold + safeGoldDelta;
         int newGem = (int) Math.min(2_000_000_000L, (long) oldGem + safeGemDelta);
+        int newRuby = (int) Math.min(2_000_000_000L, (long) oldRuby + safeRubyDelta);
         target.inventory.gold = newGold;
         target.inventory.gem = newGem;
+        target.inventory.ruby = newRuby;
         InventoryService.gI().sendItemBags(target);
         PlayerDAO.updatePlayer(target);
         notifyPlayerSystem(target,
                 "Panel vừa cộng tiền tệ cho nhân vật. Vàng: +" + String.format("%,d", safeGoldDelta)
-                        + ", ngọc: +" + formatNumber(safeGemDelta));
+                        + ", ngọc: +" + formatNumber(safeGemDelta)
+                        + ", hồng ngọc: +" + formatNumber(safeRubyDelta));
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("updated", true);
         result.put("gold", newGold);
         result.put("gem", newGem);
         result.put("goldDelta", safeGoldDelta);
         result.put("gemDelta", safeGemDelta);
+        result.put("ruby", newRuby);
+        result.put("rubyDelta", safeRubyDelta);
         return result;
     }
 

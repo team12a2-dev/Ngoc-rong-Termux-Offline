@@ -156,7 +156,8 @@ public final class PanelAgent {
                 case "currency" -> {
                     long gold = longValue(body.get("gold"), 0L);
                     int gem = intValue(body.get("gem"), 0);
-                    writeJson(exchange, 200, success(PanelActions.addCurrency(name, gold, gem)));
+                    int ruby = intValue(body.get("ruby"), 0);
+                    writeJson(exchange, 200, success(PanelActions.addCurrency(name, gold, gem, ruby)));
                 }
 
                 case "buff-item" -> {

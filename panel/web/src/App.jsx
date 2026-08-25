@@ -18,6 +18,8 @@ import ShopsPage from './pages/ShopsPage';
 import ClansPage from './pages/ClansPage';
 import RankingsPage from './pages/RankingsPage';
 import EconomyPage from './pages/EconomyPage';
+import RechargePromotionsPage from './pages/RechargePromotionsPage';
+
 import ConfigPage from './pages/ConfigPage';
 import LogsPage from './pages/LogsPage';
 import PluginsPage from './pages/PluginsPage';
@@ -56,7 +58,9 @@ export default function App() {
           <Route path="shops" element={<ShopsPage />} />
           <Route path="clans" element={<ClansPage />} />
           <Route path="rankings" element={<RankingsPage />} />
-          <Route path="economy" element={<EconomyPage />} />
+                    <Route path="economy" element={<EconomyPage />} />
+          <Route path="recharge-promotions" element={<RechargePromotionsPage />} />
+
           <Route path="config" element={<ConfigPage />} />
           <Route path="logs" element={<LogsPage />} />
           <Route path="plugins" element={<PluginsPage />} />

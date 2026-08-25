@@ -37,7 +37,9 @@ const navGroups = [
       { to: '/usable-items', label: 'Item bổ trợ', icon: 'giftcode' },
       { to: '/clans', label: 'Clans', icon: 'clan' },
       { to: '/rankings', label: 'Bảng xếp hạng', icon: 'ranking' },
-      { to: '/economy', label: 'Kinh tế', icon: 'economy' },
+            { to: '/economy', label: 'Kinh tế', icon: 'economy' },
+      { to: '/recharge-promotions', label: 'Nạp khuyến mãi', icon: 'giftcode' },
+
     ],
   },
   {
