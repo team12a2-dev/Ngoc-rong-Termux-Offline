@@ -112,6 +112,7 @@ import nro.models.server.ServerManager;
 import nro.models.utils.Functions;
 import nro.models.utils.Logger;
 import nro.models.boss.spawn.BossSpawnSchedule;
+import nro.models.boss.spawn.BrolySpawnGate;
 
 public class BossManager implements Runnable {
 
@@ -489,6 +490,7 @@ public class BossManager implements Runnable {
                 for (Boss boss : this.bosses) {
                     boss.update();
                 }
+                BrolySpawnGate.tickNaturalSuperBrolySpawn();
                 long sleepTime = 1500 - (System.currentTimeMillis() - st);
                 Thread.sleep(Math.max(sleepTime, 10));
             } catch (InterruptedException ie) {

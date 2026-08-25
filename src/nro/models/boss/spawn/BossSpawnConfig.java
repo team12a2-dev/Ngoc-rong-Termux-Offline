@@ -136,10 +136,17 @@ public final class BossSpawnConfig {
     public static int superBrolyTimeSlots = 4;
     public static int superBrolyMaxPerSlot = 1;
     /** Tối đa Super Broly trên một map */
-    public static int superBrolyMaxPerMap = 1;
-    /** Khung giờ Super Broly: 9h–4h sáng hôm sau */
-    private static HourWindows superBrolyHoursWeekday = HourWindows.parse("9-23,0-4");
-    private static HourWindows superBrolyHoursWeekend = HourWindows.parse("9-23,0-4");
+    public static int superBrolyMaxPerMap = 5;
+    /** Cho phép Super Broly tự spawn, không cần hạ Broly. */
+    public static boolean superBrolyNaturalEnabled = true;
+    /** Xác suất mỗi lần roll tự spawn, sau khi đã qua các hard gate. */
+    public static int superBrolyNaturalChancePercent = 4;
+    /** Khoảng giữa hai lần roll tự spawn (giây). */
+    public static int superBrolyNaturalRollMinSec = 120;
+    public static int superBrolyNaturalRollMaxSec = 300;
+    /** Khung giờ Super Broly: 10h–5h sáng hôm sau */
+    private static HourWindows superBrolyHoursWeekday = HourWindows.parse("10-23,0-5");
+    private static HourWindows superBrolyHoursWeekend = HourWindows.parse("10-23,0-5");
 
     private BossSpawnConfig() {
     }
@@ -272,12 +279,19 @@ public final class BossSpawnConfig {
             superBrolySpawnDelayMaxSec = superBrolySpawnDelayMinSec;
         }
         superBrolyTimeSlots = parseInt(p, "spawn.superbroly.time.slots", 4, 1, 8);
-        superBrolyMaxPerSlot = parseInt(p, "spawn.superbroly.max.per.slot", 1, 1, 4);
-        superBrolyMaxPerMap = parseInt(p, "spawn.superbroly.max.per.map", 1, 1, 3);
-        String superWeekdaySpec = p.getProperty("spawn.superbroly.hours.weekday", "9-23,0-4");
+                superBrolyMaxPerSlot = parseInt(p, "spawn.superbroly.max.per.slot", 1, 1, 4);
+        superBrolyMaxPerMap = parseInt(p, "spawn.superbroly.max.per.map", 5, 1, 10);
+        superBrolyNaturalEnabled = parseBool(p, "spawn.superbroly.natural.enabled", true);
+        superBrolyNaturalChancePercent = parseInt(p, "spawn.superbroly.natural.chance.percent", 8, 1, 100);
+        superBrolyNaturalRollMinSec = parseInt(p, "spawn.superbroly.natural.roll.min.sec", 120, 30, 3600);
+        superBrolyNaturalRollMaxSec = parseInt(p, "spawn.superbroly.natural.roll.max.sec", 300, 60, 7200);
+        if (superBrolyNaturalRollMaxSec < superBrolyNaturalRollMinSec) {
+            superBrolyNaturalRollMaxSec = superBrolyNaturalRollMinSec;
+        }
+        String superWeekdaySpec = p.getProperty("spawn.superbroly.hours.weekday", "10-23,0-5");
         superBrolyHoursWeekday = "all".equalsIgnoreCase(superWeekdaySpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(superWeekdaySpec);
-        String superWeekendSpec = p.getProperty("spawn.superbroly.hours.weekend", "9-23,0-4");
+        String superWeekendSpec = p.getProperty("spawn.superbroly.hours.weekend", "10-23,0-5");
         superBrolyHoursWeekend = "all".equalsIgnoreCase(superWeekendSpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(superWeekendSpec);
 
@@ -492,9 +506,13 @@ public final class BossSpawnConfig {
         superBrolySpawnDelayMaxSec = 120;
         superBrolyTimeSlots = 4;
         superBrolyMaxPerSlot = 1;
-        superBrolyMaxPerMap = 1;
-        superBrolyHoursWeekday = HourWindows.parse("9-23,0-4");
-        superBrolyHoursWeekend = HourWindows.parse("9-23,0-4");
+        superBrolyMaxPerMap = 5;
+        superBrolyNaturalEnabled = true;
+        superBrolyNaturalChancePercent = 8;
+        superBrolyNaturalRollMinSec = 120;
+        superBrolyNaturalRollMaxSec = 300;
+        superBrolyHoursWeekday = HourWindows.parse("10-23,0-5");
+        superBrolyHoursWeekend = HourWindows.parse("10-23,0-5");
     }
 
     /** Giờ không thuộc khung NORMAL hoặc ELITE — dùng chọn bonus ngày */
