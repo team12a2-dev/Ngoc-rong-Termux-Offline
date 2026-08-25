@@ -39,7 +39,7 @@ pkg update -y && pkg install -y curl tar
 INSTALLER="$(mktemp)"
 curl --http1.1 -fL --retry 5 --retry-all-errors --retry-delay 3 \
   --connect-timeout 20 --max-time 120 -o "$INSTALLER" \
-  "https://raw.githubusercontent.com/team12a2-dev/Ngoc-rong-Termux-Offline/main/install-termux.sh" \
+  "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" \
   && bash "$INSTALLER"
 STATUS=$?
 rm -f "$INSTALLER"
