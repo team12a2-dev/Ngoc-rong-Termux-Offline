@@ -2815,7 +2815,7 @@ code { background: #0f1419; padding: 1px 5px; border-radius: 4px; font-size: 0.8
 .preset-row { flex-wrap: wrap; margin-top: 10px; }
 .field-note p { margin: 0; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,.04); color: var(--muted, #8c96aa); min-height: 40px; }
 .drop-items-table-wrap { overflow-x: auto; }
-.drop-items-table { min-width: 1120px; }
+.drop-items-table { min-width: 1420px; }
 .drop-items-table input[type="number"] { width: 82px; }
 .drop-items-table .input-options { min-width: 150px; }
 .drop-item-name { display: block; min-width: 130px; max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2829,5 +2829,8 @@ code { background: #0f1419; padding: 1px 5px; border-radius: 4px; font-size: 0.8
 }
 
 .drop-level-default { margin: 10px 0 14px; }
+.drop-time-presets { flex-wrap: wrap; margin: 8px 0 10px; }
+.drop-time-default { margin-bottom: 4px; }
+.drop-items-table .input-time { width: 108px; min-width: 108px; }
 .drop-mob-selected { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(110,168,254,.08); }
 .drop-item-name small { display: block; margin-top: 3px; color: var(--muted, #8c96aa); font-size: 11px; }

@@ -24,6 +24,12 @@ function percentValue(value, fallback = 0) {
   return Math.min(100, Math.max(0, Number(n.toFixed(4))));
 }
 
+function minuteValue(value, fallback, max = 1440) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(0, Math.trunc(n)));
+}
+
 function boolValue(value, fallback = false) {
   if (value === undefined || value === null || value === '') return fallback;
   return value === true || value === 1 || value === '1' || value === 'true';
@@ -70,11 +76,15 @@ function normalizeItems(items) {
     const mobTempId = intValue(item?.mobTempId ?? item?.mob_temp_id, -1, -1, 2147483647);
     const playerLevelMin = intValue(item?.playerLevelMin ?? item?.player_level_min, 0, 0, 19);
     const playerLevelMax = intValue(item?.playerLevelMax ?? item?.player_level_max, 19, 0, 19);
+    const timeStartMin = minuteValue(item?.timeStartMin ?? item?.time_start_min, 0, 1439);
+    const timeEndMin = minuteValue(item?.timeEndMin ?? item?.time_end_min, 1440, 1440);
     return {
       tempId,
       mobTempId,
       playerLevelMin,
       playerLevelMax: Math.max(playerLevelMin, playerLevelMax),
+      timeStartMin,
+      timeEndMin,
       enabled: boolValue(item?.enabled, true) ? 1 : 0,
       chancePercent: percentValue(item?.chancePercent ?? item?.chance_percent),
       quantityMin,
@@ -82,7 +92,7 @@ function normalizeItems(items) {
       options: normalizeOptions(item?.options ?? item?.options_json),
     };
   }).filter((item) => {
-    const key = `${item.tempId}:${item.mobTempId}:${item.playerLevelMin}:${item.playerLevelMax}`;
+    const key = `${item.tempId}:${item.mobTempId}:${item.playerLevelMin}:${item.playerLevelMax}:${item.timeStartMin}:${item.timeEndMin}`;
     if (item.tempId < 0 || seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -116,7 +126,7 @@ async function loadConfigs(serverId) {
   );
   for (const config of configs) {
     const items = await query(
-      `SELECT d.id, d.temp_id, d.mob_temp_id, d.player_level_min, d.player_level_max, d.enabled, d.chance_percent, d.quantity_min, d.quantity_max,
+      `SELECT d.id, d.temp_id, d.mob_temp_id, d.player_level_min, d.player_level_max, d.time_start_min, d.time_end_min, d.enabled, d.chance_percent, d.quantity_min, d.quantity_max,
               d.options_json, it.NAME AS item_name, it.icon_id, it.gender, it.power_require
        FROM panel_map_drop_items d
        LEFT JOIN item_template it ON it.id = d.temp_id
@@ -131,6 +141,8 @@ async function loadConfigs(serverId) {
       mobLabel: mobLabel(item.mob_temp_id),
       playerLevelMin: item.player_level_min,
       playerLevelMax: item.player_level_max,
+      timeStartMin: item.time_start_min,
+      timeEndMin: item.time_end_min,
       enabled: Number(item.enabled) === 1,
       chancePercent: Number(item.chance_percent),
       quantityMin: item.quantity_min,
@@ -244,10 +256,10 @@ router.post('/', requirePermission('server.config'), async (req, res) => {
     for (const item of items) {
       await exec(
         `INSERT INTO panel_map_drop_items
-           (config_id, temp_id, mob_temp_id, player_level_min, player_level_max, enabled,
+           (config_id, temp_id, mob_temp_id, player_level_min, player_level_max, time_start_min, time_end_min, enabled,
             chance_percent, quantity_min, quantity_max, options_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [configId, item.tempId, item.mobTempId, item.playerLevelMin, item.playerLevelMax, item.enabled,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [configId, item.tempId, item.mobTempId, item.playerLevelMin, item.playerLevelMax, item.timeStartMin, item.timeEndMin, item.enabled,
           item.chancePercent, item.quantityMin, item.quantityMax, JSON.stringify(item.options)]
       );
     }

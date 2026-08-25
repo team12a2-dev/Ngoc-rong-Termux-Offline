@@ -27,6 +27,8 @@ function newItem(template = {}) {
     mobName: template.mobName || template.mobLabel || '',
     playerLevelMin: Number(template.playerLevelMin ?? template.player_level_min ?? 0),
     playerLevelMax: Number(template.playerLevelMax ?? template.player_level_max ?? 19),
+    timeStartMin: Number(template.timeStartMin ?? template.time_start_min ?? 0),
+    timeEndMin: Number(template.timeEndMin ?? template.time_end_min ?? 1440),
     itemName: template.name || template.itemName || '',
     iconId: template.iconId ?? null,
     enabled: true,
@@ -69,6 +71,8 @@ function normalizeRule(row, fallbackMapId) {
       mobName: item.mobName || item.mobLabel || '',
       playerLevelMin: Number(item.playerLevelMin ?? item.player_level_min ?? 0),
       playerLevelMax: Number(item.playerLevelMax ?? item.player_level_max ?? 19),
+      timeStartMin: Number(item.timeStartMin ?? item.time_start_min ?? 0),
+      timeEndMin: Number(item.timeEndMin ?? item.time_end_min ?? 1440),
       enabled: boolValue(item.enabled),
       chancePercent: Number(item.chancePercent ?? 0),
       quantityMin: Number(item.quantityMin ?? 1),
@@ -103,6 +107,23 @@ function mobDropLabel(mobTempId, mobName = '') {
   return Number(mobTempId) < 0 ? 'Tất cả quái' : mobName ? `${mobName} · #${mobTempId}` : `Mob #${mobTempId}`;
 }
 
+function minuteToTime(value, fallback = 0) {
+  const minute = Math.min(1440, Math.max(0, Number(value) || fallback));
+  if (minute === 1440) return '00:00';
+  return `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`;
+}
+
+function timeToMinute(value, fallback = 0) {
+  const match = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(String(value || ''));
+  if (!match) return fallback;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function timeLabel(start, end) {
+  if (Number(start) === Number(end) || (Number(start) === 0 && Number(end) === 1440)) return 'Cả ngày';
+  return `${minuteToTime(start)}–${minuteToTime(end)}`;
+}
+
 export default function DropConfigPage() {
   const [configs, setConfigs] = useState([]);
   const [mapId, setMapId] = useState('');
@@ -113,6 +134,7 @@ export default function DropConfigPage() {
   const [mobQ, setMobQ] = useState('');
   const [selectedMob, setSelectedMob] = useState({ id: -1, name: 'Tất cả quái' });
   const [selectedLevelRange, setSelectedLevelRange] = useState({ min: 0, max: 19 });
+  const [selectedTimeRange, setSelectedTimeRange] = useState({ start: 0, end: 1440 });
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const fb = useFeedback();
@@ -174,9 +196,12 @@ export default function DropConfigPage() {
     if (!Number.isInteger(tempId) || tempId < 0) return;
     const levelMin = Number(template.playerLevelMin ?? selectedLevelRange.min ?? 0);
     const levelMax = Math.max(levelMin, Number(template.playerLevelMax ?? selectedLevelRange.max ?? 19));
+    const timeStartMin = Number(template.timeStartMin ?? selectedTimeRange.start ?? 0);
+    const timeEndMin = Number(template.timeEndMin ?? selectedTimeRange.end ?? 1440);
     if (form.items.some((item) => Number(item.tempId) === tempId && Number(item.mobTempId) === mobTempId
-      && Number(item.playerLevelMin) === levelMin && Number(item.playerLevelMax) === levelMax)) {
-      fb.error(`Item #${tempId} đã có cho ${mobDropLabel(mobTempId, selectedMob.name)} và level ${levelMin}–${levelMax}.`);
+      && Number(item.playerLevelMin) === levelMin && Number(item.playerLevelMax) === levelMax
+      && Number(item.timeStartMin) === timeStartMin && Number(item.timeEndMin) === timeEndMin)) {
+      fb.error(`Item #${tempId} đã có cho ${mobDropLabel(mobTempId, selectedMob.name)}, level ${levelMin}–${levelMax}, giờ ${timeLabel(timeStartMin, timeEndMin)}.`);
       return;
     }
     setForm((prev) => ({
@@ -187,6 +212,8 @@ export default function DropConfigPage() {
         mobName: selectedMob.name,
         playerLevelMin: levelMin,
         playerLevelMax: levelMax,
+        timeStartMin,
+        timeEndMin,
       })],
     }));
   }
@@ -375,9 +402,9 @@ export default function DropConfigPage() {
             </div>
 
             <div className="drop-section-card">
-              <div className="section-head"><div><h4>Vật phẩm rơi tại map</h4><p className="muted">{enabledItemCount}/{itemCount} item đang bật · mỗi item roll độc lập · Mob ID `-1` = áp dụng mọi quái.</p></div><button className="btn sm" type="button" onClick={() => setForm((prev) => ({ ...prev, items: [...prev.items, newItem()] }))}>+ Thêm dòng</button></div>
+              <div className="section-head"><div><h4>Vật phẩm rơi tại map</h4><p className="muted">{enabledItemCount}/{itemCount} item đang bật · mỗi item roll độc lập · Mob ID `-1` = áp dụng mọi quái · thời gian `00:00–00:00` = cả ngày.</p></div><button className="btn sm" type="button" onClick={() => setForm((prev) => ({ ...prev, items: [...prev.items, newItem()] }))}>+ Thêm dòng</button></div>
               <div className="table-wrap drop-items-table-wrap">
-                <table className="compact drop-items-table"><thead><tr><th>Bật</th><th>Mob ID</th><th>Level từ</th><th>Level đến</th><th>Item ID</th><th>Tên</th><th>Tỷ lệ %</th><th>SL từ</th><th>SL đến</th><th>Options</th><th /></tr></thead>
+                <table className="compact drop-items-table"><thead><tr><th>Bật</th><th>Mob ID</th><th>Level từ</th><th>Level đến</th><th>Giờ từ</th><th>Giờ đến</th><th>Item ID</th><th>Tên</th><th>Tỷ lệ %</th><th>SL từ</th><th>SL đến</th><th>Options</th><th /></tr></thead>
                   <tbody>
                     {form.items.map((item, index) => (
                       <tr key={`${item.tempId}-${item.mobTempId}-${item.playerLevelMin}-${item.playerLevelMax}-${index}`}>
@@ -385,8 +412,10 @@ export default function DropConfigPage() {
                         <td><input className="input-xs" type="number" min="-1" value={item.mobTempId} title="-1 = tất cả quái" onChange={(e) => patchItem(index, 'mobTempId', numberValue(e.target.value, -1))} /></td>
                         <td><input className="input-xs" type="number" min="0" max="19" value={item.playerLevelMin} onChange={(e) => patchItem(index, 'playerLevelMin', numberValue(e.target.value, 0))} /></td>
                         <td><input className="input-xs" type="number" min="0" max="19" value={item.playerLevelMax} onChange={(e) => patchItem(index, 'playerLevelMax', numberValue(e.target.value, 19))} /></td>
+                        <td><input className="input-time" type="time" value={minuteToTime(item.timeStartMin)} onChange={(e) => patchItem(index, 'timeStartMin', timeToMinute(e.target.value, 0))} /></td>
+                        <td><input className="input-time" type="time" value={minuteToTime(item.timeEndMin)} onChange={(e) => patchItem(index, 'timeEndMin', timeToMinute(e.target.value, 1440))} /></td>
                         <td><input className="input-xs" type="number" min="0" value={item.tempId} onChange={(e) => patchItem(index, 'tempId', numberValue(e.target.value))} /></td>
-                        <td><span className="drop-item-name">{item.itemName || `Item #${item.tempId}`}<small>{mobDropLabel(item.mobTempId)}</small></span></td>
+                        <td><span className="drop-item-name">{item.itemName || `Item #${item.tempId}`}<small>{mobDropLabel(item.mobTempId)} · {timeLabel(item.timeStartMin, item.timeEndMin)}</small></span></td>
                         <td><input className="input-xs" type="number" min="0" max="100" step="0.01" value={item.chancePercent} onChange={(e) => patchItem(index, 'chancePercent', numberValue(e.target.value))} /></td>
                         <td><input className="input-xs" type="number" min="1" value={item.quantityMin} onChange={(e) => patchItem(index, 'quantityMin', numberValue(e.target.value, 1))} /></td>
                         <td><input className="input-xs" type="number" min="1" value={item.quantityMax} onChange={(e) => patchItem(index, 'quantityMax', numberValue(e.target.value, 1))} /></td>
@@ -394,7 +423,7 @@ export default function DropConfigPage() {
                         <td><button className="btn sm danger" type="button" onClick={() => removeItem(index)}>Xóa</button></td>
                       </tr>
                     ))}
-                    {form.items.length === 0 && <tr><td colSpan={11} className="muted">Chưa có item custom. Dùng catalog bên dưới để thêm nhanh.</td></tr>}
+                    {form.items.length === 0 && <tr><td colSpan={13} className="muted">Chưa có item custom. Dùng catalog bên dưới để thêm nhanh.</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -409,6 +438,17 @@ export default function DropConfigPage() {
               <label className="field">Level người chơi đến<input type="number" min="0" max="19" value={selectedLevelRange.max} onChange={(e) => setSelectedLevelRange((prev) => ({ ...prev, max: numberValue(e.target.value, 19) }))} /></label>
               <div className="field field-note"><span>Áp dụng khi thêm item</span><p>Item mới từ Catalog sẽ nhận level {selectedLevelRange.min}–{Math.max(selectedLevelRange.min, selectedLevelRange.max)}.</p></div>
             </div>
+            <div className="drop-time-presets row">
+              <button className="btn sm" type="button" onClick={() => setSelectedTimeRange({ start: 360, end: 720 })}>Sáng · 06:00–12:00</button>
+              <button className="btn sm" type="button" onClick={() => setSelectedTimeRange({ start: 720, end: 1080 })}>Trưa/chiều · 12:00–18:00</button>
+              <button className="btn sm" type="button" onClick={() => setSelectedTimeRange({ start: 1080, end: 360 })}>Tối · 18:00–06:00</button>
+              <button className="btn sm" type="button" onClick={() => setSelectedTimeRange({ start: 0, end: 1440 })}>Cả ngày</button>
+            </div>
+            <div className="drop-time-default form-grid compact-form">
+              <label className="field">Giờ bắt đầu mặc định<input type="time" value={minuteToTime(selectedTimeRange.start)} onChange={(e) => setSelectedTimeRange((prev) => ({ ...prev, start: timeToMinute(e.target.value, 0) }))} /></label>
+              <label className="field">Giờ kết thúc mặc định<input type="time" value={minuteToTime(selectedTimeRange.end)} onChange={(e) => setSelectedTimeRange((prev) => ({ ...prev, end: timeToMinute(e.target.value, 1440) }))} /></label>
+              <div className="field field-note"><span>Khung giờ đang chọn</span><p>{timeLabel(selectedTimeRange.start, selectedTimeRange.end)}. Khung qua nửa đêm như 18:00–06:00 được hỗ trợ.</p></div>
+            </div>
             <div className="table-wrap"><table className="compact"><thead><tr><th>Mob ID</th><th>Tên quái</th><th>Type</th><th>HP</th><th /></tr></thead><tbody>
               {mobs.map((mob) => <tr key={mob.id}><td><code>#{mob.id}</code></td><td><strong>{mob.name}</strong></td><td>{mob.type}</td><td>{Number(mob.hp || 0).toLocaleString('vi-VN')}</td><td><button className={`btn sm${Number(selectedMob.id) === Number(mob.id) ? ' primary' : ''}`} type="button" onClick={() => setSelectedMob({ id: Number(mob.id), name: mob.name })}>{Number(selectedMob.id) === Number(mob.id) ? 'Đang chọn' : 'Chọn'}</button></td></tr>)}
               {mobs.length === 0 && <tr><td colSpan={5} className="muted">Nhập từ khóa rồi bấm Tìm quái để nạp danh sách.</td></tr>}
@@ -418,7 +458,7 @@ export default function DropConfigPage() {
           <div className="card section">
             <div className="section-head"><div><h3>Catalog item</h3><p className="muted">Tìm item theo ID/tên rồi thêm vào rule mà không cần mở database.</p></div><form className="row" onSubmit={searchCatalog}><input placeholder="Ví dụ: 457 hoặc thỏi vàng" value={catalogQ} onChange={(e) => setCatalogQ(e.target.value)} /><button className="btn" type="submit">Tìm</button></form></div>
             <div className="table-wrap"><table className="compact"><thead><tr><th>ID</th><th>Tên</th><th>Gender</th><th>Power</th><th /></tr></thead><tbody>
-              {catalog.map((item) => <tr key={item.id}><td><code>#{item.id}</code></td><td><strong>{item.name}</strong></td><td>{item.gender}</td><td>{Number(item.powerRequire || 0).toLocaleString('vi-VN')}</td><td><button className="btn sm" type="button" onClick={() => addItem(item)} disabled={form.items.some((row) => Number(row.tempId) === Number(item.id) && Number(row.mobTempId) === Number(selectedMob.id) && Number(row.playerLevelMin) === Number(selectedLevelRange.min) && Number(row.playerLevelMax) === Math.max(Number(selectedLevelRange.min), Number(selectedLevelRange.max)))}>Thêm</button></td></tr>)}
+              {catalog.map((item) => <tr key={item.id}><td><code>#{item.id}</code></td><td><strong>{item.name}</strong></td><td>{item.gender}</td><td>{Number(item.powerRequire || 0).toLocaleString('vi-VN')}</td><td><button className="btn sm" type="button" onClick={() => addItem(item)} disabled={form.items.some((row) => Number(row.tempId) === Number(item.id) && Number(row.mobTempId) === Number(selectedMob.id) && Number(row.playerLevelMin) === Number(selectedLevelRange.min) && Number(row.playerLevelMax) === Math.max(Number(selectedLevelRange.min), Number(selectedLevelRange.max)) && Number(row.timeStartMin) === Number(selectedTimeRange.start) && Number(row.timeEndMin) === Number(selectedTimeRange.end))}>Thêm</button></td></tr>)}
               {catalog.length === 0 && <tr><td colSpan={5} className="muted">Nhập từ khóa rồi bấm Tìm để nạp catalog.</td></tr>}
             </tbody></table></div>
           </div>

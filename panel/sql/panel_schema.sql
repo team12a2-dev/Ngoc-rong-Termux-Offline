@@ -166,6 +166,8 @@ CREATE TABLE IF NOT EXISTS panel_map_drop_items (
   mob_temp_id INT NOT NULL DEFAULT -1,
   player_level_min TINYINT UNSIGNED NOT NULL DEFAULT 0,
   player_level_max TINYINT UNSIGNED NOT NULL DEFAULT 19,
+  time_start_min SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  time_end_min SMALLINT UNSIGNED NOT NULL DEFAULT 1440,
   enabled TINYINT(1) NOT NULL DEFAULT 1,
   chance_percent DECIMAL(8,4) NOT NULL DEFAULT 0,
   quantity_min INT UNSIGNED NOT NULL DEFAULT 1,
@@ -173,8 +175,8 @@ CREATE TABLE IF NOT EXISTS panel_map_drop_items (
   options_json JSON NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_drop_config_item_level (config_id, temp_id, mob_temp_id, player_level_min, player_level_max),
-  INDEX idx_drop_item_config (config_id, enabled, mob_temp_id, player_level_min, player_level_max),
+  UNIQUE KEY uq_drop_config_item_time (config_id, temp_id, mob_temp_id, player_level_min, player_level_max, time_start_min, time_end_min),
+  INDEX idx_drop_item_config (config_id, enabled, mob_temp_id, player_level_min, player_level_max, time_start_min, time_end_min),
   CONSTRAINT fk_drop_item_config FOREIGN KEY (config_id) REFERENCES panel_map_drop_configs(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

@@ -120,6 +120,43 @@ async function main() {
     console.log('✓ Added level-aware drop item unique index');
   }
 
+  const [timeStartColumn] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND column_name = 'time_start_min'`,
+    [dbConfig.database]
+  );
+  if (Number(timeStartColumn[0].c) === 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items ADD COLUMN time_start_min SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER player_level_max');
+    console.log('✓ Added panel_map_drop_items.time_start_min');
+  }
+  const [timeEndColumn] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND column_name = 'time_end_min'`,
+    [dbConfig.database]
+  );
+  if (Number(timeEndColumn[0].c) === 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items ADD COLUMN time_end_min SMALLINT UNSIGNED NOT NULL DEFAULT 1440 AFTER time_start_min');
+    console.log('✓ Added panel_map_drop_items.time_end_min');
+  }
+  const [oldLevelIndex] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.statistics
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND index_name = 'uq_drop_config_item_level'`,
+    [dbConfig.database]
+  );
+  if (Number(oldLevelIndex[0].c) > 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items DROP INDEX uq_drop_config_item_level');
+    console.log('✓ Removed level-only drop item unique index');
+  }
+  const [timeIndex] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.statistics
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND index_name = 'uq_drop_config_item_time'`,
+    [dbConfig.database]
+  );
+  if (Number(timeIndex[0].c) === 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items ADD UNIQUE KEY uq_drop_config_item_time (config_id, temp_id, mob_temp_id, player_level_min, player_level_max, time_start_min, time_end_min)');
+    console.log('✓ Added time-aware drop item unique index');
+  }
+
   // Verify panel tables
   for (const table of PANEL_TABLES) {
     const [rows] = await conn.query(
