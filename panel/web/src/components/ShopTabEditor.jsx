@@ -69,6 +69,10 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
   const [shopItemQ, setShopItemQ] = useState('');
   const [catalogPage, setCatalogPage] = useState(0);
   const [catalogLoading, setCatalogLoading] = useState(true);
+  const [selectedCatalogIds, setSelectedCatalogIds] = useState(() => new Set());
+  const [selectedShopIds, setSelectedShopIds] = useState(() => new Set());
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkEditForm, setBulkEditForm] = useState({ cost: '', type_sell: '', is_sell: '', is_new: '' });
   const [defaultCost, setDefaultCost] = useState(1000);
   const [defaultTypeSell, setDefaultTypeSell] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -100,6 +104,10 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
     setDropIdx(null);
     setOrderIoOpen(false);
     setOrderIoText('');
+    setSelectedCatalogIds(new Set());
+    setSelectedShopIds(new Set());
+    setBulkEditOpen(false);
+    setBulkEditForm({ cost: '', type_sell: '', is_sell: '', is_new: '' });
   }, [tab.id]);
 
   useEffect(() => {
@@ -144,9 +152,17 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
     () => shopRows.filter(({ it }) => matchesItemQuery(it, shopItemQ)),
     [shopRows, shopItemQ]
   );
+  const visibleCatalogIds = useMemo(() => catalogSlice.map((it) => it.id), [catalogSlice]);
+  const visibleShopIds = useMemo(() => shopRowsVisible.map(({ it }) => it.id), [shopRowsVisible]);
+  const allVisibleCatalogSelected = visibleCatalogIds.length > 0
+    && visibleCatalogIds.every((id) => selectedCatalogIds.has(id));
+  const allVisibleShopSelected = visibleShopIds.length > 0
+    && visibleShopIds.every((id) => selectedShopIds.has(id));
   const hiddenCount = items.length - shopRows.length;
   const selected = selectedIdx != null ? items[selectedIdx] : null;
   const inShopIds = useMemo(() => new Set(items.map((it) => it.temp_id)), [items]);
+  const addableCatalogCount = catalog.filter((it) => selectedCatalogIds.has(it.id) && !inShopIds.has(it.id)).length;
+  const selectedExistingCatalogCount = selectedCatalogIds.size - addableCatalogCount;
 
   const raceSummary = raceFilter === ''
     ? `Toàn bộ DB · tab ${items.length} item`
@@ -195,6 +211,7 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
 
   useEffect(() => {
     setCatalogPage(0);
+    setSelectedCatalogIds(new Set());
   }, [catalogQ, raceFilter]);
 
   function patchLocal(idx, patch) {
@@ -204,6 +221,96 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
 
   function withServer(body = {}) {
     return JSON.stringify({ ...body, serverId: getServerId() });
+  }
+
+  function toggleSelection(setter, id) {
+    setter((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleVisibleSelection(setter, ids, shouldSelect) {
+    setter((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => (shouldSelect ? next.add(id) : next.delete(id)));
+      return next;
+    });
+  }
+
+  function toggleCatalogSelection(id) {
+    toggleSelection(setSelectedCatalogIds, id);
+  }
+
+  function toggleShopSelection(id) {
+    toggleSelection(setSelectedShopIds, id);
+  }
+
+  async function addSelectedCatalog() {
+    const templates = catalog.filter((it) => selectedCatalogIds.has(it.id) && !inShopIds.has(it.id));
+    if (!templates.length) {
+      onFeedback?.('Các item đã chọn đều đang có trong tab — không thêm trùng.', 'info');
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await api(`/shops/tabs/${tab.id}/items/bulk-create`, {
+        method: 'POST',
+        body: withServer({
+          items: templates.map((template) => ({
+            temp_id: template.id,
+            cost: defaultCost,
+            type_sell: defaultTypeSell,
+            is_sell: 1,
+            options: [],
+          })),
+        }),
+      });
+      const count = res.data?.count ?? templates.length;
+      onFeedback?.(`Đã thêm ${count} item vào tab với giá mặc định${formatLiveSync(res?.data)}`, 'success');
+      setSelectedCatalogIds(new Set());
+      await onRefresh?.();
+    } catch (e) {
+      onFeedback?.(e.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function applyBulkEdit() {
+    const ids = new Set([...selectedShopIds]);
+    const hasPatch = Object.values(bulkEditForm).some((value) => value !== '');
+    if (!ids.size || !hasPatch) return;
+    const next = items.map((it) => {
+      if (!ids.has(it.id)) return it;
+      const patch = {};
+      if (bulkEditForm.cost !== '') patch.cost = Number(bulkEditForm.cost);
+      if (bulkEditForm.type_sell !== '') patch.type_sell = Number(bulkEditForm.type_sell);
+      if (bulkEditForm.is_sell !== '') patch.is_sell = Number(bulkEditForm.is_sell);
+      if (bulkEditForm.is_new !== '') patch.is_new = Number(bulkEditForm.is_new);
+      return { ...it, ...patch };
+    });
+    setSaving(true);
+    try {
+      const res = await api(`/shops/tabs/${tab.id}/items/bulk`, {
+        method: 'PUT',
+        body: withServer({ items: next.filter((it) => ids.has(it.id)).map(itemSavePayload) }),
+      });
+      setItems(next);
+      itemsDirtyRef.current = false;
+      const count = res.data?.saved ?? ids.size;
+      onFeedback?.(`Đã cập nhật nhanh ${count} item${formatLiveSync(res?.data)} — đóng shop rồi mở lại NPC`, 'success');
+      setSelectedShopIds(new Set());
+      setBulkEditOpen(false);
+      setBulkEditForm({ cost: '', type_sell: '', is_sell: '', is_new: '' });
+      await onRefresh?.();
+    } catch (e) {
+      onFeedback?.(e.message, 'error');
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function fetchImportTemplateMap(tempIds) {
@@ -591,14 +698,35 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
             value={catalogQ}
             onChange={(e) => setCatalogQ(e.target.value)}
           />
+          <div className="shop-bulk-bar">
+            <label className="toggle-empty shop-select-all">
+              <input
+                type="checkbox"
+                checked={allVisibleCatalogSelected}
+                onChange={(e) => toggleVisibleSelection(setSelectedCatalogIds, visibleCatalogIds, e.target.checked)}
+                disabled={catalogLoading || visibleCatalogIds.length === 0 || saving}
+              />
+              Chọn trang này
+            </label>
+            <span className="muted">
+              {selectedCatalogIds.size
+                ? `Đã chọn ${selectedCatalogIds.size} item${selectedExistingCatalogCount ? ` · ${selectedExistingCatalogCount} đã có` : ''}`
+                : 'Chọn nhiều item để thêm một lần'}
+            </span>
+            {selectedCatalogIds.size > 0 && (
+              <button type="button" className="btn sm primary" disabled={saving || addableCatalogCount === 0} onClick={addSelectedCatalog}>
+                + Thêm {addableCatalogCount} item mới
+              </button>
+            )}
+          </div>
           <div className="option-template-table-wrap giftcode-catalog-table shop-catalog-table">
             <table className="compact">
-              <thead><tr><th className="col-icon" /><th>ID</th><th>Tên</th><th>Tộc</th><th /></tr></thead>
+              <thead><tr><th className="col-check" /><th className="col-icon" /><th>ID</th><th>Tên</th><th>Tộc</th><th /></tr></thead>
               <tbody>
-                {catalogLoading && <tr><td colSpan={5} className="muted">Đang tải danh sách item...</td></tr>}
+                {catalogLoading && <tr><td colSpan={6} className="muted">Đang tải danh sách item...</td></tr>}
                 {!catalogLoading && catalogFiltered.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="muted">
+                    <td colSpan={6} className="muted">
                       {raceFilter
                         ? `Không có item cho ${genderLabel(raceFilter)} (và Chung). Thử từ khóa khác hoặc đổi bộ lọc tộc.`
                         : 'Không tìm thấy item. Thử ID hoặc tên khác.'}
@@ -607,6 +735,15 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
                 )}
                 {!catalogLoading && catalogSlice.map((it) => (
                   <tr key={it.id} className={inShopIds.has(it.id) ? 'row-active' : ''}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        aria-label={`Chọn ${it.name}`}
+                        checked={selectedCatalogIds.has(it.id)}
+                        onChange={() => toggleCatalogSelection(it.id)}
+                        disabled={saving}
+                      />
+                    </td>
                     <td><ItemIcon iconId={it.icon_id} tempId={it.id} name={it.name} size={32} /></td>
                     <td><strong>{it.id}</strong></td>
                     <td>{it.name}</td>
@@ -738,6 +875,75 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
               onChange={(e) => setShopItemQ(e.target.value)}
             />
           )}
+          {items.length > 0 && shopRowsVisible.length > 0 && (
+            <div className="shop-bulk-bar shop-bulk-existing">
+              <label className="toggle-empty shop-select-all">
+                <input
+                  type="checkbox"
+                  checked={allVisibleShopSelected}
+                  onChange={(e) => toggleVisibleSelection(setSelectedShopIds, visibleShopIds, e.target.checked)}
+                  disabled={saving}
+                />
+                Chọn item hiển thị
+              </label>
+              <span className="muted">{selectedShopIds.size ? `Đã chọn ${selectedShopIds.size}` : 'Chọn nhiều để sửa giá/trạng thái'}</span>
+              {selectedShopIds.size > 0 && (
+                <>
+                  <button type="button" className="btn sm" disabled={saving} onClick={() => setBulkEditOpen((open) => !open)}>
+                    {bulkEditOpen ? 'Đóng chỉnh nhanh' : 'Chỉnh nhanh'}
+                  </button>
+                  <button type="button" className="btn sm ghost" disabled={saving} onClick={() => setSelectedShopIds(new Set())}>
+                    Bỏ chọn
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+          {bulkEditOpen && selectedShopIds.size > 0 && (
+            <div className="shop-bulk-editor card-inner">
+              <div className="shop-bulk-editor-head">
+                <strong>Chỉnh nhanh {selectedShopIds.size} item</strong>
+                <span className="muted">Để trống nếu không muốn thay đổi trường đó</span>
+              </div>
+              <div className="row">
+                <label className="field mini">
+                  <span>Giá chung</span>
+                  <input type="number" min={0} placeholder="Không đổi" value={bulkEditForm.cost} onChange={(e) => setBulkEditForm({ ...bulkEditForm, cost: e.target.value })} />
+                </label>
+                <label className="field mini">
+                  <span>Loại tiền</span>
+                  <select value={bulkEditForm.type_sell} onChange={(e) => setBulkEditForm({ ...bulkEditForm, type_sell: e.target.value })}>
+                    <option value="">Không đổi</option>
+                    {TYPE_SELL.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                </label>
+                <label className="field mini">
+                  <span>Trạng thái bán</span>
+                  <select value={bulkEditForm.is_sell} onChange={(e) => setBulkEditForm({ ...bulkEditForm, is_sell: e.target.value })}>
+                    <option value="">Không đổi</option>
+                    <option value="1">Đang bán</option>
+                    <option value="0">Tạm ẩn</option>
+                  </select>
+                </label>
+                <label className="field mini">
+                  <span>Nhãn NEW</span>
+                  <select value={bulkEditForm.is_new} onChange={(e) => setBulkEditForm({ ...bulkEditForm, is_new: e.target.value })}>
+                    <option value="">Không đổi</option>
+                    <option value="1">Bật</option>
+                    <option value="0">Tắt</option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="btn sm primary"
+                  disabled={saving || !Object.values(bulkEditForm).some((value) => value !== '')}
+                  onClick={applyBulkEdit}
+                >
+                  Áp dụng
+                </button>
+              </div>
+            </div>
+          )}
           {items.length === 0 ? (
             <p className="muted empty-hint">Tab trống. Thêm item từ danh sách bên trái.</p>
           ) : shopRows.length === 0 ? (
@@ -754,6 +960,15 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
                   onDrop={(e) => handleDrop(idx, e)}
                 >
                   <div className="shop-item-card-top">
+                    <label className="shop-item-select" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        aria-label={`Chọn ${it.item_name || `item ${it.temp_id}`}`}
+                        checked={selectedShopIds.has(it.id)}
+                        onChange={() => toggleShopSelection(it.id)}
+                        disabled={saving}
+                      />
+                    </label>
                     <span
                       className={`shop-drag-handle ${canDragReorder && !saving ? '' : 'disabled'}`}
                       draggable={canDragReorder && !saving}

@@ -2271,7 +2271,7 @@ code { background: #0f1419; padding: 1px 5px; border-radius: 4px; font-size: 0.8
   overflow: auto;
 }
 .shop-catalog-table { max-height: min(55vh, 480px); }
-.shop-catalog-table table.compact td:nth-child(3) { min-width: 120px; }
+.shop-catalog-table table.compact td:nth-child(4) { min-width: 120px; }
 .shop-item-card {
   display: flex;
   flex-direction: column;
@@ -2287,6 +2287,42 @@ code { background: #0f1419; padding: 1px 5px; border-radius: 4px; font-size: 0.8
   box-shadow: 0 0 0 1px var(--primary);
 }
 .shop-panel-head-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.shop-bulk-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 8px 10px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+.shop-bulk-bar .shop-select-all { margin: 0; }
+.shop-bulk-bar .muted { flex: 1 1 180px; font-size: 0.78rem; }
+.shop-bulk-editor {
+  margin: 8px 0 10px;
+  padding: 10px;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 8px;
+  background: #121a24;
+}
+.shop-bulk-editor-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.84rem;
+}
+.shop-bulk-editor .row { align-items: flex-end; gap: 8px; }
+.shop-bulk-editor .field.mini { min-width: 110px; flex: 1 1 120px; }
+.shop-bulk-editor .btn { flex: 0 0 auto; }
+.shop-catalog-table .col-check { width: 38px; padding-right: 4px; }
+.shop-catalog-table td:first-child { text-align: center; }
+.shop-item-select { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 22px; }
+.shop-item-select input, .shop-catalog-table input[type="checkbox"] { width: auto; }
 .shop-panel-hint-block { margin: 0 0 8px; font-size: 0.78rem; line-height: 1.35; }
 .shop-order-io {
   margin-bottom: 10px;
@@ -2519,6 +2555,10 @@ code { background: #0f1419; padding: 1px 5px; border-radius: 4px; font-size: 0.8
 @media (max-width: 700px) {
   .shop-item-card-top { flex-direction: column; }
   .shop-item-card-fields { grid-template-columns: 1fr 1fr; min-width: 0; }
+  .shop-bulk-bar { align-items: stretch; }
+  .shop-bulk-bar .btn { width: 100%; }
+  .shop-bulk-editor .row { display: grid; grid-template-columns: 1fr 1fr; }
+  .shop-bulk-editor .btn { width: 100%; grid-column: 1 / -1; }
 }
 
 /* Clans */

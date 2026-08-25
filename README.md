@@ -43,6 +43,7 @@
 - [Luồng khởi động](#-luồng-khởi-động)
 - [Vận hành server](#-vận-hành-server)
 - [Panel web quản trị](#-panel-web-quản-trị)
+- [Cửa hàng/NPC Shop](#-cửa-hàngnpc-shop)
 - [Cấu hình database và JVM](#-cấu-hình-database-và-jvm)
 - [Kết nối từ thiết bị khác](#-kết-nối-từ-thiết-bị-khác)
 - [Trạng thái khởi động](#-trạng-thái-khởi-động)
@@ -199,6 +200,34 @@ Chức năng yêu cầu quyền `server.broadcast` và giới hạn tối thiể
 Mục **Game & Server → Item Templates** quản lý trực tiếp bảng `item_template`: xem/tìm kiếm, tạo item mới với ID kế tiếp, sửa tên/mô tả/type/gender/icon/part/level/yêu cầu sức mạnh/giá và gọi Java Agent reload sau khi lưu. Bảng `item_option_template` được đọc để đối chiếu option hiện có; option mới chỉ là nhãn hiển thị, còn hiệu ứng thực tế phải được Java source xử lý.
 
 > **Quan trọng:** source hiện tại tạo item bằng `Manager.ITEM_TEMPLATES.get(tempId)`, vì vậy ID item phải liên tục từ `0` đến `MAX(id)`. Panel không cho xóa item và sẽ từ chối tạo nếu database đang có ID bị khuyết. Đây là điều kiện để vật phẩm tạo từ shop, giftcode hoặc inventory không làm server lỗi index.
+
+### 🛒 Cửa hàng/NPC Shop
+
+Module **Cửa hàng/NPC Shop** được thiết kế theo luồng một màn hình: chọn shop → chọn tab → thêm hoặc chỉnh item → lưu và reload trong game. Các thao tác lặp đã được gom lại để giảm số lần mở form và số lần lưu thủ công:
+
+| Thao tác nhanh | Cách sử dụng |
+|---|---|
+| Thêm nhiều item | Tìm item theo tên/ID, tick nhiều item trong catalog rồi bấm **Thêm X item mới**. Các item đã tồn tại trong tab được tự động bỏ qua để không tạo trùng. |
+| Giá và loại tiền mặc định | Đặt **Giá mặc định** và **Loại tiền** một lần ở đầu tab; các item thêm tiếp theo dùng ngay cấu hình đó. |
+| Lọc theo hệ | Chọn **Trái Đất, Namek, Xayda hoặc Chung** để chỉ xem item phù hợp, tránh phải dò thủ công. |
+| Chỉnh nhiều item | Tick các item trong tab, bấm **Chỉnh nhanh**, rồi đặt giá chung, loại tiền, trạng thái bán hoặc nhãn `NEW`. Để trống trường nào nếu không muốn thay đổi trường đó. |
+| Tìm trong tab | Dùng ô tìm riêng của tab để lọc theo tên hoặc `temp_id`; có thể chọn toàn bộ các dòng đang hiển thị. |
+| Sắp xếp | Kéo biểu tượng `⋮⋮` hoặc dùng nút `↑`/`↓`; thứ tự được lưu ngay. Tắt ô tìm trong tab trước khi kéo để tránh sắp xếp nhầm danh sách đã lọc. |
+| Lưu nhanh | Bấm **Lưu** ở từng item khi cần kiểm soát chi tiết, hoặc **Lưu tất cả** để ghi toàn bộ tab trong một lần. |
+| Import/export thứ tự | Bấm **Xuất tên** để sao chép danh sách. Bấm **Nhập thứ tự** để dán định dạng `thứ tự|temp_id|tên|option_id:param;...`, xem trước thay đổi, tự thêm item thiếu và áp dụng option cùng thứ tự. |
+| Chỉnh chi tiết | Chọn item để sửa `icon_spec`, nhãn `NEW`, hệ ghi đè, yêu cầu sức mạnh và option. |
+
+Ví dụ quy trình điều chỉnh một tab shop:
+
+```text
+1. Chọn hệ cần xem và nhập tên/ID item.
+2. Tick các item cần thêm → đặt Giá mặc định/Loại tiền → bấm “Thêm X item mới”.
+3. Trong danh sách tab, tick nhóm item cần đổi → “Chỉnh nhanh” → nhập giá hoặc trạng thái bán → “Áp dụng”.
+4. Kéo thả để sắp xếp hoặc dán danh sách vào “Nhập thứ tự” nếu cần thay đổi hàng chục dòng.
+5. Kiểm tra preview, bấm “Lưu tất cả” nếu còn chỉnh chi tiết, rồi reload shop trong game.
+```
+
+Các thao tác thêm/sửa/xóa/reorder đều yêu cầu quyền `giftcode.manage`, được ghi vào Audit Logs và gọi live sync tới Game Agent. Sau khi lưu, hãy đóng cửa sổ shop trong game rồi mở lại NPC để client nhận thứ tự và dữ liệu mới. Bulk update chỉ gửi các item được chọn; thao tác không làm thay đổi option hoặc trường nào không được chỉ định.
 
 Luồng lưu item là: ghi hàng vào MariaDB → panel đọc lại bản ghi để xác nhận persistence → Java Agent gọi `Manager.reloadItemTemplates()` → nạp lại `item_template` và `item_option_template` → rebuild danh sách mount → các lần `ItemService.createNewItem(tempId)` tiếp theo dùng template mới. Panel không bao giờ coi RAM là nơi lưu vật phẩm chính. Nếu database đã lưu nhưng Java Agent chưa reload, API trả trạng thái `databaseSaved: true, runtimeReloaded: false` và yêu cầu kiểm tra Agent; bản ghi trong database vẫn được giữ nguyên để reload lại sau. Item mới dùng được trong game nếu `type`, option ID, part/icon và logic tương ứng đã được source/client hỗ trợ; chỉ thêm một dòng database không tự tạo ra một hiệu ứng game hoàn toàn mới.
 
