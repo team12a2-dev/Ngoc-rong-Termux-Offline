@@ -64,7 +64,9 @@ public final class PanelAgent {
         server.createContext("/reload/shop", exchange -> handle(exchange, this::reloadShop));
         server.createContext("/reload/giftcode", exchange -> handle(exchange, this::reloadGiftcode));
         server.createContext("/reload/clan", exchange -> handle(exchange, this::reloadClan));
-        server.createContext("/reload/boss-spawn", exchange -> handle(exchange, this::reloadBossSpawn));
+                server.createContext("/reload/boss-spawn", exchange -> handle(exchange, this::reloadBossSpawn));
+        server.createContext("/reload/drop-config", exchange -> handle(exchange, this::reloadDropConfig));
+
         server.createContext("/boss/spawn", exchange -> handle(exchange, this::spawnBoss));
         server.createContext("/players/kick-all", exchange -> handle(exchange, this::kickAll));
         server.createContext("/events", exchange -> handle(exchange, this::events));
@@ -289,9 +291,15 @@ public final class PanelAgent {
         writeJson(exchange, 200, success(Map.of("ok", PanelActions.reloadClans())));
     }
 
-    private void reloadBossSpawn(HttpExchange exchange, String method, String path, String body) throws IOException {
+        private void reloadBossSpawn(HttpExchange exchange, String method, String path, String body) throws IOException {
         writeJson(exchange, 200, success(Map.of("ok", PanelActions.reloadBossSpawn())));
     }
+
+    private void reloadDropConfig(HttpExchange exchange, String method, String path, String body) throws IOException {
+        writeJson(exchange, 200, success(PanelActions.reloadDropConfig()));
+    }
+
+
 
     private void spawnBoss(HttpExchange exchange, String method, String path, String body) throws IOException {
         JSONObject json = parseJson(body);

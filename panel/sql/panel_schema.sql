@@ -141,6 +141,40 @@ CREATE TABLE IF NOT EXISTS panel_backups (
   INDEX idx_backup_server (server_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS panel_map_drop_configs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  server_id INT NOT NULL DEFAULT 1,
+  map_id INT NOT NULL,
+  enabled TINYINT(1) NOT NULL DEFAULT 1,
+  gold_enabled TINYINT(1) NOT NULL DEFAULT 0,
+  gold_chance_percent DECIMAL(8,4) NOT NULL DEFAULT 0,
+  gold_min INT UNSIGNED NOT NULL DEFAULT 0,
+  gold_max INT UNSIGNED NOT NULL DEFAULT 0,
+  activation_enabled TINYINT(1) NOT NULL DEFAULT 0,
+  activation_chance_percent DECIMAL(8,4) NOT NULL DEFAULT 0,
+  created_by INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_drop_server_map (server_id, map_id),
+  INDEX idx_drop_server_enabled (server_id, enabled, map_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS panel_map_drop_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  config_id INT NOT NULL,
+  temp_id INT NOT NULL,
+  enabled TINYINT(1) NOT NULL DEFAULT 1,
+  chance_percent DECIMAL(8,4) NOT NULL DEFAULT 0,
+  quantity_min INT UNSIGNED NOT NULL DEFAULT 1,
+  quantity_max INT UNSIGNED NOT NULL DEFAULT 1,
+  options_json JSON NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_drop_config_item (config_id, temp_id),
+  INDEX idx_drop_item_config (config_id, enabled),
+  CONSTRAINT fk_drop_item_config FOREIGN KEY (config_id) REFERENCES panel_map_drop_configs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 INSERT IGNORE INTO panel_roles (id, name, permissions) VALUES
 (1, 'owner', '["*"]'),
 (2, 'admin', '["dashboard.view","player.view","player.kick","player.buff","account.view","account.ban","account.edit","server.maint","server.config","server.broadcast","boss.control","giftcode.manage","logs.view"]'),

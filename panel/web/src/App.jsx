@@ -22,6 +22,7 @@ import ServersPage from './pages/ServersPage';
 import AlertsPage from './pages/AlertsPage';
 import BackupsPage from './pages/BackupsPage';
 import RuntimePage from './pages/RuntimePage';
+import DropConfigPage from './pages/DropConfigPage';
 
 import Layout from './components/Layout';
 
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="alerts" element={<AlertsPage />} />
           <Route path="backups" element={<BackupsPage />} />
           <Route path="runtime" element={<RuntimePage />} />
+          <Route path="drop-config" element={<DropConfigPage />} />
 
         </Route>
       </Routes>

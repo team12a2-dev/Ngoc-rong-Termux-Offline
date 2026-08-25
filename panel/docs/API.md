@@ -101,6 +101,25 @@ GET  /config/maintenance-schedules?serverId=
 POST /config/maintenance-schedules
 ```
 
+## Drop theo Map
+
+Yêu cầu JWT và quyền `server.config`. Tất cả tỷ lệ dùng phần trăm thực từ `0` đến `100`; `0.01` nghĩa là `0,01%`.
+
+```
+GET    /drop-config?serverId=                         → danh sách rule và item theo map
+GET    /drop-config/item-templates?q=&limit=         → catalog item để thêm vào rule
+POST   /drop-config
+       { serverId, rule: { mapId, enabled, goldEnabled,
+         goldChancePercent, goldMin, goldMax,
+         activationEnabled, activationChancePercent },
+         items: [{ tempId, enabled, chancePercent,
+                   quantityMin, quantityMax, options: [{ id, param }] }] }
+DELETE /drop-config/:mapId?serverId=                   → xóa rule map và item con
+POST   /drop-config/reload                            → yêu cầu Java Agent reload cache drop
+```
+
+Khi `POST /drop-config` thành công, API ghi `panel_map_drop_configs` và thay toàn bộ item con trong `panel_map_drop_items`, sau đó gọi Game Agent `POST /reload/drop-config`. Nếu reload runtime thất bại, dữ liệu database vẫn được giữ lại để retry.
+
 ## Audit
 
 ```
@@ -134,7 +153,8 @@ POST /config/exp
 POST /reload/shop
 POST /reload/giftcode
 POST /reload/boss-spawn
+POST /reload/drop-config
 GET  /boss/list
-POST /boss/spawn
 GET  /runtime-config
+
 ```

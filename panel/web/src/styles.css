@@ -2794,3 +2794,36 @@ code { background: #0f1419; padding: 1px 5px; border-radius: 4px; font-size: 0.8
   .clan-editor { position: static; max-height: none; }
   .clan-filter-row { grid-template-columns: 1fr; }
 }
+
+/* Drop theo Map */
+.drop-layout { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.drop-map-list { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+.drop-map-new { align-items: center; margin-bottom: 12px; }
+.drop-map-new input { min-width: 0; flex: 1; }
+.drop-map-presets { margin-bottom: 10px; }
+.drop-map-items { display: grid; gap: 6px; }
+.drop-map-item { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left; border: 1px solid var(--border, #273149); background: var(--surface-2, rgba(255,255,255,.03)); color: inherit; border-radius: 8px; padding: 9px 10px; cursor: pointer; }
+.drop-map-item:hover, .drop-map-item.active { border-color: var(--accent, #6ea8fe); background: rgba(110,168,254,.10); }
+.drop-map-item span { display: grid; gap: 3px; min-width: 0; }
+.drop-map-item small { color: var(--muted, #8c96aa); }
+.drop-empty { padding: 12px 0; }
+.status-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #8993a7; }
+.status-dot.ok { background: #43d17c; box-shadow: 0 0 0 3px rgba(67,209,124,.15); }
+.drop-section-card { border: 1px solid var(--border, #273149); border-radius: 10px; padding: 14px; margin-top: 14px; background: rgba(255,255,255,.02); }
+.drop-section-card h4 { margin: 0 0 4px; }
+.compact-form { grid-template-columns: repeat(3, minmax(140px, 1fr)); }
+.preset-row { flex-wrap: wrap; margin-top: 10px; }
+.field-note p { margin: 0; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,.04); color: var(--muted, #8c96aa); min-height: 40px; }
+.drop-items-table-wrap { overflow-x: auto; }
+.drop-items-table { min-width: 900px; }
+.drop-items-table input[type="number"] { width: 82px; }
+.drop-items-table .input-options { min-width: 150px; }
+.drop-item-name { display: block; min-width: 130px; max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drop-preview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.drop-preview-grid > div { display: grid; gap: 5px; padding: 12px; border-radius: 8px; background: rgba(255,255,255,.04); }
+.drop-preview-grid span { color: var(--muted, #8c96aa); }
+@media (max-width: 900px) {
+  .drop-layout { grid-template-columns: 1fr; }
+  .drop-map-list { position: static; max-height: none; }
+  .compact-form, .drop-preview-grid { grid-template-columns: 1fr; }
+}

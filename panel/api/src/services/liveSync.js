@@ -24,6 +24,10 @@ export async function reloadBossSpawn(serverId) {
   return reloadGameResource(serverId, 'boss-spawn');
 }
 
+export async function reloadDropConfig(serverId) {
+  return reloadGameResource(serverId, 'drop-config');
+}
+
 export async function reloadClans(serverId) {
   try {
     await agentPost(Number(serverId || await getDefaultServerId()), '/reload/clan', {});

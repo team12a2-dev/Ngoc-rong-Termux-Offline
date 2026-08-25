@@ -44,6 +44,7 @@
 - [Vận hành server](#-vận-hành-server)
 - [Panel web quản trị](#-panel-web-quản-trị)
 - [Cửa hàng/NPC Shop](#-cửa-hàngnpc-shop)
+- [Drop theo Map](#-drop-theo-map)
 - [Cấu hình database và JVM](#-cấu-hình-database-và-jvm)
 - [Kết nối từ thiết bị khác](#-kết-nối-từ-thiết-bị-khác)
 - [Trạng thái khởi động](#-trạng-thái-khởi-động)
@@ -180,6 +181,36 @@ Log panel nằm tại `.runtime/panel.log`. Trạng thái panel và toàn bộ e
 Panel có thêm mục **Runtime & Logs** để quản lý vận hành mà không cần mở terminal. Trang này hiển thị trạng thái Java Panel Agent, cổng game, địa chỉ Agent, PID và uptime Node.js, RAM Termux, tình trạng file log, đồng thời cho phép xem realtime ba log `server.log`, `panel.log` và `mariadb.log`. Log tự làm mới mỗi 5 giây, có thể chọn 100–1.000 dòng và tải xuống thành file `.txt` để gửi khi cần hỗ trợ.
 
 Các API nội bộ tương ứng là `GET /api/v1/runtime/diagnostics` và `GET /api/v1/runtime/logs?source=game|panel|mariadb`. Endpoint chỉ yêu cầu quyền panel đã đăng nhập và chỉ đọc ba file log cố định trong `.runtime`, không cho phép truyền đường dẫn tùy ý.
+
+### 🎯 Drop theo Map
+
+Mục **Game & Server → Drop theo Map** cho phép cấu hình vàng, sét kích hoạt và vật phẩm rơi theo từng `Map ID` bằng giao diện, không cần sửa Java hoặc chạy SQL thủ công. Lần chạy `npm run db:sync` sẽ tự tạo hai bảng `panel_map_drop_configs` và `panel_map_drop_items`; mỗi server có tối đa một rule cho mỗi map.
+
+| Nhóm cấu hình | Logic áp dụng |
+|---|---|
+| Rule map | Bật/tắt toàn bộ rule bằng **Áp dụng rule trên map**. Nếu chưa có rule hoặc rule tắt, logic drop mặc định của game vẫn được giữ nguyên. |
+| Vàng rơi | Bật **Vàng rơi**, nhập tỷ lệ phần trăm và khoảng `min–max`. Khi quái thường chết và roll trúng, số vàng được random trong khoảng đã đặt; item hiển thị tự chọn ID 188/189/190 theo số lượng. |
+| Sét kích hoạt | Bật **Sét kích hoạt**, nhập tỷ lệ phần trăm theo mỗi lần quái thường chết. Java vẫn dùng bộ chọn item và option sét kích hoạt theo giới tính hiện có, đồng thời giữ option khóa set. |
+| Item custom | Thêm nhiều item từ Catalog, mỗi item có tỷ lệ độc lập, quantity min–max và options dạng `option_id:param`. Các item không chia tổng 100%; mỗi item được roll riêng. |
+| Reload runtime | **Lưu & reload** ghi database rồi gọi Java Agent `/reload/drop-config`; cache được thay thế mà không cần restart server. |
+
+#### Quy trình cấu hình nhanh
+
+```text
+1. Mở Game & Server → Drop theo Map.
+2. Chọn map có sẵn hoặc nhập Map ID từ 0 đến 9999 rồi bấm Mở.
+3. Bật “Áp dụng rule trên map”.
+4. Bật Vàng rơi nếu muốn thay tỷ lệ vàng mặc định; nhập tỷ lệ (%) và khoảng min–max.
+5. Bật Sét kích hoạt nếu muốn thay tỷ lệ sét của map; dùng 0,01% cho tỷ lệ thấp.
+6. Tìm item trong Catalog rồi bấm Thêm; nhập tỷ lệ và quantity cho từng item.
+7. Bấm Lưu & reload, sau đó hạ một quái thường để kiểm tra kết quả.
+```
+
+Tỷ lệ dùng phần trăm thực: `0,01%` tương đương 1/10.000, `1%` tương đương 1/100 và `100%` luôn trúng. `goldMin`/`goldMax` là số vàng thực tế, không phải phần trăm. Options nhập dạng `id:param, id:param`, ví dụ `47:500, 30:0`.
+
+Rule custom được áp dụng tại hook `Mob.getItemMobReward` cho quái thường sau khi player hạ quái. Các reward boss và drop đặc biệt hiện hữu vẫn chạy theo source; cấu hình mới chỉ bổ sung item hoặc thay phần vàng/sét mặc định trên map đã chọn. Mỗi lần lưu yêu cầu quyền `server.config`, được ghi vào Audit Logs và đồng bộ qua `MapDropConfigService`.
+
+Nếu Java Agent reload lỗi, dữ liệu database vẫn được lưu; hãy mở **Runtime & Logs**, kiểm tra Agent rồi bấm **Reload runtime**. Không nên đặt tỷ lệ quá cao cho nhiều item cùng lúc vì mỗi item roll độc lập có thể làm số lượng vật phẩm rơi tăng mạnh.
 
 ### Quản lý tài khoản và nhân vật
 

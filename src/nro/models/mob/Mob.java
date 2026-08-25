@@ -27,6 +27,7 @@ import nro.models.services.AchievementService;
 import nro.models.services_dungeon.TrainingService;
 import nro.models.services.ChatGlobalService;
 import nro.models.services.ItemService;
+import nro.models.services.MapDropConfigService;
 import nro.models.map.service.MapService;
 import nro.models.skill.Skill;
 import nro.models.task.BadgesTaskService;
@@ -613,6 +614,11 @@ public class Mob {
             return list;
         }
         int mapid = player.zone.map.mapId;
+        MapDropConfigService.DropRule mapDropRule = MapDropConfigService.gI().getRule(mapid);
+        boolean hasCustomMapDrop = mapDropRule != null && mapDropRule.enabled;
+        if (hasCustomMapDrop) {
+            list.addAll(MapDropConfigService.gI().rollItems(mapDropRule, zone, player, x, yEnd));
+        }
         //========================Capsul Kì Bí========================
         if (player.itemTime.isUseMayDo
                 && (Util.isTrue(1, 50))
@@ -806,7 +812,7 @@ if (op110 > 0 && ratePhaLe > 0 && Util.isTrue(1, ratePhaLe)) {
 
         int maxHp = this.point.getHpFull();
         int goldDropRate = MapService.gI().getGoldDropRate(mapid);
-        if (goldDropRate > 0 && canDropTrainGold() && maxHp >= 200
+        if (!hasCustomMapDrop && goldDropRate > 0 && canDropTrainGold() && maxHp >= 200
                 && Util.isTrue(1, goldDropRate)) {
             int[] goldRange = calcGoldDropByHp(maxHp);
             int quantity = Util.nextInt(goldRange[0], goldRange[1]);
@@ -822,6 +828,23 @@ if (op110 > 0 && ratePhaLe > 0 && Util.isTrue(1, ratePhaLe)) {
             list.add(new ItemMap(zone, getGoldItemId(quantity), quantity, x, yEnd, player.id));
         }
     }
+
+        if (hasCustomMapDrop) {
+            ItemMap customGold = MapDropConfigService.gI().rollGold(mapDropRule, zone, player, x, yEnd);
+            if (customGold != null) {
+                list.add(customGold);
+            }
+            ItemMap customActivation = MapDropConfigService.gI().rollActivation(mapDropRule, zone, player, x, yEnd);
+            if (customActivation != null) {
+                list.add(customActivation);
+                ChatGlobalService.gI().ThongBaoRoiDo(
+                        player,
+                        player.name + " vừa nhặt được " + customActivation.itemTemplate.name
+                                + " sét kích hoạt tại " + this.zone.map.mapName
+                                + " khu " + this.zone.zoneId
+                );
+            }
+        }
 
   if (
      (MapService.gI().isMapNappa(mapid) && Util.isTrue(1, 100000)) ||
@@ -1054,7 +1077,7 @@ if (MapService.gI().isMapUpPorata(mapid)) {
         // }
 
 
-      if (MapService.gI().isMapUpSKH(mapid) || MapService.gI().isMapRiengTu(mapid)) {
+      if (!hasCustomMapDrop && (MapService.gI().isMapUpSKH(mapid) || MapService.gI().isMapRiengTu(mapid))) {
 
     boolean isMapRiengTu = MapService.gI().isMapRiengTu(mapid);
 

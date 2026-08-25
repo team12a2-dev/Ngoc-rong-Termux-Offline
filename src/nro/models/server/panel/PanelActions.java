@@ -43,6 +43,7 @@ import nro.models.server.PanelCommandService;
 import nro.models.server.ServerManager;
 import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
+import nro.models.services.MapDropConfigService;
 import nro.models.services.Service;
 import nro.models.utils.Logger;
 import org.json.simple.JSONArray;
@@ -294,7 +295,13 @@ public final class PanelActions {
         Maintenance.gI().startSeconds(Math.max(seconds, 5));
     }
 
+        public static Map<String, Object> reloadDropConfig() {
+        int rules = MapDropConfigService.gI().reload();
+        return Map.of("ok", true, "rules", rules);
+    }
+
     public static boolean reloadShop() {
+
         try (Connection con = LocalManager.getConnection()) {
             Manager.SHOPS = ShopDAO.getShops(con);
             return true;
