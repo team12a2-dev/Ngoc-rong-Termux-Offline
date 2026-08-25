@@ -260,9 +260,19 @@ update_config() {
   mv "$tmp" "$CONFIG"
 }
 
+database_has_game_data() {
+  local table_count
+  table_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse \
+    "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$DB_NAME' \
+     AND table_name IN ('account', 'player', 'shop', 'item_shop')" 2>/dev/null || printf '0')"
+  [ "${table_count:-0}" -gt 0 ]
+}
+
 import_database() {
-  if [ -f "$STATE_DIR/sql-imported.sha256" ]; then
-    say "SQL ngocrong đã được import trước đó; bỏ qua để bảo toàn dữ liệu người chơi."
+  if database_has_game_data; then
+    say "Database game đã tồn tại; bỏ qua import seed để bảo toàn player, shop và item_shop."
+    mkdir -p "$STATE_DIR"
+    sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
     return 0
   fi
   say "Import schema và dữ liệu mẫu từ sql/ngocrong.sql"

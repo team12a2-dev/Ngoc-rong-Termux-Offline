@@ -34,10 +34,13 @@ Script sẽ:
 - Kết nối DB theo `database.*` trong Config.properties
 - Kiểm tra bảng game (`account`, `player`, `giftcode`, `shop`...)
 - Tạo bảng `panel_*` nếu chưa có
+- Chỉ import `sql/ngocrong.sql` khi database chưa có dữ liệu game; nếu đã có `player/shop/item_shop`, setup sẽ bỏ qua seed để không ghi đè item shop đã lưu
 - Tự động áp dụng các migration Event Management, Recharge Promotions, God Spin và Economy Integrity Fixes; tạo quyền `event.view`/`event.manage`/`godspin.view`/`godspin.manage`
 - Sync `panel_servers` + `GAME_AGENT_KEY` từ config game
 
 - Ghi `panel/api/.env` tự động
+
+> Không chạy lại lệnh import `sql/ngocrong.sql` trên database đang sử dụng. File seed có thể chứa thao tác tạo lại bảng game và làm mất thay đổi shop. Quy trình `nro.sh setup` đã tự bỏ qua bước này khi database game tồn tại.
 
 Hoặc import tay schema chính và các migration tính năng (không cần nếu đã chạy `npm run db:sync`):
 
