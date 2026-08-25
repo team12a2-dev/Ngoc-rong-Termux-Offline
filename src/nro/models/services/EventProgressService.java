@@ -13,10 +13,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import nro.models.boss.Boss;
 import nro.models.data.LocalManager;
+import nro.models.database.PlayerDAO;
 import nro.models.map.ItemMap;
 import nro.models.event.DynamicEventManager;
+import nro.models.item.Item;
+import nro.models.player.Inventory;
+import nro.models.services.InventoryService;
+import nro.models.services.ItemService;
 import nro.models.player.Player;
 import nro.models.utils.Logger;
 
@@ -71,6 +77,7 @@ public final class EventProgressService {
                     applyProgress(con, objective, player, amount);
                 }
                 con.commit();
+                deliverPendingRewards(player);
             } catch (Exception e) {
                 con.rollback();
                 Logger.warning("Không thể ghi tiến độ event SQL: " + e.getMessage() + "\n");
@@ -180,6 +187,7 @@ public final class EventProgressService {
             ps.executeUpdate();
         }
         if (completed) {
+            queueRewards(con, objective.eventId(), player);
             try (PreparedStatement ps = con.prepareStatement("INSERT INTO panel_event_logs (event_id, action, payload) VALUES (?, 'completed', ?)") ) {
                 JsonObject payload = new JsonObject();
                 payload.addProperty("playerId", player.id);
@@ -191,6 +199,100 @@ public final class EventProgressService {
             }
             Service.gI().sendThongBao(player, "Bạn đã hoàn thành sự kiện: " + objective.eventName());
         }
+    }
+
+    private void queueRewards(Connection con, long eventId, Player player) throws Exception {
+        String sql = "SELECT id, reward_type, temp_id, quantity_min, quantity_max, chance_percent, duration_days, rank_min, rank_max "
+                + "FROM panel_event_rewards WHERE event_id = ? ORDER BY sort_order, id";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, eventId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    double chance = Math.max(0, Math.min(100, rs.getDouble("chance_percent")));
+                    if (chance < 100 && ThreadLocalRandom.current().nextDouble(100) >= chance) continue;
+                    long min = Math.max(0, rs.getLong("quantity_min"));
+                    long max = Math.max(min, rs.getLong("quantity_max"));
+                    long quantity = min == max ? min : ThreadLocalRandom.current().nextLong(min, max + 1);
+                    if (quantity <= 0) continue;
+                    try (PreparedStatement insert = con.prepareStatement(
+                            "INSERT IGNORE INTO panel_event_reward_inbox (event_id, player_id, reward_id, reward_type, temp_id, quantity, duration_days) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                        insert.setLong(1, eventId);
+                        insert.setLong(2, player.id);
+                        insert.setLong(3, rs.getLong("id"));
+                        insert.setString(4, rs.getString("reward_type"));
+                        if (rs.getObject("temp_id") == null) insert.setNull(5, java.sql.Types.INTEGER); else insert.setInt(5, rs.getInt("temp_id"));
+                        insert.setLong(6, quantity);
+                        if (rs.getObject("duration_days") == null) insert.setNull(7, java.sql.Types.INTEGER); else insert.setInt(7, rs.getInt("duration_days"));
+                        insert.executeUpdate();
+                    }
+                }
+            }
+        }
+    }
+
+    /** Deliver pending rewards only after the progress transaction has committed. */
+    public void deliverPendingRewards(Player player) {
+        try (Connection con = LocalManager.getConnection()) {
+            con.setAutoCommit(false);
+            try (PreparedStatement ps = con.prepareStatement(
+                    "SELECT id, reward_type, temp_id, quantity, duration_days FROM panel_event_reward_inbox WHERE player_id = ? AND status = 'pending' ORDER BY id FOR UPDATE")) {
+                ps.setLong(1, player.id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        long inboxId = rs.getLong("id");
+                        String type = rs.getString("reward_type");
+                        int tempId = rs.getInt("temp_id");
+                        long quantity = rs.getLong("quantity");
+                        String deliveryChannel = deliverReward(player, type, tempId, quantity);
+                        if (deliveryChannel != null) {
+                            PlayerDAO.updatePlayer(player);
+                            try (PreparedStatement mark = con.prepareStatement(
+                                    "UPDATE panel_event_reward_inbox SET status = 'delivered', delivery_channel = ?, delivered_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'pending'")) {
+                                mark.setString(1, deliveryChannel);
+                                mark.setLong(2, inboxId);
+                                mark.executeUpdate();
+                            }
+                        } else {
+                            // The inbox row remains pending and is retried on the next gameplay hook/login.
+                            break;
+                        }
+                    }
+                }
+            }
+            con.commit();
+        } catch (Exception e) {
+            Logger.warning("Chưa thể phát phần thưởng event: " + e.getMessage() + "\n");
+        }
+    }
+
+    private String deliverReward(Player player, String rewardType, int tempId, long quantity) {
+        if ("gold".equalsIgnoreCase(rewardType) || "currency_gold".equalsIgnoreCase(rewardType)) {
+            long next = Math.min(Inventory.LIMIT_GOLD, player.inventory.gold + quantity);
+            if (next == player.inventory.gold) return null;
+            player.inventory.gold = next;
+            Service.gI().sendMoney(player);
+            return "wallet";
+        }
+        if ("gem".equalsIgnoreCase(rewardType) || "ruby".equalsIgnoreCase(rewardType) || "currency_gem".equalsIgnoreCase(rewardType)) {
+            long next = Math.min(Integer.MAX_VALUE, (long) player.inventory.gem + quantity);
+            if (next == player.inventory.gem) return null;
+            player.inventory.gem = (int) next;
+            Service.gI().sendMoney(player);
+            return "wallet";
+        }
+        if (!"item".equalsIgnoreCase(rewardType)) return null;
+        if (tempId < 0 || quantity > Integer.MAX_VALUE) return null;
+        Item item = ItemService.gI().createNewItem((short) tempId, (int) quantity);
+        if (InventoryService.gI().addItemBag(player, item)) {
+            InventoryService.gI().sendItemBags(player);
+            return "bag";
+        }
+        // itemsBox is the game's persistent fallback chest when the bag is full.
+        if (InventoryService.gI().addItemBox(player, item)) {
+            Service.gI().sendThongBao(player, "Túi đầy, phần thưởng event đã chuyển vào rương đồ.");
+            return "box";
+        }
+        return null;
     }
 
     private boolean allObjectivesComplete(Connection con, long eventId, JsonObject progress) throws Exception {

@@ -69,7 +69,7 @@ export const PANEL_TABLES = [
   'panel_server_metrics', 'panel_config_snapshots', 'panel_plugins',
   'panel_broadcast_templates', 'panel_maintenance_schedules',
   'panel_alert_rules', 'panel_alert_history', 'panel_backups',
-  'panel_events', 'panel_event_objectives', 'panel_event_rewards', 'panel_event_shops', 'panel_event_shop_items', 'panel_event_participants', 'panel_event_logs',
+  'panel_events', 'panel_event_objectives', 'panel_event_rewards', 'panel_event_shops', 'panel_event_shop_items', 'panel_event_participants', 'panel_event_logs', 'panel_event_reward_inbox',
   'panel_map_drop_configs', 'panel_map_drop_items', 'panel_usable_items', 'panel_usable_item_options',
 ];
 

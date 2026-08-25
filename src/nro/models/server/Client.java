@@ -8,6 +8,8 @@ import nro.models.network.SessionManager;
 import nro.models.interfaces.ISession;
 import nro.models.network.MySession;
 import nro.models.services.Service;
+import nro.models.services.EventProgressService;
+
 import nro.models.map.service.ChangeMapService;
 import nro.models.services.shenron.SummonDragon;
 import nro.models.services_func.TransactionService;
@@ -62,6 +64,7 @@ public class Client implements Runnable {
                 }
             }
         }
+        EventProgressService.gI().deliverPendingRewards(player);
     }
 
     public void startAutoSave() {

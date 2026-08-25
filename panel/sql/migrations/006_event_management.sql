@@ -132,3 +132,21 @@ SET permissions = JSON_ARRAY_APPEND(
 )
 WHERE id = 2
   AND JSON_SEARCH(permissions, 'one', 'event.view') IS NULL;
+
+CREATE TABLE IF NOT EXISTS panel_event_reward_inbox (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  event_id BIGINT NOT NULL,
+  player_id BIGINT NOT NULL,
+  reward_id BIGINT NOT NULL,
+  reward_type VARCHAR(30) NOT NULL,
+  temp_id INT NULL,
+  quantity BIGINT UNSIGNED NOT NULL DEFAULT 1,
+  duration_days INT UNSIGNED NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  delivery_channel VARCHAR(20) NULL,
+  delivered_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_event_player_reward (event_id, player_id, reward_id),
+  INDEX idx_reward_inbox_pending (player_id, status, created_at),
+  CONSTRAINT fk_event_reward_inbox_event FOREIGN KEY (event_id) REFERENCES panel_events(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
