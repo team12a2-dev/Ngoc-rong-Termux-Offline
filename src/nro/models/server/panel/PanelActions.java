@@ -31,6 +31,8 @@ import nro.models.database.PlayerDAO;
 import nro.models.data.LocalManager;
 import nro.models.map.service.ChangeMapService;
 import nro.models.services.PlayerService;
+import nro.models.services.GodSpinConfigService;
+
 import nro.models.database.ShopDAO;
 import nro.models.item.Item;
 import nro.models.managers.GiftCodeManager;
@@ -360,6 +362,10 @@ public final class PanelActions {
 
     public static Map<String, Object> reloadEvents() {
         return EventManager.gI().reloadDynamicEvents();
+    }
+
+    public static Map<String, Object> reloadGodSpin() {
+        return GodSpinConfigService.gI().reload();
     }
 
     public static boolean reloadBossSpawn() {

@@ -18,7 +18,11 @@ import { REQUIRED_GAME_TABLES, PANEL_TABLES } from '../src/config/gameDbSchema.j
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = path.resolve(__dirname, '../../sql/panel_schema.sql');
-const EVENT_MIGRATION_PATH = path.resolve(__dirname, '../../sql/migrations/006_event_management.sql');
+const MIGRATION_PATHS = [
+  ['006 Event Management', path.resolve(__dirname, '../../sql/migrations/006_event_management.sql')],
+  ['007 Recharge Promotions', path.resolve(__dirname, '../../sql/migrations/007_recharge_promotions.sql')],
+  ['008 God Spin Management', path.resolve(__dirname, '../../sql/migrations/008_god_spin_management.sql')],
+];
 
 async function main() {
   const gameConfig = loadGameConfig();
@@ -55,10 +59,12 @@ async function main() {
   await conn.query(sql);
   console.log('✓ Panel schema applied');
 
-  // Event Management is persistent in SQL and is applied automatically with db:sync.
-  const eventMigration = fs.readFileSync(EVENT_MIGRATION_PATH, 'utf8');
-  await conn.query(eventMigration);
-  console.log('✓ Event Management schema applied');
+  // Feature migrations are persistent in SQL and applied in deterministic order.
+  for (const [label, migrationPath] of MIGRATION_PATHS) {
+    if (!fs.existsSync(migrationPath)) throw new Error(`Missing migration file: ${migrationPath}`);
+    await conn.query(fs.readFileSync(migrationPath, 'utf8'));
+    console.log(`✓ ${label} schema applied`);
+  }
 
   // Backward-compatible migration for map-drop rules created by an older panel build.
   const [dropColumns] = await conn.query(

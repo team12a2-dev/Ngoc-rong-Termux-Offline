@@ -32,6 +32,10 @@ export async function reloadEvents(serverId) {
   return reloadGameResource(serverId, 'events');
 }
 
+export async function reloadGodSpin(serverId) {
+  return reloadGameResource(serverId, 'god-spin');
+}
+
 export async function reloadClans(serverId) {
   try {
     await agentPost(Number(serverId || await getDefaultServerId()), '/reload/clan', {});

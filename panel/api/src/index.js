@@ -29,6 +29,7 @@ import usableItemRoutes from './routes/usableItems.js';
 import bossConfigRoutes from './routes/bossConfig.js';
 import eventRoutes from './routes/events.js';
 import rechargePromotionRoutes from './routes/rechargePromotions.js';
+import godSpinRoutes from './routes/godSpin.js';
 
 import { authMiddleware, getMe, getJwtSecret } from './middleware/auth.js';
 import { getMetrics, getOnlinePlayers } from './services/agent.js';
@@ -92,6 +93,7 @@ app.use('/api/v1/usable-items', usableItemRoutes);
 app.use('/api/v1/boss-config', bossConfigRoutes);
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/recharge-promotions', rechargePromotionRoutes);
+app.use('/api/v1/god-spin', godSpinRoutes);
 
 // Serve the production React panel from the same origin as the API.
 // This keeps relative /api and /ws URLs working on localhost and LAN devices.

@@ -11,6 +11,7 @@ import nro.models.services.Service;
 import java.util.List;
 import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
+import nro.models.services.GodSpinConfigService;
 
 /**
  *
@@ -47,11 +48,13 @@ public class LuckyRound {
             msg = new Message(-127);
             msg.writer().writeByte(0);
             msg.writer().writeByte(7);
+            List<Integer> configuredIcons = GodSpinConfigService.gI().previewIconIds();
             for (int i = 0; i < 7; i++) {
-                msg.writer().writeShort(419 + i);
+                msg.writer().writeShort(configuredIcons.size() > i ? configuredIcons.get(i) : 419 + i);
             }
             msg.writer().writeByte(type);
-            msg.writer().writeInt(type == USING_GEM ? PRICE_GEM : PRICE_GOLD);
+            Integer configuredCost = GodSpinConfigService.gI().configuredCost(type);
+            msg.writer().writeInt(configuredCost != null && configuredCost >= 0 ? configuredCost : (type == USING_GEM ? PRICE_GEM : PRICE_GOLD));
             msg.writer().writeShort(-1);
             pl.sendMessage(msg);
         } catch (IOException e) {
@@ -69,11 +72,13 @@ public class LuckyRound {
             msg = new Message(-127);
             msg.writer().writeByte(0);
             msg.writer().writeByte(7);
+            List<Integer> configuredIcons = GodSpinConfigService.gI().previewIconIds();
             for (int i = 0; i < 7; i++) {
-                msg.writer().writeShort(419);
+                msg.writer().writeShort(configuredIcons.size() > i ? configuredIcons.get(i) : 419);
             }
             msg.writer().writeByte(type);
-            msg.writer().writeInt(type == USING_GEM ? PRICE_GEM : PRICE_GOLD);
+            Integer configuredCost = GodSpinConfigService.gI().configuredCost(type);
+            msg.writer().writeInt(configuredCost != null && configuredCost >= 0 ? configuredCost : (type == USING_GEM ? PRICE_GEM : PRICE_GOLD));
             msg.writer().writeShort(-1);
             pl.sendMessage(msg);
         } catch (IOException e) {
@@ -112,13 +117,27 @@ public class LuckyRound {
     }
 
     private void openBallByGem(Player player, byte count) {
-        int gemNeed = (count * PRICE_GEM);
+        if (count <= 0) return;
+        Integer configuredCost = GodSpinConfigService.gI().configuredCost(USING_GEM);
+        if (configuredCost != null && configuredCost < 0) {
+            Service.gI().sendThongBao(player, "Vòng quay hiện không nhận ngọc.");
+            return;
+        }
+        int gemPrice = configuredCost != null ? configuredCost : PRICE_GEM;
+        int gemNeed = (count * gemPrice);
         if (player.inventory.gem < gemNeed) {
             Service.gI().sendThongBao(player, "Bạn không đủ ngọc để mở");
         } else {
             if (count + player.inventory.itemsBoxCrackBall.size() <= MAX_ITEM_IN_BOX) {
                 player.inventory.gem -= gemNeed;
                 List<Item> list = RewardService.gI().getListItemLuckyRound(player, count, true);
+                if (list.isEmpty() && GodSpinConfigService.gI().isActiveConfig()) {
+                    player.inventory.gem += gemNeed;
+                    PlayerDAO.updatePlayer(player);
+                    Service.gI().sendMoney(player);
+                    sendReward(player, list);
+                    return;
+                }
                 player.luckyRoundPoint += count; // + điểm
                 PlayerDAO.updatePlayer(player); 
                 addItemToBox(player, list);
@@ -131,7 +150,14 @@ public class LuckyRound {
     }
 
 private void openBallByGold(Player player, byte count) {
-    int goldNeed = (count * PRICE_GOLD);
+    if (count <= 0) return;
+    Integer configuredCost = GodSpinConfigService.gI().configuredCost(USING_GOLD);
+    if (configuredCost != null && configuredCost < 0) {
+        Service.gI().sendThongBao(player, "Vòng quay hiện không nhận vàng.");
+        return;
+    }
+    int goldPrice = configuredCost != null ? configuredCost : PRICE_GOLD;
+    int goldNeed = (count * goldPrice);
     if (player.inventory.gold < goldNeed) {
         Service.gI().sendThongBao(player, "Bạn không đủ vàng để mở");
     } else {
@@ -140,6 +166,13 @@ private void openBallByGold(Player player, byte count) {
             player.inventory.gold -= goldNeed;
 
             List<Item> list = RewardService.gI().getListItemLuckyRound(player, count, false);
+            if (list.isEmpty() && GodSpinConfigService.gI().isActiveConfig()) {
+                player.inventory.gold += goldNeed;
+                PlayerDAO.updatePlayer(player);
+                Service.gI().sendMoney(player);
+                sendReward(player, list);
+                return;
+            }
 
             player.luckyRoundPoint += count; // + điểm vòng quay
 PlayerDAO.updatePlayer(player); 

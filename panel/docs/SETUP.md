@@ -34,16 +34,18 @@ Script sẽ:
 - Kết nối DB theo `database.*` trong Config.properties
 - Kiểm tra bảng game (`account`, `player`, `giftcode`, `shop`...)
 - Tạo bảng `panel_*` nếu chưa có
-- Tạo bảng Event Management và quyền `event.view`/`event.manage` tự động
-
+- Tự động áp dụng các migration Event Management, Recharge Promotions và God Spin; tạo quyền `event.view`/`event.manage`/`godspin.view`/`godspin.manage`
 - Sync `panel_servers` + `GAME_AGENT_KEY` từ config game
+
 - Ghi `panel/api/.env` tự động
 
-Hoặc import tay schema chính, sau đó chạy migration sự kiện:
+Hoặc import tay schema chính và các migration tính năng (không cần nếu đã chạy `npm run db:sync`):
 
 ```bash
 mysql -u root -p ngocrong < panel/sql/panel_schema.sql
 mysql -u root -p ngocrong < panel/sql/migrations/006_event_management.sql
+mysql -u root -p ngocrong < panel/sql/migrations/007_recharge_promotions.sql
+mysql -u root -p ngocrong < panel/sql/migrations/008_god_spin_management.sql
 ```
 
 ## Bước 3: Panel API

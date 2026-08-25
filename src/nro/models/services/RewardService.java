@@ -35,6 +35,10 @@ public class RewardService {
 
     //========================LUCKY ROUND========================
    public List<Item> getListItemLuckyRound(Player player, int num, boolean vip) {
+    List<Item> configured = GodSpinConfigService.gI().roll(player, num, vip);
+    if (configured != null) {
+        return configured;
+    }
     List<Item> list = new ArrayList<>();
 
     for (int i = 0; i < num; i++) {

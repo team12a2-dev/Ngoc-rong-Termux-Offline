@@ -69,6 +69,7 @@ public final class PanelAgent {
         server.createContext("/reload/drop-config", exchange -> handle(exchange, this::reloadDropConfig));
         server.createContext("/reload/usable-items", exchange -> handle(exchange, this::reloadUsableItems));
         server.createContext("/reload/events", exchange -> handle(exchange, this::reloadEvents));
+        server.createContext("/reload/god-spin", exchange -> handle(exchange, this::reloadGodSpin));
 
                 server.createContext("/boss/spawn", exchange -> handle(exchange, this::spawnBoss));
         server.createContext("/boss/spawn-at", exchange -> handle(exchange, this::spawnBossAt));
@@ -315,6 +316,10 @@ public final class PanelAgent {
 
     private void reloadEvents(HttpExchange exchange, String method, String path, String body) throws IOException {
         writeJson(exchange, 200, success(PanelActions.reloadEvents()));
+    }
+
+    private void reloadGodSpin(HttpExchange exchange, String method, String path, String body) throws IOException {
+        writeJson(exchange, 200, success(PanelActions.reloadGodSpin()));
     }
 
 

@@ -71,6 +71,7 @@ export const PANEL_TABLES = [
   'panel_alert_rules', 'panel_alert_history', 'panel_backups',
   'panel_events', 'panel_event_objectives', 'panel_event_rewards', 'panel_event_shops', 'panel_event_shop_items', 'panel_event_participants', 'panel_event_logs', 'panel_event_reward_inbox',
   'panel_recharge_campaigns', 'panel_recharge_tiers', 'panel_recharge_transactions', 'panel_recharge_claims', 'panel_recharge_logs',
+  'panel_god_spin_configs', 'panel_god_spin_items', 'panel_god_spin_player_stats', 'panel_god_spin_logs',
   'panel_map_drop_configs', 'panel_map_drop_items', 'panel_usable_items', 'panel_usable_item_options',
 ];
 

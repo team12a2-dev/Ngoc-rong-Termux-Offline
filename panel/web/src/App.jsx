@@ -10,6 +10,7 @@ import ServerControlPage from './pages/ServerControlPage';
 import BossPage from './pages/BossPage';
 import BossManagementPage from './pages/BossManagementPage';
 import EventsPage from './pages/EventsPage';
+import GodSpinPage from './pages/GodSpinPage';
 
 import GiftcodesPage from './pages/GiftcodesPage';
 import ItemsPage from './pages/ItemsPage';
@@ -51,6 +52,7 @@ export default function App() {
                     <Route path="boss" element={<BossPage />} />
           <Route path="boss-management" element={<BossManagementPage />} />
           <Route path="events" element={<EventsPage />} />
+          <Route path="god-spin" element={<GodSpinPage />} />
 
           <Route path="giftcodes" element={<GiftcodesPage />} />
           <Route path="items" element={<ItemsPage />} />
