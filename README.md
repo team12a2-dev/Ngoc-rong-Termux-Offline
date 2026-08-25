@@ -191,7 +191,7 @@ Mục **Game & Server → Drop theo Map** cho phép cấu hình vàng, sét kíc
 | Rule map | Bật/tắt toàn bộ rule bằng **Áp dụng rule trên map**. Nếu chưa có rule hoặc rule tắt, logic drop mặc định của game vẫn được giữ nguyên. |
 | Vàng rơi | Bật **Vàng rơi**, nhập tỷ lệ phần trăm và khoảng `min–max`. Khi quái thường chết và roll trúng, số vàng được random trong khoảng đã đặt; item hiển thị tự chọn ID 188/189/190 theo số lượng. |
 | Sét kích hoạt | Bật **Sét kích hoạt**, nhập tỷ lệ phần trăm theo mỗi lần quái thường chết. Java vẫn dùng bộ chọn item và option sét kích hoạt theo giới tính hiện có, đồng thời giữ option khóa set. |
-| Item custom | Thêm nhiều item từ Catalog, mỗi item có tỷ lệ độc lập, quantity min–max và options dạng `option_id:param`. Các item không chia tổng 100%; mỗi item được roll riêng. |
+| Item custom | Chọn loại quái từ catalog `mob_template`, rồi thêm item với tỷ lệ độc lập, quantity min–max và options dạng `option_id:param`. `Mob ID -1` áp dụng cho mọi quái; cùng một item có thể có rule riêng cho nhiều Mob ID. |
 | Reload runtime | **Lưu & reload** ghi database rồi gọi Java Agent `/reload/drop-config`; cache được thay thế mà không cần restart server. |
 
 #### Quy trình cấu hình nhanh
@@ -202,13 +202,14 @@ Mục **Game & Server → Drop theo Map** cho phép cấu hình vàng, sét kíc
 3. Bật “Áp dụng rule trên map”.
 4. Bật Vàng rơi nếu muốn thay tỷ lệ vàng mặc định; nhập tỷ lệ (%) và khoảng min–max.
 5. Bật Sét kích hoạt nếu muốn thay tỷ lệ sét của map; dùng 0,01% cho tỷ lệ thấp.
-6. Tìm item trong Catalog rồi bấm Thêm; nhập tỷ lệ và quantity cho từng item.
-7. Bấm Lưu & reload, sau đó hạ một quái thường để kiểm tra kết quả.
+6. Trong mục Loại quái áp dụng, chọn **Tất cả quái** hoặc tìm/chọn một Mob ID cụ thể.
+7. Tìm item trong Catalog rồi bấm Thêm; item sẽ nhận Mob ID đang chọn. Nhập tỷ lệ và quantity cho từng item.
+8. Bấm Lưu & reload, sau đó hạ đúng loại quái tại map để kiểm tra kết quả.
 ```
 
-Tỷ lệ dùng phần trăm thực: `0,01%` tương đương 1/10.000, `1%` tương đương 1/100 và `100%` luôn trúng. `goldMin`/`goldMax` là số vàng thực tế, không phải phần trăm. Options nhập dạng `id:param, id:param`, ví dụ `47:500, 30:0`.
+Tỷ lệ dùng phần trăm thực: `0,01%` tương đương 1/10.000, `1%` tương đương 1/100 và `100%` luôn trúng. `goldMin`/`goldMax` là số vàng thực tế, không phải phần trăm. Options nhập dạng `id:param, id:param`, ví dụ `47:500, 30:0`. Với item drop, `mob_temp_id = -1` là wildcard cho mọi quái; nếu nhập `mob_temp_id = 12` thì item chỉ roll khi quái đang chết có `Mob.tempId = 12`.
 
-Rule custom được áp dụng tại hook `Mob.getItemMobReward` cho quái thường sau khi player hạ quái. Các reward boss và drop đặc biệt hiện hữu vẫn chạy theo source; cấu hình mới chỉ bổ sung item hoặc thay phần vàng/sét mặc định trên map đã chọn. Mỗi lần lưu yêu cầu quyền `server.config`, được ghi vào Audit Logs và đồng bộ qua `MapDropConfigService`.
+Rule custom được áp dụng tại hook `Mob.getItemMobReward` cho quái thường sau khi player hạ quái. Các reward boss và drop đặc biệt hiện hữu vẫn chạy theo source; cấu hình mới chỉ bổ sung item hoặc thay phần vàng/sét mặc định trên map đã chọn. Mỗi lần lưu yêu cầu quyền `server.config`, được ghi vào Audit Logs và đồng bộ qua `MapDropConfigService`. Panel có catalog Mob từ bảng `mob_template`, hiển thị tên, Type và HP; không cần nhớ ID bằng cách mở source Java. Rule item được lưu với khóa `(config_id, temp_id, mob_temp_id)` nên một item có thể có tỷ lệ khác nhau cho từng loại quái trong cùng một map.
 
 Nếu Java Agent reload lỗi, dữ liệu database vẫn được lưu; hãy mở **Runtime & Logs**, kiểm tra Agent rồi bấm **Reload runtime**. Không nên đặt tỷ lệ quá cao cho nhiều item cùng lúc vì mỗi item roll độc lập có thể làm số lượng vật phẩm rơi tăng mạnh.
 

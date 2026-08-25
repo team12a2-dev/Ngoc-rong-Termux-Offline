@@ -617,7 +617,7 @@ public class Mob {
         MapDropConfigService.DropRule mapDropRule = MapDropConfigService.gI().getRule(mapid);
         boolean hasCustomMapDrop = mapDropRule != null && mapDropRule.enabled;
         if (hasCustomMapDrop) {
-            list.addAll(MapDropConfigService.gI().rollItems(mapDropRule, zone, player, x, yEnd));
+            list.addAll(MapDropConfigService.gI().rollItems(mapDropRule, zone, player, this.tempId, x, yEnd));
         }
         //========================Capsul Kì Bí========================
         if (player.itemTime.isUseMayDo

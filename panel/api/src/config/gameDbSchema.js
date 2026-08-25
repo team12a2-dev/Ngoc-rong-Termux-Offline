@@ -61,7 +61,7 @@ export const GAME_TABLES = {
 };
 
 export const REQUIRED_GAME_TABLES = [
-  'account', 'player', 'giftcode', 'shop', 'tab_shop', 'item_shop', 'clan',
+  'account', 'player', 'giftcode', 'shop', 'tab_shop', 'item_shop', 'clan', 'mob_template',
 ];
 
 export const PANEL_TABLES = [

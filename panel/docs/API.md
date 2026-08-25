@@ -107,18 +107,19 @@ Yêu cầu JWT và quyền `server.config`. Tất cả tỷ lệ dùng phần tr
 
 ```
 GET    /drop-config?serverId=                         → danh sách rule và item theo map
+GET    /drop-config/mobs?q=&limit=                    → catalog Mob từ mob_template
 GET    /drop-config/item-templates?q=&limit=         → catalog item để thêm vào rule
 POST   /drop-config
        { serverId, rule: { mapId, enabled, goldEnabled,
          goldChancePercent, goldMin, goldMax,
          activationEnabled, activationChancePercent },
-         items: [{ tempId, enabled, chancePercent,
+         items: [{ tempId, mobTempId, enabled, chancePercent,
                    quantityMin, quantityMax, options: [{ id, param }] }] }
 DELETE /drop-config/:mapId?serverId=                   → xóa rule map và item con
 POST   /drop-config/reload                            → yêu cầu Java Agent reload cache drop
 ```
 
-Khi `POST /drop-config` thành công, API ghi `panel_map_drop_configs` và thay toàn bộ item con trong `panel_map_drop_items`, sau đó gọi Game Agent `POST /reload/drop-config`. Nếu reload runtime thất bại, dữ liệu database vẫn được giữ lại để retry.
+Khi `POST /drop-config` thành công, API ghi `panel_map_drop_configs` và thay toàn bộ item con trong `panel_map_drop_items`, sau đó gọi Game Agent `POST /reload/drop-config`. `mobTempId = -1` áp dụng cho mọi quái; giá trị không âm chỉ áp dụng cho Mob có `Mob.tempId` tương ứng. Nếu reload runtime thất bại, dữ liệu database vẫn được giữ lại để retry.
 
 ## Audit
 

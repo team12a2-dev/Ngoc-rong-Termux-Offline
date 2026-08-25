@@ -23,6 +23,8 @@ function boolValue(value) {
 function newItem(template = {}) {
   return {
     tempId: Number(template.id ?? template.tempId ?? 0),
+    mobTempId: Number(template.mobTempId ?? template.mob_temp_id ?? -1),
+    mobName: template.mobName || template.mobLabel || '',
     itemName: template.name || template.itemName || '',
     iconId: template.iconId ?? null,
     enabled: true,
@@ -61,6 +63,8 @@ function normalizeRule(row, fallbackMapId) {
     items: (row.items || []).map((item) => ({
       ...newItem(item),
       id: item.id,
+      mobTempId: Number(item.mobTempId ?? item.mob_temp_id ?? -1),
+      mobName: item.mobName || item.mobLabel || '',
       enabled: boolValue(item.enabled),
       chancePercent: Number(item.chancePercent ?? 0),
       quantityMin: Number(item.quantityMin ?? 1),
@@ -91,12 +95,19 @@ function mapLabel(mapId) {
   return preset ? `${preset[1]} (#${mapId})` : `Map #${mapId}`;
 }
 
+function mobDropLabel(mobTempId, mobName = '') {
+  return Number(mobTempId) < 0 ? 'Tất cả quái' : mobName ? `${mobName} · #${mobTempId}` : `Mob #${mobTempId}`;
+}
+
 export default function DropConfigPage() {
   const [configs, setConfigs] = useState([]);
   const [mapId, setMapId] = useState('');
   const [form, setForm] = useState(newRule(0));
   const [catalog, setCatalog] = useState([]);
   const [catalogQ, setCatalogQ] = useState('');
+  const [mobs, setMobs] = useState([]);
+  const [mobQ, setMobQ] = useState('');
+  const [selectedMob, setSelectedMob] = useState({ id: -1, name: 'Tất cả quái' });
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const fb = useFeedback();
@@ -130,6 +141,10 @@ export default function DropConfigPage() {
     loadConfigs('').catch(() => {});
   }, []);
 
+  useEffect(() => {
+    searchMobs().catch(() => {});
+  }, []);
+
   function chooseMap(value) {
     const nextMapId = String(value);
     setMapId(nextMapId);
@@ -150,12 +165,16 @@ export default function DropConfigPage() {
 
   function addItem(template = {}) {
     const tempId = Number(template.id ?? template.tempId ?? 0);
+    const mobTempId = Number(template.mobTempId ?? selectedMob.id ?? -1);
     if (!Number.isInteger(tempId) || tempId < 0) return;
-    if (form.items.some((item) => Number(item.tempId) === tempId)) {
-      fb.error(`Item #${tempId} đã có trong cấu hình map.`);
+    if (form.items.some((item) => Number(item.tempId) === tempId && Number(item.mobTempId) === mobTempId)) {
+      fb.error(`Item #${tempId} đã có cho ${mobDropLabel(mobTempId, selectedMob.name)}.`);
       return;
     }
-    setForm((prev) => ({ ...prev, items: [...prev.items, newItem(template)] }));
+    setForm((prev) => ({
+      ...prev,
+      items: [...prev.items, newItem({ ...template, mobTempId, mobName: selectedMob.name })],
+    }));
   }
 
   function removeItem(index) {
@@ -167,6 +186,16 @@ export default function DropConfigPage() {
     try {
       const res = await api(`/drop-config/item-templates?q=${encodeURIComponent(catalogQ)}&limit=80`);
       setCatalog(res.data || []);
+    } catch (error) {
+      fb.error(error.message);
+    }
+  }
+
+  async function searchMobs(e) {
+    e?.preventDefault();
+    try {
+      const res = await api(`/drop-config/mobs?q=${encodeURIComponent(mobQ)}&limit=100`);
+      setMobs(res.data || []);
     } catch (error) {
       fb.error(error.message);
     }
@@ -332,15 +361,16 @@ export default function DropConfigPage() {
             </div>
 
             <div className="drop-section-card">
-              <div className="section-head"><div><h4>Vật phẩm rơi tại map</h4><p className="muted">{enabledItemCount}/{itemCount} item đang bật · mỗi item roll độc lập.</p></div><button className="btn sm" type="button" onClick={() => setForm((prev) => ({ ...prev, items: [...prev.items, newItem()] }))}>+ Thêm dòng</button></div>
+              <div className="section-head"><div><h4>Vật phẩm rơi tại map</h4><p className="muted">{enabledItemCount}/{itemCount} item đang bật · mỗi item roll độc lập · Mob ID `-1` = áp dụng mọi quái.</p></div><button className="btn sm" type="button" onClick={() => setForm((prev) => ({ ...prev, items: [...prev.items, newItem()] }))}>+ Thêm dòng</button></div>
               <div className="table-wrap drop-items-table-wrap">
-                <table className="compact drop-items-table"><thead><tr><th>Bật</th><th>Item ID</th><th>Tên</th><th>Tỷ lệ %</th><th>SL từ</th><th>SL đến</th><th>Options</th><th /></tr></thead>
+                <table className="compact drop-items-table"><thead><tr><th>Bật</th><th>Mob ID</th><th>Item ID</th><th>Tên</th><th>Tỷ lệ %</th><th>SL từ</th><th>SL đến</th><th>Options</th><th /></tr></thead>
                   <tbody>
                     {form.items.map((item, index) => (
                       <tr key={`${item.tempId}-${index}`}>
                         <td><input type="checkbox" checked={item.enabled} onChange={(e) => patchItem(index, 'enabled', e.target.checked)} /></td>
+                        <td><input className="input-xs" type="number" min="-1" value={item.mobTempId} title="-1 = tất cả quái" onChange={(e) => patchItem(index, 'mobTempId', numberValue(e.target.value, -1))} /></td>
                         <td><input className="input-xs" type="number" min="0" value={item.tempId} onChange={(e) => patchItem(index, 'tempId', numberValue(e.target.value))} /></td>
-                        <td><span className="drop-item-name">{item.itemName || `Item #${item.tempId}`}</span></td>
+                        <td><span className="drop-item-name">{item.itemName || `Item #${item.tempId}`}<small>{mobDropLabel(item.mobTempId)}</small></span></td>
                         <td><input className="input-xs" type="number" min="0" max="100" step="0.01" value={item.chancePercent} onChange={(e) => patchItem(index, 'chancePercent', numberValue(e.target.value))} /></td>
                         <td><input className="input-xs" type="number" min="1" value={item.quantityMin} onChange={(e) => patchItem(index, 'quantityMin', numberValue(e.target.value, 1))} /></td>
                         <td><input className="input-xs" type="number" min="1" value={item.quantityMax} onChange={(e) => patchItem(index, 'quantityMax', numberValue(e.target.value, 1))} /></td>
@@ -348,12 +378,21 @@ export default function DropConfigPage() {
                         <td><button className="btn sm danger" type="button" onClick={() => removeItem(index)}>Xóa</button></td>
                       </tr>
                     ))}
-                    {form.items.length === 0 && <tr><td colSpan={8} className="muted">Chưa có item custom. Dùng catalog bên dưới để thêm nhanh.</td></tr>}
+                    {form.items.length === 0 && <tr><td colSpan={9} className="muted">Chưa có item custom. Dùng catalog bên dưới để thêm nhanh.</td></tr>}
                   </tbody>
                 </table>
               </div>
             </div>
           </form>
+
+          <div className="card section">
+            <div className="section-head"><div><h3>Loại quái áp dụng</h3><p className="muted">Chọn Mob ID trước khi thêm item. `-1` áp dụng cho mọi loại quái trong map.</p></div><form className="row" onSubmit={searchMobs}><input placeholder="Tìm tên quái hoặc Mob ID" value={mobQ} onChange={(e) => setMobQ(e.target.value)} /><button className="btn" type="submit">Tìm quái</button></form></div>
+            <div className="drop-mob-selected"><button type="button" className={`btn sm${selectedMob.id < 0 ? ' primary' : ''}`} onClick={() => setSelectedMob({ id: -1, name: 'Tất cả quái' })}>Tất cả quái</button><strong>Đang chọn: {mobDropLabel(selectedMob.id, selectedMob.name)}</strong></div>
+            <div className="table-wrap"><table className="compact"><thead><tr><th>Mob ID</th><th>Tên quái</th><th>Type</th><th>HP</th><th /></tr></thead><tbody>
+              {mobs.map((mob) => <tr key={mob.id}><td><code>#{mob.id}</code></td><td><strong>{mob.name}</strong></td><td>{mob.type}</td><td>{Number(mob.hp || 0).toLocaleString('vi-VN')}</td><td><button className={`btn sm${Number(selectedMob.id) === Number(mob.id) ? ' primary' : ''}`} type="button" onClick={() => setSelectedMob({ id: Number(mob.id), name: mob.name })}>{Number(selectedMob.id) === Number(mob.id) ? 'Đang chọn' : 'Chọn'}</button></td></tr>)}
+              {mobs.length === 0 && <tr><td colSpan={5} className="muted">Nhập từ khóa rồi bấm Tìm quái để nạp danh sách.</td></tr>}
+            </tbody></table></div>
+          </div>
 
           <div className="card section">
             <div className="section-head"><div><h3>Catalog item</h3><p className="muted">Tìm item theo ID/tên rồi thêm vào rule mà không cần mở database.</p></div><form className="row" onSubmit={searchCatalog}><input placeholder="Ví dụ: 457 hoặc thỏi vàng" value={catalogQ} onChange={(e) => setCatalogQ(e.target.value)} /><button className="btn" type="submit">Tìm</button></form></div>

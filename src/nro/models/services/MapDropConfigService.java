@@ -72,13 +72,14 @@ public final class MapDropConfigService {
 
     private void loadItems(Connection con, DropRule rule) throws Exception {
         try (PreparedStatement itemStmt = con.prepareStatement(
-                "SELECT temp_id, enabled, chance_percent, quantity_min, quantity_max, options_json "
+                "SELECT temp_id, mob_temp_id, enabled, chance_percent, quantity_min, quantity_max, options_json "
                         + "FROM panel_map_drop_items WHERE config_id = ? ORDER BY id")) {
             itemStmt.setInt(1, rule.id);
             try (ResultSet rs = itemStmt.executeQuery()) {
                 while (rs.next()) {
                     rule.items.add(new ItemDrop(
                             rs.getInt("temp_id"),
+                            rs.getInt("mob_temp_id"),
                             rs.getInt("enabled") == 1,
                             rs.getDouble("chance_percent"),
                             rs.getInt("quantity_min"),
@@ -118,11 +119,12 @@ public final class MapDropConfigService {
         return rules.get(mapId);
     }
 
-    public List<ItemMap> rollItems(DropRule rule, Zone zone, Player player, int x, int yEnd) {
+    public List<ItemMap> rollItems(DropRule rule, Zone zone, Player player, int mobTempId, int x, int yEnd) {
         List<ItemMap> drops = new ArrayList<>();
         if (rule == null || !rule.enabled || player == null || zone == null) return drops;
         for (ItemDrop drop : rule.items) {
-            if (!drop.enabled || !roll(drop.chancePercent)) continue;
+            if (!drop.enabled || (drop.mobTempId >= 0 && drop.mobTempId != mobTempId)
+                    || !roll(drop.chancePercent)) continue;
             int quantity = randomQuantity(drop.quantityMin, drop.quantityMax);
             try {
                 ItemMap item = new ItemMap(zone, drop.tempId, quantity, x, yEnd, player.id);
@@ -206,15 +208,17 @@ public final class MapDropConfigService {
 
     public static final class ItemDrop {
         public final int tempId;
+        public final int mobTempId;
         public final boolean enabled;
         public final double chancePercent;
         public final int quantityMin;
         public final int quantityMax;
         public final List<Item.ItemOption> options;
 
-        private ItemDrop(int tempId, boolean enabled, double chancePercent,
+        private ItemDrop(int tempId, int mobTempId, boolean enabled, double chancePercent,
                          int quantityMin, int quantityMax, List<Item.ItemOption> options) {
             this.tempId = tempId;
+            this.mobTempId = mobTempId;
             this.enabled = enabled;
             this.chancePercent = chancePercent;
             this.quantityMin = Math.max(1, quantityMin);

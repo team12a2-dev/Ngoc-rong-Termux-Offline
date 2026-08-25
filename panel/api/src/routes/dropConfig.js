@@ -67,8 +67,10 @@ function normalizeItems(items) {
     const tempId = intValue(item?.tempId ?? item?.temp_id, -1, 0, 2147483647);
     const quantityMin = intValue(item?.quantityMin ?? item?.quantity_min, 1, 1, 2147483647);
     const quantityMax = intValue(item?.quantityMax ?? item?.quantity_max, quantityMin, 1, 2147483647);
+    const mobTempId = intValue(item?.mobTempId ?? item?.mob_temp_id, -1, -1, 2147483647);
     return {
       tempId,
+      mobTempId,
       enabled: boolValue(item?.enabled, true) ? 1 : 0,
       chancePercent: percentValue(item?.chancePercent ?? item?.chance_percent),
       quantityMin,
@@ -76,10 +78,15 @@ function normalizeItems(items) {
       options: normalizeOptions(item?.options ?? item?.options_json),
     };
   }).filter((item) => {
-    if (item.tempId < 0 || seen.has(item.tempId)) return false;
-    seen.add(item.tempId);
+    const key = `${item.tempId}:${item.mobTempId}`;
+    if (item.tempId < 0 || seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
+}
+
+function mobLabel(mobTempId) {
+  return Number(mobTempId) < 0 ? 'Tất cả quái' : `Mob #${mobTempId}`;
 }
 
 function parseOptions(value) {
@@ -105,7 +112,7 @@ async function loadConfigs(serverId) {
   );
   for (const config of configs) {
     const items = await query(
-      `SELECT d.id, d.temp_id, d.enabled, d.chance_percent, d.quantity_min, d.quantity_max,
+      `SELECT d.id, d.temp_id, d.mob_temp_id, d.enabled, d.chance_percent, d.quantity_min, d.quantity_max,
               d.options_json, it.NAME AS item_name, it.icon_id, it.gender, it.power_require
        FROM panel_map_drop_items d
        LEFT JOIN item_template it ON it.id = d.temp_id
@@ -116,6 +123,8 @@ async function loadConfigs(serverId) {
     config.items = items.map((item) => ({
       id: item.id,
       tempId: item.temp_id,
+      mobTempId: item.mob_temp_id,
+      mobLabel: mobLabel(item.mob_temp_id),
       enabled: Number(item.enabled) === 1,
       chancePercent: Number(item.chance_percent),
       quantityMin: item.quantity_min,
@@ -183,6 +192,29 @@ router.get('/item-templates', requirePermission('server.config'), async (req, re
   }
 });
 
+router.get('/mobs', requirePermission('server.config'), async (req, res) => {
+  try {
+    const q = String(req.query.q || '').trim();
+    const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 300);
+    const like = `%${q}%`;
+    const numeric = Number(q);
+    const rows = await query(
+      `SELECT id, NAME AS name, TYPE AS mob_type, hp
+       FROM mob_template
+       WHERE (? = '' OR NAME LIKE ? OR id = ? OR CAST(id AS CHAR) LIKE ?)
+       ORDER BY CASE WHEN id = ? THEN 0 WHEN NAME LIKE ? THEN 1 ELSE 2 END, id
+       LIMIT ?`,
+      [q, like, Number.isFinite(numeric) ? numeric : -1, like, Number.isFinite(numeric) ? numeric : -1, `${q}%`, limit]
+    );
+    res.json({
+      ok: true,
+      data: rows.map((row) => ({ id: row.id, name: row.name, type: row.mob_type, hp: row.hp })),
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 router.post('/', requirePermission('server.config'), async (req, res) => {
   try {
     const serverId = await serverIdFrom(req);
@@ -206,9 +238,9 @@ router.post('/', requirePermission('server.config'), async (req, res) => {
     for (const item of items) {
       await exec(
         `INSERT INTO panel_map_drop_items
-           (config_id, temp_id, enabled, chance_percent, quantity_min, quantity_max, options_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [configId, item.tempId, item.enabled, item.chancePercent, item.quantityMin,
+           (config_id, temp_id, mob_temp_id, enabled, chance_percent, quantity_min, quantity_max, options_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [configId, item.tempId, item.mobTempId, item.enabled, item.chancePercent, item.quantityMin,
           item.quantityMax, JSON.stringify(item.options)]
       );
     }

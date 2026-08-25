@@ -2827,3 +2827,6 @@ code { background: #0f1419; padding: 1px 5px; border-radius: 4px; font-size: 0.8
   .drop-map-list { position: static; max-height: none; }
   .compact-form, .drop-preview-grid { grid-template-columns: 1fr; }
 }
+
+.drop-mob-selected { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(110,168,254,.08); }
+.drop-item-name small { display: block; margin-top: 3px; color: var(--muted, #8c96aa); font-size: 11px; }

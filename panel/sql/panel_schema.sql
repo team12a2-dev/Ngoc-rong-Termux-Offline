@@ -163,6 +163,7 @@ CREATE TABLE IF NOT EXISTS panel_map_drop_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
   config_id INT NOT NULL,
   temp_id INT NOT NULL,
+  mob_temp_id INT NOT NULL DEFAULT -1,
   enabled TINYINT(1) NOT NULL DEFAULT 1,
   chance_percent DECIMAL(8,4) NOT NULL DEFAULT 0,
   quantity_min INT UNSIGNED NOT NULL DEFAULT 1,
@@ -170,8 +171,8 @@ CREATE TABLE IF NOT EXISTS panel_map_drop_items (
   options_json JSON NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_drop_config_item (config_id, temp_id),
-  INDEX idx_drop_item_config (config_id, enabled),
+  UNIQUE KEY uq_drop_config_item_mob (config_id, temp_id, mob_temp_id),
+  INDEX idx_drop_item_config (config_id, enabled, mob_temp_id),
   CONSTRAINT fk_drop_item_config FOREIGN KEY (config_id) REFERENCES panel_map_drop_configs(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

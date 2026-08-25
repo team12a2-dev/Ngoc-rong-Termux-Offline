@@ -54,6 +54,35 @@ async function main() {
   await conn.query(sql);
   console.log('✓ Panel schema applied');
 
+  // Backward-compatible migration for map-drop rules created by an older panel build.
+  const [dropColumns] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND column_name = 'mob_temp_id'`,
+    [dbConfig.database]
+  );
+  if (Number(dropColumns[0].c) === 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items ADD COLUMN mob_temp_id INT NOT NULL DEFAULT -1 AFTER temp_id');
+    console.log('✓ Added panel_map_drop_items.mob_temp_id');
+  }
+  const [oldDropIndex] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.statistics
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND index_name = 'uq_drop_config_item'`,
+    [dbConfig.database]
+  );
+  if (Number(oldDropIndex[0].c) > 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items DROP INDEX uq_drop_config_item');
+    console.log('✓ Removed legacy drop item unique index');
+  }
+  const [newDropIndex] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.statistics
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND index_name = 'uq_drop_config_item_mob'`,
+    [dbConfig.database]
+  );
+  if (Number(newDropIndex[0].c) === 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items ADD UNIQUE KEY uq_drop_config_item_mob (config_id, temp_id, mob_temp_id)');
+    console.log('✓ Added Mob-aware drop item unique index');
+  }
+
   // Verify panel tables
   for (const table of PANEL_TABLES) {
     const [rows] = await conn.query(
