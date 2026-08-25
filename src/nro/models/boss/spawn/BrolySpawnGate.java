@@ -21,9 +21,57 @@ import nro.models.utils.Util;
 public final class BrolySpawnGate {
 
     private static volatile long lastSuperSpawnMs;
+    private static volatile long nextSuperSpawnAllowedMs;
     private static volatile long nextNaturalRollMs;
+    private static volatile long superProfileExpiresMs;
+    private static volatile int activeSuperConcurrentLimit;
+    private static volatile int activeSuperMapLimit;
+    private static volatile int activeSuperSlotLimit;
     private static final java.util.Map<Integer, Integer> superSpawnSlotByBoss = new ConcurrentHashMap<>();
     private static final int[] BROLY_MAPS = {5, 13, 20, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38};
+
+    private static synchronized void refreshSuperProfile() {
+        long now = System.currentTimeMillis();
+        if (now < superProfileExpiresMs) {
+            return;
+        }
+        int populationLimit = BossSpawnConfig.effectiveSuperBrolyLimit();
+        int safeMax = Math.max(1, Math.min(BossSpawnConfig.superBrolyConcurrentMax, populationLimit));
+        int min = Math.max(1, Math.min(BossSpawnConfig.superBrolyConcurrentMin, safeMax));
+        activeSuperConcurrentLimit = populationLimit <= 0 ? 0 : Util.nextInt(min, safeMax);
+        activeSuperMapLimit = Util.nextInt(BossSpawnConfig.superBrolyMapMin, BossSpawnConfig.superBrolyMapMax);
+        activeSuperSlotLimit = Util.nextInt(BossSpawnConfig.superBrolySlotMin, BossSpawnConfig.superBrolySlotMax);
+        int profileSec = Util.nextInt(BossSpawnConfig.superBrolyProfileMinSec,
+                BossSpawnConfig.superBrolyProfileMaxSec);
+        superProfileExpiresMs = now + profileSec * 1000L;
+    }
+
+    private static int currentSuperConcurrentLimit() {
+        refreshSuperProfile();
+        int populationLimit = BossSpawnConfig.effectiveSuperBrolyLimit();
+        return populationLimit <= 0 ? 0 : Math.min(activeSuperConcurrentLimit, populationLimit);
+    }
+
+    private static int currentSuperMapLimit() {
+        refreshSuperProfile();
+        return activeSuperMapLimit;
+    }
+
+    private static int currentSuperSlotLimit() {
+        refreshSuperProfile();
+        return activeSuperSlotLimit;
+    }
+
+    private static boolean passesSuperInterval(long now) {
+        return now >= nextSuperSpawnAllowedMs;
+    }
+
+    private static void markSuperSpawned(long now) {
+        lastSuperSpawnMs = now;
+        int intervalSec = Util.nextInt(BossSpawnConfig.superBrolyIntervalMinSec,
+                BossSpawnConfig.superBrolyIntervalMaxSec);
+        nextSuperSpawnAllowedMs = now + intervalSec * 1000L;
+    }
 
     public static int[] brolyMaps() {
         return BROLY_MAPS.clone();
@@ -55,23 +103,20 @@ public final class BrolySpawnGate {
         if (!isWithinSuperWindow()) {
             return false;
         }
-        int superLimit = BossSpawnConfig.effectiveSuperBrolyLimit();
+        int superLimit = currentSuperConcurrentLimit();
         if (superLimit <= 0 || liveSuperCount() >= superLimit) {
             return false;
         }
         if (broly.zone != null
-                && countActiveSuperOnMap(broly.zone.map.mapId) >= BossSpawnConfig.superBrolyMaxPerMap) {
+                && countActiveSuperOnMap(broly.zone.map.mapId) >= currentSuperMapLimit()) {
             return false;
         }
         int slot = currentTimeSlot();
-        if (countLiveSuperInSlot(slot) >= BossSpawnConfig.superBrolyMaxPerSlot) {
+        if (countLiveSuperInSlot(slot) >= currentSuperSlotLimit()) {
             return false;
         }
-        if (lastSuperSpawnMs > 0) {
-            long since = System.currentTimeMillis() - lastSuperSpawnMs;
-            if (since < BossSpawnConfig.superBrolyMinIntervalSec * 1000L) {
-                return false;
-            }
+        if (!passesSuperInterval(System.currentTimeMillis())) {
+            return false;
         }
         return true;
     }
@@ -141,16 +186,15 @@ public final class BrolySpawnGate {
         if (!BossSpawnConfig.superBrolyNaturalEnabled || !isWithinSuperWindow()) {
             return;
         }
-        int limit = BossSpawnConfig.effectiveSuperBrolyLimit();
+        int limit = currentSuperConcurrentLimit();
         if (limit <= 0 || liveSuperCount() >= limit) {
             return;
         }
-        if (lastSuperSpawnMs > 0
-                && now - lastSuperSpawnMs < BossSpawnConfig.superBrolyMinIntervalSec * 1000L) {
+        if (!passesSuperInterval(now)) {
             return;
         }
         int slot = currentTimeSlot();
-        if (countLiveSuperInSlot(slot) >= BossSpawnConfig.superBrolyMaxPerSlot) {
+        if (countLiveSuperInSlot(slot) >= currentSuperSlotLimit()) {
             return;
         }
         int chance = BossSpawnConfig.superBrolyNaturalChancePercent;
@@ -190,11 +234,11 @@ public final class BrolySpawnGate {
         if (!isWithinSuperWindow()) {
             return;
         }
-        int superLimit = BossSpawnConfig.effectiveSuperBrolyLimit();
+        int superLimit = currentSuperConcurrentLimit();
         if (superLimit <= 0 || liveSuperCount() >= superLimit) {
             return;
         }
-        if (countLiveSuperInSlot(slot) >= BossSpawnConfig.superBrolyMaxPerSlot) {
+        if (countLiveSuperInSlot(slot) >= currentSuperSlotLimit()) {
             return;
         }
         try {
@@ -204,7 +248,7 @@ public final class BrolySpawnGate {
             }
             Zone zone = zoneId >= 0 && zoneId < map.zones.size()
                     ? map.zones.get(zoneId) : null;
-            if (zone == null || countActiveSuperOnMap(mapId) >= BossSpawnConfig.superBrolyMaxPerMap
+            if (zone == null || countActiveSuperOnMap(mapId) >= currentSuperMapLimit()
                     || hasBossInZone(zone)) {
                 zone = pickRandomFreeZoneForSuper(map);
             }
@@ -220,7 +264,7 @@ public final class BrolySpawnGate {
             int spawnY = y > 0 ? y : map.yPhysicInTop(spawnX, 100);
             SuperBroly superBroly = new SuperBroly(zone, spawnX, spawnY, slot);
             registerSuperSpawn(superBroly, slot);
-            lastSuperSpawnMs = System.currentTimeMillis();
+            markSuperSpawned(System.currentTimeMillis());
         } catch (Exception ex) {
             Logger.error("spawnSuperBrolyAt map=" + mapId + " zone=" + zoneId + ": " + ex.getMessage());
         }
@@ -421,7 +465,7 @@ public final class BrolySpawnGate {
         List<Integer> available = new ArrayList<>();
         for (int mapId : maps) {
             nro.models.map.Map map = MapService.gI().getMapById(mapId);
-            if (countActiveSuperOnMap(mapId) < BossSpawnConfig.superBrolyMaxPerMap
+            if (countActiveSuperOnMap(mapId) < currentSuperMapLimit()
                     && pickRandomFreeZoneForSuper(map) != null) {
                 available.add(mapId);
             }
