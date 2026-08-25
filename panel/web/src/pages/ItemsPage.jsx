@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, getServerId } from '../api';
 import PageHeader from '../components/PageHeader';
 import PageFeedback, { useFeedback } from '../components/PageFeedback';
+import ItemIcon from '../components/ItemIcon';
 
 const EMPTY_FORM = {
   type: 0, gender: 3, name: '', description: '', level: 1, icon_id: 0, part: -1,
@@ -119,7 +120,7 @@ export default function ItemsPage() {
           <label className="field">Loại type<select value={form.type} onChange={(e) => patch('type', numberField(e.target.value))}>{TYPES.map(([v, label]) => <option key={v} value={v}>{v} · {label}</option>)}<option value="7">7 · Khác</option><option value="8">8 · Khác</option><option value="19">19 · Khác</option></select></label>
           <label className="field">Gender<select value={form.gender} onChange={(e) => patch('gender', numberField(e.target.value))}><option value="0">0 · Trái Đất</option><option value="1">1 · Namek</option><option value="2">2 · Xayda</option><option value="3">3 · Dùng chung</option></select></label>
           <label className="field">Level<input type="number" min="0" value={form.level} onChange={(e) => patch('level', numberField(e.target.value))} /></label>
-          <label className="field">Icon ID<input type="number" min="0" value={form.icon_id} onChange={(e) => patch('icon_id', numberField(e.target.value))} /></label>
+          <label className="field">Icon ID<input type="number" min="0" value={form.icon_id} onChange={(e) => patch('icon_id', numberField(e.target.value))} /><span className="item-template-icon-preview"><ItemIcon iconId={form.icon_id} tempId={editingId} name={form.name} size={56} /></span></label>
           <label className="field">Part<input type="number" min="-1" value={form.part} onChange={(e) => patch('part', numberField(e.target.value, -1))} /></label>
           <label className="field">Power require<input type="number" min="0" value={form.power_require} onChange={(e) => patch('power_require', numberField(e.target.value))} /></label>
           <label className="field">Gold giá<input type="number" min="0" value={form.gold} onChange={(e) => patch('gold', numberField(e.target.value))} /></label>
@@ -138,8 +139,8 @@ export default function ItemsPage() {
           <form className="row" onSubmit={(e) => { e.preventDefault(); load(); }}><input placeholder="Tìm ID hoặc tên..." value={q} onChange={(e) => setQ(e.target.value)} /><button className="btn" type="submit">Tìm</button></form>
         </div>
         <div className="table-wrap">
-          <table><thead><tr><th>ID</th><th>Tên</th><th>Type/Gender</th><th>Icon/Part</th><th>Level</th><th>Power</th><th /></tr></thead>
-            <tbody>{rows.map((row) => <tr key={row.id}><td><code>#{row.id}</code></td><td><strong>{row.NAME}</strong><small>{row.description}</small></td><td>{row.type} / {row.gender}</td><td>{row.icon_id} / {row.part}</td><td>{row.level}</td><td>{Number(row.power_require || 0).toLocaleString('vi-VN')}</td><td><button className="btn sm" type="button" onClick={() => edit(row)}>Sửa</button></td></tr>)}</tbody>
+          <table><thead><tr><th>ID</th><th>Icon</th><th>Tên</th><th>Type/Gender</th><th>Part</th><th>Level</th><th>Power</th><th /></tr></thead>
+            <tbody>{rows.map((row) => <tr key={row.id}><td><code>#{row.id}</code></td><td><ItemIcon iconId={row.icon_id} tempId={row.id} name={row.NAME} size={40} /><small>#{row.icon_id}</small></td><td><strong>{row.NAME}</strong><small>{row.description}</small></td><td>{row.type} / {row.gender}</td><td>{row.part}</td><td>{row.level}</td><td>{Number(row.power_require || 0).toLocaleString('vi-VN')}</td><td><button className="btn sm" type="button" onClick={() => edit(row)}>Sửa</button></td></tr>)}</tbody>
           </table>
         </div>
       </div>

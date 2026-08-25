@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, getServerId } from '../api';
 import PageHeader from '../components/PageHeader';
 import PageFeedback, { useFeedback } from '../components/PageFeedback';
+import ItemIcon from '../components/ItemIcon';
 import { OptionEditor, formatOptionLabel } from '../components/OptionEditor';
 
 const EMPTY_FORM = { templateId: '', durationSeconds: 600, enabled: true, options: [] };
@@ -145,7 +146,7 @@ export default function UsableItemsPage() {
         <div className="table-wrap"><table className="compact"><thead><tr><th>Item</th><th>Thời lượng</th><th>Option chỉ số</th><th>Trạng thái</th><th>Cập nhật</th><th /></tr></thead><tbody>
           {rows.map((row) => (
             <tr key={row.template_id}>
-              <td><strong>#{row.template_id} · {row.item_name || 'Không tìm thấy template'}</strong><small>type {row.type ?? '-'}</small></td>
+              <td><ItemIcon iconId={row.icon_id} tempId={row.template_id} name={row.item_name} size={40} /><strong>#{row.template_id} · {row.item_name || 'Không tìm thấy template'}</strong><small>type {row.type ?? '-'} · icon #{row.icon_id ?? '-'}</small></td>
               <td>{Math.floor(Number(row.duration_seconds || 0) / 60)} phút</td>
               <td><div className="option-list-readable">{(row.options || []).map((option) => <div key={`${row.template_id}-${option.id}`}><code>#{option.id}</code> {formatOptionLabel(option.id, option.param, Object.fromEntries((row.options || []).map((item) => [item.id, item.name || `#${item.id}`])))}</div>)}</div>{!row.options?.length && <span className="status-dot off">Chưa gán option</span>}</td>
               <td><span className={`status-dot ${row.enabled ? 'ok' : 'off'}`}>{row.enabled ? 'Bật' : 'Tắt'}</span></td>
@@ -159,9 +160,9 @@ export default function UsableItemsPage() {
 
       <div className="card section">
         <div className="section-head"><div><h3>Catalog type 29</h3><p className="muted">Chỉ item type 29 mới được dùng trong luồng item bổ trợ.</p></div></div>
-        <div className="table-wrap"><table className="compact"><thead><tr><th>ID</th><th>Tên</th><th>Mô tả</th><th>Icon</th><th /></tr></thead><tbody>
-          {templates.map((item) => <tr key={item.id}><td><code>#{item.id}</code></td><td><strong>{item.name}</strong></td><td>{item.description || '-'}</td><td>{item.iconId ?? '-'}</td><td><button className="btn sm" type="button" onClick={() => chooseTemplate(item.id)}>Chọn</button></td></tr>)}
-          {templates.length === 0 && <tr><td colSpan={5} className="muted">Không tìm thấy item type 29.</td></tr>}
+        <div className="table-wrap"><table className="compact"><thead><tr><th>ID</th><th>Icon</th><th>Tên</th><th>Mô tả</th><th>Icon ID</th><th /></tr></thead><tbody>
+          {templates.map((item) => <tr key={item.id}><td><code>#{item.id}</code></td><td><ItemIcon iconId={item.iconId} tempId={item.id} name={item.name} size={40} /></td><td><strong>{item.name}</strong></td><td>{item.description || '-'}</td><td>#{item.iconId ?? '-'}</td><td><button className="btn sm" type="button" onClick={() => chooseTemplate(item.id)}>Chọn</button></td></tr>)}
+          {templates.length === 0 && <tr><td colSpan={6} className="muted">Không tìm thấy item type 29.</td></tr>}
         </tbody></table></div>
       </div>
     </div>

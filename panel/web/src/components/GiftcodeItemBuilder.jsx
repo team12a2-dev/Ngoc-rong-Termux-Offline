@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api';
 import { OptionEditor, OptionChips, useOptionMap } from './OptionEditor';
+import ItemIcon from './ItemIcon';
 
 /** Gói quà preset — chỉnh ID theo server của bạn */
 export const REWARD_PRESETS = [
@@ -97,6 +98,7 @@ export default function GiftcodeItemBuilder({ items, onChange }) {
       {
         id: template.id,
         name: template.name,
+        icon_id: template.icon_id,
         quantity: defaultQty || 1,
         options: [],
       },
@@ -156,14 +158,15 @@ export default function GiftcodeItemBuilder({ items, onChange }) {
           <div className="option-template-table-wrap giftcode-catalog-table">
             <table className="compact">
               <thead>
-                <tr><th>ID</th><th>Tên item</th><th /></tr>
+                <tr><th>Icon</th><th>ID</th><th>Tên item</th><th /></tr>
               </thead>
               <tbody>
                 {catalogLoading && (
-                  <tr><td colSpan={3} className="muted">Đang tải danh sách item...</td></tr>
+                  <tr><td colSpan={4} className="muted">Đang tải danh sách item...</td></tr>
                 )}
                 {!catalogLoading && catalogSlice.map((it) => (
-                  <tr key={it.id} className={rewardIds.has(it.id) ? 'row-active' : ''}>
+<tr key={it.id} className={rewardIds.has(it.id) ? 'row-active' : ''}>
+                    <td><ItemIcon iconId={it.icon_id} tempId={it.id} name={it.name} size={32} /></td>
                     <td><strong>{it.id}</strong></td>
                     <td>{it.name}</td>
                     <td>
@@ -174,7 +177,7 @@ export default function GiftcodeItemBuilder({ items, onChange }) {
                   </tr>
                 ))}
                 {!catalogLoading && catalog.length === 0 && (
-                  <tr><td colSpan={3} className="muted">Không có item. Kiểm tra DB game hoặc thử từ khóa khác.</td></tr>
+                  <tr><td colSpan={4} className="muted">Không có item. Kiểm tra DB game hoặc thử từ khóa khác.</td></tr>
                 )}
               </tbody>
             </table>
@@ -223,6 +226,7 @@ export default function GiftcodeItemBuilder({ items, onChange }) {
                   onClick={() => setSelectedIdx(idx)}
                 >
                   <div className="giftcode-item-main">
+                    <ItemIcon iconId={it.icon_id ?? it.iconId} tempId={it.id} name={it.name} size={40} />
                     <div className="giftcode-item-info">
                       <strong>#{it.id}</strong>
                       <span className="giftcode-item-name">{it.name || 'Item'}</span>

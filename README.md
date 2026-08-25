@@ -232,7 +232,7 @@ Chức năng yêu cầu quyền `server.broadcast` và giới hạn tối thiể
 
 ### Quản lý Item Templates
 
-Mục **Game & Server → Item Templates** quản lý trực tiếp bảng `item_template`: xem/tìm kiếm, tạo item mới với ID kế tiếp, sửa tên/mô tả/type/gender/icon/part/level/yêu cầu sức mạnh/giá và gọi Java Agent reload sau khi lưu. Bảng `item_option_template` được đọc để đối chiếu option hiện có; option mới chỉ là nhãn hiển thị, còn hiệu ứng thực tế phải được Java source xử lý.
+Mục **Game & Server → Item Templates** quản lý trực tiếp bảng `item_template`: xem/tìm kiếm, tạo item mới với ID kế tiếp, sửa tên/mô tả/type/gender/icon/part/level/yêu cầu sức mạnh/giá và gọi Java Agent reload sau khi lưu. Panel hiển thị ảnh từ `icon_id` qua asset game `data/icon/x4` (tự fallback x3/x2/x1); các catalog Drop, Item bổ trợ, Giftcode, Shop và picker hành trang dùng chung cơ chế này. Bảng `item_option_template` được đọc để đối chiếu option hiện có; option mới chỉ là nhãn hiển thị, còn hiệu ứng thực tế phải được Java source xử lý.
 
 > **Quan trọng:** source hiện tại tạo item bằng `Manager.ITEM_TEMPLATES.get(tempId)`, vì vậy ID item phải liên tục từ `0` đến `MAX(id)`. Panel không cho xóa item và sẽ từ chối tạo nếu database đang có ID bị khuyết. Đây là điều kiện để vật phẩm tạo từ shop, giftcode hoặc inventory không làm server lỗi index.
 

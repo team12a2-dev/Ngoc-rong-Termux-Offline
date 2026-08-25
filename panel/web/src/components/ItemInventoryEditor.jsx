@@ -38,7 +38,7 @@ function ItemSearchPicker({
   onSelect,
   placeholder = 'Tìm item theo tên hoặc ID...',
   searchPath = '/players/item-templates',
-  showIcons = false,
+  showIcons = true,
 }) {
   const [q, setQ] = useState('');
   const [results, setResults] = useState([]);
