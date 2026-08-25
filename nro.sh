@@ -52,6 +52,31 @@ lan_addresses() {
   printf '%s' "${out:-không phát hiện}"
 }
 
+configure_lan() {
+  ensure_layout
+  local lan_ip="${NRO_LAN_IP:-}"
+  if [ -z "$lan_ip" ]; then
+    lan_ip="$(lan_addresses | awk '{print $1}')"
+  fi
+  [ -n "$lan_ip" ] && [ "$lan_ip" != "không phát hiện" ] || die "Không phát hiện IP LAN. Hãy kết nối Android và máy khách vào cùng Wi-Fi rồi thử lại, hoặc dùng NRO_LAN_IP=192.168.x.x."
+  case "$lan_ip" in
+    *[!0-9.]*) die "NRO_LAN_IP không phải IPv4 hợp lệ: $lan_ip" ;;
+  esac
+  update_config "server.listen.host" "${NRO_GAME_LISTEN_HOST:-0.0.0.0}"
+  update_config "server.ip" "$lan_ip"
+  update_config "server.sv1" "NRO LAN:$lan_ip:$GAME_PORT:0,0,0"
+  export NRO_GAME_LISTEN_HOST="${NRO_GAME_LISTEN_HOST:-0.0.0.0}"
+  export NRO_PANEL_BIND="${NRO_PANEL_BIND:-0.0.0.0}"
+  say "Đã cấu hình LAN: client dùng $lan_ip:$GAME_PORT; socket bind $NRO_GAME_LISTEN_HOST"
+}
+
+termux_keep_awake() {
+  if command -v termux-wake-lock >/dev/null 2>&1; then
+    termux-wake-lock >/dev/null 2>&1 || true
+    say "Đã bật Termux wake lock để hạn chế Android ngủ tiến trình."
+  fi
+}
+
 print_endpoints() {
   local game_advertised="$(prop server.ip)"
   local game_bind="${NRO_GAME_LISTEN_HOST:-0.0.0.0}"
@@ -447,6 +472,10 @@ wait_server_ready() {
 
 start_server() {
   ensure_layout
+  if [ "${NRO_LAN_MODE:-0}" = "1" ]; then
+    configure_lan
+  fi
+  termux_keep_awake
   start_database
   ensure_database_user
   import_database
@@ -541,6 +570,10 @@ main() {
       [ -f "$STATE_DIR/installed" ] || setup
       start_server
       ;;
+    lan)
+      [ -f "$STATE_DIR/installed" ] || setup
+      NRO_LAN_MODE=1 start_server
+      ;;
     restart)
       stop_server
       start_server
@@ -588,15 +621,16 @@ main() {
       ;;
     *)
       cat <<'USAGE'
-Sử dụng: ./nro.sh [setup|start|restart|stop|status|console|rebuild|panel|backup|backup-schedule|backup-cancel|backup-status]
+Sử dụng: ./nro.sh [setup|start|lan|restart|stop|status|console|rebuild|panel|backup|backup-schedule|backup-cancel|backup-status]
 
 Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel.
+LAN Android: `./nro.sh lan` sẽ tự nhận IP Wi-Fi, bind game server trên 0.0.0.0 và cập nhật địa chỉ client; có thể chỉ định `NRO_LAN_IP=192.168.x.x`.
 Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT).
 Backup database: `backup` xuất online, `backup-schedule` lập lịch, `backup-cancel` hủy lịch, `backup-status` xem lịch/file/log.
 Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
 NRO_GAME_LISTEN_HOST, NRO_PANEL_PORT, NRO_PANEL_BIND, PANEL_ADMIN_PASSWORD,
 NRO_BACKUP_DIR, NRO_BACKUP_LOG, NRO_BACKUP_KEEP_DAYS, NRO_BACKUP_JOB_ID,
-NRO_BACKUP_PERIOD_MS, JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1.
+NRO_BACKUP_PERIOD_MS, JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1, NRO_LAN_IP.
 USAGE
       exit 2
       ;;

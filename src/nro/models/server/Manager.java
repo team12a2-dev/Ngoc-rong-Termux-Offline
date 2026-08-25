@@ -76,6 +76,8 @@ public final class Manager {
     public static byte SECOND_WAIT_LOGIN = 0;
     public static int MAX_PER_IP = 1000;
     public static int MAX_PLAYER = 2000;
+    /** Địa chỉ bind socket; 0.0.0.0 cho phép thiết bị khác trong LAN kết nối. */
+    public static String SERVER_BIND_HOST = "0.0.0.0";
     /** @deprecated Dùng {@link ServerExpRate#RATE_EXP_SERVER}; giữ getter/setter để code panel/command không đổi. */
     @Deprecated
     public static byte RATE_EXP_SERVER = 1;
@@ -1045,6 +1047,10 @@ public final class Manager {
         }
         if ((value = properties.get("server.port")) != null) {
             ServerManager.PORT = Integer.parseInt(String.valueOf(value));
+        }
+        if ((value = properties.get("server.listen.host")) != null) {
+            SERVER_BIND_HOST = String.valueOf(value).trim();
+            if (SERVER_BIND_HOST.isEmpty()) SERVER_BIND_HOST = "0.0.0.0";
         }
         String linkServer = "";
         if ((value = properties.get("server.ip")) != null) {

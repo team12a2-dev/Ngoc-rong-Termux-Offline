@@ -6,6 +6,8 @@ public interface INetwork extends Runnable {
 
     public INetwork start(int var1) throws Exception;
 
+    public INetwork start(int var1, String host) throws Exception;
+
     public INetwork setAcceptHandler(ISessionAcceptHandler var1);
 
     public INetwork close();

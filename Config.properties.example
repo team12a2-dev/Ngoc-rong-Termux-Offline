@@ -3,9 +3,12 @@ server.test=false
 server.daoautoupdater=false
 server.sv=1
 server.name=NGOC RONG
+# IP quảng bá cho client; chạy `./nro.sh lan` để tự cập nhật thành IP Wi-Fi Android
 server.ip=127.0.0.1
+# Địa chỉ bind socket: 0.0.0.0 = nghe trên mọi interface LAN
+server.listen.host=0.0.0.0
 server.port=14445
-server.sv1=NRO TERMUX:127.0.0.1:14445:0,0,0
+server.sv1=NRO LOCAL:127.0.0.1:14445:0,0,0
 server.waitlogin=0
 server.maxperip=3
 server.maxplayer=1000

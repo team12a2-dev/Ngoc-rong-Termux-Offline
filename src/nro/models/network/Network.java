@@ -2,6 +2,7 @@ package nro.models.network;
 
 import java.net.Socket;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.Selector;
@@ -50,6 +51,10 @@ public class Network implements INetwork, Runnable {
 
     @Override
     public INetwork start(int port) throws Exception {
+        return start(port, "0.0.0.0");
+    }
+
+    public INetwork start(int port, String host) throws Exception {
         if (port < 0) {
             throw new Exception("Please initialize the server port!");
         }
@@ -63,15 +68,20 @@ public class Network implements INetwork, Runnable {
             this.port = port;
             this.serverSocketChannel = ServerSocketChannel.open();
             this.serverSocketChannel.configureBlocking(false);
-            this.serverSocketChannel.socket().bind(new InetSocketAddress(port));
+            String bindHost = host == null || host.isBlank() ? "0.0.0.0" : host.trim();
+            if ("0.0.0.0".equals(bindHost) || "*".equals(bindHost)) {
+                this.serverSocketChannel.socket().bind(new InetSocketAddress(port));
+            } else {
+                this.serverSocketChannel.socket().bind(new InetSocketAddress(InetAddress.getByName(bindHost), port));
+            }
             this.serverSocketChannel.register(this.selector, 16);
         } catch (IOException ex) {
-            Logger.error("Error initializing server at port " + port + "\n");
+            Logger.error("Error initializing server at " + (host == null ? "0.0.0.0" : host) + ":" + port + "\n");
             System.exit(0);
         }
         this.start = true;
         this.loopServer.start();
-        Logger.success("Server initialized and listening on port " + this.port + "\n");
+        Logger.success("Server initialized and listening on " + (host == null || host.isBlank() ? "0.0.0.0" : host) + ":" + this.port + "\n");
         return this;
     }
 

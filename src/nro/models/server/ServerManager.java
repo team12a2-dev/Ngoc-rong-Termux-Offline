@@ -178,7 +178,8 @@ public class ServerManager {
             Client.gI().startAutoSave();
             startTopUpdater();
             writeReadyMarker();
-            System.out.println("[NRO][READY] Server đã tải xong dữ liệu và sẵn sàng nhận kết nối trên cổng " + PORT);
+            System.out.println("[NRO][READY] Server đã tải xong dữ liệu và sẵn sàng nhận kết nối trên "
+                    + Manager.SERVER_BIND_HOST + ":" + PORT + " (client LAN dùng server.ip)");
         } catch (Exception e) {
             isRunning = false;
             clearReadyMarker();
@@ -260,7 +261,7 @@ public class ServerManager {
                         Logger.error("SERVER CLOSE\n");
                         System.exit(0);
                     })
-                    .start(PORT);
+                    .start(PORT, Manager.SERVER_BIND_HOST);
         } catch (Exception e) {
             Logger.error("Lỗi khi khởi động máy chủ: " + e.getMessage());
         }
