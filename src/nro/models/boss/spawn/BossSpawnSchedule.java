@@ -1,6 +1,7 @@
 package nro.models.boss.spawn;
 
 import java.time.ZonedDateTime;
+
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
 import nro.models.boss.spawn.BossSpawnTier;
@@ -102,7 +103,8 @@ public final class BossSpawnSchedule {
         boolean weekend = BossSpawnConfig.isWeekend(ready);
         long spreadMs = rollIntraWindowSpreadMs(boss, tier);
 
-        if (isHourAllowed(boss, ready.getHour(), tier, weekend)) {
+                if (isMomentAllowed(boss, ready, tier, weekend)) {
+
             return baseDelayMs + spreadMs;
         }
         int waitMin = minutesUntilAllowed(boss, ready, tier, weekend);
@@ -212,10 +214,14 @@ public final class BossSpawnSchedule {
         ZonedDateTime now = ZonedDateTime.now(ZONE_VN);
         BossSpawnTier tier = resolveTier(boss);
         boolean weekend = BossSpawnConfig.isWeekend(now);
-        if (isHourAllowed(boss, now.getHour(), tier, weekend)) {
+                if (isMomentAllowed(boss, now, tier, weekend)) {
             return true;
         }
+        if (isBrolyFamily(boss)) {
+            return false;
+        }
         if (BossSpawnOrchestrator.dailyBonusAppliesTo(tier)
+
                 && BossSpawnOrchestrator.isDailyBonusHour(now.getHour())) {
             return true;
         }
@@ -236,7 +242,8 @@ public final class BossSpawnSchedule {
         int sec = 0;
         if (cooldownLeft > 0) {
             ZonedDateTime afterCooldown = now.plusSeconds(cooldownLeft / 1000);
-            if (isHourAllowed(boss, afterCooldown.getHour(), tier, weekend)) {
+                        if (isMomentAllowed(boss, afterCooldown, tier, weekend)) {
+
                 sec = (int) (cooldownLeft / 1000);
             } else {
                 int waitWindow = minutesUntilAllowed(boss, afterCooldown, tier, weekend);
@@ -269,8 +276,9 @@ public final class BossSpawnSchedule {
         if (!Util.canDoWithTime(boss.getLastTimeRest(), delay)) {
             return null;
         }
-        if (!isWithinSpawnWindow(boss)) {
-            if (BossSpawnConfig.dailyBonusEnabled) {
+                if (!isWithinSpawnWindow(boss)) {
+            if (!isBrolyFamily(boss) && BossSpawnConfig.dailyBonusEnabled) {
+
                 return "chờ khung giờ (bonus hôm nay "
                         + BossSpawnOrchestrator.dailyBonusStartHour() + "–"
                         + BossSpawnOrchestrator.dailyBonusEndHour() + "h)";
@@ -410,7 +418,21 @@ public final class BossSpawnSchedule {
         };
     }
 
+        private static boolean isMomentAllowed(Boss boss, ZonedDateTime moment, BossSpawnTier tier, boolean weekend) {
+        if (isBrolyFamily(boss)) {
+            return BossSpawnConfig.isBrolyFamilyWindow(moment);
+        }
+        return isHourAllowed(boss, moment.getHour(), tier, weekend);
+    }
+
+    private static boolean isBrolyFamily(Boss boss) {
+        if (boss == null) return false;
+        int id = (int) boss.id;
+        return id == BossID.BROLY || id == BossID.SUPER_BROLY;
+    }
+
     private static boolean isHourAllowed(Boss boss, int hour, BossSpawnTier tier, boolean weekend) {
+
         if ((int) boss.id == BossID.BROLY) {
             return BossSpawnConfig.brolyWindowsFor(weekend).contains(hour);
         }
@@ -422,13 +444,15 @@ public final class BossSpawnSchedule {
     }
 
     private static int minutesUntilAllowed(Boss boss, ZonedDateTime from, BossSpawnTier tier, boolean weekend) {
-        if (isHourAllowed(boss, from.getHour(), tier, weekend)) {
+                if (isMomentAllowed(boss, from, tier, weekend)) {
             return 0;
         }
+
         for (int m = 1; m <= 24 * 60; m++) {
             ZonedDateTime t = from.plusMinutes(m);
             boolean wk = BossSpawnConfig.isWeekend(t);
-            if (isHourAllowed(boss, t.getHour(), tier, wk)) {
+                        if (isMomentAllowed(boss, t, tier, wk)) {
+
                 return m;
             }
         }

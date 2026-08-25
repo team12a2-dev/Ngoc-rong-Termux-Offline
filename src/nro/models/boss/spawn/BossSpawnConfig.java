@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -106,9 +108,9 @@ public final class BossSpawnConfig {
     public static int brolyMaxConcurrent = 75;
     /** Tối đa Broly trên một map (mỗi khu một boss) */
     public static int brolyMaxPerMap = 5;
-    /** Khung giờ Broly — tier NORMAL: 9h–4h sáng hôm sau */
-    private static HourWindows brolyHoursWeekday = HourWindows.parse("9-23,0-4");
-    private static HourWindows brolyHoursWeekend = HourWindows.parse("9-23,0-4");
+    /** Khung giờ Broly — 10:00 đến trước 05:00 sáng hôm sau */
+    private static HourWindows brolyHoursWeekday = HourWindows.parse("10-23,0-5");
+    private static HourWindows brolyHoursWeekend = HourWindows.parse("10-23,0-5");
     public static boolean superBrolyEnabled = true;
     /** Trần an toàn; giới hạn thực tế được roll trong khoảng động. */
     public static int superBrolyMaxConcurrent = 6;
@@ -260,10 +262,10 @@ public final class BossSpawnConfig {
         brolyRestSec = parseInt(p, "spawn.broly.rest.sec", 180, 60, 3600);
         brolyMaxConcurrent = parseInt(p, "spawn.broly.max.concurrent", 75, 1, 100);
         brolyMaxPerMap = parseInt(p, "spawn.broly.max.per.map", 5, 1, 10);
-        String brolyWeekdaySpec = p.getProperty("spawn.broly.hours.weekday", "9-23,0-4");
+        String brolyWeekdaySpec = p.getProperty("spawn.broly.hours.weekday", "10-23,0-5");
         brolyHoursWeekday = "all".equalsIgnoreCase(brolyWeekdaySpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(brolyWeekdaySpec);
-        String brolyWeekendSpec = p.getProperty("spawn.broly.hours.weekend", "9-23,0-4");
+        String brolyWeekendSpec = p.getProperty("spawn.broly.hours.weekend", "10-23,0-5");
         brolyHoursWeekend = "all".equalsIgnoreCase(brolyWeekendSpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(brolyWeekendSpec);
         superBrolyEnabled = parseBool(p, "spawn.superbroly.enabled", true);
@@ -437,6 +439,13 @@ public final class BossSpawnConfig {
         return weekend ? brolyHoursWeekend : brolyHoursWeekday;
     }
 
+    /** Khung Broly/Super Broly chính xác theo phút: từ 10:00 đến trước 05:00 hôm sau. */
+    public static boolean isBrolyFamilyWindow(ZonedDateTime moment) {
+        if (moment == null) return false;
+        LocalTime time = moment.withZoneSameInstant(java.time.ZoneId.of("Asia/Ho_Chi_Minh")).toLocalTime();
+        return !time.isBefore(LocalTime.of(10, 0)) || time.isBefore(LocalTime.of(5, 0));
+    }
+
     public static int jitterMin(BossSpawnTier tier) {
         return switch (tier) {
             case MINI -> jitterMini[0];
@@ -529,8 +538,8 @@ public final class BossSpawnConfig {
         brolyRestSec = 180;
         brolyMaxConcurrent = 75;
         brolyMaxPerMap = 5;
-        brolyHoursWeekday = HourWindows.parse("9-23,0-4");
-        brolyHoursWeekend = HourWindows.parse("9-23,0-4");
+        brolyHoursWeekday = HourWindows.parse("10-23,0-5");
+        brolyHoursWeekend = HourWindows.parse("10-23,0-5");
         superBrolyEnabled = true;
         superBrolyMaxConcurrent = 6;
         superBrolyConcurrentMin = 1;

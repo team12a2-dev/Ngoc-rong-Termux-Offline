@@ -340,9 +340,7 @@ public final class BrolySpawnGate {
     }
 
     private static boolean isWithinSuperWindow() {
-        ZonedDateTime now = ZonedDateTime.now(BossSpawnSchedule.ZONE_VN);
-        boolean weekend = BossSpawnConfig.isWeekend(now);
-        return BossSpawnConfig.superBrolyWindowsFor(weekend).contains(now.getHour());
+        return BossSpawnConfig.isBrolyFamilyWindow(ZonedDateTime.now(BossSpawnSchedule.ZONE_VN));
     }
 
     public static int countActiveBroly() {
