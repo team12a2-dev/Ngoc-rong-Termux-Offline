@@ -63,7 +63,9 @@ export default function PlayersPage() {
       ) : players.length === 0 ? (
         <div className="empty-state">Không có player online.</div>
       ) : (
-        <table>
+        <>
+          <table className="players-table">
+
           <thead>
             <tr>
               <th>Tên</th><th>Power</th><th>Map / Zone</th><th>VND</th><th>IP</th><th></th>
@@ -84,8 +86,29 @@ export default function PlayersPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+                </table>
+        <div className="players-mobile-list">
+          {players.map((p) => (
+            <article key={`mobile-${p.id || p.name}`} className="players-mobile-card">
+              <div className="players-mobile-card-head">
+                <div><h4>{p.name}{p.admin ? ' 👑' : ''}</h4><p className="mobile-card-sub">{p.ip || 'IP ẩn'}</p></div>
+                <span className="badge ok">Online</span>
+              </div>
+              <div className="mobile-meta-grid">
+                <div className="mobile-meta"><span>Power</span><strong>{p.power?.toLocaleString?.() ?? p.power ?? '—'}</strong></div>
+                <div className="mobile-meta"><span>Vị trí</span><strong>Map {p.mapId ?? '—'} · z{p.zoneId ?? '—'}</strong></div>
+                <div className="mobile-meta"><span>VND</span><strong>{Number(p.vnd ?? 0).toLocaleString()}</strong></div>
+              </div>
+              <div className="mobile-card-actions">
+                <Link className="btn sm" to="/players-db" state={{ playerName: p.name }}>Quản lý</Link>
+                <button className="btn danger sm" onClick={() => kick(p.name)}>Kick</button>
+              </div>
+            </article>
+          ))}
+        </div>
+        </>
       )}
+
     </div>
   );
 }

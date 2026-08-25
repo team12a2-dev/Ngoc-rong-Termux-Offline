@@ -66,6 +66,7 @@ function LogoutIcon() {
 export default function Layout() {
   const navigate = useNavigate();
   const [sessionReady, setSessionReady] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [shopRacePreview] = useShopRacePreview();
 
   useEffect(() => {
@@ -113,7 +114,21 @@ export default function Layout() {
     <div className="layout">
       <div className="layout-bg" />
 
-      <aside className="sidebar">
+            <button
+        type="button"
+        className="mobile-menu-toggle"
+        aria-label={mobileNavOpen ? 'Đóng menu' : 'Mở menu'}
+        aria-expanded={mobileNavOpen}
+        onClick={() => setMobileNavOpen((open) => !open)}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+      {mobileNavOpen && <button type="button" className="mobile-nav-scrim" aria-label="Đóng menu" onClick={() => setMobileNavOpen(false)} />}
+
+      <aside className={`sidebar${mobileNavOpen ? ' is-mobile-open' : ''}`}>
+
         <header className="sidebar-brand">
           <img
             src="/brand-logo.png"
@@ -144,8 +159,10 @@ export default function Layout() {
                   to={to}
                   end={end}
                   className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-                  title={to === '/shops' && shopRacePreview ? shopRacePreviewTitle(shopRacePreview) : undefined}
+                                    title={to === '/shops' && shopRacePreview ? shopRacePreviewTitle(shopRacePreview) : undefined}
+                  onClick={() => setMobileNavOpen(false)}
                 >
+
                   <span className="nav-link-icon">
                     <NavIcon name={icon} />
                   </span>
@@ -173,7 +190,18 @@ export default function Layout() {
         </div>
       </aside>
 
+            <div className="mobile-topbar">
+        <div className="mobile-topbar-brand">
+          <strong>NRO Control Panel</strong>
+          <span>Quản trị server</span>
+        </div>
+        <button type="button" className="mobile-logout-btn" onClick={logout} aria-label="Đăng xuất">
+          <LogoutIcon />
+        </button>
+      </div>
+
       <main className="content">
+
         <div className="content-inner">
           <Outlet />
         </div>

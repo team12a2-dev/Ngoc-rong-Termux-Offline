@@ -166,7 +166,8 @@ export default function BossPage() {
             </div>
           </div>
 
-          <table>
+                    <table className="boss-monitor-table">
+
             <thead>
               <tr>
                 <th>ID</th>
@@ -207,8 +208,26 @@ export default function BossPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+                    </table>
+          <div className="boss-mobile-list">
+            {bosses.map((b) => (
+              <article key={`mobile-${b.id}`} className={`boss-mobile-card ${b.group === 'TDST' ? 'row-highlight' : ''}`}>
+                <div className="boss-mobile-card-head">
+                  <div><h4>{b.name || `Boss #${b.id}`}</h4><p className="mobile-card-sub">#{b.id} · {b.group || 'Không phân nhóm'}</p></div>
+                  <span className={`badge ${statusBadgeClass(b.status)}`}>{b.status}</span>
+                </div>
+                <div className="mobile-meta-grid">
+                  <div className="mobile-meta"><span>HP</span><strong>{b.hp?.toLocaleString?.()}/{b.hpMax?.toLocaleString?.()}</strong></div>
+                  <div className="mobile-meta"><span>Spawn sau</span><strong>{b.status === 'REST' && b.spawnCountdownSec != null ? formatCountdown(b.spawnCountdownSec) : '—'}</strong></div>
+                  <div className="mobile-meta"><span>Vị trí</span><strong>{b.mapId != null ? `${b.mapName || `Map ${b.mapId}`} · khu ${b.zoneId}` : '—'}</strong></div>
+                  <div className="mobile-meta"><span>Tier</span><strong>{b.spawnTier || '—'}</strong></div>
+                </div>
+                {b.spawnBlockReason && <p className="mobile-card-sub">Lý do chờ: {b.spawnBlockReason}</p>}
+              </article>
+            ))}
+          </div>
           {bosses.length === 0 && <div className="empty-state">Không có boss nào đang theo dõi.</div>}
+
         </>
       )}
 
