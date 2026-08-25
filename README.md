@@ -147,6 +147,10 @@ cd ~/ngocrong-termux && bash nro.sh
 | `bash nro.sh console` | Chạy foreground để xem log trực tiếp |
 | `bash nro.sh rebuild` | Biên dịch lại mã Java |
 | `bash nro.sh panel` | Setup và khởi động riêng panel web |
+| `bash nro.sh backup` | Xuất database online khi server đang chạy, tạo file nén và checksum |
+| `bash nro.sh backup-schedule` | Đăng ký hoặc cập nhật lịch backup định kỳ bằng Termux:API |
+| `bash nro.sh backup-status` | Xem job backup, file backup gần nhất và log |
+| `bash nro.sh backup-cancel` | Hủy lịch backup định kỳ |
 | `cat .runtime/panel-admin-password` | Xem mật khẩu admin panel được sinh tự động |
 
 Theo dõi log trực tiếp:
@@ -270,102 +274,70 @@ bash nro.sh status
 
 > **Lưu ý:** File SQL phải tương thích với schema hiện tại. Nếu thay đổi `item_template`, ID item phải liên tục từ `0` đến `MAX(id)`; sau khi cập nhật nên restart server để Java nạp lại dữ liệu runtime.
 
-### 🔄 Tự động backup database hàng ngày
+### 🔄 Backup database khi server đang chạy và tự động định kỳ
 
-Để tự động sao lưu database mỗi 24 giờ, có thể dùng `termux-job-scheduler` của Termux:API. Cách này tạo bản backup nén `.sql.gz` trong `.runtime/backups/daily`, giữ lại mặc định 7 ngày và ghi log tại `.runtime/backup.log`. Android có thể dời thời điểm chạy do cơ chế tiết kiệm pin; không nên coi lịch này là bản sao duy nhất nếu dữ liệu quan trọng.
+Repository đã tích hợp script `backup-database.sh` và các lệnh backup vào `nro.sh`. Backup dùng `mariadb-dump --single-transaction`, vì vậy có thể xuất database khi game server vẫn đang vận hành mà không cần dừng Java server. File được nén thành `.sql.gz`, lưu trong `.runtime/backups/` và mặc định giữ lại 7 ngày.
 
-Cài gói lệnh Termux:API. Ứng dụng **Termux:API** cũng phải được cài trên Android từ cùng nguồn với Termux, sau đó chạy:
+Cài package lệnh Termux:API và `gzip`. Ứng dụng **Termux:API** cũng phải được cài trên Android từ cùng nguồn với Termux:
 
 ```bash
 pkg update -y
 pkg install -y termux-api gzip
 ```
 
-Tạo script backup trong thư mục dự án:
-
-```bash
-cat > "$HOME/ngocrong-termux/backup-database.sh" <<'BACKUP_SCRIPT'
-#!/data/data/com.termux/files/usr/bin/bash
-set -Eeuo pipefail
-
-ROOT="$HOME/ngocrong-termux"
-STATE_DIR="$ROOT/.runtime"
-DB_RUN_DIR="${PREFIX:-$HOME}/var/run/mysqld"
-DB_SOCKET="${NRO_DB_SOCKET:-$DB_RUN_DIR/mysqld.sock}"
-DB_NAME="${NRO_DB_NAME:-ngocrong}"
-BACKUP_DIR="$STATE_DIR/backups/daily"
-KEEP_DAYS="${NRO_BACKUP_KEEP_DAYS:-7}"
-LOG_FILE="$STATE_DIR/backup.log"
-STAMP="$(date +%Y%m%d-%H%M%S)"
-OUT_FILE="$BACKUP_DIR/${DB_NAME}-${STAMP}.sql.gz"
-TMP_FILE="$OUT_FILE.tmp"
-
-mkdir -p "$BACKUP_DIR"
-exec >> "$LOG_FILE" 2>&1
-printf '[%s] Bắt đầu backup database %s\n' "$(date '+%F %T')" "$DB_NAME"
-
-if ! mariadb-admin --protocol=socket --socket="$DB_SOCKET" -uroot ping >/dev/null 2>&1; then
-  printf '[%s] MariaDB chưa chạy; backup thất bại\n' "$(date '+%F %T')"
-  exit 1
-fi
-
-if command -v mariadb-dump >/dev/null 2>&1; then
-  DUMP_BIN="$(command -v mariadb-dump)"
-elif command -v mysqldump >/dev/null 2>&1; then
-  DUMP_BIN="$(command -v mysqldump)"
-else
-  printf '[%s] Không tìm thấy mariadb-dump hoặc mysqldump\n' "$(date '+%F %T')"
-  exit 1
-fi
-
-cleanup() { rm -f "$TMP_FILE"; }
-trap cleanup EXIT
-"$DUMP_BIN" --protocol=socket --socket="$DB_SOCKET" \
-  --single-transaction --quick --routines --events --triggers \
-  -uroot "$DB_NAME" | gzip -c > "$TMP_FILE"
-test -s "$TMP_FILE"
-mv -f "$TMP_FILE" "$OUT_FILE"
-find "$BACKUP_DIR" -type f -name '*.sql.gz' -mtime +"$KEEP_DAYS" -delete
-printf '[%s] Backup thành công: %s\n' "$(date '+%F %T')" "$OUT_FILE"
-BACKUP_SCRIPT
-chmod 700 "$HOME/ngocrong-termux/backup-database.sh"
-```
-
-Chạy thử thủ công trước khi lập lịch. Nếu thành công, thư mục backup sẽ có một file `.sql.gz` mới:
+Xuất database ngay lập tức để kiểm tra:
 
 ```bash
 cd ~/ngocrong-termux
-bash ./backup-database.sh
-ls -lh .runtime/backups/daily/
+bash nro.sh backup
+```
+
+Lệnh trên tạo file backup có dạng `.runtime/backups/ngocrong-YYYYMMDD-HHMMSS.sql.gz`, kèm file checksum `.sha256` và log tại `.runtime/backup.log`. Kiểm tra kết quả:
+
+```bash
+ls -lh .runtime/backups/
 tail -n 50 .runtime/backup.log
 ```
 
-Tạo hoặc cập nhật job hàng ngày với ID cố định. Lệnh hủy job cũ trước để tránh tạo nhiều lịch backup trùng nhau:
+Thiết lập tự động backup mỗi 24 giờ bằng job ID cố định. Chạy lệnh này một lần sau khi cài đặt; lệnh sẽ hủy job cùng ID trước để tránh lịch trùng:
 
 ```bash
-termux-job-scheduler --cancel --job-id 1001 2>/dev/null || true
-termux-job-scheduler \
-  --job-id 1001 \
-  --script "$HOME/ngocrong-termux/backup-database.sh" \
-  --period-ms 86400000 \
-  --network none \
-  --battery-not-low false \
-  --persisted true
+cd ~/ngocrong-termux
+bash nro.sh backup-schedule
 ```
 
-Kiểm tra job đã được Android đăng ký:
+Mặc định launcher dùng chu kỳ `86400000` mili giây (24 giờ), job ID `1001`, không yêu cầu mạng và được giữ lại sau khi Android khởi động lại. Có thể cấu hình rõ ràng bằng biến môi trường:
 
 ```bash
-termux-job-scheduler --pending
+NRO_BACKUP_JOB_ID=1001 \
+NRO_BACKUP_PERIOD_MS=86400000 \
+bash ~/ngocrong-termux/nro.sh backup-schedule
 ```
 
-Nếu muốn giữ backup lâu hơn hoặc ngắn hơn, đặt biến môi trường trước khi chạy script, ví dụ giữ 14 ngày:
+Xem lịch, các file backup gần nhất và đường dẫn log:
 
 ```bash
-NRO_BACKUP_KEEP_DAYS=14 bash ~/ngocrong-termux/backup-database.sh
+cd ~/ngocrong-termux
+bash nro.sh backup-status
 ```
 
-> **Quan trọng:** Backup nằm trong bộ nhớ cục bộ của điện thoại. Nếu điện thoại hỏng, mất hoặc bị xóa dữ liệu, các file này cũng có thể mất. Hãy định kỳ chép `.runtime/backups/daily/` sang bộ nhớ ngoài hoặc máy chủ riêng. Không đưa backup chứa dữ liệu người chơi lên repository công khai.
+Đổi thời gian lưu backup, ví dụ giữ 14 ngày:
+
+```bash
+printf 'NRO_BACKUP_KEEP_DAYS=14\n' > ~/ngocrong-termux/.runtime/backup.conf
+bash ~/ngocrong-termux/nro.sh backup
+```
+
+Hủy tự động backup khi không còn sử dụng:
+
+```bash
+cd ~/ngocrong-termux
+bash nro.sh backup-cancel
+```
+
+> **Lưu ý:** Android có thể trì hoãn job do cơ chế tiết kiệm pin. Hãy tắt tối ưu pin cho Termux và Termux:API nếu cần lịch chạy ổn định. Backup vẫn nằm trên bộ nhớ điện thoại; hãy định kỳ chép `.runtime/backups/` sang bộ nhớ ngoài hoặc máy chủ riêng. Không commit backup chứa dữ liệu người chơi lên repository công khai.
+
+> **An toàn dữ liệu:** `--single-transaction` phù hợp nhất với bảng InnoDB và tạo snapshot nhất quán mà không dừng server. Hãy kiểm tra log sau mỗi lần backup; nếu MariaDB chưa chạy hoặc dump lỗi, script sẽ không đổi tên file tạm thành bản backup hoàn chỉnh.
 
 JVM mặc định dùng cấu hình tiết kiệm RAM:
 
@@ -472,7 +444,8 @@ Ngoc-rong-Termux-Offline/
 ├── src/                         # Java source
 ├── Config.properties.example    # Cấu hình mẫu không chứa mật khẩu
 ├── bootstrap.sh                 # Bootstrap archive public
-├── nro.sh                       # Launcher setup/start/stop/status
+├── backup-database.sh           # Xuất database online, nén, checksum và retention
+├── nro.sh                       # Launcher setup/start/stop/backup/schedule
 └── README.md                    # Tài liệu triển khai này
 ```
 

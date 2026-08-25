@@ -22,6 +22,9 @@ PANEL_PID="$STATE_DIR/panel.pid"
 PANEL_LOG="$STATE_DIR/panel.log"
 PANEL_PORT="${NRO_PANEL_PORT:-3001}"
 PANEL_ADMIN_PASSWORD_FILE="$STATE_DIR/panel-admin-password"
+BACKUP_SCRIPT="$ROOT/backup-database.sh"
+BACKUP_JOB_ID="${NRO_BACKUP_JOB_ID:-1001}"
+BACKUP_PERIOD_MS="${NRO_BACKUP_PERIOD_MS:-86400000}"
 
 DB_NAME="${NRO_DB_NAME:-ngocrong}"
 DB_USER="${NRO_DB_USER:-ngocrong}"
@@ -240,6 +243,46 @@ import_database() {
   say "Import schema và dữ liệu mẫu từ sql/ngocrong.sql"
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$SQL_FILE"
   sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
+}
+
+backup_database() {
+  [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh trong thư mục dự án."
+  chmod 700 "$BACKUP_SCRIPT"
+  bash "$BACKUP_SCRIPT"
+}
+
+backup_schedule() {
+  command -v termux-job-scheduler >/dev/null 2>&1 || die "Thiếu termux-job-scheduler. Hãy cài package termux-api và ứng dụng Termux:API."
+  [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh trong thư mục dự án."
+  case "$BACKUP_PERIOD_MS" in
+    ''|*[!0-9]*) die "NRO_BACKUP_PERIOD_MS phải là số nguyên dương." ;;
+  esac
+  [ "$BACKUP_PERIOD_MS" -ge 900000 ] || die "Chu kỳ backup tối thiểu là 900000ms (15 phút)."
+  chmod 700 "$BACKUP_SCRIPT"
+  termux-job-scheduler --cancel --job-id "$BACKUP_JOB_ID" >/dev/null 2>&1 || true
+  termux-job-scheduler \
+    --job-id "$BACKUP_JOB_ID" \
+    --script "$BACKUP_SCRIPT" \
+    --period-ms "$BACKUP_PERIOD_MS" \
+    --network none \
+    --battery-not-low false \
+    --persisted true
+  say "Đã lập lịch backup database mỗi $((BACKUP_PERIOD_MS / 60000)) phút (job $BACKUP_JOB_ID)."
+  say "Thư mục backup: ${NRO_BACKUP_DIR:-$STATE_DIR/backups}"
+}
+
+backup_cancel() {
+  command -v termux-job-scheduler >/dev/null 2>&1 || die "Thiếu termux-job-scheduler."
+  termux-job-scheduler --cancel --job-id "$BACKUP_JOB_ID"
+  say "Đã hủy lịch backup job $BACKUP_JOB_ID."
+}
+
+backup_status() {
+  command -v termux-job-scheduler >/dev/null 2>&1 || die "Thiếu termux-job-scheduler."
+  termux-job-scheduler --pending
+  printf '\n[NRO] Backup files:\n'
+  find "${NRO_BACKUP_DIR:-$STATE_DIR/backups}" -maxdepth 1 -type f -name '*.sql.gz' -print 2>/dev/null | sort -r | head -n 20 || true
+  printf '\n[NRO] Backup log: %s\n' "${NRO_BACKUP_LOG:-$STATE_DIR/backup.log}"
 }
 
 ensure_panel_admin_password() {
@@ -531,15 +574,29 @@ main() {
       setup_panel
       start_panel
       ;;
+    backup)
+      backup_database
+      ;;
+    backup-schedule)
+      backup_schedule
+      ;;
+    backup-cancel)
+      backup_cancel
+      ;;
+    backup-status)
+      backup_status
+      ;;
     *)
       cat <<'USAGE'
-Sử dụng: ./nro.sh [setup|start|restart|stop|status|console|rebuild|panel]
+Sử dụng: ./nro.sh [setup|start|restart|stop|status|console|rebuild|panel|backup|backup-schedule|backup-cancel|backup-status]
 
-Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel web.
+Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel.
 Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT).
+Backup database: `backup` xuất online, `backup-schedule` lập lịch, `backup-cancel` hủy lịch, `backup-status` xem lịch/file/log.
 Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
 NRO_GAME_LISTEN_HOST, NRO_PANEL_PORT, NRO_PANEL_BIND, PANEL_ADMIN_PASSWORD,
-JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1.
+NRO_BACKUP_DIR, NRO_BACKUP_LOG, NRO_BACKUP_KEEP_DAYS, NRO_BACKUP_JOB_ID,
+NRO_BACKUP_PERIOD_MS, JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1.
 USAGE
       exit 2
       ;;
