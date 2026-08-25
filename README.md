@@ -144,6 +144,8 @@ cd ~/ngocrong-termux && bash nro.sh
 | `bash nro.sh` | Tự setup nếu chưa có, sau đó chạy server nền |
 | `bash nro.sh setup` | Chạy lại dependency/database/import/build theo chủ đích |
 | `bash nro.sh start` | Khởi động server và chờ trạng thái `READY` |
+| `bash nro.sh lan` | Tự nhận IP Wi‑Fi Android, cập nhật địa chỉ client, bind game trên LAN và bật panel LAN |
+| `bash termux-lan-start.sh` | Script chuyên dụng khởi động chế độ LAN trên Termux |
 | `bash nro.sh status` | Hiển thị `STARTING`, `READY` hoặc `STOPPED` cùng PID/MariaDB |
 | `bash nro.sh stop` | Dừng server game, không xóa database |
 | `bash nro.sh restart` | Dừng và khởi động lại server |
@@ -443,9 +445,36 @@ NRO_JVM_OPTS='-server -Dfile.encoding=UTF-8 -Xms128m -Xmx1536m -XX:MaxMetaspaceS
 
 ## 🌐 Kết nối từ thiết bị khác
 
-Java game server mở socket trên `0.0.0.0:<server.port>` (mọi interface). Địa chỉ `server.ip` trong `Config.properties` là địa chỉ **quảng bá cho client**, không phải địa chỉ bind socket. Mặc định giá trị này là `127.0.0.1`, vì vậy client trên thiết bị khác chưa thể kết nối đúng. Khi chơi trong cùng Wi-Fi, sửa `server.ip` và dòng `server.sv1` thành địa chỉ LAN của điện thoại, ví dụ `192.168.1.25`, rồi dùng dòng `Game endpoint LAN` mà launcher in ra. Panel cũng in riêng `Panel URL LAN` trên cổng `3001`.
+Server đã có chế độ LAN dành cho Termux Android. Điện thoại chạy Termux đóng vai trò game server; thiết bị chơi phải kết nối cùng mạng Wi‑Fi. Lệnh LAN tự nhận IPv4 Wi‑Fi của Android, cập nhật địa chỉ quảng bá cho client, bind socket game trên `0.0.0.0` và khởi động panel web trên mọi interface LAN.
 
-Không nên mở cổng game trực tiếp ra Internet khi chưa có firewall, xác thực và biện pháp chống lạm dụng. Với mạng di động, NAT của nhà mạng thường ngăn kết nối trực tiếp; có thể cần VPN mesh hoặc một máy chủ trung gian.
+```bash
+cd ~/ngocrong-termux
+chmod +x nro.sh termux-lan-start.sh
+./termux-lan-start.sh
+```
+
+Hoặc dùng:
+
+```bash
+./nro.sh lan
+```
+
+Sau khi khởi động, đọc nhóm `Endpoint dịch vụ` trong terminal:
+
+```text
+Game endpoint LAN  : 192.168.1.37:14445
+Panel URL LAN      : http://192.168.1.37:3001
+```
+
+Client game dùng `192.168.1.37:14445`; trình duyệt trên điện thoại hoặc máy tính cùng Wi‑Fi dùng `http://192.168.1.37:3001`. Nếu Android có nhiều interface hoặc script chọn sai địa chỉ, chỉ định rõ:
+
+```bash
+NRO_LAN_IP=192.168.1.37 ./nro.sh lan
+```
+
+`server.ip` là địa chỉ **quảng bá cho client**, còn `server.listen.host=0.0.0.0` là địa chỉ bind socket. MariaDB vẫn chỉ bind `127.0.0.1:3306` và không mở ra LAN. Khi router cấp IP mới cho điện thoại, chạy lại `./nro.sh lan` rồi restart server.
+
+Nếu không kết nối được, kiểm tra hai thiết bị có cùng Wi‑Fi, router có bật AP/client isolation hay không, Android có tắt Termux do tối ưu pin hay không và dùng `./nro.sh status` cùng `ss -ltnp | grep -E '14445|3001'`. Không cần mở cổng game ra Internet; mạng di động/NAT thường không cho thiết bị bên ngoài kết nối trực tiếp.
 
 ## 🟢 Trạng thái khởi động
 
@@ -535,7 +564,9 @@ Ngoc-rong-Termux-Offline/
 ├── Config.properties.example    # Cấu hình mẫu không chứa mật khẩu
 ├── bootstrap.sh                 # Bootstrap archive public
 ├── backup-database.sh           # Xuất database online, nén, checksum và retention
-├── nro.sh                       # Launcher setup/start/stop/backup/schedule
+├── nro.sh                       # Launcher setup/start/lan/stop/backup/schedule
+├── termux-lan-start.sh          # Khởi động server LAN trên Android bằng một lệnh
+├── TERMUX-LAN.md                # Hướng dẫn LAN chi tiết và xử lý lỗi
 └── README.md                    # Tài liệu triển khai này
 ```
 
@@ -550,6 +581,7 @@ Ngoc-rong-Termux-Offline/
 | Map asset | `data/map/tile_set_info` tồn tại, đúng case và có trong branch `main` |
 | Readiness | `ServerManager` tạo `.runtime/server.ready` sau khi hoàn tất startup |
 | Runtime | Dữ liệu game khoảng 963 MB; cần tối thiểu khoảng 2–3 GB trống để tải/giải nén/build |
+| LAN Android | `./nro.sh lan` tự nhận IP Wi‑Fi, bind game `0.0.0.0:14445`, panel `0.0.0.0:3001` |
 | Panel | API + React production dùng cổng 3001, PID/log riêng; tự khởi động sau game server |
 
 Các kiểm thử trong sandbox không thay thế kiểm thử trực tiếp trên từng thiết bị Android. Kết quả thực tế còn phụ thuộc phiên bản Termux, mirror package, kiến trúc CPU, dung lượng trống, RAM và chính sách Android đối với tiến trình nền.
