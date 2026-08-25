@@ -22,6 +22,7 @@ const MIGRATION_PATHS = [
   ['006 Event Management', path.resolve(__dirname, '../../sql/migrations/006_event_management.sql')],
   ['007 Recharge Promotions', path.resolve(__dirname, '../../sql/migrations/007_recharge_promotions.sql')],
   ['008 God Spin Management', path.resolve(__dirname, '../../sql/migrations/008_god_spin_management.sql')],
+  ['009 Economy Integrity Fixes', path.resolve(__dirname, '../../sql/migrations/009_economy_integrity_fixes.sql')],
 ];
 
 async function main() {

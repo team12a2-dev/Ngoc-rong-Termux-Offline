@@ -516,8 +516,8 @@ public class ShopService {
         } else if (player.inventory.gem < gem) {
             Service.gI().sendThongBao(player, "Bạn không có đủ ngọc");
             return false;
-        } else if (player.inventory.gem < ruby) {
-            Service.gI().sendThongBao(player, "Bạn không có đủ ngọc");
+        } else if (player.inventory.ruby < ruby) {
+            Service.gI().sendThongBao(player, "Bạn không có đủ ruby");
             return false;
         } else if (player.inventory.coupon < coupon) {
             Service.gI().sendThongBao(player, "Bạn không có đủ điểm");

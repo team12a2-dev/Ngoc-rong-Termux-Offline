@@ -757,10 +757,10 @@ public class InventoryService {
         //gold, gem, ruby
         switch (item.template.type) {
             case 9:
-                if (player.inventory.gold + item.quantity <= Inventory.LIMIT_GOLD) {
-                    if (player.effectSkill.isChibi && player.typeChibi == 0) {
-                        player.inventory.gold += item.quantity;
-                    }
+                if (item.quantity <= 0) {
+                    return false;
+                }
+                if (player.inventory.gold <= Inventory.LIMIT_GOLD - item.quantity) {
                     player.inventory.gold += item.quantity;
                     Service.gI().sendMoney(player);
                     return true;

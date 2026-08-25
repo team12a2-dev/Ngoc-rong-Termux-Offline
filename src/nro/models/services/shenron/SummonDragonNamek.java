@@ -8,8 +8,12 @@ import nro.models.database.PlayerDAO;
 import nro.models.item.Item;
 import nro.models.item.Item.ItemOption;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.List;
+import java.util.UUID;
 import nro.models.map.Zone;
+import nro.models.player.Inventory;
 import nro.models.player.Player;
 import nro.models.server.Client;
 import nro.models.services.InventoryService;
@@ -36,6 +40,7 @@ public class SummonDragonNamek {
     private Zone mapShenronAppear;
     private int menuShenron;
     private byte select;
+    private String wishToken;
     private final Thread update;
     private boolean active;
     public boolean isPlayerDisconnect;
@@ -92,6 +97,7 @@ public class SummonDragonNamek {
             playerSummonShenronId = (int) pl.id;
             mapShenronAppear = pl.zone;
             lastTimeShenronWait = System.currentTimeMillis();
+            wishToken = UUID.randomUUID().toString();
             sendNotifyShenronNamekAppear();
             activeShenron(pl, true, DRAGON_PORUNGA);
             sendBlackGokuhesNamec(pl);
@@ -143,7 +149,7 @@ public class SummonDragonNamek {
         }
     }
 
-    public void confirmWish() {
+    public synchronized void confirmWish() {
         switch (this.menuShenron) {
            case ConstNpc.SHOW_SHENRON_NAMEK_CONFIRM:
     try {
@@ -153,20 +159,26 @@ public class SummonDragonNamek {
             case 0:
                 if (playerSummonShenron.clan != null) {
                     playerSummonShenron.clan.members.forEach(m -> {
+                        if (!claimWishReward(m.id, (byte) 0)) {
+                            return;
+                        }
                         Player p = Client.gI().getPlayer(m.id);
                         if (p != null) {
-                            p.inventory.gem += 300;
+                            p.inventory.gem = (int) Math.min(Integer.MAX_VALUE,
+                                    (long) p.inventory.gem + 300L);
                             Service.gI().sendMoney(p);
                         } else {
                             Player off = AmodsubVN.loadById(m.id);
                             if (off != null) {
-                                off.inventory.gem += 300;
+                                off.inventory.gem = (int) Math.min(Integer.MAX_VALUE,
+                                        (long) off.inventory.gem + 300L);
                                 PlayerDAO.updatePlayer(off);
                             }
                         }
                     });
-                } else {
-                    playerSummonShenron.inventory.gem += 300;
+                } else if (claimWishReward(playerSummonShenron.id, (byte) 0)) {
+                    playerSummonShenron.inventory.gem = (int) Math.min(Integer.MAX_VALUE,
+                            (long) playerSummonShenron.inventory.gem + 300L);
                     Service.gI().sendMoney(playerSummonShenron);
                 }
                 break;
@@ -176,10 +188,14 @@ public class SummonDragonNamek {
 case 1:
     if (playerSummonShenron.clan != null) {
         playerSummonShenron.clan.members.forEach(m -> {
+            if (!claimWishReward(m.id, (byte) 1)) {
+                return;
+            }
             Player p = Client.gI().getPlayer(m.id);
             if (p != null) {
                 // Online
-                p.inventory.gold += 20000000;
+                p.inventory.gold = Math.min(Inventory.LIMIT_GOLD,
+                        p.inventory.gold + 20_000_000L);
                 
                 Item item = ItemService.gI().createNewItem((short) 190);
                 InventoryService.gI().addItemBag(p, item);
@@ -191,7 +207,8 @@ case 1:
                 // Offline
                 Player off = AmodsubVN.loadById(m.id);
                 if (off != null) {
-                    off.inventory.gold += 20000000;
+                    off.inventory.gold = Math.min(Inventory.LIMIT_GOLD,
+                            off.inventory.gold + 20_000_000L);
 
                     Item item = ItemService.gI().createNewItem((short) 190);
                     InventoryService.gI().addItemBag(off, item);
@@ -200,9 +217,10 @@ case 1:
                 }
             }
         });
-    } else {
+    } else if (claimWishReward(playerSummonShenron.id, (byte) 1)) {
         // Không có bang
-        playerSummonShenron.inventory.gold += 20000000;
+        playerSummonShenron.inventory.gold = Math.min(Inventory.LIMIT_GOLD,
+                playerSummonShenron.inventory.gold + 20_000_000L);
 
         Item item = ItemService.gI().createNewItem((short) 190);
         InventoryService.gI().addItemBag(playerSummonShenron, item);
@@ -218,6 +236,25 @@ case 1:
     }
     break;}
         shenronLeave(this.playerSummonShenron, WISHED);
+    }
+
+    private boolean claimWishReward(long playerId, byte rewardType) {
+        if (wishToken == null || playerId <= 0) {
+            return false;
+        }
+        String sql = "INSERT IGNORE INTO namek_wish_claims "
+                + "(wish_token, player_id, reward_type, status) VALUES (?, ?, ?, 'delivered')";
+        try (Connection con = nro.models.data.LocalManager.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, wishToken);
+            ps.setLong(2, playerId);
+            ps.setByte(3, rewardType);
+            return ps.executeUpdate() == 1;
+        } catch (Exception e) {
+            Service.gI().sendThongBao(playerSummonShenron,
+                    "Không thể xác nhận điều ước, vui lòng thử lại sau.");
+            return false;
+        }
     }
 
     public void showConfirmShenron(Player pl, int menu, byte select) {

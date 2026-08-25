@@ -38,8 +38,6 @@ public class GiftCodeService {
 //            InventoryService.gI().addItemBag(player, item);
 //            InventoryService.gI().sendItemBags(player);
             Service.gI().sendThongBao(player, "Code không chính xác!");
-        } else if (giftcode.timeCode()) {
-            Service.gI().sendThongBao(player, "Code đã hết hạn");
         } else {
             Set<Integer> keySet = giftcode.detail.keySet();
             String textGift = "|0|Bạn vừa nhận được:\b";

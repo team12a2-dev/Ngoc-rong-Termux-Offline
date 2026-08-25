@@ -200,9 +200,9 @@ public void createFormAdminAddVnd(Player pl) {
                     }
                     if (player.getSession().vnd < cuantity1) {
                         Service.gI().sendThongBao(player, "Số dư không đủ, vui lòng nạp thêm");
+                    } else if (!PlayerDAO.subvnd(player, cuantity1)) {
+                        Service.gI().sendThongBao(player, "Không thể trừ số dư VND, vui lòng thử lại.");
                     } else {
-                        PlayerDAO.subvnd(player, cuantity1);
-
                         int soLuongThoiVang = (cuantity1 / 1000) * 4;
                         Item item457 = ItemService.gI().createNewItem((short) 457, soLuongThoiVang);
                         InventoryService.gI().addItemBag(player, item457);
@@ -232,10 +232,12 @@ public void createFormAdminAddVnd(Player pl) {
                     }
                     if (player.getSession().vnd < quantity) {
                         Service.gI().sendThongBao(player, "Số dư không đủ, vui lòng nạp thêm");
+                    } else if (!PlayerDAO.subvnd(player, quantity)) {
+                        Service.gI().sendThongBao(player, "Không thể trừ số dư VND, vui lòng thử lại.");
                     } else {
-                        PlayerDAO.subvnd(player, quantity);
-int soGem = quantity / 10; 
-player.inventory.gem += soGem;
+                        int soGem = quantity / 10;
+                        player.inventory.gem = Math.min(Integer.MAX_VALUE,
+                                player.inventory.gem + soGem);
 
                         Service.gI().sendMoney(player);
 

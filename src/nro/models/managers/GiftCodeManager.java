@@ -114,29 +114,67 @@ public class GiftCodeManager {
 }
 
     public GiftCode checkUseGiftCode(Player player, String code) {
+        if (player == null || code == null || code.isBlank()) {
+            return null;
+        }
         for (GiftCode giftCode : listGiftCode) {
-            if (giftCode.code.equals(code)) {
-                if (giftCode.countLeft <= 0) {
-                    Service.gI().sendThongBaoOK(player, "Giftcode đã hết");
-                    return null;
-                } else if (giftCode.isUsedGiftCode(player)) {
-                    Service.gI().sendThongBaoOK(player, "Tham lam!");
-                    return null;
-                }
-
-                if (InventoryService.gI().getCountEmptyBag(player) < giftCode.detail.size()) {
-                    Service.gI().sendThongBaoOK(player,
-                            "Cần tối thiểu " + giftCode.detail.size() + " ô hành trang trống");
-                    return null;
-                }
-
-                giftCode.countLeft--;
+            if (!giftCode.code.equals(code)) {
+                continue;
+            }
+            if (giftCode.timeCode()) {
+                Service.gI().sendThongBaoOK(player, "Giftcode đã hết hạn");
+                return null;
+            }
+            // Compatibility check for claims saved in the legacy player JSON.
+            // The SQL unique key remains the authoritative concurrency guard.
+            if (giftCode.isUsedGiftCode(player)) {
+                Service.gI().sendThongBaoOK(player, "Bạn đã sử dụng giftcode này");
+                return null;
+            }
+            if (InventoryService.gI().getCountEmptyBag(player) < giftCode.detail.size()) {
+                Service.gI().sendThongBaoOK(player,
+                        "Cần tối thiểu " + giftCode.detail.size() + " ô hành trang trống");
+                return null;
+            }
+            if (claimGiftCodeAtomically(player, giftCode)) {
                 player.giftCode.add(code);
-                updateGiftCode(giftCode);
+                giftCode.countLeft = Math.max(0, giftCode.countLeft - 1);
                 return giftCode;
             }
+            Service.gI().sendThongBaoOK(player, "Giftcode đã hết hoặc bạn đã sử dụng code này");
+            return null;
         }
         return null;
+    }
+
+    private boolean claimGiftCodeAtomically(Player player, GiftCode giftCode) {
+        String insert = "INSERT INTO giftcode_claims (giftcode_id, player_id, code_snapshot) VALUES (?, ?, ?)";
+        String decrement = "UPDATE giftcode SET count_left = count_left - 1 "
+                + "WHERE id = ? AND count_left > 0 AND (expired IS NULL OR expired > NOW())";
+        try (Connection con = LocalManager.getConnection()) {
+            con.setAutoCommit(false);
+            try (PreparedStatement claim = con.prepareStatement(insert)) {
+                claim.setInt(1, giftCode.id);
+                claim.setLong(2, player.id);
+                claim.setString(3, giftCode.code);
+                if (claim.executeUpdate() != 1) {
+                    con.rollback();
+                    return false;
+                }
+            }
+            try (PreparedStatement update = con.prepareStatement(decrement)) {
+                update.setInt(1, giftCode.id);
+                if (update.executeUpdate() != 1) {
+                    con.rollback();
+                    return false;
+                }
+            }
+            con.commit();
+            return true;
+        } catch (Exception e) {
+            Service.gI().sendThongBaoOK(player, "Không thể xác nhận giftcode, vui lòng thử lại");
+            return false;
+        }
     }
 
 

@@ -1154,23 +1154,24 @@ public static void updateVnd(Player player) {
     }
 
     public static boolean subvnd(Player player, int num) {
-        PreparedStatement ps = null;
-        try (Connection con = LocalManager.getConnection();) {
-            if (player.getSession().vnd >= num) {
-            } else {
-                return false;
-            }
-            ps = con.prepareStatement("update account set vnd = vnd - ? where id = ?");
+        if (player == null || player.getSession() == null || num <= 0) {
+            return false;
+        }
+        try (Connection con = LocalManager.getConnection();
+                PreparedStatement ps = con.prepareStatement(
+                        "UPDATE account SET vnd = vnd - ? WHERE id = ? AND vnd >= ?")) {
             ps.setInt(1, num);
             ps.setInt(2, player.getSession().userId);
-            ps.executeUpdate();
-            player.getSession().vnd -= num;
-
+            ps.setInt(3, num);
+            if (ps.executeUpdate() != 1) {
+                return false;
+            }
+            player.getSession().vnd = Math.max(0, player.getSession().vnd - num);
+            return true;
         } catch (Exception e) {
             Logger.logException(PlayerDAO.class, e, "Lỗi update vnd " + player.name);
             return false;
         }
-        return true;
     }
 public static void addVnd(Player player, int amount) {
     try {
@@ -1187,23 +1188,25 @@ public static void addVnd(Player player, int amount) {
 
 
     public static boolean MuaThanhVien(Player player, int num) {
-        PreparedStatement ps = null;
-        try (Connection con = LocalManager.getConnection();) {
-            if (player.getSession().vnd >= num) {
-            } else {
-                return false;
-            }
-            ps = con.prepareStatement("update account set vnd = (vnd - ?), active = ? where id = ?");
+        if (player == null || player.getSession() == null || num <= 0) {
+            return false;
+        }
+        try (Connection con = LocalManager.getConnection();
+                PreparedStatement ps = con.prepareStatement(
+                        "UPDATE account SET vnd = vnd - ?, active = ? WHERE id = ? AND vnd >= ?")) {
             ps.setInt(1, num);
             ps.setInt(2, player.getSession().actived ? 1 : 0);
             ps.setInt(3, player.getSession().userId);
-            ps.executeUpdate();
-            player.getSession().vnd -= num;
+            ps.setInt(4, num);
+            if (ps.executeUpdate() != 1) {
+                return false;
+            }
+            player.getSession().vnd = Math.max(0, player.getSession().vnd - num);
+            return true;
         } catch (Exception e) {
             Logger.logException(PlayerDAO.class, e, "Lỗi update mua thành viên " + player.name);
             return false;
         }
-        return true;
     }
 
     public static void LogAddPoint(String name, int id, int point, String type) {

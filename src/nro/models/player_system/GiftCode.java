@@ -27,6 +27,7 @@ public class GiftCode {
     }
 
     public boolean timeCode() {
-        return this.datecreate.getTime() > this.dateexpired.getTime();
+        return this.dateexpired != null
+                && System.currentTimeMillis() >= this.dateexpired.getTime();
     }
 }
