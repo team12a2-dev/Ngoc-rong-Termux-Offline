@@ -157,6 +157,35 @@ async function main() {
     console.log('✓ Added time-aware drop item unique index');
   }
 
+  // Backward-compatible migration for the first behavior-based usable-item build.
+  const [usableDurationColumn] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = 'panel_usable_items' AND column_name = 'duration_seconds'`,
+    [dbConfig.database]
+  );
+  if (Number(usableDurationColumn[0].c) === 0) {
+    await conn.query('ALTER TABLE panel_usable_items ADD COLUMN duration_seconds INT UNSIGNED NOT NULL DEFAULT 600 AFTER template_id');
+    console.log('✓ Added panel_usable_items.duration_seconds');
+  }
+  const [legacyBehaviorColumn] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = 'panel_usable_items' AND column_name = 'behavior_key'`,
+    [dbConfig.database]
+  );
+  if (Number(legacyBehaviorColumn[0].c) > 0) {
+    const [legacyUsableIndex] = await conn.query(
+      `SELECT COUNT(*) AS c FROM information_schema.statistics
+       WHERE table_schema = ? AND table_name = 'panel_usable_items' AND index_name = 'idx_usable_item_enabled'`,
+      [dbConfig.database]
+    );
+    if (Number(legacyUsableIndex[0].c) > 0) {
+      await conn.query('ALTER TABLE panel_usable_items DROP INDEX idx_usable_item_enabled');
+    }
+    await conn.query('ALTER TABLE panel_usable_items DROP COLUMN behavior_key');
+    await conn.query('ALTER TABLE panel_usable_items ADD INDEX idx_usable_item_enabled (enabled, template_id)');
+    console.log('✓ Removed legacy panel_usable_items.behavior_key');
+  }
+
   // Verify panel tables
   for (const table of PANEL_TABLES) {
     const [rows] = await conn.query(

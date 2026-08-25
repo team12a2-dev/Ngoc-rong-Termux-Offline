@@ -42,6 +42,10 @@ public class ItemTimeService {
         if (player.itemTime.isUseBoHuyet) {
             sendItemTime(player, 2755, (int) ((TIME_ITEM - (System.currentTimeMillis() - player.itemTime.lastTimeBoHuyet)) / 1000));
         }
+        if (player.itemTime.isUseUsableItem && player.itemTime.usableItemIcon > 0) {
+            long remaining = (player.itemTime.lastTimeUseUsableItem + player.itemTime.timeLengthUsableItem) - System.currentTimeMillis();
+            sendItemTime(player, player.itemTime.usableItemIcon, (int) Math.max(0, remaining / 1000));
+        }
         if (player.itemTime.isUseBoKhi) {
             sendItemTime(player, 2756, (int) ((TIME_ITEM - (System.currentTimeMillis() - player.itemTime.lastTimeBoKhi)) / 1000));
         }

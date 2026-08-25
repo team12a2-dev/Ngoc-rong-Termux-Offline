@@ -238,12 +238,14 @@ Mục **Game & Server → Item Templates** quản lý trực tiếp bảng `item
 
 ### Item bổ trợ
 
-Mục **Game & Server → Item bổ trợ** cho phép đăng ký item `type = 29` để sử dụng trong game theo cơ chế buff đã được server hỗ trợ. Luồng này tách thành hai bước: trước hết tạo hoặc chỉnh item template trong **Item Templates**, sau đó chọn item đó ở **Item bổ trợ** và gán behavior. Không cần sửa switch ID trong Java hay chạy SQL thủ công.
+Mục **Game & Server → Item bổ trợ** cho phép đăng ký item `type = 29` và gán các dòng option chỉ số từ bảng `item_option_template`. Bổ huyết chỉ là một item mẫu trong source, không phải behavior cố định của panel. Mỗi mapping lưu thời lượng, trạng thái bật/tắt và danh sách `option_id:param`; không cần sửa switch ID trong Java hoặc chạy SQL thủ công.
 
-| Behavior | Hiệu ứng runtime | Quy tắc tương thích |
-|---|---|---|
-| **Bổ huyết** (`bo_huyet`) | Tăng `100%` HP tối đa trong `10 phút`, dùng chung state và timer của item gốc `382`. | Không kích hoạt nếu Bổ huyết 2 đang chạy. |
-| **Bổ huyết 2** (`bo_huyet_2`) | Tăng `120%` HP tối đa trong `10 phút`, dùng chung state và timer của item gốc `1152`. | Không kích hoạt nếu Bổ huyết thường đang chạy. |
+| Thành phần | Logic runtime |
+|---|---|
+| Item template | Chỉ item có `type = 29` mới được đăng ký. ID item vẫn phải liên tục theo yêu cầu của `Manager.ITEM_TEMPLATES`. |
+| Option chỉ số | Chọn option trong catalog, nhập `param`, ví dụ `47:5` là Giáp+5, `77:20` là HP+20%, `50:10` là Sức đánh+10%. |
+| Thời lượng | Nhập bằng giây, mặc định `600` giây và tối đa `30 ngày`. Khi hết hạn, option tạm thời được gỡ và point được tính lại. |
+| Runtime reload | Lưu mapping vào `panel_usable_items` và `panel_usable_item_options`, sau đó gọi Java Agent `/reload/usable-items` mà không cần restart server. |
 
 #### Quy trình cấu hình
 
@@ -251,14 +253,14 @@ Mục **Game & Server → Item bổ trợ** cho phép đăng ký item `type = 29
 1. Mở Game & Server → Item Templates và tạo item mới với type = 29.
 2. Đặt tên, mô tả, icon và các trường template cần thiết; bảo đảm ID item liên tục.
 3. Mở Game & Server → Item bổ trợ.
-4. Chọn item type 29 trong catalog, chọn Bổ huyết hoặc Bổ huyết 2, rồi bấm Lưu mapping.
-5. Bật/tắt mapping bằng công tắc trên form; bấm Reload runtime sau khi thay đổi nếu cần.
-6. Thêm item vào túi qua shop, giftcode hoặc công cụ quản trị rồi dùng item trong game để kiểm tra.
+4. Chọn item type 29, đặt thời lượng và bấm + Thêm trong danh sách option chỉ số.
+5. Nhập param cho từng option, kiểm tra phần preview rồi bấm Lưu option & reload.
+6. Cấp item vào túi qua shop, giftcode hoặc công cụ quản trị rồi dùng item trong game.
 ```
 
-Khi sử dụng thành công, server kiểm tra mapping theo `item_template.id`, cập nhật lại điểm nhân vật, gửi timer/icon tương ứng cho client, trừ đúng một item trong stack và đồng bộ lại túi. Mapping được nạp lại trực tiếp từ `panel_usable_items`, vì vậy thay đổi bật/tắt hoặc behavior có hiệu lực mà không cần restart game server. Nếu Agent tạm thời không phản hồi, dữ liệu vẫn được lưu trong database để reload lại sau.
+Khi sử dụng thành công, server lấy đúng option đã cấu hình, áp dụng qua bộ tính chỉ số `NPoint`, gửi timer bằng icon của item, trừ một item trong stack và đồng bộ lại túi. Trạng thái cùng danh sách option được lưu trong `data_item_time`, nên buff còn hạn vẫn được khôi phục khi player đăng nhập lại. Nếu Agent tạm thời không phản hồi, dữ liệu panel vẫn được lưu để reload lại sau.
 
-> **Giới hạn có chủ ý:** phiên bản hiện tại tái sử dụng hai state Bổ huyết đã tồn tại để bảo đảm timer phía client và trạng thái buff survive relog. Do đó panel chỉ cung cấp hai behavior trên, chưa cho nhập phần trăm HP, thời lượng hoặc icon tùy ý. Muốn có behavior mới hoàn toàn cần bổ sung state persistence, logic `NPoint` và tài nguyên client tương ứng; chỉ thêm một dòng mapping không tự tạo hiệu ứng mới.
+> **Giới hạn an toàn:** panel chỉ chấp nhận option template tồn tại trong DB game và Java chỉ áp dụng hiệu ứng mà `NPoint.addOption` đã hỗ trợ. Option mang tính vật liệu, cosmetic hoặc chức năng riêng không tự tạo ra logic mới; hãy chọn option chỉ số có gameplay effect trong catalog.
 
 ### 🛒 Cửa hàng/NPC Shop
 

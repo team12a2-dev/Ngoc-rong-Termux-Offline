@@ -576,6 +576,10 @@ public class AmodsubVN {
             long timeNuocMia1 = 0;
             long timeNuocMia2 = 0;
             long timeNuocMia3 = 0;
+            long timeUsableItem = 0;
+            int usableItemTemplateId = -1;
+            int usableItemIcon = 0;
+            String usableItemOptionsData = "[]";
             int timeBoHuyet = Integer.parseInt(String.valueOf(dataArray.get(0)));
             int timeBoHuyet2 = Integer.parseInt(String.valueOf(dataArray.get(1)));
             int timeBoKhi = Integer.parseInt(String.valueOf(dataArray.get(2)));
@@ -646,6 +650,18 @@ public class AmodsubVN {
 }
             if (dataArray.size() > 30) {
             }
+            if (dataArray.size() > 31) {
+                timeUsableItem = Long.parseLong(String.valueOf(dataArray.get(31)));
+            }
+            if (dataArray.size() > 32) {
+                usableItemTemplateId = Integer.parseInt(String.valueOf(dataArray.get(32)));
+            }
+            if (dataArray.size() > 33) {
+                usableItemIcon = Integer.parseInt(String.valueOf(dataArray.get(33)));
+            }
+            if (dataArray.size() > 34) {
+                usableItemOptionsData = String.valueOf(dataArray.get(34));
+            }
 
             player.itemTime.lastTimeBoHuyet = System.currentTimeMillis() - (ItemTime.TIME_ITEM - timeBoHuyet);
             player.itemTime.lastTimeBoKhi = System.currentTimeMillis() - (ItemTime.TIME_ITEM - timeBoKhi);
@@ -685,6 +701,23 @@ public class AmodsubVN {
             player.itemTime.isUseGiapXen2 = timeGiapXen2 != 0;
             player.itemTime.isUseCuongNo2 = timeCuongNo2 != 0;
             player.itemTime.isUseAnDanh2 = timeAnDanh2 != 0;
+            player.itemTime.isUseUsableItem = timeUsableItem > 0;
+            player.itemTime.lastTimeUseUsableItem = System.currentTimeMillis();
+            player.itemTime.timeLengthUsableItem = Math.max(0, timeUsableItem);
+            player.itemTime.usableItemTemplateId = usableItemTemplateId;
+            player.itemTime.usableItemIcon = usableItemIcon;
+            player.itemTime.usableItemOptions.clear();
+            JSONArray usableOptions = (JSONArray) JSONValue.parse(usableItemOptionsData);
+            if (usableOptions != null) {
+                for (Object rawOption : usableOptions) {
+                    JSONObject option = (JSONObject) JSONValue.parse(String.valueOf(rawOption));
+                    if (option != null && option.get("id") != null) {
+                        int optionId = Integer.parseInt(String.valueOf(option.get("id")));
+                        int param = Integer.parseInt(String.valueOf(option.getOrDefault("param", 0)));
+                        player.itemTime.usableItemOptions.add(new Item.ItemOption(optionId, param));
+                    }
+                }
+            }
             player.itemTime.isOpenPower = timeOpenPower != 0;
             player.itemTime.isUseMayDo = timeMayDo != 0;
             player.itemTime.isUseKhoBauX2 = timeKhoBauX2 != 0;

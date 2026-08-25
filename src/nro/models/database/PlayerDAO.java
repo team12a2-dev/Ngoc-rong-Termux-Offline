@@ -641,6 +641,18 @@ public class PlayerDAO {
                 dataArray.add((player.itemTime.isUseKilis ? (ItemTime.TIME_KILIS - (System.currentTimeMillis() - player.itemTime.lastTimeUseKilis)) : 0));
                 dataArray.add(0);
                 dataArray.add(0);
+                dataArray.add((player.itemTime.isUseUsableItem ? Math.max(0L, player.itemTime.timeLengthUsableItem - (System.currentTimeMillis() - player.itemTime.lastTimeUseUsableItem)) : 0));
+                dataArray.add(player.itemTime.usableItemTemplateId);
+                dataArray.add(player.itemTime.usableItemIcon);
+                JSONArray usableOptions = new JSONArray();
+                if (player.itemTime.isUseUsableItem) {
+                    for (Item.ItemOption option : player.itemTime.usableItemOptions) {
+                        if (option != null && option.optionTemplate != null) {
+                            usableOptions.add(option.toString());
+                        }
+                    }
+                }
+                dataArray.add(usableOptions.toJSONString());
                 String itemTime = dataArray.toJSONString();
                 dataArray.clear();
 

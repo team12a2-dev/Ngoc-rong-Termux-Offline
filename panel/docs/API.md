@@ -127,16 +127,17 @@ Khi `POST /drop-config` thành công, API ghi `panel_map_drop_configs` và thay 
 Yêu cầu JWT và quyền `server.config`. Chỉ item template có `type = 29` mới được đăng ký.
 
 ```text
-GET    /usable-items?serverId=                       → danh sách mapping item bổ trợ
-GET    /usable-items/behaviors                      → behavior bo_huyet và bo_huyet_2
-GET    /usable-items/templates?q=&limit=            → catalog item type 29
+GET    /usable-items?serverId=                       → danh sách item và option đã cấu hình
+GET    /usable-items/options?q=&limit=               → catalog item_option_template có metadata option
+GET    /usable-items/templates?q=&limit=             → catalog item type 29
 POST   /usable-items
-       { serverId, templateId, behaviorKey, enabled }
-DELETE /usable-items/:templateId?serverId=           → bỏ mapping, không xóa item template
-POST   /usable-items/reload                         → yêu cầu Java Agent reload usable-items
+       { serverId, templateId, durationSeconds, enabled,
+         options: [{ id, param }] }
+DELETE /usable-items/:templateId?serverId=            → bỏ mapping, không xóa item template
+POST   /usable-items/reload                          → yêu cầu Java Agent reload usable-items
 ```
 
-`behaviorKey = bo_huyet` dùng chung state với item 382, tăng 100% HP tối đa trong 10 phút; `behaviorKey = bo_huyet_2` dùng chung state với item 1152, tăng 120% HP tối đa trong 10 phút. Khi lưu mapping, Java Agent reload cache và `UseItem` tra cứu theo `item_template.id`, nên không cần thêm ID vào switch hardcode. Nếu runtime reload thất bại, mapping database vẫn được lưu để retry.
+`options` là danh sách option chỉ số gắn cho item, ví dụ `[{ "id": 47, "param": 5 }, { "id": 77, "param": 20 }]`. API xác thực item có `type = 29`, option tồn tại trong `item_option_template`, không trùng option trong cùng item và giới hạn tối đa 12 option. `durationSeconds` mặc định 600 giây, tối đa 30 ngày. Khi lưu, API thay toàn bộ danh sách option cũ trong `panel_usable_item_options`, sau đó gọi Java Agent reload cache. Bổ huyết chỉ là item mẫu của source, không còn là behavior key trong API.
 
 ## Audit
 

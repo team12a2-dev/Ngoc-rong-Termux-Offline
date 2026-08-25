@@ -480,6 +480,13 @@ public class NPoint {
                 }
             }
         }
+        if (this.player.itemTime != null && this.player.itemTime.isUseUsableItem) {
+            for (ItemOption option : this.player.itemTime.usableItemOptions) {
+                if (option != null && option.optionTemplate != null) {
+                    addOption(option);
+                }
+            }
+        }
         setDameTrainArmor();
         setBasePoint();
         setOutfitFusion();

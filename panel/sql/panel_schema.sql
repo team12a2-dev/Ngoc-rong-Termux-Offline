@@ -162,12 +162,27 @@ CREATE TABLE IF NOT EXISTS panel_map_drop_configs (
 CREATE TABLE IF NOT EXISTS panel_usable_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
   template_id INT NOT NULL,
-  behavior_key VARCHAR(32) NOT NULL DEFAULT 'bo_huyet',
+  duration_seconds INT UNSIGNED NOT NULL DEFAULT 600,
   enabled TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_usable_item_template (template_id),
-  INDEX idx_usable_item_enabled (enabled, behavior_key)
+  INDEX idx_usable_item_enabled (enabled, template_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS panel_usable_item_options (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  usable_item_id INT NOT NULL,
+  option_id INT NOT NULL,
+  option_param INT NOT NULL DEFAULT 0,
+  sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  enabled TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_usable_item_option (usable_item_id, option_id),
+  INDEX idx_usable_item_option_enabled (usable_item_id, enabled, sort_order),
+  CONSTRAINT fk_usable_item_options_item FOREIGN KEY (usable_item_id)
+    REFERENCES panel_usable_items (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS panel_map_drop_items (

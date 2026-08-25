@@ -1,5 +1,7 @@
 package nro.models.item;
 
+import java.util.ArrayList;
+import java.util.List;
 import nro.models.player.NPoint;
 import nro.models.player.Player;
 import nro.models.services.Service;
@@ -43,6 +45,14 @@ public class ItemTime {
     public boolean isUseGiapXen2;
     public boolean isUseCuongNo2;
     public boolean isUseAnDanh2;
+
+    /** Option chỉ số của item type 29 đang có hiệu lực. */
+    public boolean isUseUsableItem;
+    public long lastTimeUseUsableItem;
+    public long timeLengthUsableItem;
+    public int usableItemIcon;
+    public int usableItemTemplateId = -1;
+    public final List<Item.ItemOption> usableItemOptions = new ArrayList<>();
 
     public long lastTimeBoHuyet;
     public long lastTimeBoKhi;
@@ -189,6 +199,20 @@ public class ItemTime {
                 isUseAnDanh2 = false;
             }
         }
+        if (isUseUsableItem) {
+            long remaining = (lastTimeUseUsableItem + timeLengthUsableItem) - System.currentTimeMillis();
+            if (timeLengthUsableItem <= 0 || remaining <= 0) {
+                int icon = usableItemIcon;
+                isUseUsableItem = false;
+                timeLengthUsableItem = 0;
+                usableItemTemplateId = -1;
+                usableItemOptions.clear();
+                if (icon > 0) {
+                    ItemTimeService.gI().removeItemTime(player, icon);
+                }
+                Service.gI().point(player);
+            }
+        }
         if (isUseCMS) {
             if (Util.canDoWithTime(lastTimeUseCMS, TIME_CMS)) {
                 isUseCMS = false;
@@ -274,6 +298,7 @@ public class ItemTime {
     }
 
     public void dispose() {
+        this.usableItemOptions.clear();
         this.player = null;
     }
 }
