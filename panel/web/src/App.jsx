@@ -9,6 +9,7 @@ import AccountsPage from './pages/AccountsPage';
 import ServerControlPage from './pages/ServerControlPage';
 import BossPage from './pages/BossPage';
 import BossManagementPage from './pages/BossManagementPage';
+import EventsPage from './pages/EventsPage';
 
 import GiftcodesPage from './pages/GiftcodesPage';
 import ItemsPage from './pages/ItemsPage';
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="server" element={<ServerControlPage />} />
                     <Route path="boss" element={<BossPage />} />
           <Route path="boss-management" element={<BossManagementPage />} />
+          <Route path="events" element={<EventsPage />} />
 
           <Route path="giftcodes" element={<GiftcodesPage />} />
           <Route path="items" element={<ItemsPage />} />

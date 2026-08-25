@@ -28,6 +28,7 @@ const navGroups = [
       { to: '/server', label: 'Server Control', icon: 'control' },
             { to: '/boss', label: 'Boss Monitor', icon: 'boss' },
       { to: '/boss-management', label: 'Boss Management', icon: 'boss' },
+      { to: '/events', label: 'Quản lý sự kiện', icon: 'giftcode' },
 
       { to: '/giftcodes', label: 'Giftcodes', icon: 'giftcode' },
       { to: '/items', label: 'Item Templates', icon: 'giftcode' },

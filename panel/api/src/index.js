@@ -27,6 +27,7 @@ import runtimeRoutes from './routes/runtime.js';
 import dropConfigRoutes from './routes/dropConfig.js';
 import usableItemRoutes from './routes/usableItems.js';
 import bossConfigRoutes from './routes/bossConfig.js';
+import eventRoutes from './routes/events.js';
 
 import { authMiddleware, getMe, getJwtSecret } from './middleware/auth.js';
 import { getMetrics, getOnlinePlayers } from './services/agent.js';
@@ -88,6 +89,7 @@ app.use('/api/v1/runtime', runtimeRoutes);
 app.use('/api/v1/drop-config', dropConfigRoutes);
 app.use('/api/v1/usable-items', usableItemRoutes);
 app.use('/api/v1/boss-config', bossConfigRoutes);
+app.use('/api/v1/events', eventRoutes);
 
 // Serve the production React panel from the same origin as the API.
 // This keeps relative /api and /ws URLs working on localhost and LAN devices.

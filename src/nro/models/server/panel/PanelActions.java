@@ -41,6 +41,8 @@ import nro.models.server.Maintenance;
 import nro.models.server.Manager;
 import nro.models.server.PanelCommandService;
 import nro.models.server.ServerManager;
+import nro.models.event.EventManager;
+
 import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
 import nro.models.services.MapDropConfigService;
@@ -343,6 +345,10 @@ public final class PanelActions {
         public static Map<String, Object> reloadBossPanel() {
         int rules = BossPanelConfigService.gI().reload();
         return Map.of("ok", true, "rules", rules);
+    }
+
+    public static Map<String, Object> reloadEvents() {
+        return EventManager.gI().reloadDynamicEvents();
     }
 
     public static boolean reloadBossSpawn() {

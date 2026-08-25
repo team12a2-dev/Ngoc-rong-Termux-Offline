@@ -28,6 +28,10 @@ export async function reloadDropConfig(serverId) {
   return reloadGameResource(serverId, 'drop-config');
 }
 
+export async function reloadEvents(serverId) {
+  return reloadGameResource(serverId, 'events');
+}
+
 export async function reloadClans(serverId) {
   try {
     await agentPost(Number(serverId || await getDefaultServerId()), '/reload/clan', {});

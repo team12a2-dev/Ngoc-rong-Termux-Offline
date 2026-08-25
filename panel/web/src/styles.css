@@ -3024,3 +3024,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Event management */
+.events-layout { display: grid; grid-template-columns: minmax(220px, .34fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.events-list { position: sticky; top: 18px; max-height: calc(100vh - 36px); overflow: auto; }
+.event-editor { min-width: 0; }
+.event-list-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; margin: 5px 0; padding: 11px 12px; border: 1px solid var(--border); border-radius: 11px; background: rgba(15,20,25,.44); color: var(--text); text-align: left; cursor: pointer; }
+.event-list-item:hover, .event-list-item.active { border-color: rgba(96,165,250,.65); background: rgba(30,64,175,.18); }
+.event-list-item strong, .event-list-item small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.event-list-item strong { font-size: .86rem; }
+.event-list-item small { max-width: 180px; margin-top: 4px; color: var(--muted); font-size: .7rem; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+.form-grid .field { min-width: 0; }
+.check-grid { display: flex; flex-wrap: wrap; gap: 16px; margin: 14px 0; color: var(--muted); font-size: .84rem; }
+.check-grid label { display: inline-flex; align-items: center; gap: 7px; }
+.nested-editor { margin: 12px 0; padding: 13px; border: 1px solid var(--border); border-radius: 12px; background: rgba(15,20,25,.35); }
+.inline-editor { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
+.button-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--border); }
+.muted { color: var(--muted); font-size: .82rem; }
+@media (max-width: 900px) { .events-layout { grid-template-columns: 1fr; } .events-list { position: static; max-height: none; } }
+@media (max-width: 600px) { .form-grid, .inline-editor { grid-template-columns: 1fr; } .event-list-item small { max-width: 210px; } }

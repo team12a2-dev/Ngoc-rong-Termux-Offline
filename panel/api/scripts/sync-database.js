@@ -18,6 +18,7 @@ import { REQUIRED_GAME_TABLES, PANEL_TABLES } from '../src/config/gameDbSchema.j
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = path.resolve(__dirname, '../../sql/panel_schema.sql');
+const EVENT_MIGRATION_PATH = path.resolve(__dirname, '../../sql/migrations/006_event_management.sql');
 
 async function main() {
   const gameConfig = loadGameConfig();
@@ -53,6 +54,11 @@ async function main() {
   const sql = fs.readFileSync(SCHEMA_PATH, 'utf8');
   await conn.query(sql);
   console.log('✓ Panel schema applied');
+
+  // Event Management is persistent in SQL and is applied automatically with db:sync.
+  const eventMigration = fs.readFileSync(EVENT_MIGRATION_PATH, 'utf8');
+  await conn.query(eventMigration);
+  console.log('✓ Event Management schema applied');
 
   // Backward-compatible migration for map-drop rules created by an older panel build.
   const [dropColumns] = await conn.query(

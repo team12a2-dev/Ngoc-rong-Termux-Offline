@@ -35,6 +35,7 @@ public class EventManager {
     }
 
     public void init() {
+        DynamicEventManager.gI().init();
         new Default().init();
         if (LUNNAR_NEW_YEAR) {
            // new LunarNewYear().init();
@@ -57,5 +58,9 @@ public class EventManager {
         if (TOP_UP) {
             new TopUp().init();
         }
+    }
+
+    public java.util.Map<String, Object> reloadDynamicEvents() {
+        return DynamicEventManager.gI().reload();
     }
 }

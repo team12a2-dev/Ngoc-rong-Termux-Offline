@@ -68,6 +68,7 @@ public final class PanelAgent {
         server.createContext("/reload/boss-panel", exchange -> handle(exchange, this::reloadBossPanel));
         server.createContext("/reload/drop-config", exchange -> handle(exchange, this::reloadDropConfig));
         server.createContext("/reload/usable-items", exchange -> handle(exchange, this::reloadUsableItems));
+        server.createContext("/reload/events", exchange -> handle(exchange, this::reloadEvents));
 
                 server.createContext("/boss/spawn", exchange -> handle(exchange, this::spawnBoss));
         server.createContext("/boss/spawn-at", exchange -> handle(exchange, this::spawnBossAt));
@@ -311,6 +312,10 @@ public final class PanelAgent {
         writeJson(exchange, 200, success(PanelActions.reloadUsableItems()));
     }
 
+    private void reloadEvents(HttpExchange exchange, String method, String path, String body) throws IOException {
+        writeJson(exchange, 200, success(PanelActions.reloadEvents()));
+    }
+
 
 
     private void spawnBoss(HttpExchange exchange, String method, String path, String body) throws IOException {
@@ -372,7 +377,8 @@ public final class PanelAgent {
     private static void addCors(HttpExchange exchange) {
         Headers headers = exchange.getResponseHeaders();
         headers.set("Access-Control-Allow-Origin", "*");
-        headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+                headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+
         headers.set("Access-Control-Allow-Headers", "Content-Type, X-Panel-Key");
         headers.set("Content-Type", "application/json; charset=utf-8");
     }
