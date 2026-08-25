@@ -11,7 +11,9 @@ INSTALL_LOG="${NRO_INSTALL_LOG:-$HOME/.ngocrong-termux-install.log}"
 PART_DIR="${ARCHIVE}.parts"
 
 source_ready() {
-  [ -f "$INSTALL_DIR/nro.sh" ] && [ -f "$INSTALL_DIR/data/map/tile_set_info" ]
+  [ ! -d "$INSTALL_DIR/.git" ] \
+    && [ -f "$INSTALL_DIR/nro.sh" ] \
+    && [ -f "$INSTALL_DIR/data/map/tile_set_info" ]
 }
 
 remote_size() {
@@ -128,6 +130,7 @@ if ! source_ready; then
   install_runtime
   echo "Đang giải nén source/runtime..."
   tar -xzf "$ARCHIVE" --strip-components=1 -C "$INSTALL_DIR"
+  rm -rf "$INSTALL_DIR/.git"
 else
   echo "Source/runtime đã có sẵn, bỏ qua tải lại."
 fi
