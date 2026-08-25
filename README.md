@@ -32,22 +32,19 @@
 
 ## Cài đặt nhanh
 
-Cài **Termux chính thức**, sau đó chạy installer. Installer dùng Git partial clone, có thể tiếp tục khi kết nối bị ngắt và không dùng archive `tar.gz`:
+Cài **Termux chính thức**, sau đó dán **một dòng duy nhất** sau đây:
 
 ```bash
-pkg update -y && pkg install -y git curl
-INSTALLER="$(mktemp)"
-curl --http1.1 -fsSL --retry 5 --retry-all-errors --retry-delay 3 \
-  --connect-timeout 20 --max-time 120 -o "$INSTALLER" \
-  "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" \
-  || { rm -f "$INSTALLER"; echo "Không tải được installer, hãy kiểm tra mạng rồi chạy lại."; exit 1; }
-bash "$INSTALLER"
-STATUS=$?
-rm -f "$INSTALLER"
-exit "$STATUS"
+pkg update -y && pkg install -y git curl && curl --http1.1 -fsSL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 20 --max-time 120 -o "$HOME/install-termux.sh" "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" && bash "$HOME/install-termux.sh"
 ```
 
-Project được cài vào `~/ngocrong-termux`. Repository khá lớn, hãy giữ Wi‑Fi/4G ổn định và không đóng Termux khi đang clone. Nếu bị ngắt, chạy lại đúng lệnh trên; installer sẽ tiếp tục bản clone dở.
+Khi cài `git` lần đầu, Termux có thể hiện thông báo tạo khóa SSH. Đây là bình thường; hãy chờ đến khi lệnh chạy tiếp. Nếu đã quay lại prompt `~ $` mà chưa setup, chạy:
+
+```bash
+bash "$HOME/install-termux.sh"
+```
+
+Project được cài vào `~/ngocrong-termux`. Repository khá lớn, hãy giữ Wi‑Fi/4G ổn định và không đóng Termux khi đang clone. Nếu mạng bị ngắt, chạy lại installer; bản clone dở sẽ được tiếp tục.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel.
 
