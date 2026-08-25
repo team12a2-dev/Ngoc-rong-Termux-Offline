@@ -146,6 +146,10 @@ cd ~/ngocrong-termux && bash nro.sh
 | `bash nro.sh start` | Khởi động server và chờ trạng thái `READY` |
 | `bash nro.sh lan` | Tự nhận IP Wi‑Fi Android, cập nhật địa chỉ client, bind game trên LAN và bật panel LAN |
 | `bash termux-lan-start.sh` | Script chuyên dụng khởi động chế độ LAN trên Termux |
+| `bash nro.sh background` | Chạy supervisor độc lập với cửa sổ Termux, tự phục hồi game/panel khi tiến trình dừng |
+| `bash nro.sh background-status` | Xem trạng thái supervisor, game, MariaDB, panel và endpoint |
+| `bash nro.sh background-log` | Theo dõi log supervisor realtime |
+| `bash nro.sh background-stop` | Dừng an toàn service game/panel và giải phóng wake lock |
 | `bash nro.sh status` | Hiển thị `STARTING`, `READY` hoặc `STOPPED` cùng PID/MariaDB |
 | `bash nro.sh stop` | Dừng server game, không xóa database |
 | `bash nro.sh restart` | Dừng và khởi động lại server |
@@ -447,6 +451,22 @@ NRO_JVM_OPTS='-server -Dfile.encoding=UTF-8 -Xms128m -Xmx1536m -XX:MaxMetaspaceS
 
 Server đã có chế độ LAN dành cho Termux Android. Điện thoại chạy Termux đóng vai trò game server; thiết bị chơi phải kết nối cùng mạng Wi‑Fi. Lệnh LAN tự nhận IPv4 Wi‑Fi của Android, cập nhật địa chỉ quảng bá cho client, bind socket game trên `0.0.0.0` và khởi động panel web trên mọi interface LAN.
 
+Để server **không phụ thuộc cửa sổ Termux**, hãy dùng supervisor độc lập thay vì chạy trực tiếp trong terminal:
+
+```bash
+./nro.sh background
+```
+
+Lệnh này tách supervisor bằng `nohup`/`setsid`, lưu PID tại `.runtime/supervisor.pid`, log tại `.runtime/supervisor.log`, bật wake lock và tự khởi động lại launcher nếu game hoặc panel dừng. Khi terminal đã báo `Supervisor started`, có thể đóng cửa sổ Termux hoặc vuốt phiên terminal. Dùng `./nro.sh background-stop` khi muốn dừng có chủ đích.
+
+Muốn tự chạy sau khi Android reboot, cài ứng dụng **Termux:Boot**, mở ứng dụng một lần rồi chạy:
+
+```bash
+./install-termux-background.sh
+```
+
+Script tạo hook `~/.termux/boot/ngocrong-lan`, để Termux:Boot gọi supervisor sau mỗi lần khởi động điện thoại.
+
 ```bash
 cd ~/ngocrong-termux
 chmod +x nro.sh termux-lan-start.sh
@@ -566,7 +586,9 @@ Ngoc-rong-Termux-Offline/
 ├── backup-database.sh           # Xuất database online, nén, checksum và retention
 ├── nro.sh                       # Launcher setup/start/lan/stop/backup/schedule
 ├── termux-lan-start.sh          # Khởi động server LAN trên Android bằng một lệnh
-├── TERMUX-LAN.md                # Hướng dẫn LAN chi tiết và xử lý lỗi
+├── termux-server-service.sh     # Supervisor chạy độc lập và tự phục hồi
+├── install-termux-background.sh # Cài hook Termux:Boot
+├── TERMUX-LAN.md                # Hướng dẫn LAN, chạy nền và xử lý lỗi
 └── README.md                    # Tài liệu triển khai này
 ```
 

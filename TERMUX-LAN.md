@@ -104,14 +104,40 @@ Nếu không kết nối được, kiểm tra năm điểm: hai thiết bị có
 
 Một số mạng khách sạn, trường học hoặc hotspot chặn thiết bị trong cùng mạng nhìn thấy nhau. Khi đó hãy dùng Wi‑Fi gia đình hoặc tắt AP isolation trên router. Không cần mở port trên Internet và không nên bind MariaDB ra LAN.
 
-## Chạy nền trên Android
+## Chạy độc lập khi đóng Termux
 
-Để hạn chế Android dừng Termux, script tự gọi `termux-wake-lock` nếu lệnh có sẵn. Có thể khóa Termux khỏi màn hình Recent Apps và tắt tối ưu pin cho Termux trong cài đặt Android. Server vẫn cần điện thoại bật nguồn, kết nối Wi‑Fi ổn định và không bị hệ điều hành cưỡng chế dừng.
+Nếu muốn đóng cửa sổ Termux mà server vẫn chạy, không dùng `./nro.sh lan` trực tiếp. Hãy khởi động supervisor riêng:
+
+```bash
+cd ~/Ngoc-rong-Termux-Offline
+./nro.sh background
+```
+
+Supervisor được tách khỏi stdin/terminal bằng `nohup` và `setsid` nếu Termux có lệnh này. Nó giữ PID riêng trong `.runtime/supervisor.pid`, log riêng tại `.runtime/supervisor.log`, bật wake lock và tự gọi lại launcher nếu game server hoặc panel dừng. Sau khi thấy `Supervisor started`, có thể đóng cửa sổ Termux hoặc vuốt phiên terminal; không dùng **Buộc dừng/Force stop** cho ứng dụng Termux.
+
+| Lệnh | Chức năng |
+|---|---|
+| `./nro.sh background` | Khởi động supervisor độc lập, game LAN và panel. |
+| `./nro.sh background-status` | Xem supervisor, game, MariaDB, panel và endpoint. |
+| `./nro.sh background-log` | Theo dõi log supervisor realtime. |
+| `./nro.sh background-restart` | Dừng rồi khởi động lại supervisor. |
+| `./nro.sh background-stop` | Dừng supervisor cùng game/panel và giải phóng wake lock. |
+
+Để tự khởi động sau khi điện thoại reboot, cài ứng dụng **Termux:Boot**, mở ứng dụng đó một lần, rồi chạy:
+
+```bash
+cd ~/Ngoc-rong-Termux-Offline
+./install-termux-background.sh
+```
+
+Script tạo hook tại `~/.termux/boot/ngocrong-lan`. Sau lần reboot kế tiếp, Termux:Boot gọi supervisor và server tự chạy lại. Có thể kiểm tra bằng `./nro.sh background-status`.
+
+Android vẫn có quyền dừng tiến trình khi người dùng chọn **Buộc dừng**, khi Termux bị hệ thống thu hồi do thiếu RAM, hoặc khi tối ưu pin chặn ứng dụng. Hãy tắt battery optimization cho Termux/Termux:Boot, cho phép Termux chạy nền, giữ điện thoại kết nối Wi‑Fi và tránh vuốt “Force stop”. Không có script nào có thể vượt qua thao tác Buộc dừng của Android.
 
 Dừng dịch vụ an toàn bằng:
 
 ```bash
-./nro.sh stop
+./nro.sh background-stop
 termux-wake-unlock 2>/dev/null || true
 ```
 

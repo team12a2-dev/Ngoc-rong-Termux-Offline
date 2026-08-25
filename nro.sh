@@ -574,6 +574,23 @@ main() {
       [ -f "$STATE_DIR/installed" ] || setup
       NRO_LAN_MODE=1 start_server
       ;;
+    background)
+      [ -f "$STATE_DIR/installed" ] || setup
+      exec "$ROOT/termux-server-service.sh" start
+      ;;
+    background-stop)
+      exec "$ROOT/termux-server-service.sh" stop
+      ;;
+    background-restart)
+      [ -f "$STATE_DIR/installed" ] || setup
+      exec "$ROOT/termux-server-service.sh" restart
+      ;;
+    background-status)
+      exec "$ROOT/termux-server-service.sh" status
+      ;;
+    background-log)
+      exec "$ROOT/termux-server-service.sh" log "${2:-120}"
+      ;;
     restart)
       stop_server
       start_server
@@ -621,10 +638,11 @@ main() {
       ;;
     *)
       cat <<'USAGE'
-Sử dụng: ./nro.sh [setup|start|lan|restart|stop|status|console|rebuild|panel|backup|backup-schedule|backup-cancel|backup-status]
+Sử dụng: ./nro.sh [setup|start|lan|background|background-stop|background-restart|background-status|background-log|restart|stop|status|console|rebuild|panel|backup|backup-schedule|backup-cancel|backup-status]
 
 Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel.
 LAN Android: `./nro.sh lan` sẽ tự nhận IP Wi-Fi, bind game server trên 0.0.0.0 và cập nhật địa chỉ client; có thể chỉ định `NRO_LAN_IP=192.168.x.x`.
+Chạy độc lập: `./nro.sh background`; dừng bằng `background-stop`, xem trạng thái bằng `background-status`, xem log bằng `background-log`.
 Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT).
 Backup database: `backup` xuất online, `backup-schedule` lập lịch, `backup-cancel` hủy lịch, `backup-status` xem lịch/file/log.
 Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
