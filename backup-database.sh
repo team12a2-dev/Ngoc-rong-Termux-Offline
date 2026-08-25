@@ -41,13 +41,31 @@ esac
 mkdir -p "$STATE_DIR" "$BACKUP_DIR"
 exec >> "$LOG_FILE" 2>&1
 
+LOCK_ACQUIRED=0
 cleanup() {
   rm -f "$TMP_FILE"
-  rmdir "$LOCK_DIR" 2>/dev/null || true
+  if [ "$LOCK_ACQUIRED" -eq 1 ]; then
+    rmdir "$LOCK_DIR" 2>/dev/null || true
+  fi
 }
 trap cleanup EXIT
 
-if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+if mkdir "$LOCK_DIR" 2>/dev/null; then
+  LOCK_ACQUIRED=1
+elif [ "${NRO_BACKUP_REQUIRED:-0}" = "1" ]; then
+  printf '[%s] Đang chờ phiên backup khác hoàn tất (tối đa 120 giây).\n' "$(date '+%F %T')"
+  for _ in $(seq 1 120); do
+    sleep 1
+    if mkdir "$LOCK_DIR" 2>/dev/null; then
+      LOCK_ACQUIRED=1
+      break
+    fi
+  done
+  if [ "$LOCK_ACQUIRED" -ne 1 ]; then
+    printf '[%s] Không lấy được lock backup bắt buộc.\n' "$(date '+%F %T')"
+    exit 1
+  fi
+else
   printf '[%s] Bỏ qua: một phiên backup khác đang chạy.\n' "$(date '+%F %T')"
   exit 0
 fi

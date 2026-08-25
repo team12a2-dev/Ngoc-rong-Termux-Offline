@@ -286,6 +286,23 @@ backup_database() {
   bash "$BACKUP_SCRIPT"
 }
 
+automatic_backup_database() {
+  if [ "${NRO_AUTO_BACKUP:-1}" = "0" ]; then
+    warn "Đã tắt backup tự động bằng NRO_AUTO_BACKUP=0."
+    return 0
+  fi
+  if [ "${NRO_BACKUP_DONE:-0}" = "1" ]; then
+    return 0
+  fi
+  [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh; không thể tiếp tục nếu chưa có backup."
+  chmod 700 "$BACKUP_SCRIPT"
+  say "Backup database bắt buộc trước setup/start"
+  if ! NRO_BACKUP_REQUIRED=1 bash "$BACKUP_SCRIPT"; then
+    die "Backup database thất bại; dừng setup/start để bảo vệ dữ liệu."
+  fi
+  export NRO_BACKUP_DONE=1
+}
+
 backup_schedule() {
   command -v termux-job-scheduler >/dev/null 2>&1 || die "Thiếu termux-job-scheduler. Hãy cài package termux-api và ứng dụng Termux:API."
   [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh trong thư mục dự án."
@@ -488,6 +505,7 @@ start_server() {
   termux_keep_awake
   start_database
   ensure_database_user
+  automatic_backup_database
   import_database
   build_server
   if server_alive; then
@@ -563,6 +581,7 @@ setup() {
   init_database
   start_database
   ensure_database_user
+  automatic_backup_database
   import_database
   build_server
   setup_panel
@@ -654,11 +673,12 @@ Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game 
 LAN Android: `./nro.sh lan` sẽ tự nhận IP Wi-Fi, bind game server trên 0.0.0.0 và cập nhật địa chỉ client; có thể chỉ định `NRO_LAN_IP=192.168.x.x`.
 Chạy độc lập: `./nro.sh background`; dừng bằng `background-stop`, xem trạng thái bằng `background-status`, xem log bằng `background-log`.
 Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT).
-Backup database: `backup` xuất online, `backup-schedule` lập lịch, `backup-cancel` hủy lịch, `backup-status` xem lịch/file/log.
+Backup database: `backup` xuất online, `backup-schedule` lập lịch, `backup-cancel` hủy lịch, `backup-status` xem lịch/file/log. `setup` và `start` tự backup trước khi tiếp tục; backup lỗi sẽ dừng thao tác.
 Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
 NRO_GAME_LISTEN_HOST, NRO_PANEL_PORT, NRO_PANEL_BIND, PANEL_ADMIN_PASSWORD,
 NRO_BACKUP_DIR, NRO_BACKUP_LOG, NRO_BACKUP_KEEP_DAYS, NRO_BACKUP_JOB_ID,
-NRO_BACKUP_PERIOD_MS, JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1, NRO_LAN_IP.
+NRO_BACKUP_PERIOD_MS, NRO_AUTO_BACKUP=0 nếu cần bỏ qua backup tự động,
+JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1, NRO_LAN_IP.
 USAGE
       exit 2
       ;;
