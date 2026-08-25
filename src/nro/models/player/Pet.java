@@ -135,8 +135,21 @@ public class Pet extends Player {
         }
     }
 
+    private boolean canStartFusion() {
+        if (master != null && master.zone != null
+                && MapService.gI().isHome(master.zone.map.mapId)) {
+            Service.gI().sendThongBao(master, "Không thể hợp thể trong nhà.");
+            return false;
+        }
+        return true;
+    }
+
     public void fusionGogeta(boolean porata) {
+        if (!canStartFusion()) {
+            return;
+        }
         if (this.isDie()) {
+
             Service.gI().sendThongBao(master, "Đệ cu chết rồi hợp thể chóa giề");
             return;
         }
@@ -170,7 +183,11 @@ public class Pet extends Player {
     }
 
     public void fusion2(boolean porata) {
+        if (!canStartFusion()) {
+            return;
+        }
         if (this.isDie()) {
+
             Service.gI().sendThongBao(master, "Yêu cầu phải có đệ tử và đệ tử còn sống");
             return;
         }
@@ -191,7 +208,11 @@ public class Pet extends Player {
     }
 
     public void fusion3(boolean porata) {
+        if (!canStartFusion()) {
+            return;
+        }
         if (this.isDie()) {
+
             Service.gI().sendThongBao(master, "Yêu cầu phải có đệ tử và đệ tử còn sống");
             return;
         }
@@ -212,7 +233,11 @@ public class Pet extends Player {
     }
 
     public void fusion(boolean porata) {
+        if (!canStartFusion()) {
+            return;
+        }
         if (this.isDie()) {
+
             Service.gI().sendThongBao(master, "Yêu cầu phải có đệ tử và đệ tử còn sống");
             return;
         }
