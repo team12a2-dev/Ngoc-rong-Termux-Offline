@@ -68,9 +68,13 @@ function normalizeItems(items) {
     const quantityMin = intValue(item?.quantityMin ?? item?.quantity_min, 1, 1, 2147483647);
     const quantityMax = intValue(item?.quantityMax ?? item?.quantity_max, quantityMin, 1, 2147483647);
     const mobTempId = intValue(item?.mobTempId ?? item?.mob_temp_id, -1, -1, 2147483647);
+    const playerLevelMin = intValue(item?.playerLevelMin ?? item?.player_level_min, 0, 0, 19);
+    const playerLevelMax = intValue(item?.playerLevelMax ?? item?.player_level_max, 19, 0, 19);
     return {
       tempId,
       mobTempId,
+      playerLevelMin,
+      playerLevelMax: Math.max(playerLevelMin, playerLevelMax),
       enabled: boolValue(item?.enabled, true) ? 1 : 0,
       chancePercent: percentValue(item?.chancePercent ?? item?.chance_percent),
       quantityMin,
@@ -78,7 +82,7 @@ function normalizeItems(items) {
       options: normalizeOptions(item?.options ?? item?.options_json),
     };
   }).filter((item) => {
-    const key = `${item.tempId}:${item.mobTempId}`;
+    const key = `${item.tempId}:${item.mobTempId}:${item.playerLevelMin}:${item.playerLevelMax}`;
     if (item.tempId < 0 || seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -112,7 +116,7 @@ async function loadConfigs(serverId) {
   );
   for (const config of configs) {
     const items = await query(
-      `SELECT d.id, d.temp_id, d.mob_temp_id, d.enabled, d.chance_percent, d.quantity_min, d.quantity_max,
+      `SELECT d.id, d.temp_id, d.mob_temp_id, d.player_level_min, d.player_level_max, d.enabled, d.chance_percent, d.quantity_min, d.quantity_max,
               d.options_json, it.NAME AS item_name, it.icon_id, it.gender, it.power_require
        FROM panel_map_drop_items d
        LEFT JOIN item_template it ON it.id = d.temp_id
@@ -125,6 +129,8 @@ async function loadConfigs(serverId) {
       tempId: item.temp_id,
       mobTempId: item.mob_temp_id,
       mobLabel: mobLabel(item.mob_temp_id),
+      playerLevelMin: item.player_level_min,
+      playerLevelMax: item.player_level_max,
       enabled: Number(item.enabled) === 1,
       chancePercent: Number(item.chance_percent),
       quantityMin: item.quantity_min,
@@ -238,10 +244,11 @@ router.post('/', requirePermission('server.config'), async (req, res) => {
     for (const item of items) {
       await exec(
         `INSERT INTO panel_map_drop_items
-           (config_id, temp_id, mob_temp_id, enabled, chance_percent, quantity_min, quantity_max, options_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [configId, item.tempId, item.mobTempId, item.enabled, item.chancePercent, item.quantityMin,
-          item.quantityMax, JSON.stringify(item.options)]
+           (config_id, temp_id, mob_temp_id, player_level_min, player_level_max, enabled,
+            chance_percent, quantity_min, quantity_max, options_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [configId, item.tempId, item.mobTempId, item.playerLevelMin, item.playerLevelMax, item.enabled,
+          item.chancePercent, item.quantityMin, item.quantityMax, JSON.stringify(item.options)]
       );
     }
     const liveSync = await reloadGameResource(serverId, 'drop-config');

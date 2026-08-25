@@ -72,7 +72,7 @@ public final class MapDropConfigService {
 
     private void loadItems(Connection con, DropRule rule) throws Exception {
         try (PreparedStatement itemStmt = con.prepareStatement(
-                "SELECT temp_id, mob_temp_id, enabled, chance_percent, quantity_min, quantity_max, options_json "
+                "SELECT temp_id, mob_temp_id, player_level_min, player_level_max, enabled, chance_percent, quantity_min, quantity_max, options_json "
                         + "FROM panel_map_drop_items WHERE config_id = ? ORDER BY id")) {
             itemStmt.setInt(1, rule.id);
             try (ResultSet rs = itemStmt.executeQuery()) {
@@ -80,6 +80,8 @@ public final class MapDropConfigService {
                     rule.items.add(new ItemDrop(
                             rs.getInt("temp_id"),
                             rs.getInt("mob_temp_id"),
+                            rs.getInt("player_level_min"),
+                            rs.getInt("player_level_max"),
                             rs.getInt("enabled") == 1,
                             rs.getDouble("chance_percent"),
                             rs.getInt("quantity_min"),
@@ -122,8 +124,10 @@ public final class MapDropConfigService {
     public List<ItemMap> rollItems(DropRule rule, Zone zone, Player player, int mobTempId, int x, int yEnd) {
         List<ItemMap> drops = new ArrayList<>();
         if (rule == null || !rule.enabled || player == null || zone == null) return drops;
+        int playerLevel = Service.gI().getCurrLevel(player);
         for (ItemDrop drop : rule.items) {
             if (!drop.enabled || (drop.mobTempId >= 0 && drop.mobTempId != mobTempId)
+                    || playerLevel < drop.playerLevelMin || playerLevel > drop.playerLevelMax
                     || !roll(drop.chancePercent)) continue;
             int quantity = randomQuantity(drop.quantityMin, drop.quantityMax);
             try {
@@ -209,16 +213,21 @@ public final class MapDropConfigService {
     public static final class ItemDrop {
         public final int tempId;
         public final int mobTempId;
+        public final int playerLevelMin;
+        public final int playerLevelMax;
         public final boolean enabled;
         public final double chancePercent;
         public final int quantityMin;
         public final int quantityMax;
         public final List<Item.ItemOption> options;
 
-        private ItemDrop(int tempId, int mobTempId, boolean enabled, double chancePercent,
-                         int quantityMin, int quantityMax, List<Item.ItemOption> options) {
+        private ItemDrop(int tempId, int mobTempId, int playerLevelMin, int playerLevelMax,
+                         boolean enabled, double chancePercent, int quantityMin, int quantityMax,
+                         List<Item.ItemOption> options) {
             this.tempId = tempId;
             this.mobTempId = mobTempId;
+            this.playerLevelMin = Math.max(0, Math.min(19, playerLevelMin));
+            this.playerLevelMax = Math.max(this.playerLevelMin, Math.min(19, playerLevelMax));
             this.enabled = enabled;
             this.chancePercent = chancePercent;
             this.quantityMin = Math.max(1, quantityMin);
