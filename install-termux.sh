@@ -5,56 +5,65 @@ INSTALL_DIR="${NRO_INSTALL_DIR:-$HOME/ngocrong-termux}"
 REPO_URL="${NRO_REPO_URL:-https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline.git}"
 BRANCH="${NRO_BRANCH:-main}"
 MAX_ATTEMPTS="${NRO_DOWNLOAD_ATTEMPTS:-5}"
+INSTALL_LOG="${NRO_INSTALL_LOG:-$HOME/.ngocrong-termux-install.log}"
 
-prepare_existing_dir() {
+prepare_directory() {
   if [ -e "$INSTALL_DIR" ] && [ ! -d "$INSTALL_DIR/.git" ]; then
     local backup_dir="${INSTALL_DIR}.incomplete.$(date +%Y%m%d-%H%M%S)"
     mv "$INSTALL_DIR" "$backup_dir"
     echo "Đã giữ bản cài đặt dở tại: $backup_dir"
   fi
+  mkdir -p "$INSTALL_DIR"
 }
 
-clone_or_update() {
-  if [ -d "$INSTALL_DIR/.git" ] && git -C "$INSTALL_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "Phát hiện bản clone dở, tiếp tục tải từ đó..."
-    git -C "$INSTALL_DIR" -c http.version=HTTP/1.1 fetch --depth 1 origin "$BRANCH"
-    git -C "$INSTALL_DIR" checkout -B "$BRANCH" "origin/$BRANCH"
-    git -C "$INSTALL_DIR" reset --hard "origin/$BRANCH"
-    return 0
+init_repository() {
+  prepare_directory
+
+  if ! git -C "$INSTALL_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$INSTALL_DIR" init -q -b "$BRANCH"
+    git -C "$INSTALL_DIR" remote add origin "$REPO_URL"
+  else
+    git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL" 2>/dev/null || \
+      git -C "$INSTALL_DIR" remote add origin "$REPO_URL"
   fi
+}
+
+fetch_repository() {
+  mkdir -p "$(dirname "$INSTALL_LOG")"
+  : > "$INSTALL_LOG"
+  init_repository
 
   for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
-    echo "Tải source lần $attempt/$MAX_ATTEMPTS"
-    if [ -d "$INSTALL_DIR/.git" ] && git -C "$INSTALL_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-      if git -C "$INSTALL_DIR" -c http.version=HTTP/1.1 fetch --depth 1 origin "$BRANCH" \
-          && git -C "$INSTALL_DIR" checkout -B "$BRANCH" "origin/$BRANCH" \
-          && git -C "$INSTALL_DIR" reset --hard "origin/$BRANCH"; then
-        return 0
-      fi
-    else
-      prepare_existing_dir
-      if git -c http.version=HTTP/1.1 \
-          -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=120 \
-          clone --depth 1 --filter=blob:none --single-branch \
-          --branch "$BRANCH" "$REPO_URL" "$INSTALL_DIR"; then
-        return 0
-      fi
+    echo "Đang tải source (lần $attempt/$MAX_ATTEMPTS)..."
+    if git -C "$INSTALL_DIR" \
+        -c http.version=HTTP/1.1 \
+        -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=120 \
+        fetch --depth 1 --filter=blob:none --no-tags origin \
+        "refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" \
+        >"$INSTALL_LOG" 2>&1 \
+        && git -C "$INSTALL_DIR" checkout -q -B "$BRANCH" "origin/$BRANCH" \
+        && git -C "$INSTALL_DIR" reset --hard -q "origin/$BRANCH"; then
+      echo "Tải source thành công."
+      return 0
     fi
 
     if [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
-      echo "Kết nối bị ngắt; sẽ thử lại sau 5 giây."
+      echo "Kết nối bị ngắt; giữ lại dữ liệu đã nhận và thử lại sau 5 giây."
       sleep 5
     fi
   done
 
-  echo "Không tải được source. Hãy kiểm tra Wi‑Fi/4G rồi chạy lại installer."
+  echo "Không tải đủ source sau $MAX_ATTEMPTS lần thử."
+  echo "Log chi tiết: $INSTALL_LOG"
+  tail -n 12 "$INSTALL_LOG" 2>/dev/null || true
   exit 1
 }
 
 echo "Thư mục cài đặt: $INSTALL_DIR"
 echo "Đang tải bằng Git partial clone; không dùng archive tar.gz."
-clone_or_update
+fetch_repository
 
 cd "$INSTALL_DIR"
 chmod +x ./*.sh
+echo "Đã tải source. Bắt đầu setup server tự động..."
 ./nro.sh setup

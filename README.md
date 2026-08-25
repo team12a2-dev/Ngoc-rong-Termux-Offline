@@ -44,7 +44,7 @@ Khi cài `git` lần đầu, Termux có thể hiện thông báo tạo khóa SSH
 bash "$HOME/install-termux.sh"
 ```
 
-Project được cài vào `~/ngocrong-termux`. Repository khá lớn, hãy giữ Wi‑Fi/4G ổn định và không đóng Termux khi đang clone. Nếu mạng bị ngắt, chạy lại installer; bản clone dở sẽ được tiếp tục.
+Project được cài vào `~/ngocrong-termux`. Repository khá lớn, hãy giữ Wi‑Fi/4G ổn định và không đóng Termux khi đang tải. Nếu mạng bị ngắt, chạy lại installer; các object đã tải sẽ được giữ lại. Log chi tiết nằm tại `~/.ngocrong-termux-install.log`.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel.
 
