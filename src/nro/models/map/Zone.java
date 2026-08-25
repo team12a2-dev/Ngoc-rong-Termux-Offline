@@ -20,6 +20,7 @@ import nro.models.services.PlayerService;
 import nro.models.services.Service;
 import nro.models.services.TaskService;
 import nro.models.services.InventoryService;
+import nro.models.services.EventProgressService;
 import nro.models.utils.FileIO;
 import nro.models.utils.Logger;
 import nro.models.utils.Util;
@@ -346,6 +347,7 @@ public class Zone {
                                     player.sendMessage(msg);
                                     msg.cleanup();
                                     Service.gI().sendToAntherMePickItem(player, itemMapId);
+                                    EventProgressService.gI().onItemPicked(player, itemMap, item.quantity);
                                     // Mark item as picked up unless the item ID is 74
                                     if (picked) {
                                         if (itemMap.itemTemplate.id != 74) {

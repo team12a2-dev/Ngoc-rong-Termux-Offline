@@ -10,6 +10,7 @@ import nro.models.npc.Npc;
 import nro.models.map.service.NpcManager;
 import nro.models.combine.PhanRaTrangBiKichHoat.PhanRaTrangBi;
 import nro.models.services.InventoryService;
+import nro.models.services.EventProgressService;
 
 /**
  *
@@ -509,6 +510,9 @@ public class CombineService {
     }
     
     public void sendEffectSuccessCombine(Player player) {
+        if (player != null && player.combineNew != null) {
+            EventProgressService.gI().onCraftSuccess(player, player.combineNew.typeCombine, 1);
+        }
         Message msg = null;
         try {
             msg = new Message(-81);

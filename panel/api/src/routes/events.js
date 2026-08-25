@@ -138,6 +138,21 @@ router.get('/', requirePermission('event.view'), async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error: error.message }); }
 });
 
+router.get('/:id/participants', requirePermission('event.view'), async (req, res) => {
+  try {
+    const serverId = await resolveServerId(req.query.serverId);
+    const id = intValue(req.params.id, 0, 1);
+    const limit = Math.min(100, Math.max(1, intValue(req.query.limit, 50, 1)));
+    const offset = Math.max(0, intValue(req.query.offset, 0));
+    const rows = await query(
+      `SELECT p.* FROM panel_event_participants p JOIN panel_events e ON e.id = p.event_id
+       WHERE p.event_id = ? AND e.server_id = ? ORDER BY p.points DESC, p.updated_at ASC LIMIT ? OFFSET ?`,
+      [id, serverId, limit, offset]
+    );
+    res.json({ ok: true, data: rows.map((row) => ({ ...row, progressJson: asJson(row.progress_json, {}), claimsJson: asJson(row.claims_json, {}) })) });
+  } catch (error) { res.status(500).json({ ok: false, error: error.message }); }
+});
+
 router.get('/:id', requirePermission('event.view'), async (req, res) => {
   try {
     const event = await loadEvent(intValue(req.params.id, 0, 1), await resolveServerId(req.query.serverId));

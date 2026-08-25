@@ -55,6 +55,7 @@ import nro.models.services.PlayerService;
 import nro.models.services.Service;
 import nro.models.services.SkillService;
 import nro.models.services.TaskService;
+import nro.models.services.EventProgressService;
 import nro.models.services.BossPanelConfigService;
 import nro.models.map.service.ChangeMapService;
 import nro.models.utils.Logger;
@@ -757,11 +758,13 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
             }
             ServerNotify.gI().notify(plKill.name + ": Đã tiêu diệt được " + this.name + " mọi người đều ngưỡng mộ.");
             this.changeStatus(BossStatus.DIE);
+            EventProgressService.gI().onBossKilled(this, plKill);
         } else {
             if (plKill != null && !plKill.isBot) {
                 reward(plKill);
             }
             this.changeStatus(BossStatus.DIE);
+            EventProgressService.gI().onBossKilled(this, plKill);
         }
     }
 

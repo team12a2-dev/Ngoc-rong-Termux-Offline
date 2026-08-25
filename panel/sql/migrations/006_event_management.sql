@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS panel_event_shop_items (
 CREATE TABLE IF NOT EXISTS panel_event_participants (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   event_id BIGINT NOT NULL,
-  player_id INT NOT NULL,
+  player_id BIGINT NOT NULL,
   clan_id INT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'joined',
   points BIGINT NOT NULL DEFAULT 0,
