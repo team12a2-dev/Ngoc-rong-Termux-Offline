@@ -93,7 +93,8 @@ export default function ShopsPage() {
     <div className="shops-page">
       <PageHeader
         title="Quản lý cửa hàng NPC"
-        description="Chọn shop → tab → lọc tộc → thêm / chỉnh item → Lưu."
+        description="Chọn shop → tab → lọc tộc → thêm / chỉnh item → Lưu SQL."
+
         actions={(
           <button type="button" className="btn primary" onClick={reload} title="Đồng bộ shop lên game (đóng NPC rồi mở lại)">
             Reload in-game
@@ -107,7 +108,8 @@ export default function ShopsPage() {
           <li><strong>gender 0/1/2</strong> = Trái Đất / Namec / Xayda · <strong>≥3</strong> = Chung (mọi tộc)</li>
           <li>Cột «Chi tiết» → <strong>Tộc hệ vật phẩm</strong>: ghi đè <code>item_shop.gender_override</code> (null = theo template)</li>
           <li>Bấm pill tộc (trang hoặc editor) — lọc được lưu và hiện trên menu «Cửa hàng»</li>
-          <li>Sau sửa DB: Reload in-game + player đóng/mở lại shop</li>
+          <li>Sau khi lưu SQL: Reload in-game + player đóng/mở lại shop</li>
+
         </ul>
       </details>
 

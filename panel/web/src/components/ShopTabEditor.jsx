@@ -364,8 +364,11 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
     try {
       const res = await persistOrder(next);
       const syncNote = formatLiveSync(res?.data);
-      onFeedback?.(`Đã cập nhật thứ tự${syncNote} — đóng shop trong game rồi mở lại NPC`, 'success');
+      itemsDirtyRef.current = false;
+      onFeedback?.(`Đã cập nhật thứ tự trong SQL${syncNote} — đóng shop trong game rồi mở lại NPC`, 'success');
+      await onRefresh?.();
     } catch (e) {
+
       onFeedback?.(e.message, 'error');
       onRefresh?.();
     }
@@ -502,11 +505,13 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
 
       const skipNote = missingTemplate > 0 ? ` · bỏ qua ${missingTemplate} dòng (không có template)` : '';
       const removedNote = removedCount > 0 ? ` · xóa ${removedCount} item không trong file` : '';
+      itemsDirtyRef.current = false;
       onFeedback?.(
-        `Đã áp dụng ${next.length} item${addedCount ? ` (+${addedCount} mới)` : ''}${removedNote}${skipNote}${formatLiveSync(res?.data)} — đóng shop rồi mở lại NPC`,
+        `Đã lưu ${next.length} item vào SQL${addedCount ? ` (+${addedCount} mới)` : ''}${removedNote}${skipNote}${formatLiveSync(res?.data)} — đóng shop rồi mở lại NPC`,
         'success'
       );
       setOrderIoOpen(false);
+
       await onRefresh?.();
     } catch (e) {
       onFeedback?.(e.message, 'error');

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware, requirePermission } from '../middleware/auth.js';
-import { query, exec } from '../db.js';
+import { query, withTransaction } from '../db.js';
 import { auditLog } from '../services/audit.js';
 import { agentPost } from '../services/agent.js';
 import { getDefaultServerId } from '../services/serverRegistry.js';
@@ -75,10 +75,10 @@ async function loadTabItems(tabId, { sellOnly = false } = {}) {
   return enrichItems(items);
 }
 
-async function saveItemOptions(itemShopId, options = []) {
-  await query('DELETE FROM item_shop_option WHERE item_shop_id = ?', [itemShopId]);
+async function saveItemOptions(conn, itemShopId, options = []) {
+  await conn.execute('DELETE FROM item_shop_option WHERE item_shop_id = ?', [itemShopId]);
   for (const o of options) {
-    await exec(
+    await conn.execute(
       'INSERT INTO item_shop_option (item_shop_id, option_id, param) VALUES (?, ?, ?)',
       [itemShopId, o.id, o.param ?? 0]
     );
@@ -222,25 +222,30 @@ router.post('/tabs/:tabId/items', requirePermission('giftcode.manage'), async (r
     const tabId = canonicalItemShopTabId(req.params.tabId);
     const tabIds = resolveItemShopTabIds(req.params.tabId);
     const ph = tabIds.map(() => '?').join(',');
-    const maxRow = await query(
-      `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM item_shop WHERE tab_id IN (${ph})`,
-      tabIds
-    );
-    const sortOrder = maxRow[0]?.next_order ?? 0;
-    const result = await exec(
-      `INSERT INTO item_shop (tab_id, temp_id, is_new, is_sell, type_sell, cost, icon_spec, sort_order)
-       VALUES (?, ?, 0, ?, ?, ?, ?, ?)`,
-      [
-        tabId,
-        temp_id,
-        is_sell ?? 1,
-        type_sell ?? 0,
-        cost ?? 0,
-        icon_spec ?? 0,
-        sortOrder,
-      ]
-    );
-    if (options?.length) await saveItemOptions(result.insertId, options);
+    const created = await withTransaction(async (conn) => {
+      const [maxRows] = await conn.execute(
+        `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM item_shop WHERE tab_id IN (${ph})`,
+        tabIds
+      );
+      const sortOrder = maxRows[0]?.next_order ?? 0;
+      const [result] = await conn.execute(
+        `INSERT INTO item_shop (tab_id, temp_id, is_new, is_sell, type_sell, cost, icon_spec, sort_order)
+         VALUES (?, ?, 0, ?, ?, ?, ?, ?)`,
+        [
+          tabId,
+          temp_id,
+          is_sell ?? 1,
+          type_sell ?? 0,
+          cost ?? 0,
+          icon_spec ?? 0,
+          sortOrder,
+        ]
+      );
+      await saveItemOptions(conn, result.insertId, options || []);
+      return { id: result.insertId, sortOrder };
+    });
+    const result = { insertId: created.id };
+    const sortOrder = created.sortOrder;
     await auditLog({
       userId: req.user.id,
       action: 'shop.item.create',
@@ -264,40 +269,40 @@ router.post('/tabs/:tabId/items/bulk-create', requirePermission('giftcode.manage
     const tabId = canonicalItemShopTabId(req.params.tabId);
     const tabIds = resolveItemShopTabIds(req.params.tabId);
     const ph = tabIds.map(() => '?').join(',');
-    const maxRow = await query(
-      `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM item_shop WHERE tab_id IN (${ph})`,
-      tabIds
-    );
-    let sortOrder = maxRow[0]?.next_order ?? 0;
-    const createdIds = [];
-
-    for (const row of rows) {
-      const tempId = Number(row?.temp_id);
-      if (!tempId || Number.isNaN(tempId)) continue;
-      const tplRows = await query(
-        'SELECT id FROM item_template WHERE id = ? LIMIT 1',
-        [tempId]
+    const createdIds = await withTransaction(async (conn) => {
+      const [maxRows] = await conn.execute(
+        `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM item_shop WHERE tab_id IN (${ph})`,
+        tabIds
       );
-      if (!tplRows.length) continue;
-
-      const result = await exec(
-        `INSERT INTO item_shop (tab_id, temp_id, is_new, is_sell, type_sell, cost, icon_spec, sort_order)
-         VALUES (?, ?, 0, ?, ?, ?, ?, ?)`,
-        [
-          tabId,
-          tempId,
-          row.is_sell ?? 1,
-          row.type_sell ?? 0,
-          row.cost ?? 0,
-          row.icon_spec ?? 0,
-          sortOrder,
-        ]
-      );
-      sortOrder += 1;
-      const itemShopId = result.insertId;
-      createdIds.push(itemShopId);
-      if (row.options?.length) await saveItemOptions(itemShopId, row.options);
-    }
+      let sortOrder = maxRows[0]?.next_order ?? 0;
+      const ids = [];
+      for (const row of rows) {
+        const tempId = Number(row?.temp_id);
+        if (!tempId || Number.isNaN(tempId)) continue;
+        const [tplRows] = await conn.execute(
+          'SELECT id FROM item_template WHERE id = ? LIMIT 1',
+          [tempId]
+        );
+        if (!tplRows.length) continue;
+        const [result] = await conn.execute(
+          `INSERT INTO item_shop (tab_id, temp_id, is_new, is_sell, type_sell, cost, icon_spec, sort_order)
+           VALUES (?, ?, 0, ?, ?, ?, ?, ?)`,
+          [
+            tabId,
+            tempId,
+            row.is_sell ?? 1,
+            row.type_sell ?? 0,
+            row.cost ?? 0,
+            row.icon_spec ?? 0,
+            sortOrder,
+          ]
+        );
+        sortOrder += 1;
+        ids.push(result.insertId);
+        await saveItemOptions(conn, result.insertId, row.options || []);
+      }
+      return ids;
+    });
 
     if (!createdIds.length) {
       return res.status(400).json({ ok: false, error: 'Không tạo được item — kiểm tra temp_id' });
@@ -329,35 +334,38 @@ router.put('/tabs/:tabId/items/bulk', requirePermission('giftcode.manage'), asyn
     return res.status(400).json({ ok: false, error: 'Cần mảng items [{ id, cost, ... }]' });
   }
   try {
-    let saved = 0;
     await ensureGenderOverrideColumn();
     const genderCol = await hasGenderOverrideColumn();
-    for (const row of rows) {
-      if (!row?.id) continue;
-      const genderOverride = genderCol && Object.prototype.hasOwnProperty.call(row, 'gender_override')
-        ? parseGenderOverride(row.gender_override)
-        : undefined;
-      await query(
-        `UPDATE item_shop SET
-           cost = COALESCE(?, cost),
-           type_sell = COALESCE(?, type_sell),
-           is_sell = COALESCE(?, is_sell),
-           icon_spec = COALESCE(?, icon_spec),
-           is_new = COALESCE(?, is_new)${genderOverride !== undefined ? ', gender_override = ?' : ''}
-         WHERE id = ?`,
-        [
-          row.cost ?? null,
-          row.type_sell ?? null,
-          row.is_sell ?? null,
-          row.icon_spec ?? null,
-          row.is_new ?? null,
-          ...(genderOverride !== undefined ? [genderOverride] : []),
-          row.id,
-        ]
-      );
-      if (row.options != null) await saveItemOptions(row.id, row.options);
-      saved += 1;
-    }
+    const saved = await withTransaction(async (conn) => {
+      let count = 0;
+      for (const row of rows) {
+        if (!row?.id) continue;
+        const genderOverride = genderCol && Object.prototype.hasOwnProperty.call(row, 'gender_override')
+          ? parseGenderOverride(row.gender_override)
+          : undefined;
+        await conn.execute(
+          `UPDATE item_shop SET
+             cost = COALESCE(?, cost),
+             type_sell = COALESCE(?, type_sell),
+             is_sell = COALESCE(?, is_sell),
+             icon_spec = COALESCE(?, icon_spec),
+             is_new = COALESCE(?, is_new)${genderOverride !== undefined ? ', gender_override = ?' : ''}
+           WHERE id = ?`,
+          [
+            row.cost ?? null,
+            row.type_sell ?? null,
+            row.is_sell ?? null,
+            row.icon_spec ?? null,
+            row.is_new ?? null,
+            ...(genderOverride !== undefined ? [genderOverride] : []),
+            row.id,
+          ]
+        );
+        if (row.options != null) await saveItemOptions(conn, row.id, row.options);
+        count += 1;
+      }
+      return count;
+    });
     await auditLog({
       userId: req.user.id,
       action: 'shop.tab.bulk_update',
@@ -380,29 +388,31 @@ router.put('/items/:itemId', requirePermission('giftcode.manage'), async (req, r
     const genderOverride = genderCol && Object.prototype.hasOwnProperty.call(req.body || {}, 'gender_override')
       ? parseGenderOverride(gender_override)
       : undefined;
-    await query(
-      `UPDATE item_shop SET
-         cost = COALESCE(?, cost),
-         type_sell = COALESCE(?, type_sell),
-         is_sell = COALESCE(?, is_sell),
-         icon_spec = COALESCE(?, icon_spec),
-         temp_id = COALESCE(?, temp_id),
-         sort_order = COALESCE(?, sort_order),
-         is_new = COALESCE(?, is_new)${genderOverride !== undefined ? ', gender_override = ?' : ''}
-       WHERE id = ?`,
-      [
-        cost ?? null,
-        type_sell ?? null,
-        is_sell ?? null,
-        icon_spec ?? null,
-        temp_id ?? null,
-        sort_order ?? null,
-        is_new ?? null,
-        ...(genderOverride !== undefined ? [genderOverride] : []),
-        req.params.itemId,
-      ]
-    );
-    if (options != null) await saveItemOptions(req.params.itemId, options);
+    await withTransaction(async (conn) => {
+      await conn.execute(
+        `UPDATE item_shop SET
+           cost = COALESCE(?, cost),
+           type_sell = COALESCE(?, type_sell),
+           is_sell = COALESCE(?, is_sell),
+           icon_spec = COALESCE(?, icon_spec),
+           temp_id = COALESCE(?, temp_id),
+           sort_order = COALESCE(?, sort_order),
+           is_new = COALESCE(?, is_new)${genderOverride !== undefined ? ', gender_override = ?' : ''}
+         WHERE id = ?`,
+        [
+          cost ?? null,
+          type_sell ?? null,
+          is_sell ?? null,
+          icon_spec ?? null,
+          temp_id ?? null,
+          sort_order ?? null,
+          is_new ?? null,
+          ...(genderOverride !== undefined ? [genderOverride] : []),
+          req.params.itemId,
+        ]
+      );
+      if (options != null) await saveItemOptions(conn, req.params.itemId, options);
+    });
     await auditLog({
       userId: req.user.id,
       action: 'shop.item.update',
@@ -424,12 +434,14 @@ router.post('/tabs/:tabId/reorder', requirePermission('giftcode.manage'), async 
   }
   try {
     const tabId = canonicalItemShopTabId(req.params.tabId);
-    for (let i = 0; i < order.length; i++) {
-      await query(
-        'UPDATE item_shop SET sort_order = ?, tab_id = ? WHERE id = ?',
-        [i, tabId, order[i]]
-      );
-    }
+    await withTransaction(async (conn) => {
+      for (let i = 0; i < order.length; i++) {
+        await conn.execute(
+          'UPDATE item_shop SET sort_order = ?, tab_id = ? WHERE id = ?',
+          [i, tabId, order[i]]
+        );
+      }
+    });
     await auditLog({
       userId: req.user.id,
       action: 'shop.tab.reorder',
@@ -446,8 +458,10 @@ router.post('/tabs/:tabId/reorder', requirePermission('giftcode.manage'), async 
 
 router.delete('/items/:itemId', requirePermission('giftcode.manage'), async (req, res) => {
   try {
-    await query('DELETE FROM item_shop_option WHERE item_shop_id = ?', [req.params.itemId]);
-    await query('DELETE FROM item_shop WHERE id = ?', [req.params.itemId]);
+    await withTransaction(async (conn) => {
+      await conn.execute('DELETE FROM item_shop_option WHERE item_shop_id = ?', [req.params.itemId]);
+      await conn.execute('DELETE FROM item_shop WHERE id = ?', [req.params.itemId]);
+    });
     await auditLog({
       userId: req.user.id,
       action: 'shop.item.delete',
