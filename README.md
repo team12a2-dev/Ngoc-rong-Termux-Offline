@@ -35,16 +35,12 @@
 Cài **Termux chính thức**, sau đó dán **một dòng duy nhất** sau đây:
 
 ```bash
-pkg update -y && pkg install -y git curl && curl --http1.1 -fsSL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 20 --max-time 120 -o "$HOME/install-termux.sh" "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" && bash "$HOME/install-termux.sh"
+pkg update -y && pkg install -y curl tar && curl --http1.1 -fsSL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 120 -o "$HOME/install-termux.sh" "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" && bash "$HOME/install-termux.sh"
 ```
 
-Khi cài `git` lần đầu, Termux có thể hiện thông báo tạo khóa SSH. Đây là bình thường; hãy chờ đến khi lệnh chạy tiếp. Nếu đã quay lại prompt `~ $` mà chưa setup, chạy:
+Installer tải **một gói runtime trực tiếp từ GitHub Release**, không dùng Git, không tạo khóa SSH và không xuất hiện `Receiving objects`. File tải dở được giữ lại để tiếp tục; log chi tiết nằm tại `~/.ngocrong-termux-install.log`.
 
-```bash
-bash "$HOME/install-termux.sh"
-```
-
-Project được cài vào `~/ngocrong-termux`. Repository khá lớn nên tốc độ phụ thuộc Wi‑Fi/4G và máy chủ GitHub; hãy giữ kết nối ổn định khi tải. Nếu mạng bị ngắt, chạy lại installer để dùng lại thư mục Git và thử tiếp; log chi tiết nằm tại `~/.ngocrong-termux-install.log`.
+Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel.
 
@@ -257,7 +253,7 @@ boss_spawn.properties        Cấu hình spawn boss
 nro.sh                       Launcher chính
 termux-server-service.sh     Supervisor chạy nền
 termux-lan-start.sh          Khởi động LAN
-install-termux.sh             Installer Termux bằng Git partial clone
+install-termux.sh             Installer runtime trực tiếp từ Release
 install-termux-background.sh  Cài Termux:Boot
 TERMUX-LAN.md                Hướng dẫn LAN chi tiết
 ```
@@ -279,5 +275,5 @@ Kết quả trong sandbox không thay thế kiểm thử trên từng mẫu đi�
 - [Hướng dẫn vận hành panel](panel/docs/NRO-CONTROL-PANEL.md)
 - [Repository GitHub](https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline)
 - [Termux:Boot](https://github.com/termux/termux-boot)
-- [Git partial clone](https://git-scm.com/docs/partial-clone)
+- [GitHub Release runtime](https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/releases)
 - [MariaDB Connector/J](https://mariadb.com/docs/connectors/mariadb-connector-j/about-mariadb-connector-j)
