@@ -187,34 +187,34 @@ Các API nội bộ tương ứng là `GET /api/v1/runtime/diagnostics` và `GET
 
 Mục **Game & Server → Drop theo Map** cho phép cấu hình vàng, sét kích hoạt và vật phẩm rơi theo từng `Map ID` bằng giao diện, không cần sửa Java hoặc chạy SQL thủ công. Lần chạy `npm run db:sync` sẽ tự tạo hai bảng `panel_map_drop_configs` và `panel_map_drop_items`; mỗi server có tối đa một rule cho mỗi map.
 
-| Nhóm cấu hình | Logic áp dụng |
-|---|---|
-| Rule map | Bật/tắt toàn bộ rule bằng **Áp dụng rule trên map**. Nếu chưa có rule hoặc rule tắt, logic drop mặc định của game vẫn được giữ nguyên. |
-| Vàng rơi | Bật **Vàng rơi**, nhập tỷ lệ phần trăm và khoảng `min–max`. Khi quái thường chết và roll trúng, số vàng được random trong khoảng đã đặt; item hiển thị tự chọn ID 188/189/190 theo số lượng. |
-| Sét kích hoạt | Bật **Sét kích hoạt**, nhập tỷ lệ phần trăm theo mỗi lần quái thường chết. Java vẫn dùng bộ chọn item và option sét kích hoạt theo giới tính hiện có, đồng thời giữ option khóa set. |
-| Item custom | Chọn loại quái từ catalog `mob_template`, chọn khoảng level và khung giờ rồi thêm item với tỷ lệ độc lập, quantity min–max và options dạng `option_id:param`. `Mob ID -1` áp dụng cho mọi quái; cùng một item có thể có rule riêng cho nhiều Mob ID, level và thời gian. |
-| Reload runtime | **Lưu & reload** ghi database rồi gọi Java Agent `/reload/drop-config`; cache được thay thế mà không cần restart server. |
+| Nhóm cấu hình | Mặc định đơn giản | Khi cần nâng cao |
+|---|---|---|
+| Rule map | Chọn Map ID, bật rule và lưu. | Không thay đổi. |
+| Item custom | Tìm item trong catalog, bấm **Thêm**; item tự áp dụng cho mọi quái, level `0–19` và cả ngày với tỷ lệ mặc định `1%`, số lượng `1`. | Mở **Nâng cao** để lọc Mob, level, giờ và option `id:param`. |
+| Vàng rơi | Giữ nguyên vàng gốc nếu không bật. | Bật override, nhập tỷ lệ và khoảng `min–max`, hoặc dùng preset an toàn/farm. |
+| Sét kích hoạt | Giữ nguyên sét gốc nếu không bật. | Mở **Nâng cao** và đặt tỷ lệ riêng cho map. |
+| Reload runtime | **Lưu & reload** ghi database và gọi Java Agent `/reload/drop-config`. | Không cần restart server. |
 
 #### Quy trình cấu hình nhanh
 
 ```text
 1. Mở Game & Server → Drop theo Map.
 2. Chọn map có sẵn hoặc nhập Map ID từ 0 đến 9999 rồi bấm Mở.
-3. Bật “Áp dụng rule trên map”.
-4. Bật Vàng rơi nếu muốn thay tỷ lệ vàng mặc định; nhập tỷ lệ (%) và khoảng min–max.
-5. Bật Sét kích hoạt nếu muốn thay tỷ lệ sét của map; dùng 0,01% cho tỷ lệ thấp.
-6. Trong mục Loại quái áp dụng, chọn **Tất cả quái** hoặc tìm/chọn một Mob ID cụ thể.
-7. Đặt **Level người chơi từ/đến** để làm mặc định cho item mới; level gameplay hiện tại chạy từ `0` đến `19` theo sức mạnh nhân vật.
-8. Tìm item trong Catalog rồi bấm Thêm; item sẽ nhận Mob ID và khoảng level đang chọn. Nhập tỷ lệ và quantity cho từng item.
-9. Chọn preset Sáng/Trưa-chiều/Tối hoặc nhập giờ bắt đầu–kết thúc; khung `18:00–06:00` được hiểu là qua nửa đêm.
-10. Bấm Lưu & reload, sau đó hạ đúng loại quái bằng nhân vật đúng khoảng level trong đúng khung giờ để kiểm tra kết quả.
+3. Tìm item theo ID/tên và bấm Thêm.
+4. Chỉnh tỷ lệ (%) và số lượng từ/đến ngay trong bảng item.
+5. Nếu cần thay vàng mặc định, bật Vàng custom và nhập khoảng vàng.
+6. Bấm Lưu & reload.
 ```
 
-Tỷ lệ dùng phần trăm thực: `0,01%` tương đương 1/10.000, `1%` tương đương 1/100 và `100%` luôn trúng. `goldMin`/`goldMax` là số vàng thực tế, không phải phần trăm. Options nhập dạng `id:param, id:param`, ví dụ `47:500, 30:0`. Với item drop, `mob_temp_id = -1` là wildcard cho mọi quái; nếu nhập `mob_temp_id = 12` thì item chỉ roll khi quái đang chết có `Mob.tempId = 12`. `player_level_min` và `player_level_max` lọc theo `Service.getCurrLevel(player)`, trong đó `0` là level đầu và `19` là level cao nhất theo ngưỡng Power hiện tại. `time_start_min`/`time_end_min` lưu số phút từ đầu ngày theo múi giờ của thiết bị/server Java; `00:00–24:00` hoặc cùng giờ được xem là cả ngày, còn giờ bắt đầu lớn hơn giờ kết thúc là khung qua nửa đêm.
+Item được thêm theo luồng nhanh sẽ dùng các điều kiện mặc định: `Mob ID = -1` cho mọi quái, player level `0–19`, thời gian cả ngày và không có option drop bổ sung. Vì vậy phần lớn trường hợp chỉ cần **6 thao tác trên**, không phải chọn Mob, level hoặc khung giờ.
 
-Rule custom được áp dụng tại hook `Mob.getItemMobReward` cho quái thường sau khi player hạ quái. Các reward boss và drop đặc biệt hiện hữu vẫn chạy theo source; cấu hình mới chỉ bổ sung item hoặc thay phần vàng/sét mặc định trên map đã chọn. Mỗi lần lưu yêu cầu quyền `server.config`, được ghi vào Audit Logs và đồng bộ qua `MapDropConfigService`. Panel có catalog Mob từ bảng `mob_template`, hiển thị tên, Type và HP; không cần nhớ ID bằng cách mở source Java. Rule item được lưu với khóa `(config_id, temp_id, mob_temp_id, player_level_min, player_level_max, time_start_min, time_end_min)` nên một item có thể có tỷ lệ khác nhau cho từng loại quái, khoảng level và khung giờ trong cùng một map. Điều kiện được kết hợp bằng AND: quái phải đúng Mob ID (hoặc `-1`), player phải nằm trong khoảng level và thời gian hệ thống phải nằm trong khung giờ mới được roll.
+#### Khi nào dùng Nâng cao?
 
-Nếu Java Agent reload lỗi, dữ liệu database vẫn được lưu; hãy mở **Runtime & Logs**, kiểm tra Agent rồi bấm **Reload runtime**. Không nên đặt tỷ lệ quá cao cho nhiều item cùng lúc vì mỗi item roll độc lập có thể làm số lượng vật phẩm rơi tăng mạnh.
+Mở mục **Nâng cao: sét, Mob, level, khung giờ và option drop** khi cần một trong các yêu cầu sau: chỉ cho một Mob ID cụ thể rơi item; giới hạn theo level người chơi; đặt khung giờ ban ngày/ban đêm; thêm option cho item rơi; hoặc bật tỷ lệ sét riêng. `Mob ID -1` áp dụng cho mọi quái; `time_start_min`/`time_end_min` là số phút từ đầu ngày, `00:00–24:00` là cả ngày và giờ bắt đầu lớn hơn giờ kết thúc là khung qua nửa đêm.
+
+Tỷ lệ dùng phần trăm thực: `0,01%` tương đương 1/10.000, `1%` tương đương 1/100 và `100%` luôn trúng. `goldMin`/`goldMax` là số vàng thực tế. Options item drop nhập dạng `id:param, id:param`, ví dụ `47:500, 30:0`. Điều kiện Mob, level và giờ được kết hợp bằng AND.
+
+Rule custom được áp dụng tại hook `Mob.getItemMobReward` cho quái thường sau khi player hạ quái. Reward boss và drop đặc biệt hiện hữu vẫn chạy theo source; cấu hình mới chỉ bổ sung item hoặc thay phần vàng/sét mặc định trên map đã chọn. Mỗi lần lưu yêu cầu quyền `server.config`, được ghi vào Audit Logs và đồng bộ qua `MapDropConfigService`. Nếu Java Agent reload lỗi, dữ liệu database vẫn được lưu; hãy mở **Runtime & Logs**, kiểm tra Agent rồi bấm **Reload runtime**. Không nên đặt tỷ lệ quá cao cho nhiều item cùng lúc vì mỗi item roll độc lập có thể làm số lượng vật phẩm rơi tăng mạnh.
 
 ### Quản lý tài khoản và nhân vật
 

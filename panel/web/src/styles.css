@@ -2843,3 +2843,24 @@ code { background: #0f1419; padding: 1px 5px; border-radius: 4px; font-size: 0.8
 @media (max-width: 720px) {
   .usable-item-form .form-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Luồng nhanh Drop theo Map */
+.drop-quick-guide { margin-bottom: 14px; }
+.drop-simple-layout .drop-section-card { margin-top: 12px; }
+.drop-quick-catalog { margin-top: 10px; align-items: center; }
+.drop-quick-catalog input { flex: 1; min-width: 180px; }
+.drop-catalog-quick, .drop-quick-items-table, .drop-advanced-items-table { overflow-x: auto; margin-top: 10px; }
+.drop-quick-items-table table { min-width: 620px; }
+.drop-quick-items-table td small { display: block; margin-top: 3px; color: var(--muted, #8c96aa); font-size: 11px; }
+.drop-advanced-details { margin-top: 14px; border: 1px solid var(--border, #273149); border-radius: 10px; padding: 0 14px 14px; background: rgba(255,255,255,.015); }
+.drop-advanced-details > summary { cursor: pointer; padding: 14px 0; color: var(--accent, #6ea8fe); font-weight: 600; }
+.drop-advanced-details[open] > summary { border-bottom: 1px solid var(--border, #273149); margin-bottom: 2px; }
+.drop-advanced-details .drop-section-card { border: 0; padding: 12px 0 0; background: transparent; }
+.drop-advanced-items-table table { min-width: 900px; }
+.drop-advanced-items-table .input-options { min-width: 160px; }
+@media (max-width: 720px) {
+  .drop-quick-catalog { align-items: stretch; flex-direction: column; }
+  .drop-quick-catalog input, .drop-quick-catalog .btn { width: 100%; }
+  .drop-simple-layout .section-head { align-items: flex-start; flex-wrap: wrap; }
+}
