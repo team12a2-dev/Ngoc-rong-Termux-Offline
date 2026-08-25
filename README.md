@@ -1,5 +1,7 @@
 # Ngọc Rồng Online — Termux Edition
 
+![Ảnh đại diện Ngọc Rồng Online](docs/images/readme-header.jpeg)
+
 Game server Java chạy trên Android bằng Termux và MariaDB cục bộ.
 
 > Dự án phù hợp để chạy server trong mạng LAN. Hãy tự kiểm tra quyền sử dụng mã nguồn, dữ liệu game và client trước khi phát hành.
