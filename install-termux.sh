@@ -16,29 +16,27 @@ prepare_directory() {
   mkdir -p "$INSTALL_DIR"
 }
 
-init_repository() {
+setup_repository() {
   prepare_directory
-
   if ! git -C "$INSTALL_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     git -C "$INSTALL_DIR" init -q -b "$BRANCH"
-    git -C "$INSTALL_DIR" remote add origin "$REPO_URL"
-  else
-    git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL" 2>/dev/null || \
-      git -C "$INSTALL_DIR" remote add origin "$REPO_URL"
   fi
+  git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL" 2>/dev/null || \
+    git -C "$INSTALL_DIR" remote add origin "$REPO_URL"
 }
 
 fetch_repository() {
   mkdir -p "$(dirname "$INSTALL_LOG")"
-  : > "$INSTALL_LOG"
-  init_repository
+  setup_repository
 
   for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
     echo "Đang tải source (lần $attempt/$MAX_ATTEMPTS)..."
+    : > "$INSTALL_LOG"
+
     if git -C "$INSTALL_DIR" \
         -c http.version=HTTP/1.1 \
         -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=120 \
-        fetch --depth 1 --filter=blob:none --no-tags origin \
+        fetch --depth 1 --filter=blob:none --no-tags --quiet origin \
         "refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" \
         >"$INSTALL_LOG" 2>&1 \
         && git -C "$INSTALL_DIR" checkout -q -B "$BRANCH" "origin/$BRANCH" \
@@ -48,7 +46,7 @@ fetch_repository() {
     fi
 
     if [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
-      echo "Kết nối bị ngắt; giữ lại dữ liệu đã nhận và thử lại sau 5 giây."
+      echo "Mạng bị ngắt; dữ liệu đã nhận được giữ lại. Thử lại sau 5 giây."
       sleep 5
     fi
   done
@@ -60,7 +58,7 @@ fetch_repository() {
 }
 
 echo "Thư mục cài đặt: $INSTALL_DIR"
-echo "Đang tải bằng Git partial clone; không dùng archive tar.gz."
+echo "Đang tải source tối ưu; log Git được lưu riêng."
 fetch_repository
 
 cd "$INSTALL_DIR"
