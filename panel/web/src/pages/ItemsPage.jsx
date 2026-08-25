@@ -10,7 +10,7 @@ const EMPTY_FORM = {
 
 const TYPES = [
   ['0', 'Áo'], ['1', 'Quần'], ['2', 'Găng'], ['3', 'Giày'], ['4', 'Rada'],
-  ['5', 'Thức ăn'], ['6', 'Đậu'], ['12', 'Ngọc rồng'], ['21', 'Cải trang'], ['23', 'Thú cưỡi'],
+  ['5', 'Thức ăn'], ['6', 'Đậu'], ['12', 'Ngọc rồng'], ['21', 'Cải trang'], ['23', 'Thú cưỡi'], ['29', 'Vật phẩm bổ trợ'],
 ];
 
 function numberField(value, fallback = 0) {

@@ -69,7 +69,7 @@ export const PANEL_TABLES = [
   'panel_server_metrics', 'panel_config_snapshots', 'panel_plugins',
   'panel_broadcast_templates', 'panel_maintenance_schedules',
   'panel_alert_rules', 'panel_alert_history', 'panel_backups',
-  'panel_map_drop_configs', 'panel_map_drop_items',
+  'panel_map_drop_configs', 'panel_map_drop_items', 'panel_usable_items',
 ];
 
 export function parsePlayerPower(dataPoint) {

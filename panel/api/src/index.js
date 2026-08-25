@@ -25,6 +25,7 @@ import assetRoutes from './routes/assets.js';
 import itemRoutes from './routes/items.js';
 import runtimeRoutes from './routes/runtime.js';
 import dropConfigRoutes from './routes/dropConfig.js';
+import usableItemRoutes from './routes/usableItems.js';
 
 import { authMiddleware, getMe, getJwtSecret } from './middleware/auth.js';
 import { getMetrics, getOnlinePlayers } from './services/agent.js';
@@ -84,6 +85,7 @@ app.use('/api/v1/assets', assetRoutes);
 app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/runtime', runtimeRoutes);
 app.use('/api/v1/drop-config', dropConfigRoutes);
+app.use('/api/v1/usable-items', usableItemRoutes);
 
 // Serve the production React panel from the same origin as the API.
 // This keeps relative /api and /ws URLs working on localhost and LAN devices.

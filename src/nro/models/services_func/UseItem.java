@@ -45,6 +45,7 @@ import nro.models.services.RewardService;
 import nro.models.services.PlayerService;
 import nro.models.services.TaskService;
 import nro.models.services.InventoryService;
+import nro.models.services.UsableItemConfigService;
 import nro.models.map.service.MapService;
 import nro.models.services_dungeon.NgocRongNamecService;
 import nro.models.map.service.ItemMapService;
@@ -266,6 +267,9 @@ public class UseItem {
                 return;
             }
             if (item.template.strRequire <= pl.nPoint.power) {
+                if (UsableItemConfigService.gI().use(pl, item)) {
+                    return;
+                }
                 switch (item.template.type) {
                     case 33: //card
                         UseCard(pl, item);

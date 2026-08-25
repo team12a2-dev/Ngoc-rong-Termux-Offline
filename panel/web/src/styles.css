@@ -2834,3 +2834,12 @@ code { background: #0f1419; padding: 1px 5px; border-radius: 4px; font-size: 0.8
 .drop-items-table .input-time { width: 108px; min-width: 108px; }
 .drop-mob-selected { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(110,168,254,.08); }
 .drop-item-name small { display: block; margin-top: 3px; color: var(--muted, #8c96aa); font-size: 11px; }
+
+.usable-item-form .form-actions { margin-top: 14px; }
+.usable-item-form .checkbox-field { justify-content: flex-start; }
+.usable-item-form .checkbox-field > span:last-child { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; }
+.status-dot.off { color: var(--muted, #8c96aa); }
+.status-dot.ok { color: var(--success, #61d095); }
+@media (max-width: 720px) {
+  .usable-item-form .form-grid { grid-template-columns: 1fr; }
+}

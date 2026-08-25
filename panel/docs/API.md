@@ -122,6 +122,22 @@ POST   /drop-config/reload                            → yêu cầu Java Agent 
 
 Khi `POST /drop-config` thành công, API ghi `panel_map_drop_configs` và thay toàn bộ item con trong `panel_map_drop_items`, sau đó gọi Game Agent `POST /reload/drop-config`. `mobTempId = -1` áp dụng cho mọi quái; giá trị không âm chỉ áp dụng cho Mob có `Mob.tempId` tương ứng. `playerLevelMin`/`playerLevelMax` giới hạn theo `Service.getCurrLevel(player)` trong khoảng `0–19`. `timeStartMin`/`timeEndMin` là số phút từ đầu ngày theo múi giờ của Java server; `0–1440` hoặc cùng giờ được xem là cả ngày, còn start lớn hơn end là khung qua nửa đêm. Điều kiện Mob ID, level và thời gian đều phải đúng thì item mới được roll. Nếu reload runtime thất bại, dữ liệu database vẫn được giữ lại để retry.
 
+## Item bổ trợ
+
+Yêu cầu JWT và quyền `server.config`. Chỉ item template có `type = 29` mới được đăng ký.
+
+```text
+GET    /usable-items?serverId=                       → danh sách mapping item bổ trợ
+GET    /usable-items/behaviors                      → behavior bo_huyet và bo_huyet_2
+GET    /usable-items/templates?q=&limit=            → catalog item type 29
+POST   /usable-items
+       { serverId, templateId, behaviorKey, enabled }
+DELETE /usable-items/:templateId?serverId=           → bỏ mapping, không xóa item template
+POST   /usable-items/reload                         → yêu cầu Java Agent reload usable-items
+```
+
+`behaviorKey = bo_huyet` dùng chung state với item 382, tăng 100% HP tối đa trong 10 phút; `behaviorKey = bo_huyet_2` dùng chung state với item 1152, tăng 120% HP tối đa trong 10 phút. Khi lưu mapping, Java Agent reload cache và `UseItem` tra cứu theo `item_template.id`, nên không cần thêm ID vào switch hardcode. Nếu runtime reload thất bại, mapping database vẫn được lưu để retry.
+
 ## Audit
 
 ```
@@ -156,6 +172,7 @@ POST /reload/shop
 POST /reload/giftcode
 POST /reload/boss-spawn
 POST /reload/drop-config
+POST /reload/usable-items
 GET  /boss/list
 GET  /runtime-config
 

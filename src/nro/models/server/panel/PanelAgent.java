@@ -66,6 +66,7 @@ public final class PanelAgent {
         server.createContext("/reload/clan", exchange -> handle(exchange, this::reloadClan));
                 server.createContext("/reload/boss-spawn", exchange -> handle(exchange, this::reloadBossSpawn));
         server.createContext("/reload/drop-config", exchange -> handle(exchange, this::reloadDropConfig));
+        server.createContext("/reload/usable-items", exchange -> handle(exchange, this::reloadUsableItems));
 
         server.createContext("/boss/spawn", exchange -> handle(exchange, this::spawnBoss));
         server.createContext("/players/kick-all", exchange -> handle(exchange, this::kickAll));
@@ -297,6 +298,10 @@ public final class PanelAgent {
 
     private void reloadDropConfig(HttpExchange exchange, String method, String path, String body) throws IOException {
         writeJson(exchange, 200, success(PanelActions.reloadDropConfig()));
+    }
+
+    private void reloadUsableItems(HttpExchange exchange, String method, String path, String body) throws IOException {
+        writeJson(exchange, 200, success(PanelActions.reloadUsableItems()));
     }
 
 

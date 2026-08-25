@@ -159,6 +159,17 @@ CREATE TABLE IF NOT EXISTS panel_map_drop_configs (
   INDEX idx_drop_server_enabled (server_id, enabled, map_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS panel_usable_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  template_id INT NOT NULL,
+  behavior_key VARCHAR(32) NOT NULL DEFAULT 'bo_huyet',
+  enabled TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_usable_item_template (template_id),
+  INDEX idx_usable_item_enabled (enabled, behavior_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS panel_map_drop_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
   config_id INT NOT NULL,

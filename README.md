@@ -45,6 +45,7 @@
 - [Panel web quản trị](#-panel-web-quản-trị)
 - [Cửa hàng/NPC Shop](#-cửa-hàngnpc-shop)
 - [Drop theo Map](#-drop-theo-map)
+- [Item bổ trợ](#item-bổ-trợ)
 - [Cấu hình database và JVM](#-cấu-hình-database-và-jvm)
 - [Kết nối từ thiết bị khác](#-kết-nối-từ-thiết-bị-khác)
 - [Trạng thái khởi động](#-trạng-thái-khởi-động)
@@ -234,6 +235,30 @@ Chức năng yêu cầu quyền `server.broadcast` và giới hạn tối thiể
 Mục **Game & Server → Item Templates** quản lý trực tiếp bảng `item_template`: xem/tìm kiếm, tạo item mới với ID kế tiếp, sửa tên/mô tả/type/gender/icon/part/level/yêu cầu sức mạnh/giá và gọi Java Agent reload sau khi lưu. Bảng `item_option_template` được đọc để đối chiếu option hiện có; option mới chỉ là nhãn hiển thị, còn hiệu ứng thực tế phải được Java source xử lý.
 
 > **Quan trọng:** source hiện tại tạo item bằng `Manager.ITEM_TEMPLATES.get(tempId)`, vì vậy ID item phải liên tục từ `0` đến `MAX(id)`. Panel không cho xóa item và sẽ từ chối tạo nếu database đang có ID bị khuyết. Đây là điều kiện để vật phẩm tạo từ shop, giftcode hoặc inventory không làm server lỗi index.
+
+### Item bổ trợ
+
+Mục **Game & Server → Item bổ trợ** cho phép đăng ký item `type = 29` để sử dụng trong game theo cơ chế buff đã được server hỗ trợ. Luồng này tách thành hai bước: trước hết tạo hoặc chỉnh item template trong **Item Templates**, sau đó chọn item đó ở **Item bổ trợ** và gán behavior. Không cần sửa switch ID trong Java hay chạy SQL thủ công.
+
+| Behavior | Hiệu ứng runtime | Quy tắc tương thích |
+|---|---|---|
+| **Bổ huyết** (`bo_huyet`) | Tăng `100%` HP tối đa trong `10 phút`, dùng chung state và timer của item gốc `382`. | Không kích hoạt nếu Bổ huyết 2 đang chạy. |
+| **Bổ huyết 2** (`bo_huyet_2`) | Tăng `120%` HP tối đa trong `10 phút`, dùng chung state và timer của item gốc `1152`. | Không kích hoạt nếu Bổ huyết thường đang chạy. |
+
+#### Quy trình cấu hình
+
+```text
+1. Mở Game & Server → Item Templates và tạo item mới với type = 29.
+2. Đặt tên, mô tả, icon và các trường template cần thiết; bảo đảm ID item liên tục.
+3. Mở Game & Server → Item bổ trợ.
+4. Chọn item type 29 trong catalog, chọn Bổ huyết hoặc Bổ huyết 2, rồi bấm Lưu mapping.
+5. Bật/tắt mapping bằng công tắc trên form; bấm Reload runtime sau khi thay đổi nếu cần.
+6. Thêm item vào túi qua shop, giftcode hoặc công cụ quản trị rồi dùng item trong game để kiểm tra.
+```
+
+Khi sử dụng thành công, server kiểm tra mapping theo `item_template.id`, cập nhật lại điểm nhân vật, gửi timer/icon tương ứng cho client, trừ đúng một item trong stack và đồng bộ lại túi. Mapping được nạp lại trực tiếp từ `panel_usable_items`, vì vậy thay đổi bật/tắt hoặc behavior có hiệu lực mà không cần restart game server. Nếu Agent tạm thời không phản hồi, dữ liệu vẫn được lưu trong database để reload lại sau.
+
+> **Giới hạn có chủ ý:** phiên bản hiện tại tái sử dụng hai state Bổ huyết đã tồn tại để bảo đảm timer phía client và trạng thái buff survive relog. Do đó panel chỉ cung cấp hai behavior trên, chưa cho nhập phần trăm HP, thời lượng hoặc icon tùy ý. Muốn có behavior mới hoàn toàn cần bổ sung state persistence, logic `NPoint` và tài nguyên client tương ứng; chỉ thêm một dòng mapping không tự tạo hiệu ứng mới.
 
 ### 🛒 Cửa hàng/NPC Shop
 

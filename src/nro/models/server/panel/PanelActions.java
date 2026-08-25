@@ -44,6 +44,7 @@ import nro.models.server.ServerManager;
 import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
 import nro.models.services.MapDropConfigService;
+import nro.models.services.UsableItemConfigService;
 import nro.models.services.Service;
 import nro.models.utils.Logger;
 import org.json.simple.JSONArray;
@@ -298,6 +299,11 @@ public final class PanelActions {
         public static Map<String, Object> reloadDropConfig() {
         int rules = MapDropConfigService.gI().reload();
         return Map.of("ok", true, "rules", rules);
+    }
+
+    public static Map<String, Object> reloadUsableItems() {
+        int loaded = UsableItemConfigService.gI().reload();
+        return Map.of("ok", true, "loaded", loaded);
     }
 
     public static boolean reloadShop() {
