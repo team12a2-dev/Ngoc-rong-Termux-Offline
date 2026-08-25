@@ -32,21 +32,15 @@
 
 ## Cài đặt nhanh
 
-Cài **Termux chính thức**, sau đó chạy installer. Installer tải vào file tạm, tự retry và kiểm tra archive trước khi giải nén:
+Cài **Termux chính thức**, sau đó chạy installer. Installer dùng Git partial clone, có thể tiếp tục khi kết nối bị ngắt và không dùng archive `tar.gz`:
 
 ```bash
-pkg update -y && pkg install -y curl tar
-INSTALLER="$(mktemp)"
-curl --http1.1 -fL --retry 5 --retry-all-errors --retry-delay 3 \
-  --connect-timeout 20 --max-time 120 -o "$INSTALLER" \
-  "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" \
-  && bash "$INSTALLER"
-STATUS=$?
-rm -f "$INSTALLER"
-exit "$STATUS"
+pkg update -y && pkg install -y git
+bash <(curl -fsSL --retry 5 --retry-all-errors \
+  "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh")
 ```
 
-Installer sẽ cài project vào `~/ngocrong-termux`. Repository khá lớn, vì vậy hãy giữ Wi‑Fi/4G ổn định và không đóng Termux trong lúc tải. Không pipe trực tiếp archive vào `tar`.
+Project được cài vào `~/ngocrong-termux`. Repository khá lớn, hãy giữ Wi‑Fi/4G ổn định và không đóng Termux khi đang clone. Nếu bị ngắt, chạy lại đúng lệnh trên; installer sẽ tiếp tục bản clone dở.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel.
 
@@ -259,7 +253,7 @@ boss_spawn.properties        Cấu hình spawn boss
 nro.sh                       Launcher chính
 termux-server-service.sh     Supervisor chạy nền
 termux-lan-start.sh          Khởi động LAN
-install-termux.sh             Installer Termux an toàn
+install-termux.sh             Installer Termux bằng Git partial clone
 install-termux-background.sh  Cài Termux:Boot
 TERMUX-LAN.md                Hướng dẫn LAN chi tiết
 ```
@@ -281,4 +275,5 @@ Kết quả trong sandbox không thay thế kiểm thử trên từng mẫu đi�
 - [Hướng dẫn vận hành panel](panel/docs/NRO-CONTROL-PANEL.md)
 - [Repository GitHub](https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline)
 - [Termux:Boot](https://github.com/termux/termux-boot)
+- [Git partial clone](https://git-scm.com/docs/partial-clone)
 - [MariaDB Connector/J](https://mariadb.com/docs/connectors/mariadb-connector-j/about-mariadb-connector-j)
