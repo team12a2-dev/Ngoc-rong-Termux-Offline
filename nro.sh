@@ -448,11 +448,10 @@ stop_panel() {
 
 build_server() {
   ensure_layout
-  if [ "${NRO_REBUILD:-0}" != "1" ] && [ -f "$STATE_DIR/build.ok" ] && [ -f "$CLASS_DIR/nro/models/server/ServerManager.class" ]; then
-    say "Đã có bản build Java; dùng NRO_REBUILD=1 nếu muốn biên dịch lại."
+  if [ "${NRO_BUILD_DONE:-0}" = "1" ]; then
     return 0
   fi
-  say "Biên dịch 550 tệp Java bằng JDK 17"
+  say "Biên dịch toàn bộ mã Java trước khi khởi động server"
   find "$ROOT/src" -type f -name '*.java' -print > "$SOURCE_LIST"
   [ -s "$SOURCE_LIST" ] || die "Không có mã nguồn Java trong src/."
   local cp jar
@@ -462,7 +461,8 @@ build_server() {
   mkdir -p "$CLASS_DIR"
   javac -encoding UTF-8 --release 17 -proc:none -cp "$cp" -d "$CLASS_DIR" @"$SOURCE_LIST"
   touch "$STATE_DIR/build.ok"
-  say "Build Java thành công."
+  export NRO_BUILD_DONE=1
+  say "Build Java thành công; server chỉ được khởi động bằng class vừa biên dịch."
 }
 
 server_alive() {
@@ -678,7 +678,7 @@ Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
 NRO_GAME_LISTEN_HOST, NRO_PANEL_PORT, NRO_PANEL_BIND, PANEL_ADMIN_PASSWORD,
 NRO_BACKUP_DIR, NRO_BACKUP_LOG, NRO_BACKUP_KEEP_DAYS, NRO_BACKUP_JOB_ID,
 NRO_BACKUP_PERIOD_MS, NRO_AUTO_BACKUP=0 nếu cần bỏ qua backup tự động,
-JWT_SECRET, NRO_JVM_OPTS, NRO_REBUILD=1, NRO_LAN_IP.
+JWT_SECRET, NRO_JVM_OPTS, NRO_LAN_IP. Mỗi lệnh start/restart/background/lan đều build lại Java trước khi chạy.
 USAGE
       exit 2
       ;;
