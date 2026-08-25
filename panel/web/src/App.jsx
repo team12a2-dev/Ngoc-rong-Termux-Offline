@@ -8,6 +8,8 @@ import PlayerDbPage from './pages/PlayerDbPage';
 import AccountsPage from './pages/AccountsPage';
 import ServerControlPage from './pages/ServerControlPage';
 import BossPage from './pages/BossPage';
+import BossManagementPage from './pages/BossManagementPage';
+
 import GiftcodesPage from './pages/GiftcodesPage';
 import ItemsPage from './pages/ItemsPage';
 
@@ -43,7 +45,9 @@ export default function App() {
           <Route path="players-db" element={<PlayerDbPage />} />
           <Route path="accounts" element={<AccountsPage />} />
           <Route path="server" element={<ServerControlPage />} />
-          <Route path="boss" element={<BossPage />} />
+                    <Route path="boss" element={<BossPage />} />
+          <Route path="boss-management" element={<BossManagementPage />} />
+
           <Route path="giftcodes" element={<GiftcodesPage />} />
           <Route path="items" element={<ItemsPage />} />
 

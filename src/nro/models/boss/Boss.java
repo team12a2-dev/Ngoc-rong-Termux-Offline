@@ -55,6 +55,7 @@ import nro.models.services.PlayerService;
 import nro.models.services.Service;
 import nro.models.services.SkillService;
 import nro.models.services.TaskService;
+import nro.models.services.BossPanelConfigService;
 import nro.models.map.service.ChangeMapService;
 import nro.models.utils.Logger;
 import nro.models.utils.SkillUtil;
@@ -73,6 +74,10 @@ public class Boss extends Player implements IBoss {
     public BossStatus bossStatus;
 
     protected Zone lastZone;
+    private Zone panelSpawnZone;
+    private boolean panelZoneLocked;
+    private long panelSpawnRetryAt;
+    private boolean panelDropRewarded;
 
     protected long lastTimeRest;
     protected int secondsRest;
@@ -100,6 +105,19 @@ public class Boss extends Player implements IBoss {
 
     public long getNextRestDelayMs() {
         return nextRestDelayMs;
+    }
+
+    public long getPanelSpawnRetryAt() {
+        return panelSpawnRetryAt;
+    }
+
+    public void setPanelSpawnRetryAt(long retryAt) {
+        this.panelSpawnRetryAt = Math.max(0L, retryAt);
+    }
+
+    public void setPanelSpawnZone(Zone zone) {
+        this.panelSpawnZone = zone;
+        this.panelZoneLocked = zone != null;
     }
 
     public void setNextRestDelayMs(long delayMs) {
@@ -246,6 +264,10 @@ public Player bomAttacker; // thêm dòng này
         this.nPoint.calPoint();
         this.initSkill();
         this.resetBase();
+        if (this.currentLevel == 0) {
+            this.panelDropRewarded = false;
+            this.playerReward = null;
+        }
     }
 
     protected void initSkill() {
@@ -324,6 +346,11 @@ public Player bomAttacker; // thêm dòng này
     }
 
     public Zone getMapJoin() {
+        Zone configured = BossPanelConfigService.gI().pickConfiguredZone(this);
+        if (configured != null) {
+            this.panelZoneLocked = true;
+            return configured;
+        }
         int nextLevel = this.currentLevel;
         int mapId;
         if (BossSpawnConfig.distributionEnabled && this.data[nextLevel].getMapJoin().length > 1) {
@@ -337,7 +364,17 @@ public Player bomAttacker; // thêm dòng này
 
     @Override
     public void changeStatus(BossStatus status) {
+        if (status == BossStatus.DIE && this.bossStatus != BossStatus.DIE && !panelDropRewarded && playerReward != null) {
+            panelDropRewarded = true;
+            BossPanelConfigService.gI().rollDrops(this, playerReward);
+        }
         this.bossStatus = status;
+    }
+
+    @Override
+    protected void setDie(Player plAtt) {
+        this.playerReward = plAtt;
+        super.setDie(plAtt);
     }
 
     @Override
@@ -493,6 +530,10 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
             this.wakeupAnotherBossWhenAppear();
             return;
         }
+        if (this.zone == null && this.panelSpawnZone != null) {
+            this.zone = this.panelSpawnZone;
+            this.panelSpawnZone = null;
+        }
         if (this.zone == null) {
             if (this.parentBoss != null) {
                 this.zone = parentBoss.zone;
@@ -507,8 +548,9 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         }
         if (this.zone != null) {
             try {
-                if (this.currentLevel == 0) {
-                    if (this.parentBoss == null) {
+                                    if (this.currentLevel == 0) {
+                    if (this.parentBoss == null && !this.panelZoneLocked) {
+
                         int zoneid = 0;
                         //this.zone.map.mapId == 80 || this.zone.map.mapId == 103 || this.zone.map.mapId == 97 || this.zone.map.mapId == 102
                         // Chỉ cho boss xuất hiện từ khu 2 trở lên ở map thường
@@ -550,6 +592,7 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
                         ChangeMapService.gI().changeMap(this, this.zone, x, y);
                     }
                     if (this.parentBoss == null) {
+                        this.panelZoneLocked = false;
                         BossSpawnSchedule.onBossSpawned(this);
                     }
                     this.wakeupAnotherBossWhenAppear();

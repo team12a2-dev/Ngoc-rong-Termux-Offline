@@ -3,7 +3,10 @@ package nro.models.boss.spawn;
 import java.time.ZonedDateTime;
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
+import nro.models.boss.spawn.BossSpawnTier;
+import nro.models.services.BossPanelConfigService;
 import nro.models.boss.Boss_Manager.BossManager;
+
 import nro.models.consts.AppearType;
 import nro.models.consts.BossStatus;
 import static nro.models.consts.AppearType.DEFAULT_APPEAR;
@@ -70,7 +73,9 @@ public final class BossSpawnSchedule {
         }
         BossSpawnTier tier = resolveTier(boss);
         long delayMs = tier.rollInitialStaggerMs((int) boss.id);
-        boss.setNextRestDelayMs(computeScheduledDelayMs(boss, tier, delayMs));
+                long scheduled = computeScheduledDelayMs(boss, tier, delayMs);
+        boss.setNextRestDelayMs(BossPanelConfigService.gI().overrideRestDelayMs(boss, scheduled));
+
         boss.setLastTimeRest(System.currentTimeMillis());
     }
 
@@ -81,7 +86,9 @@ public final class BossSpawnSchedule {
         }
         BossSpawnTier tier = resolveTier(boss);
         long baseDelayMs = tier.rollRestDelayMs(boss.getSecondsRest());
-        boss.setNextRestDelayMs(computeScheduledDelayMs(boss, tier, baseDelayMs));
+                long scheduled = computeScheduledDelayMs(boss, tier, baseDelayMs);
+        boss.setNextRestDelayMs(BossPanelConfigService.gI().overrideRestDelayMs(boss, scheduled));
+
     }
 
     /** Căn thời điểm hết cooldown vào khung giờ hợp lệ + trải đều trong khung */
@@ -157,20 +164,25 @@ public final class BossSpawnSchedule {
         if (!BossSpawnOrchestrator.passesCrossTierGap(boss)) {
             return false;
         }
-        if (!BossSpawnOrchestrator.passesMapDensity(boss, spawnLevel)) {
+                if (!passesConfiguredPlacement(boss, spawnLevel)) {
             return false;
         }
+
         if (!passesConcurrentLimit(boss)) {
             return false;
         }
         if (!BossSpawnOrchestrator.passesFairnessQueue(boss)) {
             return false;
         }
-        if (!BossSpawnOrchestrator.rollSoftWindowSpawn(boss)) {
+                if (!BossSpawnOrchestrator.rollSoftWindowSpawn(boss)) {
             BossSpawnOrchestrator.applySoftWindowDefer(boss);
             return false;
         }
-        return true;
+        if (!BossPanelConfigService.gI().passesActiveLimit(boss)) {
+            return false;
+        }
+        return BossPanelConfigService.gI().passesSpawnChance(boss);
+
     }
 
     public static boolean isReadyForSpawnExceptConcurrent(Boss boss) {
@@ -192,7 +204,8 @@ public final class BossSpawnSchedule {
         if (!BossSpawnOrchestrator.passesCrossTierGap(boss)) {
             return false;
         }
-        return BossSpawnOrchestrator.passesMapDensity(boss, resolveRestSpawnLevel(boss));
+                return passesConfiguredPlacement(boss, resolveRestSpawnLevel(boss));
+
     }
 
     public static boolean isWithinSpawnWindow(Boss boss) {
@@ -313,7 +326,15 @@ public final class BossSpawnSchedule {
         return null;
     }
 
+        private static boolean passesConfiguredPlacement(Boss boss, int spawnLevel) {
+        if (BossPanelConfigService.gI().hasEnabledRule(boss)) {
+            return BossPanelConfigService.gI().hasAvailableConfiguredZone(boss);
+        }
+        return BossSpawnOrchestrator.passesMapDensity(boss, spawnLevel);
+    }
+
     public static boolean passesConcurrentLimit(Boss boss) {
+
         if ((int) boss.id == BossID.BROLY) {
             int brolyLimit = BossSpawnConfig.effectiveBrolyLimit();
             return brolyLimit > 0 && BrolySpawnGate.countActiveBroly() < brolyLimit;
@@ -365,9 +386,10 @@ public final class BossSpawnSchedule {
         if (!BossSpawnOrchestrator.passesCrossTierGap(boss)) {
             return false;
         }
-        if (!BossSpawnOrchestrator.passesMapDensity(boss, resolveRestSpawnLevel(boss))) {
+                if (!passesConfiguredPlacement(boss, resolveRestSpawnLevel(boss))) {
             return false;
         }
+
         if (!passesConcurrentLimit(boss)) {
             return false;
         }

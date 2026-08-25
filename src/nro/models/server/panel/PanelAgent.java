@@ -65,10 +65,13 @@ public final class PanelAgent {
         server.createContext("/reload/giftcode", exchange -> handle(exchange, this::reloadGiftcode));
         server.createContext("/reload/clan", exchange -> handle(exchange, this::reloadClan));
                 server.createContext("/reload/boss-spawn", exchange -> handle(exchange, this::reloadBossSpawn));
+        server.createContext("/reload/boss-panel", exchange -> handle(exchange, this::reloadBossPanel));
         server.createContext("/reload/drop-config", exchange -> handle(exchange, this::reloadDropConfig));
         server.createContext("/reload/usable-items", exchange -> handle(exchange, this::reloadUsableItems));
 
-        server.createContext("/boss/spawn", exchange -> handle(exchange, this::spawnBoss));
+                server.createContext("/boss/spawn", exchange -> handle(exchange, this::spawnBoss));
+        server.createContext("/boss/spawn-at", exchange -> handle(exchange, this::spawnBossAt));
+
         server.createContext("/players/kick-all", exchange -> handle(exchange, this::kickAll));
         server.createContext("/events", exchange -> handle(exchange, this::events));
         server.createContext("/config/files", exchange -> handle(exchange, this::configFiles));
@@ -296,6 +299,10 @@ public final class PanelAgent {
         writeJson(exchange, 200, success(Map.of("ok", PanelActions.reloadBossSpawn())));
     }
 
+    private void reloadBossPanel(HttpExchange exchange, String method, String path, String body) throws IOException {
+        writeJson(exchange, 200, success(PanelActions.reloadBossPanel()));
+    }
+
     private void reloadDropConfig(HttpExchange exchange, String method, String path, String body) throws IOException {
         writeJson(exchange, 200, success(PanelActions.reloadDropConfig()));
     }
@@ -310,6 +317,15 @@ public final class PanelAgent {
         JSONObject json = parseJson(body);
         int bossId = intValue(json.get("bossId"), 0);
         writeJson(exchange, 200, success(Map.of("ok", PanelActions.spawnBoss(bossId))));
+    }
+
+    private void spawnBossAt(HttpExchange exchange, String method, String path, String body) throws IOException {
+        JSONObject json = parseJson(body);
+        int bossId = intValue(json.get("bossId"), 0);
+        int mapId = intValue(json.get("mapId"), -1);
+        int zoneId = intValue(json.get("zoneId"), -1);
+        boolean ok = PanelActions.spawnBossAt(bossId, mapId >= 0 ? mapId : null, zoneId >= 0 ? zoneId : null);
+        writeJson(exchange, ok ? 200 : 400, success(Map.of("ok", ok)));
     }
 
     private void kickAll(HttpExchange exchange, String method, String path, String body) throws IOException {

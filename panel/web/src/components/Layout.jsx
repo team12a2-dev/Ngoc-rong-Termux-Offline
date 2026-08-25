@@ -26,7 +26,9 @@ const navGroups = [
     label: 'Game & Server',
     items: [
       { to: '/server', label: 'Server Control', icon: 'control' },
-      { to: '/boss', label: 'Boss', icon: 'boss' },
+            { to: '/boss', label: 'Boss Monitor', icon: 'boss' },
+      { to: '/boss-management', label: 'Boss Management', icon: 'boss' },
+
       { to: '/giftcodes', label: 'Giftcodes', icon: 'giftcode' },
       { to: '/items', label: 'Item Templates', icon: 'giftcode' },
       { to: '/shops', label: 'Cửa hàng', icon: 'shop' },

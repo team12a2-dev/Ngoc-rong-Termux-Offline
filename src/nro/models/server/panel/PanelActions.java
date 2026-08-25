@@ -44,6 +44,9 @@ import nro.models.server.ServerManager;
 import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
 import nro.models.services.MapDropConfigService;
+import nro.models.services.BossPanelConfigService;
+import nro.models.map.Zone;
+import nro.models.map.service.MapService;
 import nro.models.services.UsableItemConfigService;
 import nro.models.services.Service;
 import nro.models.utils.Logger;
@@ -337,7 +340,13 @@ public final class PanelActions {
         }
     }
 
+        public static Map<String, Object> reloadBossPanel() {
+        int rules = BossPanelConfigService.gI().reload();
+        return Map.of("ok", true, "rules", rules);
+    }
+
     public static boolean reloadBossSpawn() {
+
         try {
             Class<?> cls = Class.forName("nro.models.boss.spawn.BossSpawnConfig");
             cls.getMethod("reload").invoke(null);
@@ -389,14 +398,30 @@ public final class PanelActions {
     }
 
     public static boolean spawnBoss(int bossId) {
-        if (bossId >= 0) {
-            return false;
-        }
+        if (bossId >= 0) return false;
         Boss oldBoss = BossManager.gI().getBossById(bossId);
-        if (oldBoss != null) {
-            BossManager.gI().removeBoss(oldBoss);
+        if (oldBoss != null) BossManager.gI().removeBoss(oldBoss);
+        Boss boss = BossManager.gI().createBoss(bossId, false);
+        if (boss == null) return false;
+        BossSpawnSchedule.initOnCreate(boss);
+        return true;
+    }
+
+    public static boolean spawnBossAt(int bossId, Integer mapId, Integer zoneId) {
+        if (bossId >= 0) return false;
+        Zone targetZone = null;
+        if (mapId != null) {
+            nro.models.map.Map map = MapService.gI().getMapById(mapId);
+            if (map == null || map.zones == null || map.zones.isEmpty()) return false;
+            int selectedZone = zoneId == null ? 0 : zoneId;
+            if (selectedZone < 0 || selectedZone >= map.zones.size()) return false;
+            targetZone = map.zones.get(selectedZone);
+            if (targetZone == null || !targetZone.getBosses().isEmpty()) return false;
         }
-        BossManager.gI().createBoss(bossId);
+        Boss boss = BossManager.gI().createBoss(bossId, false);
+        if (boss == null) return false;
+        if (targetZone != null) boss.setPanelSpawnZone(targetZone);
+        BossSpawnSchedule.initOnCreate(boss);
         return true;
     }
 
@@ -413,7 +438,8 @@ public final class PanelActions {
     }
 
     private static final java.util.Set<String> ALLOWED_CONFIG_FILES = java.util.Set.of(
-            "Config.properties", "boss_spawn.properties", "maintenanceConfig.txt"
+                        "Config.properties", "boss_spawn.properties", "boss_panel.json", "maintenanceConfig.txt"
+
     );
 
     public static List<String> listConfigFiles() {

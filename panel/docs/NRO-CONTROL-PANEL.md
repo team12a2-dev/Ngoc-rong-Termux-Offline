@@ -98,6 +98,26 @@ panel.agent.key=change-me-in-production
 - [SETUP.md](./SETUP.md) — Hướng dẫn cài đặt
 - [../plugins/README.md](../plugins/README.md) — Plugin manifest
 
+## Boss Management — cấu hình boss không sửa file thủ công
+
+Trang `Boss Management` cho phép cấu hình theo từng `bossId` âm. Admin chọn các map được phép, khoảng khu, chế độ `random` hoặc `fixed`, tỷ lệ spawn, khoảng respawn, số boss active tối đa và danh sách item rơi. Khi bấm **Lưu & áp dụng**, panel ghi dữ liệu vào các bảng `panel_boss_configs` và `panel_boss_drop_items`, sinh file runtime `boss_panel.json`, gọi agent reload và ghi audit log.
+
+Cơ chế runtime có các lớp bảo vệ sau:
+
+| Lớp | Logic |
+|---|---|
+| Map | Boss chỉ được chọn trong danh sách map của rule; nếu nhiều map, runtime xáo trộn danh sách để phân bố tự nhiên. |
+| Khu | Chỉ xét khu trong khoảng min–max và bỏ qua khu đang có boss; `random` chọn ngẫu nhiên một khu trống, nên một map có thể có nhiều boss ở nhiều khu khác nhau. |
+| Tỷ lệ | Khi cooldown hợp lệ, runtime roll tỷ lệ spawn. Nếu trượt, tạo thời điểm retry ngẫu nhiên để không roll liên tục mỗi tick. |
+| Respawn | Khoảng min–max được roll theo từng chu kỳ của boss, không dùng một thời gian cố định cho mọi lần. |
+| Active limit | Đếm boss cùng `bossId` đang hoạt động trên toàn bộ registry, tránh vượt quá giới hạn cấu hình. |
+| Drop | Mỗi item rơi được roll độc lập, có tỷ lệ, số lượng min–max và option `id:param`; drop được đặt tại khu boss chết và gắn cho người hạ boss. |
+| Đồng bộ | Lưu cấu hình sinh file runtime, gọi reload và giữ cache cũ nếu reload lỗi; mọi thay đổi đều có audit log. |
+
+Trước khi dùng trang này ở môi trường mới, chạy migration `panel/sql/migrations/005_boss_control.sql` trên database panel. Schema cài mới đã được cập nhật tương ứng trong `panel/sql/panel_schema.sql`.
+
+Các endpoint chính là `GET /api/v1/boss-config`, `GET /api/v1/boss-config/catalog`, `GET /api/v1/boss-config/item-templates`, `POST /api/v1/boss-config`, `DELETE /api/v1/boss-config/:bossId`, `POST /api/v1/boss-config/reload` và `POST /api/v1/boss-config/spawn-at`. Tất cả đều yêu cầu permission `boss.control`.
+
 ## Quy tắc phát triển
 
 1. Mọi thao tác ghi (POST/PUT/DELETE) phải qua Panel API và ghi audit log
