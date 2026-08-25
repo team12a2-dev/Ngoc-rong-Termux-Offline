@@ -32,41 +32,21 @@
 
 ## Cài đặt nhanh
 
-Cài **Termux chính thức**, sau đó tải và cài project bằng block lệnh sau. Cách này có retry và không giải nén archive chưa tải đủ:
+Cài **Termux chính thức**, sau đó chạy installer. Installer tải vào file tạm, tự retry và kiểm tra archive trước khi giải nén:
 
 ```bash
 pkg update -y && pkg install -y curl tar
-
-INSTALL_DIR="$HOME/ngocrong-termux"
-REPO_URL="https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz"
-TMP_DIR="$(mktemp -d)"
-ARCHIVE="$TMP_DIR/ngocrong.tar.gz"
-
-cleanup() { rm -rf "$TMP_DIR"; }
-trap cleanup EXIT
-mkdir -p "$INSTALL_DIR"
-
-DOWNLOAD_OK=0
-for attempt in 1 2 3 4 5; do
-  rm -f "$ARCHIVE"
-  if curl --http1.1 -fL --retry 2 --retry-all-errors --retry-delay 3 \
-      --connect-timeout 20 --max-time 600 -o "$ARCHIVE" "$REPO_URL" \
-      && tar -tzf "$ARCHIVE" >/dev/null 2>&1; then
-    DOWNLOAD_OK=1
-    break
-  fi
-  if [ "$attempt" -lt 5 ]; then
-    echo "Tải thất bại, thử lại lần $((attempt + 1))/5..."
-    sleep 3
-  fi
-done
-
-[ "$DOWNLOAD_OK" = 1 ] || { echo "Không tải được archive. Hãy kiểm tra mạng rồi chạy lại block lệnh."; exit 1; }
-tar -xzf "$ARCHIVE" --strip-components=1 -C "$INSTALL_DIR"
-cd "$INSTALL_DIR"
-chmod +x ./*.sh
-./nro.sh setup
+INSTALLER="$(mktemp)"
+curl --http1.1 -fL --retry 5 --retry-all-errors --retry-delay 3 \
+  --connect-timeout 20 --max-time 120 -o "$INSTALLER" \
+  "https://raw.githubusercontent.com/team12a2-dev/Ngoc-rong-Termux-Offline/main/install-termux.sh" \
+  && bash "$INSTALLER"
+STATUS=$?
+rm -f "$INSTALLER"
+exit "$STATUS"
 ```
+
+Installer sẽ cài project vào `~/ngocrong-termux`. Repository khá lớn, vì vậy hãy giữ Wi‑Fi/4G ổn định và không đóng Termux trong lúc tải. Không pipe trực tiếp archive vào `tar`.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel.
 
@@ -279,7 +259,8 @@ boss_spawn.properties        Cấu hình spawn boss
 nro.sh                       Launcher chính
 termux-server-service.sh     Supervisor chạy nền
 termux-lan-start.sh          Khởi động LAN
-install-termux-background.sh Cài Termux:Boot
+install-termux.sh             Installer Termux an toàn
+install-termux-background.sh  Cài Termux:Boot
 TERMUX-LAN.md                Hướng dẫn LAN chi tiết
 ```
 
