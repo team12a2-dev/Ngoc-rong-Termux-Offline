@@ -38,11 +38,13 @@ Cài **Termux chính thức**, sau đó dán **một dòng duy nhất** sau đâ
 pkg update -y && pkg install -y curl tar && mkdir -p "$HOME/.cache/ngocrong-termux" && INSTALLER="$(mktemp "$HOME/.cache/ngocrong-termux/installer.XXXXXX.sh")" && trap 'rm -f "$INSTALLER"' EXIT && curl --http1.1 -fsSL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 7200 -o "$INSTALLER" "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" && bash "$INSTALLER"
 ```
 
-Installer tải **archive source mới nhất từ nhánh GitHub `main`**; không dùng Git, không chia file, không tạo khóa SSH và không xuất hiện `Receiving objects`. File tạm được ghi trong `$HOME/.cache/ngocrong-termux`, không phụ thuộc `/tmp`; installer kiểm tra quyền ghi và dung lượng trước khi tải. Mỗi lần chạy installer/update đều tải lại source mới, giải nén vào đúng thư mục cài đặt rồi chạy setup; log tải nằm tại `~/.ngocrong-termux-install.log`.
+Installer tải **archive source mới nhất từ nhánh GitHub `main`**; không dùng Git, không chia file, không tạo khóa SSH và không xuất hiện `Receiving objects`. File tạm được ghi trong `$HOME/.cache/ngocrong-termux`, không phụ thuộc `/tmp`; installer kiểm tra quyền ghi và dung lượng trước khi tải. Installer bảo toàn `Config.properties`, `.env`, database, `.runtime`, `node_modules` và dữ liệu người chơi.
 
 Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`. Khi cập nhật, không cần `cd` vào thư mục trước; chỉ chạy lại lệnh bootstrap ở trên.
 
-Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel. Mỗi lần `start`, `restart`, `lan` hoặc chạy nền đều build lại Java; panel cũng build lại React và restart Node để chức năng mới xuất hiện.
+Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Mỗi lần `./nro.sh start`, `./nro.sh lan`, `./nro.sh restart` hoặc service nền khởi động, launcher sẽ kiểm tra commit `main` trên GitHub. Nếu chưa đổi, không tải gì. Nếu có commit mới, launcher chỉ tải archive cập nhật, giữ nguyên cấu hình và database, sau đó chạy migration SQL cần thiết, build lại Java/panel và khởi động bằng source mới. Chu kỳ kiểm tra mặc định là 5 phút để supervisor nền không gọi GitHub liên tục; có thể đổi bằng `NRO_UPDATE_CHECK_INTERVAL_SEC=60`.
+
+Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel. Mỗi lần tạo tiến trình game mới, Java được build sạch trước khi chạy; thời gian build được lưu tại `.runtime/build-info` và hiển thị bằng `./nro.sh status`. Khi source có thay đổi, panel chỉ cài lại dependency nếu thiếu hoặc lockfile thay đổi, rồi build React và restart Node để chức năng mới xuất hiện.
 
 Sau khi setup xong, chạy server:
 

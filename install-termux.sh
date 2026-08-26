@@ -7,12 +7,18 @@ RELEASE_URL="${NRO_RELEASE_URL:-https://github.com/team12a2-dev/Ngoc-rong-Termux
 MAX_ATTEMPTS="${NRO_DOWNLOAD_ATTEMPTS:-8}"
 INSTALL_LOG="${NRO_INSTALL_LOG:-$HOME/.ngocrong-termux-install.log}"
 TMP_ROOT="${NRO_TMP_ROOT:-$HOME/.cache/ngocrong-termux}"
+SOURCE_COMMIT_URL="${NRO_SOURCE_COMMIT_URL:-https://api.github.com/repos/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main}"
 DOWNLOAD_DIR=""
 TEMP_ARCHIVE=""
+PRESERVE_DIR=""
+REMOTE_SHA=""
 
 cleanup() {
   if [ -n "${DOWNLOAD_DIR:-}" ] && [ -d "$DOWNLOAD_DIR" ]; then
     rm -rf "$DOWNLOAD_DIR"
+  fi
+  if [ -n "${PRESERVE_DIR:-}" ] && [ -d "$PRESERVE_DIR" ]; then
+    rm -rf "$PRESERVE_DIR"
   fi
 }
 trap cleanup EXIT
@@ -96,8 +102,20 @@ else
 fi
 download_runtime
 echo "Đang giải nén source/runtime mới..."
+PRESERVE_DIR="$(mktemp -d "$TMP_ROOT/preserve.XXXXXX")"
+[ -f "$INSTALL_DIR/Config.properties" ] && cp -p "$INSTALL_DIR/Config.properties" "$PRESERVE_DIR/Config.properties"
+[ -f "$INSTALL_DIR/panel/api/.env" ] && cp -p "$INSTALL_DIR/panel/api/.env" "$PRESERVE_DIR/panel-api.env"
 tar -xzf "$ARCHIVE" --strip-components=1 -C "$INSTALL_DIR"
 rm -rf "$INSTALL_DIR/.git"
+[ -f "$PRESERVE_DIR/Config.properties" ] && cp -p "$PRESERVE_DIR/Config.properties" "$INSTALL_DIR/Config.properties"
+[ -f "$PRESERVE_DIR/panel-api.env" ] && cp -p "$PRESERVE_DIR/panel-api.env" "$INSTALL_DIR/panel/api/.env"
+REMOTE_SHA="$(curl -fsSL --http1.1 --connect-timeout 10 --max-time 30 \
+  -H 'Accept: application/vnd.github+json' "$SOURCE_COMMIT_URL" 2>/dev/null \
+  | sed -n 's/.*"sha"[[:space:]]*:[[:space:]]*"\([0-9a-fA-F]\{40\}\)".*/\1/p' | head -n 1 || true)"
+if [[ "$REMOTE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+  mkdir -p "$INSTALL_DIR/.runtime"
+  printf '%s\n' "$REMOTE_SHA" > "$INSTALL_DIR/.runtime/source-commit"
+fi
 
 cd "$INSTALL_DIR"
 chmod +x ./*.sh

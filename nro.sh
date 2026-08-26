@@ -16,6 +16,11 @@ SQL_FILE="$ROOT/sql/ngocrong.sql"
 CLASS_DIR="$STATE_DIR/classes"
 SOURCE_LIST="$STATE_DIR/sources.txt"
 BUILD_INFO="$STATE_DIR/build-info"
+SOURCE_COMMIT_FILE="$STATE_DIR/source-commit"
+SOURCE_CHECK_FILE="$STATE_DIR/source-check-at"
+SOURCE_UPDATE_LOG="$STATE_DIR/source-update.log"
+SOURCE_COMMIT_URL="${NRO_SOURCE_COMMIT_URL:-https://api.github.com/repos/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main}"
+SOURCE_ARCHIVE_URL="${NRO_SOURCE_ARCHIVE_URL:-https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz}"
 PANEL_ROOT="$ROOT/panel"
 PANEL_API_ROOT="$PANEL_ROOT/api"
 PANEL_WEB_ROOT="$PANEL_ROOT/web"
@@ -98,6 +103,11 @@ print_endpoints() {
       printf '%s\n' "  Game endpoint LAN  : $address:$GAME_PORT"
     done
   fi
+  if [ -f "$SOURCE_COMMIT_FILE" ]; then
+    printf '%s\n' "  GitHub source commit: $(tr -d '[:space:]' < "$SOURCE_COMMIT_FILE" | cut -c1-12)"
+  else
+    printf '%s\n' "  GitHub source commit: chưa có marker"
+  fi
   if [ -f "$BUILD_INFO" ]; then
     printf '%s\n' "  Java build time     : $(sed -n 's/^built_at=//p' "$BUILD_INFO" | head -n 1)"
   else
@@ -175,6 +185,80 @@ ensure_layout() {
   [ -f "$PANEL_WEB_ROOT/package.json" ] || die "Thiếu panel/web/package.json."
   case "$DB_NAME" in *[!a-zA-Z0-9_]*|'') die "NRO_DB_NAME chỉ được chứa chữ, số và dấu gạch dưới.";; esac
   case "$DB_USER" in *[!a-zA-Z0-9_]*|'') die "NRO_DB_USER chỉ được chứa chữ, số và dấu gạch dưới.";; esac
+}
+
+auto_update_source() {
+  export NRO_SOURCE_UPDATED=0
+  [ "${NRO_AUTO_UPDATE:-1}" != "0" ] || return 0
+  command -v curl >/dev/null 2>&1 || { warn "Không có curl; bỏ qua kiểm tra cập nhật GitHub."; return 0; }
+  ensure_layout
+  local current_sha remote_sha update_dir archive config_backup env_backup download_url now last_check check_interval
+  current_sha=""
+  [ -f "$SOURCE_COMMIT_FILE" ] && current_sha="$(tr -d '[:space:]' < "$SOURCE_COMMIT_FILE")"
+  now="$(date +%s)"
+  last_check="$(cat "$SOURCE_CHECK_FILE" 2>/dev/null || printf '0')"
+  check_interval="${NRO_UPDATE_CHECK_INTERVAL_SEC:-300}"
+  if [[ "$last_check" =~ ^[0-9]+$ ]] && [ "$last_check" -gt 0 ] && [ $((now - last_check)) -lt "$check_interval" ]; then
+    return 0
+  fi
+  printf '%s\n' "$now" > "$SOURCE_CHECK_FILE"
+  : > "$SOURCE_UPDATE_LOG"
+  remote_sha="$(curl -fsSL --http1.1 --connect-timeout 10 --max-time 30 \
+    -H 'Accept: application/vnd.github+json' "$SOURCE_COMMIT_URL" 2>>"$SOURCE_UPDATE_LOG" \
+    | sed -n 's/.*"sha"[[:space:]]*:[[:space:]]*"\([0-9a-fA-F]\{40\}\)".*/\1/p' | head -n 1 || true)"
+  if ! [[ "$remote_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
+    warn "Không kiểm tra được commit GitHub; server vẫn tiếp tục với source hiện tại. Log: $SOURCE_UPDATE_LOG"
+    return 0
+  fi
+  if [ "$current_sha" = "$remote_sha" ]; then
+    say "Source đã đồng bộ với GitHub commit ${remote_sha:0:12}; bỏ qua tải lại."
+    return 0
+  fi
+
+  say "Phát hiện source mới trên GitHub: ${current_sha:-chưa có marker} → ${remote_sha:0:12}; cập nhật incremental."
+  update_dir="$(mktemp -d "$STATE_DIR/source-update.XXXXXX")" || {
+    warn "Không tạo được thư mục cập nhật tạm; giữ source hiện tại."; return 0;
+  }
+  archive="$update_dir/source.tar.gz"
+  download_url="$SOURCE_ARCHIVE_URL"
+  case "$download_url" in
+    *\?*) download_url="${download_url}&nocache=$(date +%s)" ;;
+    *) download_url="${download_url}?nocache=$(date +%s)" ;;
+  esac
+  if ! curl --http1.1 --fail --location --retry 4 --retry-all-errors --retry-delay 3 \
+      --connect-timeout 20 --max-time 7200 --silent --show-error \
+      -o "$archive" "$download_url" >>"$SOURCE_UPDATE_LOG" 2>&1 \
+      || ! gzip -t "$archive" >>"$SOURCE_UPDATE_LOG" 2>&1; then
+    warn "Tải source mới thất bại; source hiện tại không bị thay đổi. Log: $SOURCE_UPDATE_LOG"
+    rm -rf "$update_dir"
+    return 0
+  fi
+  mkdir -p "$update_dir/extracted"
+  if ! tar -xzf "$archive" --strip-components=1 -C "$update_dir/extracted" >>"$SOURCE_UPDATE_LOG" 2>&1 \
+      || [ ! -f "$update_dir/extracted/nro.sh" ]; then
+    warn "Archive source mới không hợp lệ; source hiện tại không bị thay đổi. Log: $SOURCE_UPDATE_LOG"
+    rm -rf "$update_dir"
+    return 0
+  fi
+  if server_alive; then
+    say "Archive mới đã được kiểm tra; dừng tiến trình cũ trước khi cập nhật source."
+    stop_server
+  fi
+  config_backup="$update_dir/Config.properties"
+  env_backup="$update_dir/panel-api.env"
+  [ -f "$CONFIG" ] && cp -p "$CONFIG" "$config_backup"
+  [ -f "$PANEL_API_ROOT/.env" ] && cp -p "$PANEL_API_ROOT/.env" "$env_backup"
+  if ! cp -a "$update_dir/extracted"/. "$ROOT"/ >>"$SOURCE_UPDATE_LOG" 2>&1; then
+    warn "Không thể chép source mới; kiểm tra log: $SOURCE_UPDATE_LOG"
+    rm -rf "$update_dir"
+    return 1
+  fi
+  [ -f "$config_backup" ] && cp -p "$config_backup" "$CONFIG"
+  [ -f "$env_backup" ] && cp -p "$env_backup" "$PANEL_API_ROOT/.env"
+  printf '%s\n' "$remote_sha" > "$SOURCE_COMMIT_FILE"
+  rm -rf "$update_dir"
+  export NRO_SOURCE_UPDATED=1
+  say "Đã cập nhật source lên commit ${remote_sha:0:12}; database và dữ liệu runtime được giữ nguyên."
 }
 
 init_database() {
@@ -731,6 +815,14 @@ setup() {
 main() {
   local action="${1:-start}"
   case "$action" in
+    start|lan|restart|background|background-restart)
+      auto_update_source
+      if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
+        exec bash "$ROOT/nro.sh" "$@"
+      fi
+      ;;
+  esac
+  case "$action" in
     setup)
       setup
       ;;
@@ -783,6 +875,9 @@ main() {
     rebuild)
       NRO_REBUILD=1 build_server
       ;;
+    check-update)
+      auto_update_source
+      ;;
     panel)
       ensure_layout
       install_dependencies
@@ -806,7 +901,7 @@ main() {
       ;;
     *)
       cat <<'USAGE'
-Sử dụng: ./nro.sh [setup|start|lan|background|background-stop|background-restart|background-status|background-log|restart|stop|status|console|rebuild|panel|backup|backup-schedule|backup-cancel|backup-status]
+Sử dụng: ./nro.sh [setup|start|lan|background|background-stop|background-restart|background-status|background-log|restart|stop|status|console|rebuild|panel|check-update|backup|backup-schedule|backup-cancel|backup-status]
 
 Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel.
 LAN Android: `./nro.sh lan` sẽ tự nhận IP Wi-Fi, bind game server trên 0.0.0.0 và cập nhật địa chỉ client; có thể chỉ định `NRO_LAN_IP=192.168.x.x`.
@@ -817,7 +912,9 @@ Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
 NRO_GAME_LISTEN_HOST, NRO_PANEL_PORT, NRO_PANEL_BIND, PANEL_ADMIN_PASSWORD,
 NRO_BACKUP_DIR, NRO_BACKUP_LOG, NRO_BACKUP_KEEP_DAYS, NRO_BACKUP_JOB_ID,
 NRO_BACKUP_PERIOD_MS, NRO_AUTO_BACKUP=0 nếu cần bỏ qua backup tự động,
-JWT_SECRET, NRO_JVM_OPTS, NRO_LAN_IP. Mỗi lệnh start/restart/background/lan đều build lại Java trước khi chạy.
+NRO_AUTO_UPDATE=0 nếu cần tắt tự cập nhật, NRO_UPDATE_CHECK_INTERVAL_SEC,
+NRO_SOURCE_COMMIT_URL, NRO_SOURCE_ARCHIVE_URL, JWT_SECRET, NRO_JVM_OPTS, NRO_LAN_IP.
+Mỗi lệnh start/restart/background/lan đều kiểm tra source GitHub; chỉ khi tạo tiến trình mới mới build lại Java.
 USAGE
       exit 2
       ;;
