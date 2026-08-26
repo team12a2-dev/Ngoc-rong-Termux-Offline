@@ -5,7 +5,7 @@ import { OptionEditor } from '../components/OptionEditor';
 import PageFeedback from '../components/PageFeedback';
 import PageHeader from '../components/PageHeader';
 
-const emptyItem = { tempId: '', name: '', iconId: 0, weight: 1, quantityMin: 1, quantityMax: 1, options: [], durationDays: '', vipOnly: false, enabled: true, maxWins: '', sortOrder: 0 };
+const emptyItem = { tempId: '', name: '', iconId: 0, weight: 1, chancePercent: 10, quantityMin: 1, quantityMax: 1, options: [], durationDays: '', isPermanent: true, vipOnly: false, enabled: true, maxWins: '', sortOrder: 0 };
 const emptyForm = {
   spinKey: 'default', name: 'Vòng quay Thượng Đế', description: '', status: 'draft', enabled: false,
   startsAt: '', endsAt: '', timezone: 'Asia/Ho_Chi_Minh', currencyMode: 'both', costGem: 50, costGold: 2500000,
@@ -34,10 +34,12 @@ function cleanConfig(config) {
       ...emptyItem, ...item,
       tempId: Number(pick(item.temp_id, item.tempId)),
       weight: Number(pick(item.weight, 1)),
+      chancePercent: Number(pick(item.chance_percent, item.chancePercent ?? item.weight ?? 1)),
       quantityMin: Number(pick(item.quantity_min, 1)),
       quantityMax: Number(pick(item.quantity_max, 1)),
       options: item.options || item.optionsJson || item.options_json || [],
       durationDays: pick(item.duration_days, item.durationDays) ?? '',
+      isPermanent: item.is_permanent == null ? (item.isPermanent == null ? !item.duration_days : Boolean(item.isPermanent)) : Boolean(item.is_permanent),
       vipOnly: Boolean(pick(item.vip_only, item.vipOnly)),
       enabled: item.enabled == null ? true : Boolean(item.enabled),
       maxWins: pick(item.max_wins, item.maxWins) ?? '',
@@ -75,7 +77,7 @@ export default function GodSpinPage() {
     return () => clearTimeout(timer);
   }, [catalogOpen, catalogQuery]);
 
-  const totalWeight = useMemo(() => form.items.filter((item) => item.enabled).reduce((sum, item) => sum + Math.max(0, Number(item.weight) || 0), 0), [form.items]);
+  const totalChance = useMemo(() => form.items.filter((item) => item.enabled).reduce((sum, item) => sum + Math.max(0, Number(item.chancePercent ?? item.weight) || 0), 0), [form.items]);
   const enabledCount = useMemo(() => form.items.filter((item) => item.enabled).length, [form.items]);
   const patch = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const patchItem = (index, value) => setForm((current) => ({ ...current, items: current.items.map((item, itemIndex) => itemIndex === index ? { ...item, ...value } : item) }));
@@ -89,7 +91,7 @@ export default function GodSpinPage() {
     patch('items', [...form.items, { ...emptyItem, tempId: Number(item.id), name: item.name, iconId: Number(item.iconId || 0), sortOrder: form.items.length }]);
     setCatalogOpen(false);
     setCatalogQuery('');
-    fb.success(`Đã thêm ${item.name} (#${item.id}). Hãy chỉnh trọng số và option rồi lưu SQL.`);
+    fb.success(`Đã thêm ${item.name} (#${item.id}). Hãy chỉnh tỷ lệ % và chọn vĩnh viễn trước khi lưu SQL.`);
   }
   function duplicateItem(index) {
     const source = form.items[index];
@@ -105,7 +107,7 @@ export default function GodSpinPage() {
   async function save(event) {
     event.preventDefault();
     if (!form.items.length) { fb.error('Hãy thêm ít nhất một item vào vòng quay.'); setTab('pool'); return; }
-    if (!totalWeight) { fb.error('Cần ít nhất một item đang bật có trọng số > 0.'); setTab('pool'); return; }
+    if (!totalChance) { fb.error('Cần ít nhất một item đang bật có tỷ lệ % > 0.'); setTab('pool'); return; }
     setLoading(true);
     try {
       const payload = { ...form, serverId: getServerId(), items: form.items.map(({ name, iconId, ...item }) => item) };
@@ -132,8 +134,9 @@ export default function GodSpinPage() {
     <div>
       <PageHeader
         title="Vòng quay Thượng Đế"
-        description="Quản lý pool phần thưởng bằng SQL: thêm item từ catalog, trọng số, số lượng, option, thời hạn, giới hạn và lịch chạy."
-        stats={<><span className="page-stat-pill"><strong>{configs.length}</strong> cấu hình</span><span className="page-stat-pill ok"><strong>{enabledCount}</strong> item đang bật</span><span className="page-stat-pill"><strong>{totalWeight}</strong> tổng trọng số</span></>}
+        description="Quản lý pool phần thưởng bằng SQL: thêm item từ catalog, tỷ lệ random %, trạng thái vĩnh viễn, số lượng, option, giới hạn và lịch chạy."
+
+        stats={<><span className="page-stat-pill"><strong>{configs.length}</strong> cấu hình</span><span className="page-stat-pill ok"><strong>{enabledCount}</strong> item đang bật</span><span className="page-stat-pill"><strong>{totalChance.toFixed(4)}%</strong> tổng tỷ lệ</span></>}
         actions={<button className="btn primary" onClick={() => { setSelectedId(null); setForm(cleanConfig()); setTab('pool'); }}>+ Tạo vòng quay</button>}
       />
       <PageFeedback msg={feedback.msg} type={feedback.type} onDismiss={fb.clear} />
@@ -154,11 +157,12 @@ export default function GodSpinPage() {
             <label className="field">Ghi chú nâng cao JSON<textarea rows="3" value={JSON.stringify(form.configJson || {}, null, 2)} onChange={(e) => { try { patch('configJson', JSON.parse(e.target.value || '{}')); } catch { /* giữ dữ liệu cũ đến khi JSON hợp lệ */ } }} /></label>
           </>}
           {tab === 'pool' && <>
-            <div className="spin-summary"><div><strong>{form.items.length}</strong><span>item trong pool</span></div><div><strong>{enabledCount}</strong><span>item đang bật</span></div><div><strong>{totalWeight}</strong><span>tổng trọng số</span></div><div><strong>{totalWeight ? '100%' : '0%'}</strong><span>phân phối chuẩn hóa</span></div></div>
-            <div className="button-row spin-toolbar"><button type="button" className="btn primary" onClick={() => setCatalogOpen((open) => !open)}>+ Thêm item từ catalog</button><button type="button" className="btn" onClick={() => { if (form.items.length) patch('items', form.items.map((item) => ({ ...item, weight: 1 }))); }}>Đặt đều trọng số</button><span className="muted">Tổng trọng số càng lớn không làm item chắc chắn hơn tuyệt đối; xác suất = trọng số item / tổng trọng số.</span></div>
+            <div className="spin-summary"><div><strong>{form.items.length}</strong><span>item trong pool</span></div><div><strong>{enabledCount}</strong><span>item đang bật</span></div><div><strong>{totalChance.toFixed(4)}%</strong><span>tổng tỷ lệ đã gán</span></div><div><strong>{totalChance ? 'Chuẩn hóa' : '0%'}</strong><span>xác suất random</span></div></div>
+            <div className="button-row spin-toolbar"><button type="button" className="btn primary" onClick={() => setCatalogOpen((open) => !open)}>+ Thêm item từ catalog</button><button type="button" className="btn" onClick={() => { if (form.items.length) patch('items', form.items.map((item) => ({ ...item, weight: 1, chancePercent: Number((100 / form.items.length).toFixed(4)) }))); }}>Chia đều tỷ lệ</button><span className="muted">Mỗi item được random theo tỷ lệ % trong pool; tổng không bắt buộc đúng 100 vì hệ thống sẽ chuẩn hóa theo tổng tỷ lệ đang bật.</span>
+</div>
             {catalogOpen && <div className="card section spin-catalog"><div className="section-title"><div><h4>Chọn template item từ DB game</h4><p className="card-hint">Tìm theo tên hoặc ID, không cần nhớ ID thủ công.</p></div><button type="button" className="btn sm" onClick={() => setCatalogOpen(false)}>Đóng</button></div><input className="catalog-search" value={catalogQuery} onChange={(e) => setCatalogQuery(e.target.value)} placeholder="Tìm: cải trang, capsule, 532..." autoFocus />{catalog.length === 0 ? <p className="muted">Không có item phù hợp.</p> : <div className="spin-catalog-results">{catalog.map((item) => <button type="button" className="spin-catalog-item" key={item.id} onClick={() => addCatalogItem(item)}><ItemIcon iconId={item.iconId} tempId={item.id} name={item.name} size={38} /><span><strong>{item.name}</strong><small>#{item.id} · level {item.level ?? 0}</small></span><b>+ Thêm</b></button>)}</div>}</div>}
             {form.items.length === 0 && <div className="empty-state"><h4>Pool đang trống</h4><p>Thêm item bằng catalog để bắt đầu. Mỗi item có thể chỉnh option ngay trong cùng màn hình.</p></div>}
-            {form.items.map((item, index) => { const percentage = totalWeight && item.enabled ? (Number(item.weight || 0) / totalWeight * 100) : 0; return <div className={`nested-editor spin-reward-card ${item.enabled ? '' : 'is-disabled'}`} key={`${item.tempId}-${index}`}><div className="spin-reward-head"><div className="spin-item-title"><ItemIcon iconId={item.iconId} tempId={item.tempId} name={item.name} size={46} /><div><strong>{item.name || `Item #${item.tempId || '?'}`}</strong><small>Template #{item.tempId || '?'} · {percentage.toFixed(3)}% theo trọng số</small></div></div><label className="switch-label"><input type="checkbox" checked={item.enabled} onChange={(e) => patchItem(index, { enabled: e.target.checked })} /> Bật</label></div><div className="form-grid"><label className="field">Item template ID<input type="number" min="0" value={item.tempId} onChange={(e) => patchItem(index, { tempId: numberInput(e.target.value) })} required /></label><label className="field">Trọng số<input type="number" min="1" value={item.weight} onChange={(e) => patchItem(index, { weight: numberInput(e.target.value) })} required /></label><label className="field">SL tối thiểu<input type="number" min="1" value={item.quantityMin} onChange={(e) => patchItem(index, { quantityMin: numberInput(e.target.value) })} /></label><label className="field">SL tối đa<input type="number" min="1" value={item.quantityMax} onChange={(e) => patchItem(index, { quantityMax: numberInput(e.target.value) })} /></label><label className="field">Thời hạn ngày<input type="number" min="1" value={item.durationDays} onChange={(e) => patchItem(index, { durationDays: numberInput(e.target.value) })} placeholder="Vĩnh viễn" /></label><label className="field">Giới hạn thắng item<input type="number" min="1" value={item.maxWins} onChange={(e) => patchItem(index, { maxWins: numberInput(e.target.value) })} placeholder="Không giới hạn" /></label></div><div className="check-grid"><label><input type="checkbox" checked={item.vipOnly} onChange={(e) => patchItem(index, { vipOnly: e.target.checked })} /> Chỉ người chơi VIP</label></div><OptionEditor options={item.options} onChange={(options) => patchItem(index, { options })} compact /><div className="button-row"><button type="button" className="btn sm" onClick={() => moveItem(index, -1)} disabled={index === 0}>↑ Ưu tiên</button><button type="button" className="btn sm" onClick={() => moveItem(index, 1)} disabled={index === form.items.length - 1}>↓ Hạ ưu tiên</button><button type="button" className="btn sm" onClick={() => duplicateItem(index)}>Nhân bản</button><button type="button" className="btn sm danger" onClick={() => removeItem(index)}>Xóa item</button></div></div>; })}
+            {form.items.map((item, index) => { const chance = Number(item.chancePercent ?? item.weight ?? 0); const percentage = totalChance && item.enabled ? (chance / totalChance * 100) : 0; return <div className={`nested-editor spin-reward-card ${item.enabled ? '' : 'is-disabled'}`} key={`${item.tempId}-${index}`}><div className="spin-reward-head"><div className="spin-item-title"><ItemIcon iconId={item.iconId} tempId={item.tempId} name={item.name} size={46} /><div><strong>{item.name || `Item #${item.tempId || '?'}`}</strong><small>Template #{item.tempId || '?'} · xác suất thực tế {percentage.toFixed(3)}%</small></div></div><label className="switch-label"><input type="checkbox" checked={item.enabled} onChange={(e) => patchItem(index, { enabled: e.target.checked })} /> Bật</label></div><div className="form-grid"><label className="field">Item template ID<input type="number" min="0" value={item.tempId} onChange={(e) => patchItem(index, { tempId: numberInput(e.target.value) })} required /></label><label className="field">Tỷ lệ random (%)<input type="number" min="0" max="100" step="0.0001" value={item.chancePercent} onChange={(e) => patchItem(index, { chancePercent: numberInput(e.target.value), weight: Math.max(1, Math.round(Number(e.target.value || 0) * 10000)) })} required /></label><label className="field">SL tối thiểu<input type="number" min="1" value={item.quantityMin} onChange={(e) => patchItem(index, { quantityMin: numberInput(e.target.value) })} /></label><label className="field">SL tối đa<input type="number" min="1" value={item.quantityMax} onChange={(e) => patchItem(index, { quantityMax: numberInput(e.target.value) })} /></label><label className="field">Thời hạn ngày<input type="number" min="1" value={item.isPermanent ? '' : item.durationDays} onChange={(e) => patchItem(index, { durationDays: numberInput(e.target.value), isPermanent: false })} placeholder="Nhập ngày" disabled={item.isPermanent} /></label><label className="field">Giới hạn thắng item<input type="number" min="1" value={item.maxWins} onChange={(e) => patchItem(index, { maxWins: numberInput(e.target.value) })} placeholder="Không giới hạn" /></label></div><div className="check-grid"><label><input type="checkbox" checked={item.isPermanent} onChange={(e) => patchItem(index, { isPermanent: e.target.checked, durationDays: e.target.checked ? '' : (item.durationDays || 1) })} /> Vật phẩm vĩnh viễn</label><label><input type="checkbox" checked={item.vipOnly} onChange={(e) => patchItem(index, { vipOnly: e.target.checked })} /> Chỉ người chơi VIP</label></div><OptionEditor options={item.options} onChange={(options) => patchItem(index, { options })} compact /><div className="button-row"><button type="button" className="btn sm" onClick={() => moveItem(index, -1)} disabled={index === 0}>↑ Ưu tiên</button><button type="button" className="btn sm" onClick={() => moveItem(index, 1)} disabled={index === form.items.length - 1}>↓ Hạ ưu tiên</button><button type="button" className="btn sm" onClick={() => duplicateItem(index)}>Nhân bản</button><button type="button" className="btn sm danger" onClick={() => removeItem(index)}>Xóa item</button></div></div>; })}
           </>}
           <div className="form-actions"><button className="btn primary" type="submit" disabled={loading}>{loading ? 'Đang lưu...' : 'Lưu SQL & reload runtime'}</button><span className="muted">Các option được lưu trong `options_json`; SQL vẫn là nguồn sự thật sau restart.</span></div>
         </form>

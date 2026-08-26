@@ -18,6 +18,12 @@ const integer = (value, fallback = 0, min = 0, max = Number.MAX_SAFE_INTEGER) =>
   const n = Number(value);
   return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.trunc(n))) : fallback;
 };
+const decimal = (value, fallback = null, min = 0, max = 100) => {
+  if (value == null || value === '') return fallback;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.round(Math.min(max, Math.max(min, n)) * 10000) / 10000;
+};
 const bool = (value, fallback = false) => value == null ? fallback : value === true || value === 1 || value === '1' || value === 'true';
 const dateValue = (value) => value ? String(value).replace('T', ' ').slice(0, 19) : null;
 const serverId = async (value) => integer(value, await getDefaultServerId(), 1, 2147483647);
@@ -62,21 +68,31 @@ function normalizeItem(body = {}, index = 0) {
   const quantityMin = integer(body.quantityMin, 1, 1, 2147483647);
   const quantityMax = integer(body.quantityMax, quantityMin, quantityMin, 2147483647);
   const options = Array.isArray(body.options) ? body.options : asJson(body.optionsJson, []);
+  const durationDays = body.durationDays == null || body.durationDays === '' ? null : integer(body.durationDays, 0, 0, 3650);
+  const isPermanent = body.isPermanent == null && body.permanent == null
+    ? durationDays == null || durationDays <= 0
+    : bool(body.isPermanent ?? body.permanent, true);
+  const chancePercent = decimal(body.chancePercent, null, 0, 100);
   if (tempId < 0) throw new Error(`Item #${index + 1}: tempId không hợp lệ.`);
   if (quantityMax < quantityMin) throw new Error(`Item #${index + 1}: số lượng tối đa phải >= tối thiểu.`);
   if (!Array.isArray(options)) throw new Error(`Item #${index + 1}: options phải là mảng.`);
+  const hasExpiryOption = options.some((option) => Number(option?.id ?? option?.optionId) === 93);
+  if (!isPermanent && (!durationDays || durationDays < 1) && !hasExpiryOption) throw new Error(`Item #${index + 1}: item có thời hạn phải có số ngày >= 1.`);
+  const normalizedOptions = options.slice(0, 50).map((option) => ({
+    id: integer(option?.id ?? option?.optionId, -1, 0, 2147483647),
+    param: integer(option?.param, 0, -2147483647, 2147483647),
+    min: option?.min == null ? undefined : integer(option.min, 0, -2147483647, 2147483647),
+    max: option?.max == null ? undefined : integer(option.max, 0, -2147483647, 2147483647),
+  })).filter((option) => option.id >= 0 && (isPermanent ? option.id !== 93 : true));
   return {
     tempId,
-    weight: integer(body.weight, 1, 1, 1000000000),
+    weight: integer(body.weight, chancePercent == null ? 1 : Math.max(1, Math.round(chancePercent * 10000)), 1, 1000000000),
+    chancePercent,
     quantityMin,
     quantityMax,
-    options: options.slice(0, 50).map((option) => ({
-      id: integer(option?.id ?? option?.optionId, -1, 0, 2147483647),
-      param: integer(option?.param, 0, -2147483647, 2147483647),
-      min: option?.min == null ? undefined : integer(option.min, 0, -2147483647, 2147483647),
-      max: option?.max == null ? undefined : integer(option.max, 0, -2147483647, 2147483647),
-    })).filter((option) => option.id >= 0),
-    durationDays: body.durationDays == null || body.durationDays === '' ? null : integer(body.durationDays, 0, 0, 3650),
+    options: normalizedOptions,
+    durationDays,
+    isPermanent: isPermanent ? 1 : 0,
     vipOnly: bool(body.vipOnly, false) ? 1 : 0,
     enabled: bool(body.enabled, true) ? 1 : 0,
     maxWins: body.maxWins == null || body.maxWins === '' ? null : integer(body.maxWins, 0, 0, 2147483647),
@@ -107,9 +123,9 @@ async function validateAndInsertItems(conn, configId, items) {
     await validateItem(conn, item, index);
     await conn.execute(
       `INSERT INTO panel_god_spin_items
-       (config_id, temp_id, weight, quantity_min, quantity_max, options_json, duration_days, vip_only, enabled, max_wins, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [configId, item.tempId, item.weight, item.quantityMin, item.quantityMax, json(item.options), item.durationDays, item.vipOnly, item.enabled, item.maxWins, index]
+       (config_id, temp_id, weight, chance_percent, quantity_min, quantity_max, options_json, duration_days, is_permanent, vip_only, enabled, max_wins, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [configId, item.tempId, item.weight, item.chancePercent, item.quantityMin, item.quantityMax, json(item.options), item.durationDays, item.isPermanent, item.vipOnly, item.enabled, item.maxWins, index]
     );
   }
 }
@@ -136,6 +152,8 @@ async function loadConfig(id, sid) {
       quantityMax: Number(item.quantity_max),
       options: asJson(item.options_json, []),
       durationDays: item.duration_days == null ? null : Number(item.duration_days),
+      isPermanent: item.is_permanent == null ? item.duration_days == null : Boolean(item.is_permanent),
+      chancePercent: item.chance_percent == null ? null : Number(item.chance_percent),
       vipOnly: Boolean(item.vip_only),
       enabled: Boolean(item.enabled),
       maxWins: item.max_wins == null ? null : Number(item.max_wins),
@@ -168,7 +186,7 @@ router.get('/', requirePermission('godspin.view'), async (req, res) => {
   try {
     const sid = await serverId(req.query.serverId);
     const rows = await query(
-      `SELECT c.*, COUNT(i.id) AS item_count, COALESCE(SUM(CASE WHEN i.enabled = 1 THEN i.weight ELSE 0 END), 0) AS weight_total
+      `SELECT c.*, COUNT(i.id) AS item_count, COALESCE(SUM(CASE WHEN i.enabled = 1 THEN COALESCE(i.chance_percent, i.weight) ELSE 0 END), 0) AS weight_total
        FROM panel_god_spin_configs c LEFT JOIN panel_god_spin_items i ON i.config_id = c.id
        WHERE c.server_id = ? GROUP BY c.id ORDER BY c.updated_at DESC, c.id DESC`, [sid]
     );
@@ -240,8 +258,8 @@ router.post('/:id/status', requirePermission('godspin.manage'), async (req, res)
     const status = ['draft', 'scheduled', 'active', 'paused', 'ended'].includes(req.body?.status) ? req.body.status : null;
     if (!status) return res.status(400).json({ ok: false, error: 'Trạng thái không hợp lệ.' });
     if (status === 'active' || status === 'scheduled') {
-      const rows = await query('SELECT SUM(CASE WHEN enabled = 1 AND weight > 0 THEN 1 ELSE 0 END) AS item_count, COALESCE(SUM(CASE WHEN enabled = 1 AND weight > 0 THEN weight ELSE 0 END), 0) AS weight_total FROM panel_god_spin_items WHERE config_id = ?', [id]);
-      if (!Number(rows[0]?.item_count) || !Number(rows[0]?.weight_total)) return res.status(400).json({ ok: false, error: 'Không thể bật vòng quay khi pool chưa có item đang bật và trọng số > 0.' });
+      const rows = await query('SELECT SUM(CASE WHEN enabled = 1 AND COALESCE(chance_percent, weight) > 0 THEN 1 ELSE 0 END) AS item_count, COALESCE(SUM(CASE WHEN enabled = 1 AND COALESCE(chance_percent, weight) > 0 THEN COALESCE(chance_percent, weight) ELSE 0 END), 0) AS weight_total FROM panel_god_spin_items WHERE config_id = ?', [id]);
+      if (!Number(rows[0]?.item_count) || !Number(rows[0]?.weight_total)) return res.status(400).json({ ok: false, error: 'Không thể bật vòng quay khi pool chưa có item đang bật và tỷ lệ % > 0.' });
     }
     const result = await exec('UPDATE panel_god_spin_configs SET status=?, enabled=? WHERE id=? AND server_id=?', [status, status === 'active' || status === 'scheduled' ? 1 : 0, id, sid]);
     if (!result.affectedRows) return res.status(404).json({ ok: false, error: 'Không tìm thấy cấu hình vòng quay.' });

@@ -23,6 +23,7 @@ const MIGRATION_PATHS = [
   ['007 Recharge Promotions', path.resolve(__dirname, '../../sql/migrations/007_recharge_promotions.sql')],
   ['008 God Spin Management', path.resolve(__dirname, '../../sql/migrations/008_god_spin_management.sql')],
   ['009 Economy Integrity Fixes', path.resolve(__dirname, '../../sql/migrations/009_economy_integrity_fixes.sql')],
+  ['010 God Spin Chance & Permanent Rewards', path.resolve(__dirname, '../../sql/migrations/010_god_spin_chance_permanent.sql')],
 ];
 
 async function main() {
@@ -296,18 +297,18 @@ async function main() {
     spinConfigId = insertedSpin.insertId;
   }
   const spinItems = [
-    [190, 80, 100000, 100000, []],
-    [1507, 15, 1, 1, []],
-    [532, 3, 1, 1, [{ id: 50, min: 1, max: 5 }, { id: 77, min: 1, max: 5 }, { id: 103, min: 1, max: 5 }, { id: 30, min: 1, max: 1 }, { id: 93, min: 1, max: 2 }]],
-    [1680, 1, 1, 1, [{ id: 50, min: 1, max: 12 }, { id: 77, min: 1, max: 12 }, { id: 103, min: 1, max: 12 }, { id: 30, min: 1, max: 1 }, { id: 93, min: 1, max: 2 }]],
-    [1631, 1, 1, 1, [{ id: 50, min: 1, max: 17 }, { id: 77, min: 1, max: 17 }, { id: 103, min: 1, max: 17 }, { id: 30, min: 1, max: 1 }, { id: 93, min: 1, max: 2 }]],
+    [190, 80, 100000, 100000, [], 1],
+    [1507, 15, 1, 1, [], 1],
+    [532, 3, 1, 1, [{ id: 50, min: 1, max: 5 }, { id: 77, min: 1, max: 5 }, { id: 103, min: 1, max: 5 }, { id: 30, min: 1, max: 1 }, { id: 93, min: 1, max: 2 }], 0],
+    [1680, 1, 1, 1, [{ id: 50, min: 1, max: 12 }, { id: 77, min: 1, max: 12 }, { id: 103, min: 1, max: 12 }, { id: 30, min: 1, max: 1 }, { id: 93, min: 1, max: 2 }], 0],
+    [1631, 1, 1, 1, [{ id: 50, min: 1, max: 17 }, { id: 77, min: 1, max: 17 }, { id: 103, min: 1, max: 17 }, { id: 30, min: 1, max: 1 }, { id: 93, min: 1, max: 2 }], 0],
   ];
-  for (const [tempId, weight, quantityMin, quantityMax, options] of spinItems) {
+  for (const [tempId, weight, quantityMin, quantityMax, options, isPermanent] of spinItems) {
     await conn.execute(
       `INSERT IGNORE INTO panel_god_spin_items
-       (config_id, temp_id, weight, quantity_min, quantity_max, options_json, enabled, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, 1, ?)`,
-      [spinConfigId, tempId, weight, quantityMin, quantityMax, JSON.stringify(options), spinItems.findIndex((item) => item[0] === tempId)]
+       (config_id, temp_id, weight, chance_percent, quantity_min, quantity_max, options_json, duration_days, is_permanent, enabled, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, 1, ?)`,
+      [spinConfigId, tempId, weight, weight, quantityMin, quantityMax, JSON.stringify(options), isPermanent, spinItems.findIndex((item) => item[0] === tempId)]
     );
   }
   console.log(`✓ Lucky Round source pool synced: ${spinItems.length} items`);

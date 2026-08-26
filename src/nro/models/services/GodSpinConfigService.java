@@ -170,7 +170,7 @@ public final class GodSpinConfigService {
 
     private List<SpinItem> loadItems(Connection con, long configId, boolean vip) throws Exception {
         List<SpinItem> result = new ArrayList<>();
-        String sql = "SELECT id, temp_id, weight, quantity_min, quantity_max, options_json, duration_days, vip_only, max_wins "
+        String sql = "SELECT id, temp_id, weight, chance_percent, quantity_min, quantity_max, options_json, duration_days, is_permanent, vip_only, max_wins "
                 + "FROM panel_god_spin_items WHERE config_id = ? AND enabled = 1 AND (vip_only = 0 OR ? = 1) "
                 + "ORDER BY sort_order, id";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
@@ -178,9 +178,12 @@ public final class GodSpinConfigService {
             ps.setBoolean(2, vip);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    result.add(new SpinItem(rs.getLong("id"), rs.getInt("temp_id"), Math.max(1, rs.getInt("weight")),
+                    double chancePercent = rs.getObject("chance_percent") == null
+                            ? Math.max(0, rs.getDouble("weight")) : Math.max(0, rs.getDouble("chance_percent"));
+                    result.add(new SpinItem(rs.getLong("id"), rs.getInt("temp_id"), Math.max(1, rs.getInt("weight")), chancePercent,
                             Math.max(1, rs.getLong("quantity_min")), Math.max(1, rs.getLong("quantity_max")),
                             rs.getString("options_json"), rs.getObject("duration_days") == null ? null : rs.getInt("duration_days"),
+                            rs.getObject("is_permanent") == null ? rs.getObject("duration_days") == null : rs.getBoolean("is_permanent"),
                             rs.getObject("max_wins") == null ? null : Math.max(0, rs.getInt("max_wins"))));
                 }
             }
@@ -251,12 +254,12 @@ public final class GodSpinConfigService {
     }
 
     private SpinItem choose(List<SpinItem> pool) {
-        long total = 0;
-        for (SpinItem item : pool) total += item.weight();
+        double total = 0;
+        for (SpinItem item : pool) total += item.chancePercent();
         if (total <= 0) return null;
-        long cursor = ThreadLocalRandom.current().nextLong(total);
+        double cursor = ThreadLocalRandom.current().nextDouble(total);
         for (SpinItem item : pool) {
-            cursor -= item.weight();
+            cursor -= item.chancePercent();
             if (cursor < 0) return item;
         }
         return pool.get(pool.size() - 1);
@@ -287,7 +290,10 @@ public final class GodSpinConfigService {
         } catch (Exception e) {
             Logger.warning("Option GodSpin không hợp lệ item " + source.tempId() + ": " + e.getMessage() + "\n");
         }
-        if (source.durationDays() != null && source.durationDays() > 0 && item.itemOptions.stream().noneMatch(option -> option.optionTemplate != null && option.optionTemplate.id == 93)) {
+        if (source.isPermanent()) {
+            item.itemOptions.removeIf(option -> option.optionTemplate != null && option.optionTemplate.id == 93);
+        } else if (source.durationDays() != null && source.durationDays() > 0) {
+            item.itemOptions.removeIf(option -> option.optionTemplate != null && option.optionTemplate.id == 93);
             item.itemOptions.add(new Item.ItemOption(93, source.durationDays()));
         }
         item.content = item.getContent();
@@ -297,5 +303,5 @@ public final class GodSpinConfigService {
 
     private record Config(long id, int dailyLimit, String currencyMode, int costGem, int costGold, int costTicket, Integer ticketTempId) { }
     private record PlayerStats(LocalDate date, int dailySpins, int totalSpins, boolean existing) { }
-    private record SpinItem(long id, int tempId, int weight, long quantityMin, long quantityMax, String optionsJson, Integer durationDays, Integer maxWins) { }
+    private record SpinItem(long id, int tempId, int weight, double chancePercent, long quantityMin, long quantityMax, String optionsJson, Integer durationDays, boolean isPermanent, Integer maxWins) { }
 }
