@@ -360,6 +360,7 @@ panel_dependencies_ready() {
   [ -d "$PANEL_API_ROOT/node_modules/mysql2" ] \
     && [ -d "$PANEL_API_ROOT/node_modules/express" ] \
     && [ -x "$PANEL_WEB_ROOT/node_modules/.bin/vite" ] \
+    && [ -x "$PANEL_WEB_ROOT/node_modules/esbuild/bin/esbuild" ] \
     && [ -d "$PANEL_WEB_ROOT/node_modules/react" ]
 }
 npm_install_noninteractive() {
@@ -372,8 +373,25 @@ npm_install_noninteractive() {
     else
       "${command[@]}"
     fi
+    if [ -x "$dir/node_modules/esbuild/bin/esbuild" ]; then
+      return 0
+    fi
+    local candidate
+    for candidate in \
+      android-arm64 android-arm android-x64 \
+      linux-arm64 linux-arm linux-x64; do
+      if [ -x "$dir/node_modules/@esbuild/$candidate/bin/esbuild" ]; then
+        mkdir -p "$dir/node_modules/esbuild/bin"
+        ln -sf "$dir/node_modules/@esbuild/$candidate/bin/esbuild" "$dir/node_modules/esbuild/bin/esbuild"
+        return 0
+      fi
+    done
     if [ -f "$dir/node_modules/esbuild/install.js" ]; then
-      (cd "$dir" && node node_modules/esbuild/install.js)
+      if command -v timeout >/dev/null 2>&1; then
+        (cd "$dir" && timeout --signal=TERM "${NRO_ESBUILD_TIMEOUT_SEC:-180}" node node_modules/esbuild/install.js)
+      else
+        (cd "$dir" && node node_modules/esbuild/install.js)
+      fi
     fi
   )
 }
