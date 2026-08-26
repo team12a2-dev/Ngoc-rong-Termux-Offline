@@ -606,6 +606,9 @@ setup() {
     start_panel
   fi
   touch "$STATE_DIR/installed"
+  if [ "${NRO_SETUP_FOR_START:-0}" != "1" ]; then
+    start_panel
+  fi
   say "Cài đặt lần đầu hoàn tất."
 }
 
@@ -616,22 +619,22 @@ main() {
       setup
       ;;
     start)
-      [ -f "$STATE_DIR/installed" ] || setup
+      [ -f "$STATE_DIR/installed" ] || NRO_SETUP_FOR_START=1 setup
       start_server
       ;;
     lan)
-      [ -f "$STATE_DIR/installed" ] || setup
+      [ -f "$STATE_DIR/installed" ] || NRO_SETUP_FOR_START=1 setup
       NRO_LAN_MODE=1 start_server
       ;;
     background)
-      [ -f "$STATE_DIR/installed" ] || setup
+      [ -f "$STATE_DIR/installed" ] || NRO_SETUP_FOR_START=1 setup
       exec "$ROOT/termux-server-service.sh" start
       ;;
     background-stop)
       exec "$ROOT/termux-server-service.sh" stop
       ;;
     background-restart)
-      [ -f "$STATE_DIR/installed" ] || setup
+      [ -f "$STATE_DIR/installed" ] || NRO_SETUP_FOR_START=1 setup
       exec "$ROOT/termux-server-service.sh" restart
       ;;
     background-status)
