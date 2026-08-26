@@ -38,11 +38,11 @@ Cài **Termux chính thức**, sau đó dán **một dòng duy nhất** sau đâ
 pkg update -y && pkg install -y curl tar && curl --http1.1 -fsSL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 120 -o "$HOME/install-termux.sh" "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" && bash "$HOME/install-termux.sh"
 ```
 
-Installer tải **một gói runtime trực tiếp từ GitHub Release**; không dùng Git, không chia file, không tạo khóa SSH và không xuất hiện `Receiving objects`. Nếu mạng bị ngắt, file tải dở được giữ lại để tiếp tục; log chi tiết nằm tại `~/.ngocrong-termux-install.log`.
+Installer tải **archive source mới nhất từ nhánh GitHub `main`**; không dùng Git, không chia file, không tạo khóa SSH và không xuất hiện `Receiving objects`. Mỗi lần chạy installer/update đều tải lại source mới, giải nén vào đúng thư mục cài đặt rồi chạy setup; log tải nằm tại `~/.ngocrong-termux-install.log`.
 
 Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`.
 
-Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel.
+Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel. Mỗi lần `start`, `restart`, `lan` hoặc chạy nền đều build lại Java; panel cũng build lại React và restart Node để chức năng mới xuất hiện.
 
 Sau khi setup xong, chạy server:
 
@@ -64,7 +64,7 @@ cd ~/ngocrong-termux
 | `./nro.sh stop` | Dừng game server và panel. |
 | `./nro.sh restart` | Restart game server và panel. |
 | `./nro.sh console` | Chạy foreground để xem log trực tiếp. |
-| `./nro.sh rebuild` | Chỉ build lại Java. |
+| `./nro.sh rebuild` | Build lại Java thủ công; các lệnh start/restart/lan/background cũng tự build trước khi chạy. |
 
 ### Service chạy nền
 
@@ -253,7 +253,7 @@ boss_spawn.properties        Cấu hình spawn boss
 nro.sh                       Launcher chính
 termux-server-service.sh     Supervisor chạy nền
 termux-lan-start.sh          Khởi động LAN
-install-termux.sh             Installer runtime trực tiếp từ Release
+install-termux.sh             Installer/update source trực tiếp từ nhánh main
 install-termux-background.sh  Cài Termux:Boot
 TERMUX-LAN.md                Hướng dẫn LAN chi tiết
 ```
@@ -275,5 +275,5 @@ Kết quả trong sandbox không thay thế kiểm thử trên từng mẫu đi�
 - [Hướng dẫn vận hành panel](panel/docs/NRO-CONTROL-PANEL.md)
 - [Repository GitHub](https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline)
 - [Termux:Boot](https://github.com/termux/termux-boot)
-- [GitHub Release runtime](https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/releases)
+- [Nhánh main cập nhật](https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/tree/main)
 - [MariaDB Connector/J](https://mariadb.com/docs/connectors/mariadb-connector-j/about-mariadb-connector-j)

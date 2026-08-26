@@ -378,20 +378,33 @@ install_panel_dependencies() {
 setup_panel() {
   if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
     warn "Thiếu Node.js/npm; panel không được setup."
-    return 0
+    return 1
   fi
   install_panel_dependencies
-  if ! panel_dependencies_ready; then return 0; fi
+  if ! panel_dependencies_ready; then
+    warn "Dependency panel chưa sẵn sàng."
+    return 1
+  fi
   ensure_panel_admin_password
   export PORT="$PANEL_PORT"
-  export JWT_SECRET="${JWT_SECRET:-$(od -An -N24 -tx1 /dev/urandom | tr -d ' \n')}"
+  export JWT_SECRET="${JWT_SECRET:-$(od -An -N24 -tx1 | tr -d ' \n')}"
   say "Đồng bộ schema và tài khoản panel với database $DB_NAME"
-  (cd "$PANEL_API_ROOT" && npm run db:sync) || { warn "Panel DB sync thất bại; xem $PANEL_LOG hoặc chạy lại setup."; return 0; }
-  say "Build giao diện React panel"
-  (cd "$PANEL_WEB_ROOT" && npm run build) || { warn "Build panel web thất bại."; return 0; }
-  [ -f "$PANEL_WEB_ROOT/dist/index.html" ] || { warn "Không thấy panel/web/dist/index.html sau build."; return 0; }
+  if ! (cd "$PANEL_API_ROOT" && npm run db:sync); then
+    warn "Panel DB sync thất bại; xem $PANEL_LOG hoặc chạy lại setup."
+    return 1
+  fi
+  say "Build giao diện React panel mới nhất"
+  if ! (cd "$PANEL_WEB_ROOT" && npm run build); then
+    warn "Build panel web thất bại."
+    return 1
+  fi
+  if [ ! -f "$PANEL_WEB_ROOT/dist/index.html" ]; then
+    warn "Không thấy panel/web/dist/index.html sau build."
+    return 1
+  fi
   touch "$STATE_DIR/panel-build.ok"
-  say "Panel đã được setup. Tài khoản admin: admin; mật khẩu lưu tại $PANEL_ADMIN_PASSWORD_FILE"
+  export NRO_PANEL_SETUP_DONE=1
+  say "Panel đã được build và đồng bộ thành công. Tài khoản admin: admin; mật khẩu lưu tại $PANEL_ADMIN_PASSWORD_FILE"
 }
 
 panel_alive() {
@@ -403,17 +416,19 @@ start_panel() {
     warn "Node.js/npm không khả dụng; bỏ qua panel."
     return 0
   fi
-  if ! panel_dependencies_ready || [ ! -f "$PANEL_API_ROOT/.env" ] || [ ! -f "$PANEL_WEB_ROOT/dist/index.html" ]; then
-    setup_panel
+  if [ "${NRO_PANEL_SETUP_DONE:-0}" != "1" ]; then
+    if ! setup_panel; then
+      warn "Không thể build/sync panel mới; game server vẫn tiếp tục chạy."
+      return 0
+    fi
   fi
   if ! [ -f "$PANEL_API_ROOT/.env" ] || ! [ -f "$PANEL_WEB_ROOT/dist/index.html" ]; then
     warn "Panel chưa đủ file runtime; game server vẫn tiếp tục chạy."
     return 0
   fi
   if panel_alive; then
-    say "Panel web đang chạy với PID $(cat "$PANEL_PID")."
-    print_endpoints
-    return 0
+    say "Panel web đang chạy; dừng tiến trình cũ để dùng bản build mới."
+    stop_panel
   fi
   say "Khởi động panel web tại cổng $PANEL_PORT"
   rm -f "$PANEL_PID"
@@ -585,6 +600,11 @@ setup() {
   import_database
   build_server
   setup_panel
+  if panel_alive; then
+    say "Phát hiện panel đang chạy; khởi động lại panel bằng bản build mới."
+    stop_panel
+    start_panel
+  fi
   touch "$STATE_DIR/installed"
   say "Cài đặt lần đầu hoàn tất."
 }

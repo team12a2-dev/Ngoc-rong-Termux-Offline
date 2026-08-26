@@ -97,9 +97,18 @@ app.use('/api/v1/god-spin', godSpinRoutes);
 
 // Serve the production React panel from the same origin as the API.
 // This keeps relative /api and /ws URLs working on localhost and LAN devices.
-app.use(express.static(WEB_DIST));
+app.use(express.static(WEB_DIST, {
+  etag: true,
+  lastModified: true,
+  maxAge: 0,
+  setHeaders: (res, filePath) => {
+    // index.html quyết định bundle/chức năng panel; không được giữ bản cũ sau update.
+    res.setHeader('Cache-Control', filePath.endsWith('index.html') ? 'no-store, no-cache, must-revalidate' : 'no-cache');
+  },
+}));
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/ws/')) return next();
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.sendFile(path.join(WEB_DIST, 'index.html'), (err) => {
     if (err) next(err);
   });
