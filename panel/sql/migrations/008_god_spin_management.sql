@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS panel_god_spin_configs (
   starts_at DATETIME NULL,
   ends_at DATETIME NULL,
   timezone VARCHAR(64) NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+  currency_mode VARCHAR(20) NOT NULL DEFAULT 'both',
   cost_gem INT UNSIGNED NOT NULL DEFAULT 50,
   cost_gold BIGINT UNSIGNED NOT NULL DEFAULT 2500000,
   cost_ticket INT UNSIGNED NOT NULL DEFAULT 0,

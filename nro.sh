@@ -20,6 +20,7 @@ PANEL_API_ROOT="$PANEL_ROOT/api"
 PANEL_WEB_ROOT="$PANEL_ROOT/web"
 PANEL_PID="$STATE_DIR/panel.pid"
 PANEL_LOG="$STATE_DIR/panel.log"
+PANEL_SYNC_LOG="$STATE_DIR/panel-db-sync.log"
 PANEL_PORT="${NRO_PANEL_PORT:-3001}"
 PANEL_ADMIN_PASSWORD_FILE="$STATE_DIR/panel-admin-password"
 BACKUP_SCRIPT="$ROOT/backup-database.sh"
@@ -98,6 +99,7 @@ print_endpoints() {
   fi
   printf '%s\n' "  Game log            : $SERVER_LOG"
   printf '%s\n' "  Panel log           : $PANEL_LOG"
+  printf '%s\n' "  Panel DB sync log   : $PANEL_SYNC_LOG"
 }
 
 need_termux() {
@@ -487,10 +489,13 @@ setup_panel() {
   export PORT="$PANEL_PORT"
   export JWT_SECRET="${JWT_SECRET:-$(od -An -N24 -tx1 /dev/urandom | tr -d ' \n')}"
   say "Đồng bộ schema và tài khoản panel với database $DB_NAME"
-  if ! (cd "$PANEL_API_ROOT" && npm run db:sync); then
-    warn "Panel DB sync thất bại; xem $PANEL_LOG hoặc chạy lại setup."
+  : > "$PANEL_SYNC_LOG"
+  if ! (cd "$PANEL_API_ROOT" && npm run db:sync >"$PANEL_SYNC_LOG" 2>&1); then
+    warn "Panel DB sync thất bại; log chi tiết: $PANEL_SYNC_LOG"
+    tail -n 80 "$PANEL_SYNC_LOG" 2>/dev/null || true
     return 1
   fi
+  say "Panel DB sync thành công. Log: $PANEL_SYNC_LOG"
   say "Build giao diện React panel mới nhất"
   if ! (cd "$PANEL_WEB_ROOT" && npm run build); then
     warn "Build panel web thất bại."

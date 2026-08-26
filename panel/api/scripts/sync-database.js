@@ -67,6 +67,21 @@ async function main() {
     console.log(`✓ ${label} schema applied`);
   }
 
+  // Older databases may already have panel_god_spin_configs from a build
+  // that predated currency_mode. CREATE TABLE IF NOT EXISTS cannot upgrade it.
+  const [godSpinCurrencyColumn] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = 'panel_god_spin_configs' AND column_name = 'currency_mode'`,
+    [dbConfig.database]
+  );
+  if (Number(godSpinCurrencyColumn[0].c) === 0) {
+    await conn.query(
+      `ALTER TABLE panel_god_spin_configs
+       ADD COLUMN currency_mode VARCHAR(20) NOT NULL DEFAULT 'both' AFTER timezone`
+    );
+    console.log('✓ Added panel_god_spin_configs.currency_mode');
+  }
+
   // Backward-compatible migration for map-drop rules created by an older panel build.
   const [dropColumns] = await conn.query(
     `SELECT COUNT(*) AS c FROM information_schema.columns
@@ -327,5 +342,10 @@ async function main() {
 
 main().catch((e) => {
   console.error('Sync failed:', e.message);
+  if (e.code) console.error(`  code: ${e.code}`);
+  if (e.errno != null) console.error(`  errno: ${e.errno}`);
+  if (e.sqlState) console.error(`  sqlState: ${e.sqlState}`);
+  if (e.sqlMessage && e.sqlMessage !== e.message) console.error(`  sqlMessage: ${e.sqlMessage}`);
+  if (e.sql) console.error(`  sql: ${String(e.sql).replace(/\s+/g, ' ').slice(0, 800)}`);
   process.exit(1);
 });
