@@ -22,10 +22,10 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/refresh', (req, res) => {
+router.post('/refresh', async (req, res) => {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : req.body?.token;
-  const newToken = refreshSession(token);
+  const newToken = await refreshSession(token);
   if (!newToken) {
     return res.status(401).json({ ok: false, error: 'Invalid or expired session' });
   }

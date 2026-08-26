@@ -21,15 +21,26 @@ function signUserToken(user) {
   );
 }
 
-export function authMiddleware(req, res, next) {
+export async function authMiddleware(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
   }
   try {
-    req.user = jwt.verify(token, JWT_SECRET());
-    next();
+    const payload = jwt.verify(token, JWT_SECRET());
+    req.user = payload;
+    // Permissions are database-backed. Refresh non-owner sessions so migrations
+    // that add event/godspin permissions work without forcing a stale local JWT.
+    if (payload.id != null && (!Array.isArray(payload.permissions) || !payload.permissions.includes('*'))) {
+      try {
+        const freshUser = await getMe(payload.id);
+        if (freshUser) req.user = { ...payload, ...freshUser };
+      } catch {
+        // Keep the verified token when the database is temporarily unavailable.
+      }
+    }
+    return next();
   } catch {
     return res.status(401).json({ ok: false, error: 'Invalid token' });
   }
@@ -102,7 +113,7 @@ export async function devLogin(username, password) {
 }
 
 /** Re-issue JWT when signature valid (allows expired tokens for panel refresh). */
-export function refreshSession(token) {
+export async function refreshSession(token) {
   if (!token) {
     return null;
   }
@@ -111,12 +122,19 @@ export function refreshSession(token) {
     if (!payload?.username) {
       return null;
     }
-    return signUserToken({
+    let user = {
       id: payload.id,
       username: payload.username,
       role: payload.role,
       permissions: payload.permissions || ['*'],
-    });
+    };
+    try {
+      const freshUser = await getMe(payload.id);
+      if (freshUser) user = freshUser;
+    } catch {
+      // A verified token remains usable during a temporary database outage.
+    }
+    return signUserToken(user);
   } catch {
     return null;
   }
