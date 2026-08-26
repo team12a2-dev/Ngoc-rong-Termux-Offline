@@ -17,9 +17,14 @@ public class XeNuocMia extends Npc {
     }
 
     // ================== MENU CHÍNH ==================
-    @Override
+        @Override
     public void openBaseMenu(Player player) {
+        if (!EventManager.gI().isPhoAnhHaiRuntimeEnabled()) {
+            Service.gI().sendThongBao(player, "Sự kiện Phở Anh Hai hiện đã tắt.");
+            return;
+        }
         if (!canOpenNpc(player)) {
+
             return;
         }
 
@@ -35,9 +40,14 @@ public class XeNuocMia extends Npc {
     }
 
     // ================== XỬ LÝ MENU ==================
-    @Override
+        @Override
     public void confirmMenu(Player player, int select) {
+        if (!EventManager.gI().isPhoAnhHaiRuntimeEnabled()) {
+            Service.gI().sendThongBao(player, "Sự kiện Phở Anh Hai hiện đã tắt.");
+            return;
+        }
         if (!canOpenNpc(player)) {
+
             return;
         }
 

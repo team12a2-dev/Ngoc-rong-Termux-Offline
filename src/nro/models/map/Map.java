@@ -1,6 +1,8 @@
 package nro.models.map;
 
 import nro.models.consts.ConstMap;
+import nro.models.consts.ConstNpc;
+import nro.models.event.EventManager;
 import nro.models.player_system.Template;
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
@@ -172,6 +174,14 @@ public class Map implements Runnable {
 
     public void initNpc(byte[] npcId, short[] npcX, short[] npcY) {
         for (int i = 0; i < npcId.length; i++) {
+            int templateId = Byte.toUnsignedInt(npcId[i]);
+            boolean hungVuongDisabled = !EventManager.gI().isHungVuongRuntimeEnabled()
+                    && (templateId == ConstNpc.HUNG_VUONG || templateId == ConstNpc.NOI_BANH);
+            boolean phoAnhHaiDisabled = !EventManager.gI().isPhoAnhHaiRuntimeEnabled()
+                    && templateId == ConstNpc.PHO_ANH_HAI;
+            if (hungVuongDisabled || phoAnhHaiDisabled) {
+                continue;
+            }
             Npc npc = NpcFactory.createNPC(this.mapId, 1, npcX[i], npcY[i], npcId[i]);
             if (npc != null) {
                 this.npcs.add(npc);

@@ -153,6 +153,8 @@ public class ConstNpc {
     public static final byte RUONG_SUU_TAM = 82;
     public static final byte DR_MYUU = 83;
     public static final byte XE_NUOC_MIA = 84;
+    // npc_template id 84 is named "Phở Anh Hai" in the game database.
+    public static final byte PHO_ANH_HAI = XE_NUOC_MIA;
     //----------------------index menu------------------------------------------
     //menu o len tang map mabu
     public static final int GO_UPSTAIRS_MENU = 10000;

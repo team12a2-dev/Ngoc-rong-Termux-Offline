@@ -14,6 +14,8 @@ import java.util.Map;
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
 import nro.models.boss.Boss_Manager.BossManager;
+import nro.models.npc.Npc;
+import nro.models.server.Manager;
 
 public class EventManager {
 
@@ -42,6 +44,12 @@ public class EventManager {
 
     public void init() {
         DynamicEventManager.gI().init();
+        if (!isPhoAnhHaiRuntimeEnabled()) {
+            removeNpcTemplates(nro.models.consts.ConstNpc.PHO_ANH_HAI);
+        }
+        if (!isHungVuongRuntimeEnabled()) {
+            removeHungVuongRuntimeEntities();
+        }
         new Default().init();
         if (LUNNAR_NEW_YEAR) {
            // new LunarNewYear().init();
@@ -68,16 +76,11 @@ public class EventManager {
 
     public java.util.Map<String, Object> reloadDynamicEvents() {
         Map<String, Object> result = new LinkedHashMap<>(DynamicEventManager.gI().reload());
+        if (!isPhoAnhHaiRuntimeEnabled()) {
+            result.put("phoAnhHaiNpcsRemoved", removeNpcTemplates(nro.models.consts.ConstNpc.PHO_ANH_HAI));
+        }
         if (!isHungVuongRuntimeEnabled()) {
-            int removed = 0;
-            for (Boss boss : new ArrayList<>(BossManager.gI().getBosses())) {
-                if (boss != null && boss.id == BossID.THUY_TINH) {
-                    boss.dispose();
-                    BossManager.gI().removeBoss(boss);
-                    removed++;
-                }
-            }
-            result.put("hungVuongBossRemoved", removed);
+            result.put("hungVuongEntitiesRemoved", removeHungVuongRuntimeEntities());
         }
         return result;
     }
@@ -87,7 +90,42 @@ public class EventManager {
      * flag. Once the SQL catalog contains either modern alias, SQL becomes the
      * source of truth for whether those interactions remain available.
      */
+    public boolean isPhoAnhHaiRuntimeEnabled() {
+        return DynamicEventManager.gI().isConfiguredAndActive("pho-anh-hai");
+    }
+
     public boolean isHungVuongRuntimeEnabled() {
-        return DynamicEventManager.gI().isConfiguredAndActive("pho-anh-hai", "hung-vuong-legacy");
+        return DynamicEventManager.gI().isConfiguredAndActive("hung-vuong-legacy");
+    }
+
+    private int removeNpcTemplates(int... templateIds) {
+        int removed = 0;
+        for (nro.models.map.Map map : new ArrayList<>(Manager.MAPS)) {
+            for (Npc npc : new ArrayList<>(map.npcs)) {
+                if (npc == null) continue;
+                for (int templateId : templateIds) {
+                    if (npc.tempId == templateId) {
+                        map.npcs.remove(npc);
+                        Manager.NPCS.remove(npc);
+                        removed++;
+                        break;
+                    }
+                }
+            }
+        }
+        return removed;
+    }
+
+    private int removeHungVuongRuntimeEntities() {
+        int removed = 0;
+        for (Boss boss : new ArrayList<>(BossManager.gI().getBosses())) {
+            if (boss != null && boss.id == BossID.THUY_TINH) {
+                boss.dispose();
+                BossManager.gI().removeBoss(boss);
+                removed++;
+            }
+        }
+        removed += removeNpcTemplates(nro.models.consts.ConstNpc.HUNG_VUONG, nro.models.consts.ConstNpc.NOI_BANH);
+        return removed;
     }
 }
