@@ -256,6 +256,7 @@ async function main() {
     ['hung-vuong-legacy', 'Hùng Vương', 'hung_vuong'],
     ['trung-thu-legacy', 'Trung Thu', 'trung_thu'],
     ['top-up-legacy', 'Nạp thẻ', 'top_up'],
+    ['pho-anh-hai', 'Phở Anh Hai', 'pho_anh_hai'],
   ];
   for (const [eventKey, name, eventType] of legacyEvents) {
     await conn.execute(
@@ -265,7 +266,7 @@ async function main() {
       [eventKey, name, `Sự kiện có sẵn trong mã nguồn: ${name}`, eventType]
     );
   }
-  console.log(`✓ Legacy event catalog synced: ${legacyEvents.length} entries`);
+  console.log(`✓ Event catalog synced from source/requested events: ${legacyEvents.length} entries`);
 
   const [spinConfigRows] = await conn.execute(
     `SELECT id FROM panel_god_spin_configs WHERE server_id = 1 AND spin_key = 'thuong-de-default' LIMIT 1`
