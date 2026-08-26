@@ -471,8 +471,14 @@ public class MapService {
         return mapId >= 114 && mapId <= 120;
     }
 
+    /**
+     * Các map nhà không cho phép bắt đầu hợp thể bằng bông tai.
+     * Chỉ gồm nhà Gohan, nhà Moori và nhà Broly.
+     */
     public boolean isHome(int mapId) {
-        return mapId >= 21 && mapId <= 23;
+        return mapId == ConstMap.NHA_GOHAN
+                || mapId == ConstMap.NHA_MOORI
+                || mapId == ConstMap.NHA_BROLY;
     }
 
     public boolean isMapYardart(int mapId) {
