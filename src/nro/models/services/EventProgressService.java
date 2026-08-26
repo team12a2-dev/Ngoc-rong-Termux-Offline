@@ -93,7 +93,7 @@ public final class EventProgressService {
     private List<Objective> findObjectives(Connection con, String type, long targetId, Long secondaryTarget,
             Integer mapId, Player player) throws Exception {
         String sql = "SELECT e.id event_id, e.name event_name, e.once_per_player, e.min_power, e.vip_min, "
-                + "e.require_clan, e.min_clan_members, o.id objective_id, o.required_count, o.target_id, o.map_ids "
+                + "e.require_clan, e.min_clan_members, e.max_participants, e.cooldown_sec, o.id objective_id, o.required_count, o.target_id, o.map_ids "
                 + "FROM panel_events e JOIN panel_event_objectives o ON o.event_id = e.id "
                 + "WHERE e.enabled = 1 AND e.status IN ('scheduled','active') "
                 + "AND (e.starts_at IS NULL OR e.starts_at <= NOW()) AND (e.ends_at IS NULL OR e.ends_at > NOW()) "
@@ -106,8 +106,9 @@ public final class EventProgressService {
                 while (rs.next()) {
                     Objective objective = new Objective(rs.getLong("event_id"), rs.getString("event_name"),
                             rs.getInt("once_per_player") == 1, rs.getLong("min_power"), rs.getInt("vip_min"),
-                            rs.getInt("require_clan") == 1, rs.getInt("min_clan_members"), rs.getLong("objective_id"),
-                            rs.getLong("required_count"),                             rs.getObject("target_id") == null ? null : rs.getLong("target_id"),
+                            rs.getInt("require_clan") == 1, rs.getInt("min_clan_members"), rs.getObject("max_participants") == null ? null : rs.getInt("max_participants"),
+                            rs.getInt("cooldown_sec"), rs.getLong("objective_id"), rs.getLong("required_count"),
+                            rs.getObject("target_id") == null ? null : rs.getLong("target_id"),
 
                             rs.getString("map_ids"));
                     if (matchesTarget(objective, targetId, secondaryTarget) && matchesMap(objective.mapIds(), mapId)) {
@@ -148,11 +149,12 @@ public final class EventProgressService {
     }
 
     private void applyProgress(Connection con, Objective objective, Player player, long amount) throws Exception {
-        String select = "SELECT status, progress_json, points FROM panel_event_participants "
+        String select = "SELECT status, progress_json, points, updated_at FROM panel_event_participants "
                 + "WHERE event_id = ? AND player_id = ? FOR UPDATE";
         String status = null;
         String progressJson = "{}";
         long points = 0;
+        Timestamp updatedAt = null;
         try (PreparedStatement ps = con.prepareStatement(select)) {
             ps.setLong(1, objective.eventId());
             ps.setLong(2, player.id);
@@ -161,10 +163,29 @@ public final class EventProgressService {
                     status = rs.getString("status");
                     progressJson = rs.getString("progress_json");
                     points = rs.getLong("points");
+                    updatedAt = rs.getTimestamp("updated_at");
                 }
             }
         }
         if ("completed".equals(status) && objective.oncePerPlayer()) return;
+        if ("completed".equals(status) && objective.cooldownSec() > 0 && updatedAt != null
+                && updatedAt.toInstant().plusSeconds(objective.cooldownSec()).isAfter(java.time.Instant.now())) return;
+        if (status == null && objective.maxParticipants() != null) {
+            try (PreparedStatement lock = con.prepareStatement("SELECT max_participants FROM panel_events WHERE id = ? FOR UPDATE")) {
+                lock.setLong(1, objective.eventId());
+                try (ResultSet rs = lock.executeQuery()) {
+                    if (rs.next() && rs.getObject("max_participants") != null) {
+                        int limit = rs.getInt("max_participants");
+                        try (PreparedStatement count = con.prepareStatement("SELECT COUNT(*) FROM panel_event_participants WHERE event_id = ? AND status <> 'withdrawn'")) {
+                            count.setLong(1, objective.eventId());
+                            try (ResultSet countRs = count.executeQuery()) {
+                                if (countRs.next() && countRs.getInt(1) >= limit) return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         JsonObject progress = parseObject(progressJson);
         String key = String.valueOf(objective.objectiveId());
@@ -325,7 +346,8 @@ public final class EventProgressService {
     }
 
     private record Objective(long eventId, String eventName, boolean oncePerPlayer, long minPower, int vipMin,
-            boolean requireClan, int minClanMembers, long objectiveId, long requiredCount,             Long targetId, String mapIds) {
+            boolean requireClan, int minClanMembers, Integer maxParticipants, int cooldownSec,
+            long objectiveId, long requiredCount, Long targetId, String mapIds) {
 
     }
 }

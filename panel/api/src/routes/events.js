@@ -42,7 +42,7 @@ function normalizePayload(body = {}) {
     description: String(body.description || '').trim() || null,
     eventType: String(body.eventType || 'custom').slice(0, 40),
     status: ['draft', 'scheduled', 'active', 'paused', 'ended'].includes(body.status) ? body.status : 'draft',
-    enabled: boolValue(body.enabled, false) ? 1 : 0,
+    enabled: boolValue(body.enabled, false) || body.status === 'active' || body.status === 'scheduled' ? 1 : 0,
     startsAt,
     endsAt,
     timezone: String(body.timezone || 'Asia/Ho_Chi_Minh').slice(0, 64),

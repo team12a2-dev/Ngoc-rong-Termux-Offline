@@ -100,9 +100,9 @@ public class LuckyRound {
                 case USING_GOLD:
                     openBallByGold(player, count);
                     break;
-                // case USING_TICKET:
-                //     openBallByTicket(player, count);
-                //     break;
+                case USING_TICKET:
+                    openBallByTicket(player, count);
+                    break;
             }
         } catch (Exception e) {
             switch (player.idMark.getTypeLuckyRound()) {
@@ -186,27 +186,42 @@ PlayerDAO.updatePlayer(player);
     }
 }
 
-    // private void openBallByTicket(Player player, byte count) {
-    //     int ticketNeed = (count * PRICE_TICKET);
-    //     Item ticket = InventoryService.gI().findItemBag(player, TICKET);
-    //     if (ticket == null || ticket.quantity < ticketNeed) {
-    //         Service.gI().sendThongBao(player, "Bạn không đủ " + ItemService.gI().createNewItem((short) TICKET).template.name + " để quay");
-    //         sendReward(player, new ArrayList<>());
-    //     } else {
-    //         if (count + player.inventory.itemsBoxCrackBall.size() <= MAX_ITEM_IN_BOX) {
-    //             InventoryService.gI().subQuantityItemsBag(player, ticket, ticketNeed);
-    //             InventoryService.gI().sendItemBags(player);
-    //             List<Item> list = RewardService.gI().getListItemLuckyRound(player, count, true);
-    //             player.luckyRoundPoint += count; // + điểm vòng quay
-//PlayerDAO.updatePlayer(player); 
-    //             addItemToBox(player, list);
-    //             sendReward(player, list);
-    //             Service.gI().sendMoney(player);
-    //         } else {
-    //             Service.gI().sendThongBao(player, "Rương phụ đã đầy");
-    //         }
-    //     }
-    // }
+    private void openBallByTicket(Player player, byte count) {
+        if (count <= 0) return;
+        Integer configuredCost = GodSpinConfigService.gI().configuredCost(USING_TICKET);
+        if (configuredCost != null && configuredCost < 0) {
+            Service.gI().sendThongBao(player, "Vòng quay hiện không nhận vé.");
+            return;
+        }
+        int ticketPrice = configuredCost != null ? configuredCost : PRICE_TICKET;
+        Integer configuredTicket = GodSpinConfigService.gI().configuredTicketTempId();
+        int ticketTempId = configuredTicket != null ? configuredTicket : TICKET;
+        int ticketNeed = Math.multiplyExact(count, ticketPrice);
+        Item ticket = InventoryService.gI().findItemBag(player, ticketTempId);
+        if (ticket == null || ticket.quantity < ticketNeed) {
+            Service.gI().sendThongBao(player, "Bạn không đủ vé để quay");
+            sendReward(player, new ArrayList<>());
+            return;
+        }
+        if (count + player.inventory.itemsBoxCrackBall.size() > MAX_ITEM_IN_BOX) {
+            Service.gI().sendThongBao(player, "Rương phụ đã đầy");
+            return;
+        }
+        InventoryService.gI().subQuantityItemsBag(player, ticket, ticketNeed);
+        InventoryService.gI().sendItemBags(player);
+        List<Item> list = RewardService.gI().getListItemLuckyRound(player, count, true);
+        if (list.isEmpty() && GodSpinConfigService.gI().isActiveConfig()) {
+            ticket.quantity += ticketNeed;
+            PlayerDAO.updatePlayer(player);
+            InventoryService.gI().sendItemBags(player);
+            sendReward(player, list);
+            return;
+        }
+        player.luckyRoundPoint += count;
+        PlayerDAO.updatePlayer(player);
+        addItemToBox(player, list);
+        sendReward(player, list);
+    }
 
     private void sendReward(Player player, List<Item> items) {
         Message msg = null;

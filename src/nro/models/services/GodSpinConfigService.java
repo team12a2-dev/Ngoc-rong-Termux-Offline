@@ -105,9 +105,20 @@ public final class GodSpinConfigService {
             if (config == null) return null;
             if (type == 7 && "gold".equals(config.currencyMode())) return -1;
             if (type == 0 && "gem".equals(config.currencyMode())) return -1;
+            if (type == 1) return config.costTicket() > 0 && config.ticketTempId() != null ? config.costTicket() : -1;
             return type == 7 ? config.costGem() : config.costGold();
         } catch (Exception e) {
             Logger.warning("Không thể đọc giá GodSpin SQL: " + e.getMessage() + "\\n");
+            return null;
+        }
+    }
+
+    public Integer configuredTicketTempId() {
+        try (Connection con = LocalManager.getConnection()) {
+            Config config = loadConfig(con);
+            return config == null ? null : config.ticketTempId();
+        } catch (Exception e) {
+            Logger.warning("Không thể đọc vé GodSpin SQL: " + e.getMessage() + "\\n");
             return null;
         }
     }
@@ -144,14 +155,15 @@ public final class GodSpinConfigService {
     }
 
     private Config loadConfig(Connection con) throws Exception {
-        String sql = "SELECT id, daily_limit, currency_mode, cost_gem, cost_gold FROM panel_god_spin_configs WHERE server_id = ? AND enabled = 1 "
+        String sql = "SELECT id, daily_limit, currency_mode, cost_gem, cost_gold, cost_ticket, ticket_temp_id FROM panel_god_spin_configs WHERE server_id = ? AND enabled = 1 "
                 + "AND status IN ('scheduled','active') AND (starts_at IS NULL OR starts_at <= NOW()) "
                 + "AND (ends_at IS NULL OR ends_at > NOW()) ORDER BY id DESC LIMIT 1";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, DEFAULT_SERVER_ID);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? new Config(rs.getLong("id"), Math.max(1, rs.getInt("daily_limit")), rs.getString("currency_mode"),
-                        Math.max(0, rs.getInt("cost_gem")), Math.max(0, rs.getInt("cost_gold"))) : null;
+                        Math.max(0, rs.getInt("cost_gem")), Math.max(0, rs.getInt("cost_gold")), Math.max(0, rs.getInt("cost_ticket")),
+                        rs.getObject("ticket_temp_id") == null ? null : rs.getInt("ticket_temp_id")) : null;
             }
         }
     }
@@ -283,7 +295,7 @@ public final class GodSpinConfigService {
         return item;
     }
 
-    private record Config(long id, int dailyLimit, String currencyMode, int costGem, int costGold) { }
+    private record Config(long id, int dailyLimit, String currencyMode, int costGem, int costGold, int costTicket, Integer ticketTempId) { }
     private record PlayerStats(LocalDate date, int dailySpins, int totalSpins, boolean existing) { }
     private record SpinItem(long id, int tempId, int weight, long quantityMin, long quantityMax, String optionsJson, Integer durationDays, Integer maxWins) { }
 }
