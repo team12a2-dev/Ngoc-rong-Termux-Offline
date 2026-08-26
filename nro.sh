@@ -198,7 +198,9 @@ auto_update_source() {
   now="$(date +%s)"
   last_check="$(cat "$SOURCE_CHECK_FILE" 2>/dev/null || printf '0')"
   check_interval="${NRO_UPDATE_CHECK_INTERVAL_SEC:-300}"
-  if [[ "$last_check" =~ ^[0-9]+$ ]] && [ "$last_check" -gt 0 ] && [ $((now - last_check)) -lt "$check_interval" ]; then
+  if [ "${NRO_FORCE_UPDATE_CHECK:-0}" != "1" ] \
+      && [[ "$last_check" =~ ^[0-9]+$ ]] && [ "$last_check" -gt 0 ] \
+      && [ $((now - last_check)) -lt "$check_interval" ]; then
     return 0
   fi
   printf '%s\n' "$now" > "$SOURCE_CHECK_FILE"
@@ -656,7 +658,7 @@ stop_panel() {
 
 build_server() {
   ensure_layout
-  local build_started_at build_finished_at cp jar source_count
+  local build_started_at build_finished_at cp jar source_count source_fingerprint
   build_started_at="$(date '+%Y-%m-%d %H:%M:%S %Z' 2>/dev/null || printf 'unknown')"
   say "Biên dịch toàn bộ mã Java trước khi khởi động server (bắt đầu: $build_started_at)"
   find "$ROOT/src" -type f -name '*.java' -print > "$SOURCE_LIST"
@@ -671,7 +673,10 @@ build_server() {
     die "Build Java thất bại; server không được khởi động."
   fi
   build_finished_at="$(date '+%Y-%m-%d %H:%M:%S %Z' 2>/dev/null || printf 'unknown')"
-  printf 'built_at=%s\nsource_count=%s\nclass_dir=%s\n' "$build_finished_at" "$source_count" "$CLASS_DIR" > "$BUILD_INFO"
+  source_fingerprint="$(cksum "$ROOT/src/nro/models/npc_list/BoMong.java" 2>/dev/null || printf 'unknown')"
+  printf 'built_at=%s\nsource_count=%s\nsource_fingerprint=%s\nsource_commit=%s\nclass_dir=%s\n' \
+    "$build_finished_at" "$source_count" "$source_fingerprint" \
+    "$(cat "$SOURCE_COMMIT_FILE" 2>/dev/null || printf 'unknown')" "$CLASS_DIR" > "$BUILD_INFO"
   touch "$STATE_DIR/build.ok"
   say "Build Java thành công lúc $build_finished_at; $source_count file nguồn đã biên dịch."
 }
@@ -731,15 +736,18 @@ start_server() {
   import_database
   build_server
   rm -f "$STATE_DIR/server.ready"
-  local jvm_opts cp jar
+  local jvm_opts cp jar build_time source_commit
   jvm_opts="${NRO_JVM_OPTS:-}"
+  build_time="$(sed -n 's/^built_at=//p' "$BUILD_INFO" | head -n 1)"
+  source_commit="$(cat "$SOURCE_COMMIT_FILE" 2>/dev/null || printf 'unknown')"
   if [ -z "$jvm_opts" ]; then
     jvm_opts='-server -Dfile.encoding=UTF-8 -Xms64m -Xmx1024m -XX:MaxMetaspaceSize=160m -Xss512k -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30 -XX:+UseStringDeduplication -XX:+ParallelRefProcEnabled'
   fi
   cp="$CLASS_DIR"
   for jar in "$ROOT"/lib/*.jar; do cp="$cp:$jar"; done
   say "Khởi động Ngọc Rồng trên cổng $GAME_PORT"
-  nohup java $jvm_opts -cp "$cp" nro.models.server.ServerManager > "$SERVER_LOG" 2>&1 &
+  nohup java $jvm_opts "-Dnro.build.time=$build_time" "-Dnro.source.commit=$source_commit" \
+    -cp "$cp" nro.models.server.ServerManager > "$SERVER_LOG" 2>&1 &
   printf '%s\n' "$!" > "$SERVER_PID"
   wait_server_ready
   start_panel
@@ -815,7 +823,13 @@ setup() {
 main() {
   local action="${1:-start}"
   case "$action" in
-    start|lan|restart|background|background-restart)
+    start|restart|background|background-restart)
+      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
+      if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
+        exec bash "$ROOT/nro.sh" "$@"
+      fi
+      ;;
+    lan)
       auto_update_source
       if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
         exec bash "$ROOT/nro.sh" "$@"

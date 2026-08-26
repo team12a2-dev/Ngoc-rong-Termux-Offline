@@ -134,6 +134,10 @@ public class ServerManager {
     public void run() {
         try {
             isRunning = true;
+            System.out.println("[NRO][BUILD] Java build time: "
+                    + System.getProperty("nro.build.time", "unknown")
+                    + "; source commit: "
+                    + System.getProperty("nro.source.commit", "unknown"));
             System.out.println("[NRO][STARTING] Đang mở game socket và khởi động service...");
             activeServerSocket();
 
