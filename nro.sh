@@ -356,57 +356,86 @@ ensure_panel_admin_password() {
   export PANEL_ADMIN_PASSWORD
 }
 
-panel_dependencies_ready() {
+panel_api_dependencies_ready() {
   [ -d "$PANEL_API_ROOT/node_modules/mysql2" ] \
     && [ -d "$PANEL_API_ROOT/node_modules/express" ] \
-    && [ -x "$PANEL_WEB_ROOT/node_modules/.bin/vite" ] \
-    && [ -x "$PANEL_WEB_ROOT/node_modules/esbuild/bin/esbuild" ] \
-    && [ -d "$PANEL_WEB_ROOT/node_modules/react" ]
+    && [ -d "$PANEL_API_ROOT/node_modules/ws" ]
+}
+panel_web_dependencies_ready() {
+  [ -x "$PANEL_WEB_ROOT/node_modules/.bin/vite" ] \
+    && [ -d "$PANEL_WEB_ROOT/node_modules/react" ] \
+    && [ -d "$PANEL_WEB_ROOT/node_modules/esbuild" ]
+}
+panel_esbuild_ready() {
+  [ -x "$PANEL_WEB_ROOT/node_modules/esbuild/bin/esbuild" ]
+}
+panel_dependencies_ready() {
+  panel_api_dependencies_ready && panel_web_dependencies_ready && panel_esbuild_ready
 }
 npm_install_noninteractive() {
   local dir="$1"
   local timeout_sec="${NRO_NPM_TIMEOUT_SEC:-900}"
-  local -a command=(env CI=1 NPM_CONFIG_AUDIT=false NPM_CONFIG_FUND=false NPM_CONFIG_FOREGROUND_SCRIPTS=false NPM_CONFIG_IGNORE_SCRIPTS=true npm install --no-audit --no-fund --foreground-scripts=false --ignore-scripts=true)
-  (cd "$dir" && npm config delete foreground-scripts >/dev/null 2>&1 || true
+  local -a command=(env CI=1 NPM_CONFIG_AUDIT=false NPM_CONFIG_FUND=false NPM_CONFIG_FOREGROUND_SCRIPTS=false NPM_CONFIG_IGNORE_SCRIPTS=true npm install --prefer-offline --no-audit --no-fund --foreground-scripts=false --ignore-scripts=true)
+  (
+    cd "$dir" || exit 1
     if command -v timeout >/dev/null 2>&1; then
       timeout --signal=TERM "$timeout_sec" "${command[@]}"
     else
       "${command[@]}"
     fi
-    if [ -x "$dir/node_modules/esbuild/bin/esbuild" ]; then
-      return 0
-    fi
-    local candidate
-    for candidate in \
-      android-arm64 android-arm android-x64 \
-      linux-arm64 linux-arm linux-x64; do
-      if [ -x "$dir/node_modules/@esbuild/$candidate/bin/esbuild" ]; then
-        mkdir -p "$dir/node_modules/esbuild/bin"
-        ln -sf "$dir/node_modules/@esbuild/$candidate/bin/esbuild" "$dir/node_modules/esbuild/bin/esbuild"
-        return 0
-      fi
-    done
-    if [ -f "$dir/node_modules/esbuild/install.js" ]; then
-      if command -v timeout >/dev/null 2>&1; then
-        (cd "$dir" && timeout --signal=TERM "${NRO_ESBUILD_TIMEOUT_SEC:-180}" node node_modules/esbuild/install.js)
-      else
-        (cd "$dir" && node node_modules/esbuild/install.js)
-      fi
-    fi
   )
+}
+prepare_panel_esbuild() {
+  if panel_esbuild_ready; then
+    return 0
+  fi
+  say "Chuẩn bị binary esbuild cho Termux (chỉ chạy khi binary còn thiếu)"
+  local candidate
+  for candidate in \
+    android-arm64 android-arm android-x64 \
+    linux-arm64 linux-arm linux-x64; do
+    if [ -x "$PANEL_WEB_ROOT/node_modules/@esbuild/$candidate/bin/esbuild" ]; then
+      mkdir -p "$PANEL_WEB_ROOT/node_modules/esbuild/bin"
+      ln -sf "$PANEL_WEB_ROOT/node_modules/@esbuild/$candidate/bin/esbuild" "$PANEL_WEB_ROOT/node_modules/esbuild/bin/esbuild"
+      panel_esbuild_ready
+      return $?
+    fi
+  done
+  if [ -f "$PANEL_WEB_ROOT/node_modules/esbuild/install.js" ]; then
+    if command -v timeout >/dev/null 2>&1; then
+      (cd "$PANEL_WEB_ROOT" && timeout --signal=TERM "${NRO_ESBUILD_TIMEOUT_SEC:-180}" node node_modules/esbuild/install.js)
+    else
+      (cd "$PANEL_WEB_ROOT" && node node_modules/esbuild/install.js)
+    fi
+  fi
+  panel_esbuild_ready || { warn "Không tạo được binary esbuild; không thể build panel web."; return 1; }
 }
 install_panel_dependencies() {
   if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
     warn "Node.js/npm chưa có; bỏ qua cài panel."
     return 0
   fi
-  if ! panel_dependencies_ready; then
-    say "Cài dependency panel API và web bằng npm (non-interactive, tối đa ${NRO_NPM_TIMEOUT_SEC:-900}s mỗi phần)"
-    npm_install_noninteractive "$PANEL_API_ROOT" || { warn "Không cài được dependency panel API hoặc npm bị timeout."; return 1; }
-    npm_install_noninteractive "$PANEL_WEB_ROOT" || { warn "Không cài được dependency panel web hoặc npm bị timeout."; return 1; }
+  local api_needed=0 web_needed=0
+  if ! panel_api_dependencies_ready; then api_needed=1; fi
+  if ! panel_web_dependencies_ready; then web_needed=1; fi
+  if [ "$api_needed" -eq 0 ] && [ "$web_needed" -eq 0 ]; then
+    say "Dependency panel đã sẵn sàng; bỏ qua npm install."
   else
-    say "Dependency panel đã sẵn sàng."
+    if [ "$api_needed" -eq 1 ]; then
+      say "Cài dependency panel API lần đầu hoặc phần còn thiếu (ưu tiên npm cache offline)"
+      npm_install_noninteractive "$PANEL_API_ROOT" || { warn "Không cài được dependency panel API hoặc npm bị timeout."; return 1; }
+    else
+      say "Dependency panel API đã sẵn sàng; bỏ qua npm install API."
+    fi
+    if [ "$web_needed" -eq 1 ]; then
+      say "Cài dependency panel web lần đầu hoặc phần còn thiếu (ưu tiên npm cache offline)"
+      npm_install_noninteractive "$PANEL_WEB_ROOT" || { warn "Không cài được dependency panel web hoặc npm bị timeout."; return 1; }
+    else
+      say "Dependency panel web đã sẵn sàng; bỏ qua npm install web."
+    fi
   fi
+  prepare_panel_esbuild || return 1
+  panel_dependencies_ready || { warn "Dependency panel chưa sẵn sàng sau khi chuẩn bị."; return 1; }
   touch "$STATE_DIR/panel-deps.ok"
 }
 
