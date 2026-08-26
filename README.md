@@ -32,15 +32,15 @@
 
 ## Cài đặt nhanh
 
-Cài **Termux chính thức**, sau đó dán **một dòng duy nhất** sau đây:
+Cài **Termux chính thức**, sau đó dán **một dòng duy nhất** sau đây. Không cần chạy `cd` trước vì thư mục cài đặt chưa tồn tại ở lần đầu:
 
 ```bash
-pkg update -y && pkg install -y curl tar && curl --http1.1 -fsSL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 120 -o "$HOME/install-termux.sh" "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" && bash "$HOME/install-termux.sh"
+pkg update -y && pkg install -y curl tar && mkdir -p "$HOME/.cache/ngocrong-termux" && INSTALLER="$(mktemp "$HOME/.cache/ngocrong-termux/installer.XXXXXX.sh")" && trap 'rm -f "$INSTALLER"' EXIT && curl --http1.1 -fsSL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 7200 -o "$INSTALLER" "https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh" && bash "$INSTALLER"
 ```
 
-Installer tải **archive source mới nhất từ nhánh GitHub `main`**; không dùng Git, không chia file, không tạo khóa SSH và không xuất hiện `Receiving objects`. Mỗi lần chạy installer/update đều tải lại source mới, giải nén vào đúng thư mục cài đặt rồi chạy setup; log tải nằm tại `~/.ngocrong-termux-install.log`.
+Installer tải **archive source mới nhất từ nhánh GitHub `main`**; không dùng Git, không chia file, không tạo khóa SSH và không xuất hiện `Receiving objects`. File tạm được ghi trong `$HOME/.cache/ngocrong-termux`, không phụ thuộc `/tmp`; installer kiểm tra quyền ghi và dung lượng trước khi tải. Mỗi lần chạy installer/update đều tải lại source mới, giải nén vào đúng thư mục cài đặt rồi chạy setup; log tải nằm tại `~/.ngocrong-termux-install.log`.
 
-Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`.
+Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`. Khi cập nhật, không cần `cd` vào thư mục trước; chỉ chạy lại lệnh bootstrap ở trên.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel. Mỗi lần `start`, `restart`, `lan` hoặc chạy nền đều build lại Java; panel cũng build lại React và restart Node để chức năng mới xuất hiện.
 
@@ -232,6 +232,8 @@ Android có thể trì hoãn job do tối ưu pin. Nên chép `.runtime/backups/
 | Lỗi | Cách xử lý |
 |---|---|
 | Không tìm thấy Java | Chạy `pkg search openjdk`, `termux-change-repo`, rồi `./nro.sh setup`. |
+| `cd ~/ngocrong-termux` báo không tồn tại | Đây là lần cài mới; không chạy `cd` trước, hãy dùng lệnh bootstrap trong mục Cài đặt nhanh. |
+| `curl: (23) client returned ERROR on write` | Không ghi installer vào `/tmp`; dùng lại lệnh bootstrap mới để ghi vào `$HOME/.cache/ngocrong-termux`, đồng thời kiểm tra dung lượng bộ nhớ. |
 | Server chưa `READY` | Xem `tail -n 160 .runtime/server.log` hoặc chạy `./nro.sh console`. |
 | Không kết nối LAN | Kiểm tra cùng Wi‑Fi, IP, AP isolation và `ss -ltnp \| grep -E '14445\|3001'`. |
 | Panel không chạy | Xem `.runtime/panel.log`, cài Node.js rồi chạy `./nro.sh panel`. |
