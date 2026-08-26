@@ -138,7 +138,7 @@ public class SkillService {
                 case 1 ->
                     useSkillAttack(player, plTarget, mobTarget);
                 case 3 ->
-                    useSkillAlone(player, mobTarget);
+                    useSkillAlone(player);
                 case 4 ->
                     useNewSkillNotFocus(player, plTarget, mobTarget, status, skillId, dx, dy, dir, x, y);
                 default -> {
@@ -166,7 +166,7 @@ public class SkillService {
             }
             switch (skillId) {
                 case Skill.SUPER_KAME, Skill.LIEN_HOAN_CHUONG, Skill.MA_PHONG_BA -> {
-                    player.newSkill.setSkillSpecial(dir, dx, dy, x, y, mobTarget);
+                    player.newSkill.setSkillSpecial(dir, dx, dy, x, y);
                     newSkillNotFocus(player, status);
                     AchievementService.gI().checkDoneTask(player, ConstAchievement.TUYET_KY_THANH_THAO);
                 }
@@ -213,25 +213,16 @@ public class SkillService {
                     }
 
                     if (!player.isBoss) {
-                        if (isKhiGasHuyDiet(player)) {
-                            Mob target = player.newSkill.mobTarget;
-                            if (target != null && target.zone == player.zone && !target.isDie()
-                                    && Util.getDistance(player, target) <= 500) {
-                                player.newSkill.mobsTaget.add(target);
-                                target.addTemporaryEnemies(player);
+                        for (Mob mobMap : player.zone.mobs) {
+                            if (mobMap == null) {
+                                continue;
                             }
-                        } else {
-                            for (Mob mobMap : player.zone.mobs) {
-                                if (mobMap == null) {
-                                    continue;
-                                }
-                                if (player.newSkill.dir == -1 && !mobMap.isDie() && Util.getDistance(player, mobMap) <= 500) {
-                                    player.newSkill.mobsTaget.add(mobMap);
-                                    mobMap.addTemporaryEnemies(player);
-                                } else if (player.newSkill.dir == 1 && !mobMap.isDie() && Util.getDistance(player, mobMap) <= 500) {
-                                    player.newSkill.mobsTaget.add(mobMap);
-                                    mobMap.addTemporaryEnemies(player);
-                                }
+                            if (player.newSkill.dir == -1 && !mobMap.isDie() && Util.getDistance(player, mobMap) <= 500) {
+                                player.newSkill.mobsTaget.add(mobMap);
+                                mobMap.addTemporaryEnemies(player);
+                            } else if (player.newSkill.dir == 1 && !mobMap.isDie() && Util.getDistance(player, mobMap) <= 500) {
+                                player.newSkill.mobsTaget.add(mobMap);
+                                mobMap.addTemporaryEnemies(player);
                             }
                         }
                     }
@@ -270,7 +261,7 @@ public class SkillService {
                     }
                     if (!player.isBoss) {
                         for (Mob mobMap : player.zone.mobs) {
-                            if (mobMap == null || (isKhiGasHuyDiet(player) && mobMap != player.newSkill.mobTarget)) {
+                            if (mobMap == null) {
                                 continue;
                             }
                             if (player.newSkill.dir == -1 && player.location.x > mobMap.location.x && !mobMap.isDie()
@@ -292,11 +283,6 @@ public class SkillService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private boolean isKhiGasHuyDiet(Player player) {
-        return player != null && player.zone != null && player.zone.map != null
-                && MapService.gI().isMapKhiGasHuyDiet(player.zone.map.mapId);
     }
 
     public void sendCurrLevelSpecial(Player player, Skill skill) {
@@ -500,7 +486,7 @@ public class SkillService {
                     mobs = new ArrayList<>();
                     if (plTarget != null) {
                         playerAttackPlayer(player, plTarget, false);
-                        if (!player.isBoss && !isKhiGasHuyDiet(player)) {
+                        if (!player.isBoss) {
                             for (Mob mob : player.zone.mobs) {
                                 if (!mob.isDie()
                                         && Util.getDistance(plTarget, mob) <= SkillUtil.getRangeQCKK(player.playerSkill.skillSelect.point)) {
@@ -512,12 +498,10 @@ public class SkillService {
                     if (mobTarget != null) {
                         if (!player.isBoss) {
                             playerAttackMob(player, mobTarget, false, true);
-                            if (!isKhiGasHuyDiet(player)) {
-                                for (Mob mob : player.zone.mobs) {
-                                    if (!mob.equals(mobTarget) && !mob.isDie()
-                                            && Util.getDistance(mob, mobTarget) <= SkillUtil.getRangeQCKK(player.playerSkill.skillSelect.point)) {
-                                        mobs.add(mob);
-                                    }
+                            for (Mob mob : player.zone.mobs) {
+                                if (!mob.equals(mobTarget) && !mob.isDie()
+                                        && Util.getDistance(mob, mobTarget) <= SkillUtil.getRangeQCKK(player.playerSkill.skillSelect.point)) {
+                                    mobs.add(mob);
                                 }
                             }
                         }
@@ -647,10 +631,6 @@ public class SkillService {
     }
 
     public void useSkillAlone(Player player) {
-        useSkillAlone(player, null);
-    }
-
-    public void useSkillAlone(Player player, Mob mobTarget) {
         List<Mob> mobs;
         List<Player> players;
         switch (player.playerSkill.skillSelect.template.id) {
@@ -803,15 +783,9 @@ public class SkillService {
                         dame += player.nPoint.hpMax * 50 / 100;
                     }
                     if (!player.isBoss) {
-                        if (isKhiGasHuyDiet(player)) {
-                            if (mobTarget != null && mobTarget.zone == player.zone && !mobTarget.isDie()) {
-                                mobTarget.injured(player, dame, true);
-                            }
-                        } else {
-                            for (Mob mob : player.zone.mobs) {
-                                if (Util.getDistance(player, mob) <= rangeBom) { //khoảng cách có tác dụng bom
-                                    mob.injured(player, dame, true);
-                                }
+                        for (Mob mob : player.zone.mobs) {
+                            if (Util.getDistance(player, mob) <= rangeBom) { //khoảng cách có tác dụng bom
+                                mob.injured(player, dame, true);
                             }
                         }
                     }
@@ -1040,9 +1014,7 @@ public class SkillService {
     }
 
     private void playerAttackMob(Player plAtt, Mob mob, boolean miss, boolean dieWhenHpFull) {
-        if (mob == null || mob.isDie() || plAtt == null || plAtt.zone == null
-                || mob.zone != plAtt.zone || !plAtt.zone.mobs.contains(mob)
-                || plAtt.nPoint == null || plAtt.playerSkill == null) {
+        if (mob == null || mob.isDie() || plAtt == null || plAtt.nPoint == null || plAtt.playerSkill == null) {
             return;
         }
 

@@ -43,8 +43,6 @@ public class NewSkill {
     public List<Player> playersTaget;
 
     public List<Mob> mobsTaget;
-    /** Mob mục tiêu đã được server xác thực cho kỹ năng đặc biệt. */
-    public Mob mobTarget;
 
     public boolean isStartSkillSpecial;
 
@@ -94,10 +92,6 @@ public class NewSkill {
     }
 
     public void setSkillSpecial(byte dir, short _xPlayer, short _yPlayer, short _xObjTaget, short _yObjTaget) {
-        setSkillSpecial(dir, _xPlayer, _yPlayer, _xObjTaget, _yObjTaget, null);
-    }
-
-    public void setSkillSpecial(byte dir, short _xPlayer, short _yPlayer, short _xObjTaget, short _yObjTaget, Mob mobTarget) {
         if (player.itemTime != null && player.itemTime.isUseNCD) {
             typeItem = 2;
         } else {
@@ -108,7 +102,6 @@ public class NewSkill {
             skillSelect.currLevel++;
             SkillService.gI().sendCurrLevelSpecial(player, skillSelect);
         }
-        this.mobTarget = mobTarget;
         this.dir = dir;
         this._xPlayer = _xPlayer;
         this._yPlayer = _yPlayer;
@@ -143,7 +136,6 @@ public class NewSkill {
         this.stepSkillSpecial = 0;
         this.playersTaget.clear();
         this.mobsTaget.clear();
-        this.mobTarget = null;
         this.close();
     }
 
