@@ -501,7 +501,7 @@ public class MapService {
     public static final String MSG_KARIN_NO_ZONE_CHANGE = "Không thể đổi khu vực này";
 
     public static final String MSG_DONG_NAM_KARIN_POWER_LIMIT =
-            "Sức mạnh phải dưới 1,5 tỉ mới vào được";
+            "Sức mạnh phải dưới 15.000.000 mới vào được";
 
     public boolean canEnterDongNamKarin(long power) {
         return power < ConstMap.DONG_NAM_KARIN_POWER_MAX;

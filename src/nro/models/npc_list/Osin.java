@@ -134,12 +134,10 @@ public class Osin extends Npc {
     if (player.idMark.isBaseMenu()) {
         if (select == 0) {
 
-            long powerRequired = 40_000_000_000L; // 40 tỷ sức mạnh
-
-            if (player.nPoint.power < powerRequired) {
+            if (!MapService.gI().canEnterDongNamKarin(player.nPoint.power)) {
                 Service.gI().sendThongBao(
                         player,
-                        "Yêu cầu trên 40 tỷ sức mạnh mới có thể vào khu vực này!"
+                        MapService.MSG_DONG_NAM_KARIN_POWER_LIMIT
                 );
                 return;
             }

@@ -125,8 +125,8 @@ public class ConstMap {
     public static final int RUNG_BANG = 109;
     public static final int HANG_BANG = 110;
     public static final int DONG_NAM_KARIN = 111;
-    /** Sức mạnh tối đa để vào Đông Nam Karin: dưới 1,5 tỉ (1tr5) */
-    public static final long DONG_NAM_KARIN_POWER_MAX = 1_500_000_000L;
+    /** Sức mạnh tối đa để vào Đông Nam Karin: dưới 15.000.000. */
+    public static final long DONG_NAM_KARIN_POWER_MAX = 15_000_000L;
     public static final int VO_DAI_HAT_MIT = 112;
     public static final int DAI_HOI_VO_THUAT_113 = 113;
     public static final int CONG_PHI_THUYEN = 114;

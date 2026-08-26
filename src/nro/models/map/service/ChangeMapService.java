@@ -909,6 +909,11 @@ public class ChangeMapService {
         if (zoneJoin.map.mapId == -1 || zoneJoin.map.mapId == -1) {
             return null;
         }
+        if (zoneJoin.map.mapId == ConstMap.DONG_NAM_KARIN
+                && !MapService.gI().canEnterDongNamKarin(player.nPoint.power)) {
+            Service.gI().sendThongBao(player, MapService.MSG_DONG_NAM_KARIN_POWER_LIMIT);
+            return null;
+        }
         if (player.isPet || player.isBoss || player.getSession() != null && player.isAdmin()) {
             return zoneJoin;
         }
@@ -1039,12 +1044,6 @@ public class ChangeMapService {
                     break;
                 case 103: //võ đài xên
                     if (TaskService.gI().getIdTask(player) < ConstTask.TASK_27_0) {
-                        return null;
-                    }
-                    break;
-                case ConstMap.DONG_NAM_KARIN:
-                    if (!MapService.gI().canEnterDongNamKarin(player.nPoint.power)) {
-                        Service.gI().sendThongBao(player, MapService.MSG_DONG_NAM_KARIN_POWER_LIMIT);
                         return null;
                     }
                     break;
