@@ -244,9 +244,62 @@ async function main() {
     ]
   );
 
-  console.log('✓ panel_servers synced from Config.properties');
+    console.log('✓ panel_servers synced from Config.properties');
+
+  // Make source-defined legacy events and the original Lucky Round pool visible
+  // in the SQL-backed panel without overwriting any administrator changes.
+  const legacyEvents = [
+    ['lunar-new-year-legacy', 'Tết Nguyên Đán', 'lunar_new_year'],
+    ['international-womens-day-legacy', 'Quốc tế Phụ nữ', 'international_womens_day'],
+    ['christmas-legacy', 'Giáng Sinh', 'christmas'],
+    ['halloween-legacy', 'Halloween', 'halloween'],
+    ['hung-vuong-legacy', 'Hùng Vương', 'hung_vuong'],
+    ['trung-thu-legacy', 'Trung Thu', 'trung_thu'],
+    ['top-up-legacy', 'Nạp thẻ', 'top_up'],
+  ];
+  for (const [eventKey, name, eventType] of legacyEvents) {
+    await conn.execute(
+      `INSERT IGNORE INTO panel_events
+       (server_id, event_key, name, description, event_type, status, enabled, timezone)
+       VALUES (1, ?, ?, ?, ?, 'draft', 0, 'Asia/Ho_Chi_Minh')`,
+      [eventKey, name, `Sự kiện có sẵn trong mã nguồn: ${name}`, eventType]
+    );
+  }
+  console.log(`✓ Legacy event catalog synced: ${legacyEvents.length} entries`);
+
+  const [spinConfigRows] = await conn.execute(
+    `SELECT id FROM panel_god_spin_configs WHERE server_id = 1 AND spin_key = 'thuong-de-default' LIMIT 1`
+  );
+  let spinConfigId = spinConfigRows[0]?.id;
+  if (!spinConfigId) {
+    const [insertedSpin] = await conn.execute(
+      `INSERT INTO panel_god_spin_configs
+       (server_id, spin_key, name, description, status, enabled, currency_mode, cost_gem, cost_gold, cost_ticket, ticket_temp_id, daily_limit)
+       VALUES (1, 'thuong-de-default', 'Vòng quay Thượng Đế mặc định', 'Pool phần thưởng mặc định trong mã nguồn LuckyRound.', 'draft', 0, 'both', 50, 2500000, 1, 821, 100)`,
+    );
+    spinConfigId = insertedSpin.insertId;
+  }
+  const spinItems = [
+    [190, 80, 100000, 100000, []],
+    [1507, 15, 1, 1, []],
+    [532, 3, 1, 1, [{ id: 50, min: 1, max: 5 }, { id: 77, min: 1, max: 5 }, { id: 103, min: 1, max: 5 }, { id: 30, min: 1, max: 1 }, { id: 93, min: 1, max: 2 }]],
+    [1680, 1, 1, 1, [{ id: 50, min: 1, max: 12 }, { id: 77, min: 1, max: 12 }, { id: 103, min: 1, max: 12 }, { id: 30, min: 1, max: 1 }, { id: 93, min: 1, max: 2 }]],
+    [1631, 1, 1, 1, [{ id: 50, min: 1, max: 17 }, { id: 77, min: 1, max: 17 }, { id: 103, min: 1, max: 17 }, { id: 30, min: 1, max: 1 }, { id: 93, min: 1, max: 2 }]],
+  ];
+  for (const [tempId, weight, quantityMin, quantityMax, options] of spinItems) {
+    await conn.execute(
+      `INSERT IGNORE INTO panel_god_spin_items
+       (config_id, temp_id, weight, quantity_min, quantity_max, options_json, enabled, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, 1, ?)`,
+      [spinConfigId, tempId, weight, quantityMin, quantityMax, JSON.stringify(options), spinItems.findIndex((item) => item[0] === tempId)]
+    );
+  }
+  console.log(`✓ Lucky Round source pool synced: ${spinItems.length} items`);
+
   console.log('✓ Admin user: admin (password is stored by the Termux launcher)');
   console.log(`✓ Agent URL: ${agentConfig.url}`);
+
+
 
   // Write .env suggestion
   const envPath = path.resolve(__dirname, '../.env');
