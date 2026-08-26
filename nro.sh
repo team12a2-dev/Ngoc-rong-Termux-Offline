@@ -357,23 +357,41 @@ ensure_panel_admin_password() {
 }
 
 panel_dependencies_ready() {
-  [ -d "$PANEL_API_ROOT/node_modules" ] && [ -d "$PANEL_WEB_ROOT/node_modules" ]
+  [ -d "$PANEL_API_ROOT/node_modules/mysql2" ] \
+    && [ -d "$PANEL_API_ROOT/node_modules/express" ] \
+    && [ -x "$PANEL_WEB_ROOT/node_modules/.bin/vite" ] \
+    && [ -d "$PANEL_WEB_ROOT/node_modules/react" ]
 }
-
+npm_install_noninteractive() {
+  local dir="$1"
+  local timeout_sec="${NRO_NPM_TIMEOUT_SEC:-900}"
+  local -a command=(env CI=1 NPM_CONFIG_AUDIT=false NPM_CONFIG_FUND=false NPM_CONFIG_FOREGROUND_SCRIPTS=false NPM_CONFIG_IGNORE_SCRIPTS=true npm install --no-audit --no-fund --foreground-scripts=false --ignore-scripts=true)
+  (cd "$dir" && npm config delete foreground-scripts >/dev/null 2>&1 || true
+    if command -v timeout >/dev/null 2>&1; then
+      timeout --signal=TERM "$timeout_sec" "${command[@]}"
+    else
+      "${command[@]}"
+    fi
+    if [ -f "$dir/node_modules/esbuild/install.js" ]; then
+      (cd "$dir" && node node_modules/esbuild/install.js)
+    fi
+  )
+}
 install_panel_dependencies() {
   if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
     warn "Node.js/npm chưa có; bỏ qua cài panel."
     return 0
   fi
   if ! panel_dependencies_ready; then
-    say "Cài dependency panel API và web bằng npm"
-    (cd "$PANEL_API_ROOT" && npm install --no-audit --no-fund) || { warn "Không cài được dependency panel API."; return 0; }
-    (cd "$PANEL_WEB_ROOT" && npm install --no-audit --no-fund) || { warn "Không cài được dependency panel web."; return 0; }
+    say "Cài dependency panel API và web bằng npm (non-interactive, tối đa ${NRO_NPM_TIMEOUT_SEC:-900}s mỗi phần)"
+    npm_install_noninteractive "$PANEL_API_ROOT" || { warn "Không cài được dependency panel API hoặc npm bị timeout."; return 1; }
+    npm_install_noninteractive "$PANEL_WEB_ROOT" || { warn "Không cài được dependency panel web hoặc npm bị timeout."; return 1; }
   else
     say "Dependency panel đã sẵn sàng."
   fi
   touch "$STATE_DIR/panel-deps.ok"
 }
+
 
 setup_panel() {
   if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
