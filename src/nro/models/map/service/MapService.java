@@ -91,6 +91,14 @@ public class MapService {
     }
 
     public Zone getMapCanJoin(Player player, int mapId, int zoneId) {
+        if (mapId == ConstMap.DONG_NAM_KARIN
+                && (player == null || player.nPoint == null
+                || !canEnterDongNamKarin(player.nPoint.power))) {
+            if (player != null) {
+                Service.gI().sendThongBao(player, MSG_DONG_NAM_KARIN_POWER_LIMIT);
+            }
+            return null;
+        }
         if (isMapOffline(mapId)) {
             return getMapById(mapId).zones.get(0);
         }

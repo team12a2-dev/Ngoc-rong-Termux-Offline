@@ -794,6 +794,14 @@ public class ChangeMapService {
     }
 
     public void goToMap(Player player, Zone zoneJoin) {
+        if (player == null || zoneJoin == null) {
+            return;
+        }
+        if (player.isPl() && zoneJoin.map.mapId == ConstMap.DONG_NAM_KARIN
+                && !MapService.gI().canEnterDongNamKarin(player.nPoint.power)) {
+            Service.gI().sendThongBao(player, MapService.MSG_DONG_NAM_KARIN_POWER_LIMIT);
+            return;
+        }
         Zone oldZone = player.zone;
         if (oldZone != null) {
             this.exitMap(player);

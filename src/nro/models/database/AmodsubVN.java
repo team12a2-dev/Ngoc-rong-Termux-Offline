@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import nro.models.radar.OptionCard;
 import nro.models.radar.Card;
 import nro.models.data.LocalManager;
+import nro.models.consts.ConstMap;
 import nro.models.consts.ConstPlayer;
 import nro.models.data.DataGame;
 import nro.models.clan.Clan;
@@ -297,6 +298,13 @@ public class AmodsubVN {
                     mapId = 45;
                     player.location.x = 359;
                     player.location.y = 408;
+                }
+                if (mapId == ConstMap.DONG_NAM_KARIN
+                        && !MapService.gI().canEnterDongNamKarin(player.nPoint.power)) {
+                    mapId = ConstMap.RUNG_KARIN;
+                    player.location.x = 300;
+                    player.location.y = 336;
+                    Logger.log("[NRO] Đưa người chơi không đủ điều kiện khỏi Đông Nam Karin khi đăng nhập: " + player.name);
                 }
 
                 player.zone = MapService.gI().getMapCanJoin(player, mapId, -1);
