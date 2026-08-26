@@ -614,6 +614,7 @@ public class Mob {
             return list;
         }
         int mapid = player.zone.map.mapId;
+        boolean isKhiGasHuyDiet = MapService.gI().isMapKhiGasHuyDiet(mapid);
         MapDropConfigService.DropRule mapDropRule = MapDropConfigService.gI().getRule(mapid);
         boolean hasCustomMapDrop = mapDropRule != null && mapDropRule.enabled;
         if (hasCustomMapDrop) {
@@ -812,7 +813,9 @@ if (op110 > 0 && ratePhaLe > 0 && Util.isTrue(1, ratePhaLe)) {
 
         int maxHp = this.point.getHpFull();
         int goldDropRate = MapService.gI().getGoldDropRate(mapid);
-        if (!hasCustomMapDrop && goldDropRate > 0 && canDropTrainGold() && maxHp >= 200
+        if (isKhiGasHuyDiet) {
+            addKhiGasGoldDrops(list, player, maxHp, op100, intrinsicGold, x, yEnd);
+        } else if (!hasCustomMapDrop && goldDropRate > 0 && canDropTrainGold() && maxHp >= 200
                 && Util.isTrue(1, goldDropRate)) {
             int[] goldRange = calcGoldDropByHp(maxHp);
             int quantity = Util.nextInt(goldRange[0], goldRange[1]);
@@ -830,9 +833,11 @@ if (op110 > 0 && ratePhaLe > 0 && Util.isTrue(1, ratePhaLe)) {
     }
 
         if (hasCustomMapDrop) {
-            ItemMap customGold = MapDropConfigService.gI().rollGold(mapDropRule, zone, player, x, yEnd);
-            if (customGold != null) {
-                list.add(customGold);
+            if (!isKhiGasHuyDiet) {
+                ItemMap customGold = MapDropConfigService.gI().rollGold(mapDropRule, zone, player, x, yEnd);
+                if (customGold != null) {
+                    list.add(customGold);
+                }
             }
             ItemMap customActivation = MapDropConfigService.gI().rollActivation(mapDropRule, zone, player, x, yEnd);
             if (customActivation != null) {
@@ -1682,6 +1687,49 @@ return list;
             Service.gI().sendMessAllPlayerInMap(this.zone, msg);
             msg.cleanup();
         } catch (IOException e) {
+        }
+    }
+
+    /**
+     * Rơi vàng riêng cho Khí Gas Hủy Diệt.
+     * Mỗi cục là một ItemMap độc lập để client hiển thị thành hàng dài,
+     * không gộp toàn bộ vàng của quái vào một item duy nhất.
+     */
+    private void addKhiGasGoldDrops(List<ItemMap> drops, Player player, int maxHp,
+                                    int goldBonusPercent, int intrinsicGoldPercent,
+                                    int x, int yEnd) {
+        if (player == null || maxHp < 200 || this.tempId <= 0 || isBigBoss()) {
+            return;
+        }
+        int dungeonLevel = 1;
+        if (player.clan != null && player.clan.KhiGasHuyDiet != null) {
+            dungeonLevel = Math.max(1, player.clan.KhiGasHuyDiet.level);
+        }
+
+        int[] goldRange = calcGoldDropByHp(maxHp);
+        int totalGold = Util.nextInt(goldRange[0], goldRange[1]);
+        if (goldBonusPercent > 0) {
+            totalGold += totalGold * goldBonusPercent / 100;
+        }
+        if (intrinsicGoldPercent > 0) {
+            totalGold += totalGold * intrinsicGoldPercent / 100;
+        }
+        if (totalGold <= 0) {
+            return;
+        }
+
+        // Cấp độ càng cao, vàng được chia thành nhiều cục hơn; tổng vàng vẫn
+        // bám theo HP quái đã scale theo level của instance Khí Gas.
+        int piles = Math.min(15, 3 + (dungeonLevel - 1) / 10);
+        piles = Math.min(piles, totalGold);
+        int remainingGold = totalGold;
+        for (int i = 0; i < piles; i++) {
+            int pilesLeft = piles - i;
+            int pileGold = (remainingGold + pilesLeft - 1) / pilesLeft;
+            remainingGold -= pileGold;
+            int pileX = x + (i - piles / 2) * 18;
+            int pileY = zone.map.yPhysicInTop(pileX, yEnd - 24);
+            drops.add(new ItemMap(zone, getGoldItemId(pileGold), pileGold, pileX, pileY, player.id));
         }
     }
 
