@@ -469,6 +469,7 @@ install_panel_dependencies() {
   prepare_panel_esbuild || return 1
   panel_dependencies_ready || { warn "Dependency panel chưa sẵn sàng sau khi chuẩn bị."; return 1; }
   touch "$STATE_DIR/panel-deps.ok"
+  say "Dependency panel đã kiểm tra xong; tiếp tục đồng bộ database và build panel."
 }
 
 
@@ -484,7 +485,7 @@ setup_panel() {
   fi
   ensure_panel_admin_password
   export PORT="$PANEL_PORT"
-  export JWT_SECRET="${JWT_SECRET:-$(od -An -N24 -tx1 | tr -d ' \n')}"
+  export JWT_SECRET="${JWT_SECRET:-$(od -An -N24 -tx1 /dev/urandom | tr -d ' \n')}"
   say "Đồng bộ schema và tài khoản panel với database $DB_NAME"
   if ! (cd "$PANEL_API_ROOT" && npm run db:sync); then
     warn "Panel DB sync thất bại; xem $PANEL_LOG hoặc chạy lại setup."
