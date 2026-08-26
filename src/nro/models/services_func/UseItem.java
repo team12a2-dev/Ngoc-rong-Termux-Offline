@@ -1998,38 +1998,48 @@ case 1045:
         }
     }
 
+    private boolean isFusionBlockedInHome(Player pl) {
+        if (pl != null && pl.zone != null && pl.zone.map != null
+                && MapService.gI().isHome(pl.zone.map.mapId)) {
+            Service.gI().sendThongBao(pl, "Không thể hợp thể trong nhà Gohan, Moori hoặc Broly.");
+            return true;
+        }
+        return false;
+    }
+
     private void usePorata2(Player pl) {
         if (pl.pet == null || pl.fusion.typeFusion == 4) {
             Service.gI().sendThongBao(pl, "Không thể thực hiện");
-        } else {
-            if (pl.fusion.typeFusion == ConstPlayer.NON_FUSION) {
+        } else if (pl.fusion.typeFusion == ConstPlayer.NON_FUSION) {
+            if (!isFusionBlockedInHome(pl)) {
                 pl.pet.fusion2(true);
-            } else {
-                pl.pet.unFusion();
             }
+        } else {
+            pl.pet.unFusion();
         }
     }
+
     private void usePorata3(Player pl) {
         if (pl.pet == null || pl.fusion.typeFusion == 4) {
             Service.gI().sendThongBao(pl, "Không thể thực hiện");
-        } else {
-            if (pl.fusion.typeFusion == ConstPlayer.NON_FUSION) {
+        } else if (pl.fusion.typeFusion == ConstPlayer.NON_FUSION) {
+            if (!isFusionBlockedInHome(pl)) {
                 pl.pet.fusion3(true);
-            } else {
-                pl.pet.unFusion();
             }
+        } else {
+            pl.pet.unFusion();
         }
     }
 
     private void usePorata(Player pl) {
         if (pl.pet == null || pl.fusion.typeFusion == 4) {
             Service.gI().sendThongBao(pl, "Không thể thực hiện");
-        } else {
-            if (pl.fusion.typeFusion == ConstPlayer.NON_FUSION) {
+        } else if (pl.fusion.typeFusion == ConstPlayer.NON_FUSION) {
+            if (!isFusionBlockedInHome(pl)) {
                 pl.pet.fusion(true);
-            } else {
-                pl.pet.unFusion();
             }
+        } else {
+            pl.pet.unFusion();
         }
     }
 
