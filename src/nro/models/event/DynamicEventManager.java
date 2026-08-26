@@ -7,8 +7,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +26,7 @@ public final class DynamicEventManager {
         return t;
     });
     private volatile Map<String, EventRuntime> activeEvents = Collections.emptyMap();
+    private volatile Set<String> configuredEventKeys = Collections.emptySet();
     private boolean initialized;
 
     public static DynamicEventManager gI() {
@@ -53,9 +56,18 @@ public final class DynamicEventManager {
                         rs.getTimestamp("starts_at"), rs.getTimestamp("ends_at"), rs.getString("config_json"));
                 next.put(event.eventKey(), event);
             }
+            Set<String> configured = new LinkedHashSet<>();
+            try (PreparedStatement known = con.prepareStatement("SELECT event_key FROM panel_events");
+                    ResultSet knownRs = known.executeQuery()) {
+                while (knownRs.next()) {
+                    String key = knownRs.getString("event_key");
+                    if (key != null && !key.isBlank()) configured.add(key);
+                }
+            }
             activeEvents = Collections.unmodifiableMap(next);
-            Logger.success("Dynamic events synced from SQL: " + next.size() + "\n");
-            return Map.of("ok", true, "active", next.size());
+            configuredEventKeys = Collections.unmodifiableSet(configured);
+            Logger.success("Dynamic events synced from SQL: " + next.size() + " active / " + configured.size() + " configured\n");
+            return Map.of("ok", true, "active", next.size(), "configured", configured.size());
         } catch (Exception e) {
             Logger.warning("Dynamic events chưa được đồng bộ: " + e.getMessage() + "\n");
             return Map.of("ok", false, "active", activeEvents.size(), "error", String.valueOf(e.getMessage()));
@@ -68,6 +80,22 @@ public final class DynamicEventManager {
 
     public EventRuntime find(String eventKey) {
         return activeEvents.get(eventKey);
+    }
+
+    /**
+     * Returns false only when one of the aliases is configured in SQL and is not
+     * currently active. If no alias exists, preserve legacy behavior for old
+     * databases that predate the SQL event catalog.
+     */
+    public boolean isConfiguredAndActive(String... aliases) {
+        if (aliases == null || aliases.length == 0) return true;
+        boolean configured = false;
+        for (String alias : aliases) {
+            if (alias == null || alias.isBlank() || !configuredEventKeys.contains(alias)) continue;
+            configured = true;
+            if (activeEvents.containsKey(alias)) return true;
+        }
+        return !configured;
     }
 
     public record EventRuntime(long id, String eventKey, String name, String eventType, String status,

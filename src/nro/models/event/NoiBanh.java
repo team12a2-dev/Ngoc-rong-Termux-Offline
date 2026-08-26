@@ -16,16 +16,26 @@ public class NoiBanh extends Npc {
         super(mapId, status, cx, cy, tempId, avartar);
     }
 
-    @Override
+        @Override
     public void openBaseMenu(Player player) {
+        if (!EventManager.gI().isHungVuongRuntimeEnabled()) {
+            Service.gI().sendThongBao(player, "Sự kiện Phở Anh Hai hiện đã tắt.");
+            return;
+        }
         createOtherMenu(player, 0, "Xin chào " + player.name + "\nTôi là nồi nấu bánh.\nBạn cần gì?",
+
                 "Tự nấu\nbánh",
                 "Từ chối");
     }
 
-    @Override
+        @Override
     public void confirmMenu(Player pl, int select) {
+        if (!EventManager.gI().isHungVuongRuntimeEnabled()) {
+            Service.gI().sendThongBao(pl, "Sự kiện Phở Anh Hai hiện đã tắt.");
+            return;
+        }
         if (canOpenNpc(pl)) {
+
             switch (pl.idMark.getIndexMenu()) {
                 case 0 -> {
                     switch (select) {

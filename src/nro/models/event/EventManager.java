@@ -8,6 +8,12 @@ import nro.models.event_list.Halloween;
 import nro.models.event_list.LunarNewYear;
 import nro.models.event_list.Default;
 import nro.models.event_list.InternationalWomensDay;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import nro.models.boss.Boss;
+import nro.models.boss.BossID;
+import nro.models.boss.Boss_Manager.BossManager;
 
 public class EventManager {
 
@@ -49,7 +55,7 @@ public class EventManager {
         if (CHRISTMAS) {
           //  new Christmas().init();
         }
-        if (HUNG_VUONG) {
+        if (HUNG_VUONG && isHungVuongRuntimeEnabled()) {
             new HungVuong().init();
         }
         if (TRUNG_THU) {
@@ -61,6 +67,27 @@ public class EventManager {
     }
 
     public java.util.Map<String, Object> reloadDynamicEvents() {
-        return DynamicEventManager.gI().reload();
+        Map<String, Object> result = new LinkedHashMap<>(DynamicEventManager.gI().reload());
+        if (!isHungVuongRuntimeEnabled()) {
+            int removed = 0;
+            for (Boss boss : new ArrayList<>(BossManager.gI().getBosses())) {
+                if (boss != null && boss.id == BossID.THUY_TINH) {
+                    boss.dispose();
+                    BossManager.gI().removeBoss(boss);
+                    removed++;
+                }
+            }
+            result.put("hungVuongBossRemoved", removed);
+        }
+        return result;
+    }
+
+    /**
+     * Legacy Hùng Vương/Nồi bánh NPCs were historically controlled by a static
+     * flag. Once the SQL catalog contains either modern alias, SQL becomes the
+     * source of truth for whether those interactions remain available.
+     */
+    public boolean isHungVuongRuntimeEnabled() {
+        return DynamicEventManager.gI().isConfiguredAndActive("pho-anh-hai", "hung-vuong-legacy");
     }
 }

@@ -46,9 +46,14 @@ public class VuaHung extends Npc {
         super(mapId, status, cx, cy, tempId, avatar);
     }
 
-    @Override
+        @Override
     public void openBaseMenu(Player player) {
+        if (!EventManager.gI().isHungVuongRuntimeEnabled()) {
+            Service.gI().sendThongBao(player, "Sự kiện Phở Anh Hai hiện đã tắt.");
+            return;
+        }
         long now = System.currentTimeMillis();
+
         long elapsed = now - START_TIME;
         long phaseStartTime = START_TIME + (elapsed / (60 * 60 * 1000)) * (60 * 60 * 1000);
         long timeInCurrentPhase = now - phaseStartTime;
@@ -114,9 +119,14 @@ public class VuaHung extends Npc {
         }
     }
 
-    @Override
+        @Override
     public void confirmMenu(Player pl, int select) {
+        if (!EventManager.gI().isHungVuongRuntimeEnabled()) {
+            Service.gI().sendThongBao(pl, "Sự kiện Phở Anh Hai hiện đã tắt.");
+            return;
+        }
         // Xử lý menu con di chuyển (map 184)
+
         if (pl.idMark.getIndexMenu() == 200) {
             if (select == 0) {
                 changePlayerMap(pl, 183);  // Về map 183
