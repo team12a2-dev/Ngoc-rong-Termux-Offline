@@ -194,6 +194,69 @@ router.get('/', requirePermission('godspin.view'), async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error: error.message }); }
 });
 
+router.get('/history', requirePermission('godspin.view'), async (req, res) => {
+  try {
+    const sid = await serverId(req.query.serverId);
+    const configId = integer(req.query.configId, 0, 0, 2147483647);
+    const playerId = integer(req.query.playerId, 0, 0, 2147483647);
+    const playerQuery = String(req.query.player || '').trim();
+    const from = dateValue(req.query.from);
+    const to = dateValue(req.query.to);
+    const page = integer(req.query.page, 1, 1, 1000000);
+    const pageSize = integer(req.query.pageSize, 25, 1, 100);
+    const where = ['l.config_id IN (SELECT id FROM panel_god_spin_configs WHERE server_id = ?)'];
+    const params = [sid];
+    if (configId > 0) { where.push('l.config_id = ?'); params.push(configId); }
+    if (playerId > 0) { where.push('l.player_id = ?'); params.push(playerId); }
+    if (playerQuery) { where.push('(p.name LIKE ? OR CAST(l.player_id AS CHAR) LIKE ?)'); params.push(`%${playerQuery}%`, `%${playerQuery}%`); }
+    if (from) { where.push('l.created_at >= ?'); params.push(from); }
+    if (to) { where.push('l.created_at <= ?'); params.push(to); }
+    const whereSql = where.join(' AND ');
+    const [summaryRows, distributionRows, countRows] = await Promise.all([
+      query(`SELECT COALESCE(SUM(l.spin_count), 0) AS totalSpins,
+                    COUNT(DISTINCT l.player_id) AS playerCount,
+                    COUNT(DISTINCT l.config_id) AS configCount
+             FROM panel_god_spin_logs l LEFT JOIN player p ON p.id = l.player_id
+             WHERE ${whereSql} AND l.item_id IS NOT NULL`, params),
+      query(`SELECT l.temp_id AS tempId, COALESCE(t.NAME, CONCAT('Item #', l.temp_id)) AS itemName,
+                    COALESCE(SUM(l.spin_count), 0) AS wins
+             FROM panel_god_spin_logs l
+             LEFT JOIN player p ON p.id = l.player_id
+             LEFT JOIN item_template t ON t.id = l.temp_id
+             WHERE ${whereSql} AND l.item_id IS NOT NULL
+             GROUP BY l.temp_id, t.NAME
+             ORDER BY wins DESC, l.temp_id ASC`, params),
+      query(`SELECT COUNT(*) AS total
+             FROM panel_god_spin_logs l LEFT JOIN player p ON p.id = l.player_id
+             WHERE ${whereSql} AND l.item_id IS NOT NULL`, params),
+    ]);
+    const totalSpins = Number(summaryRows[0]?.totalSpins || 0);
+    const total = Number(countRows[0]?.total || 0);
+    const offset = (page - 1) * pageSize;
+    const history = await query(
+      `SELECT l.id, l.config_id AS configId, c.name AS configName, l.player_id AS playerId,
+              COALESCE(p.name, CONCAT('Player #', l.player_id)) AS playerName,
+              l.temp_id AS tempId, COALESCE(t.NAME, CONCAT('Item #', l.temp_id)) AS itemName,
+              l.spin_count AS spinCount, l.payload, l.created_at AS createdAt
+       FROM panel_god_spin_logs l
+       LEFT JOIN panel_god_spin_configs c ON c.id = l.config_id
+       LEFT JOIN player p ON p.id = l.player_id
+       LEFT JOIN item_template t ON t.id = l.temp_id
+       WHERE ${whereSql} AND l.item_id IS NOT NULL
+       ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?`, [...params, pageSize, offset]
+    );
+    res.json({
+      ok: true,
+      data: {
+        summary: { totalSpins, playerCount: Number(summaryRows[0]?.playerCount || 0), configCount: Number(summaryRows[0]?.configCount || 0) },
+        distribution: distributionRows.map((row) => ({ tempId: Number(row.tempId), itemName: row.itemName, wins: Number(row.wins), actualPercent: totalSpins ? Number((Number(row.wins) / totalSpins * 100).toFixed(4)) : 0 })),
+        history: history.map((row) => ({ ...row, configId: row.configId == null ? null : Number(row.configId), playerId: row.playerId == null ? null : Number(row.playerId), tempId: row.tempId == null ? null : Number(row.tempId), spinCount: Number(row.spinCount || 0), payload: asJson(row.payload, {}) })),
+        pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
+      },
+    });
+  } catch (error) { res.status(500).json({ ok: false, error: error.message }); }
+});
+
 router.get('/:id', requirePermission('godspin.view'), async (req, res) => {
   try {
     const data = await loadConfig(integer(req.params.id, 0, 1), await serverId(req.query.serverId));
