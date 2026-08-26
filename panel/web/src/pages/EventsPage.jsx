@@ -83,7 +83,18 @@ export default function EventsPage() {
   }
   async function changeStatus(status) {
     if (!selectedId) return;
-    try { await api(`/events/${selectedId}/status`, { method: 'POST', body: JSON.stringify({ serverId: getServerId(), status }) }); fb.success(`Đã chuyển trạng thái: ${status}`); await load(); await openEvent(selectedId); } catch (e) { fb.error(e.message); }
+    const turningOff = status !== 'active' && status !== 'scheduled';
+    if (turningOff && !window.confirm('Xác nhận tắt sự kiện này? Sự kiện sẽ được lưu enabled=0 trong SQL và dừng trong runtime.')) return;
+    try {
+      const result = await api(`/events/${selectedId}/status`, {
+        method: 'POST',
+        body: JSON.stringify({ serverId: getServerId(), status }),
+      });
+      const reloadFailed = result.data?.liveSync?.reloaded === false;
+      fb.success(`${turningOff ? 'Đã tắt' : 'Đã bật'} sự kiện trong SQL${reloadFailed ? '; server sẽ nhận ở lần reload kế tiếp' : ' và đã đồng bộ server'}.`);
+      await load();
+      await openEvent(selectedId);
+    } catch (e) { fb.error(e.message); }
   }
   async function remove() {
     if (!selectedId || !window.confirm('Xóa sự kiện và toàn bộ cấu hình con trong SQL?')) return;
@@ -102,7 +113,7 @@ export default function EventsPage() {
           {events.map((event) => <button type="button" key={event.id} className={`event-list-item ${selectedId === event.id ? 'active' : ''}`} onClick={() => openEvent(event.id)}><span><strong>{event.name}</strong><small>{event.event_key} · {event.event_type}</small></span><span className={`badge ${event.status === 'active' ? 'ok' : event.status === 'draft' ? 'warn' : ''}`}>{event.status}</span></button>)}
         </aside>
         <form className="card section event-editor" onSubmit={save}>
-          <div className="section-title"><div><h3>{selectedId ? `Sửa sự kiện #${selectedId}` : 'Tạo sự kiện mới'}</h3><p className="card-hint">Cấu hình được lưu bền vững trong SQL, không mất khi restart server.</p></div>{selectedId && <div className="button-row"><button type="button" className="btn sm" onClick={() => changeStatus('active')}>Bật</button><button type="button" className="btn sm" onClick={() => changeStatus('paused')}>Tạm dừng</button><button type="button" className="btn sm danger" onClick={remove}>Xóa</button></div>}</div>
+          <div className="section-title"><div><h3>{selectedId ? `Sửa sự kiện #${selectedId}` : 'Tạo sự kiện mới'}</h3><p className="card-hint">Cấu hình được lưu bền vững trong SQL, không mất khi restart server.</p></div>{selectedId && <div className="button-row"><button type="button" className="btn sm" onClick={() => changeStatus('active')}>Bật</button><button type="button" className="btn sm danger" onClick={() => changeStatus('paused')}>Tắt sự kiện</button><button type="button" className="btn sm danger" onClick={remove}>Xóa</button></div>}</div>
           <div className="editor-tabs"><button type="button" className={`tab ${tab === 'general' ? 'active' : ''}`} onClick={() => setTab('general')}>Thông tin & điều kiện</button><button type="button" className={`tab ${tab === 'objectives' ? 'active' : ''}`} onClick={() => setTab('objectives')}>Mục tiêu</button><button type="button" className={`tab ${tab === 'rewards' ? 'active' : ''}`} onClick={() => setTab('rewards')}>Phần thưởng</button><button type="button" className={`tab ${tab === 'shops' ? 'active' : ''}`} onClick={() => setTab('shops')}>Shop & nâng cao</button></div>
           {tab === 'general' && <>
             <div className="form-grid"><label className="field">Mã sự kiện<input value={form.eventKey} onChange={(e) => patch('eventKey', e.target.value)} placeholder="trung-thu-2026" required /></label><label className="field">Tên hiển thị<input value={form.name} onChange={(e) => patch('name', e.target.value)} placeholder="Trung Thu 2026" required /></label><label className="field">Loại sự kiện<select value={form.eventType} onChange={(e) => patch('eventType', e.target.value)}>{EVENT_TYPES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label className="field">Trạng thái<select value={form.status} onChange={(e) => patch('status', e.target.value)}><option value="draft">Nháp</option><option value="scheduled">Đã lên lịch</option><option value="active">Đang chạy</option><option value="paused">Tạm dừng</option><option value="ended">Đã kết thúc</option></select></label></div>

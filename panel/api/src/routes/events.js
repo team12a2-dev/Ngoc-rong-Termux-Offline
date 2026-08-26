@@ -219,11 +219,15 @@ router.post('/:id/status', requirePermission('event.manage'), async (req, res) =
     const serverId = await resolveServerId(req.body?.serverId || req.query.serverId);
     const status = ['draft', 'scheduled', 'active', 'paused', 'ended'].includes(req.body?.status) ? req.body.status : null;
     if (!status) return res.status(400).json({ ok: false, error: 'Trạng thái không hợp lệ.' });
-    const result = await exec('UPDATE panel_events SET status = ?, enabled = ? WHERE id = ? AND server_id = ?', [status, status === 'active' || status === 'scheduled' ? 1 : 0, intValue(req.params.id, 0, 1), serverId]);
-    if (!result.affectedRows) return res.status(404).json({ ok: false, error: 'Không tìm thấy sự kiện.' });
+    const id = intValue(req.params.id, 0, 1);
+    const enabled = status === 'active' || status === 'scheduled' ? 1 : 0;
+    const exists = await query('SELECT id FROM panel_events WHERE id = ? AND server_id = ? LIMIT 1', [id, serverId]);
+    if (!exists.length) return res.status(404).json({ ok: false, error: 'Không tìm thấy sự kiện.' });
+    await exec('UPDATE panel_events SET status = ?, enabled = ? WHERE id = ? AND server_id = ?', [status, enabled, id, serverId]);
     const liveSync = await reloadEvents(serverId);
-    await auditLog({ userId: req.user?.id, serverId, action: 'event.status', target: `event:${req.params.id}`, requestBody: req.body, response: liveSync, ip: req.ip });
-    res.json({ ok: true, data: { status, liveSync } });
+    const data = { id, status, enabled, liveSync };
+    await auditLog({ userId: req.user?.id, serverId, action: 'event.status', target: `event:${id}`, requestBody: req.body, response: data, ip: req.ip });
+    res.json({ ok: true, data });
   } catch (error) { res.status(400).json({ ok: false, error: error.message }); }
 });
 
