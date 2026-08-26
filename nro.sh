@@ -372,43 +372,75 @@ panel_esbuild_ready() {
 panel_dependencies_ready() {
   panel_api_dependencies_ready && panel_web_dependencies_ready && panel_esbuild_ready
 }
+run_with_timeout() {
+  local seconds="$1"
+  shift
+  if command -v timeout >/dev/null 2>&1; then
+    timeout --signal=TERM --kill-after=10s "$seconds" "$@"
+    return $?
+  fi
+  "$@" &
+  local pid=$! elapsed=0
+  while kill -0 "$pid" 2>/dev/null; do
+    if [ "$elapsed" -ge "$seconds" ]; then
+      kill -TERM "$pid" 2>/dev/null || true
+      sleep 2
+      kill -KILL "$pid" 2>/dev/null || true
+      wait "$pid" 2>/dev/null || true
+      return 124
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+  wait "$pid"
+}
 npm_install_noninteractive() {
   local dir="$1"
   local timeout_sec="${NRO_NPM_TIMEOUT_SEC:-900}"
   local -a command=(env CI=1 NPM_CONFIG_AUDIT=false NPM_CONFIG_FUND=false NPM_CONFIG_FOREGROUND_SCRIPTS=false NPM_CONFIG_IGNORE_SCRIPTS=true npm install --prefer-offline --no-audit --no-fund --foreground-scripts=false --ignore-scripts=true)
   (
     cd "$dir" || exit 1
-    if command -v timeout >/dev/null 2>&1; then
-      timeout --signal=TERM "$timeout_sec" "${command[@]}"
-    else
-      "${command[@]}"
-    fi
+    run_with_timeout "$timeout_sec" "${command[@]}"
   )
 }
 prepare_panel_esbuild() {
   if panel_esbuild_ready; then
+    say "Binary esbuild đã sẵn sàng; bỏ qua bước chuẩn bị esbuild."
     return 0
   fi
-  say "Chuẩn bị binary esbuild cho Termux (chỉ chạy khi binary còn thiếu)"
-  local candidate
-  for candidate in \
-    android-arm64 android-arm android-x64 \
-    linux-arm64 linux-arm linux-x64; do
-    if [ -x "$PANEL_WEB_ROOT/node_modules/@esbuild/$candidate/bin/esbuild" ]; then
-      mkdir -p "$PANEL_WEB_ROOT/node_modules/esbuild/bin"
-      ln -sf "$PANEL_WEB_ROOT/node_modules/@esbuild/$candidate/bin/esbuild" "$PANEL_WEB_ROOT/node_modules/esbuild/bin/esbuild"
-      panel_esbuild_ready
-      return $?
-    fi
-  done
-  if [ -f "$PANEL_WEB_ROOT/node_modules/esbuild/install.js" ]; then
-    if command -v timeout >/dev/null 2>&1; then
-      (cd "$PANEL_WEB_ROOT" && timeout --signal=TERM "${NRO_ESBUILD_TIMEOUT_SEC:-180}" node node_modules/esbuild/install.js)
-    else
-      (cd "$PANEL_WEB_ROOT" && node node_modules/esbuild/install.js)
-    fi
+  say "npm đã cài xong panel web; bắt đầu chuẩn bị binary esbuild (không chạy install.js lồng)"
+  local platform arch package_name version candidate
+  platform="$(node -p 'process.platform')"
+  arch="$(node -p 'process.arch')"
+  case "$platform:$arch" in
+    android:arm64) package_name='@esbuild/android-arm64' ;;
+    android:arm) package_name='@esbuild/android-arm' ;;
+    android:x64) package_name='@esbuild/android-x64' ;;
+    linux:arm64) package_name='@esbuild/linux-arm64' ;;
+    linux:arm) package_name='@esbuild/linux-arm' ;;
+    linux:x64) package_name='@esbuild/linux-x64' ;;
+    *) warn "Nền tảng esbuild chưa được hỗ trợ tự động: $platform/$arch"; return 1 ;;
+  esac
+  candidate="${package_name#@esbuild/}"
+  if [ -x "$PANEL_WEB_ROOT/node_modules/@esbuild/$candidate/bin/esbuild" ]; then
+    mkdir -p "$PANEL_WEB_ROOT/node_modules/esbuild/bin"
+    ln -sf "$PANEL_WEB_ROOT/node_modules/@esbuild/$candidate/bin/esbuild" "$PANEL_WEB_ROOT/node_modules/esbuild/bin/esbuild"
+    say "Đã tìm thấy binary esbuild $candidate trong node_modules."
+    panel_esbuild_ready && return 0
+  fi
+  version="$(node -p "require('$PANEL_WEB_ROOT/node_modules/esbuild/package.json').version")"
+  say "Thiếu $package_name; tải đúng binary esbuild $version (tối đa ${NRO_ESBUILD_TIMEOUT_SEC:-180}s)"
+  local -a command=(env CI=1 NPM_CONFIG_AUDIT=false NPM_CONFIG_FUND=false NPM_CONFIG_FOREGROUND_SCRIPTS=false NPM_CONFIG_IGNORE_SCRIPTS=true npm install --no-save --package-lock=false --prefer-offline --no-audit --no-fund --progress=false --ignore-scripts=true "$package_name@$version")
+  if ! (cd "$PANEL_WEB_ROOT" && run_with_timeout "${NRO_ESBUILD_TIMEOUT_SEC:-180}" "${command[@]}"); then
+    warn "Tải binary esbuild thất bại hoặc quá thời gian; log npm ở trên."
+    return 1
+  fi
+  if [ -x "$PANEL_WEB_ROOT/node_modules/$package_name/bin/esbuild" ]; then
+    mkdir -p "$PANEL_WEB_ROOT/node_modules/esbuild/bin"
+    ln -sf "$PANEL_WEB_ROOT/node_modules/$package_name/bin/esbuild" "$PANEL_WEB_ROOT/node_modules/esbuild/bin/esbuild"
   fi
   panel_esbuild_ready || { warn "Không tạo được binary esbuild; không thể build panel web."; return 1; }
+  say "Binary esbuild đã sẵn sàng."
 }
 install_panel_dependencies() {
   if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
