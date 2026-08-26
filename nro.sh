@@ -15,6 +15,7 @@ CONFIG="$ROOT/Config.properties"
 SQL_FILE="$ROOT/sql/ngocrong.sql"
 CLASS_DIR="$STATE_DIR/classes"
 SOURCE_LIST="$STATE_DIR/sources.txt"
+BUILD_INFO="$STATE_DIR/build-info"
 PANEL_ROOT="$ROOT/panel"
 PANEL_API_ROOT="$PANEL_ROOT/api"
 PANEL_WEB_ROOT="$PANEL_ROOT/web"
@@ -96,6 +97,11 @@ print_endpoints() {
       printf '%s\n' "  Panel URL LAN      : http://$address:$PANEL_PORT"
       printf '%s\n' "  Game endpoint LAN  : $address:$GAME_PORT"
     done
+  fi
+  if [ -f "$BUILD_INFO" ]; then
+    printf '%s\n' "  Java build time     : $(sed -n 's/^built_at=//p' "$BUILD_INFO" | head -n 1)"
+  else
+    printf '%s\n' "  Java build time     : chưa có bản build"
   fi
   printf '%s\n' "  Game log            : $SERVER_LOG"
   printf '%s\n' "  Panel log           : $PANEL_LOG"
@@ -566,21 +572,24 @@ stop_panel() {
 
 build_server() {
   ensure_layout
-  if [ "${NRO_BUILD_DONE:-0}" = "1" ]; then
-    return 0
-  fi
-  say "Biên dịch toàn bộ mã Java trước khi khởi động server"
+  local build_started_at build_finished_at cp jar source_count
+  build_started_at="$(date '+%Y-%m-%d %H:%M:%S %Z' 2>/dev/null || printf 'unknown')"
+  say "Biên dịch toàn bộ mã Java trước khi khởi động server (bắt đầu: $build_started_at)"
   find "$ROOT/src" -type f -name '*.java' -print > "$SOURCE_LIST"
   [ -s "$SOURCE_LIST" ] || die "Không có mã nguồn Java trong src/."
-  local cp jar
+  source_count="$(wc -l < "$SOURCE_LIST" | tr -d ' ')"
   cp="$CLASS_DIR"
   for jar in "$ROOT"/lib/*.jar; do cp="$cp:$jar"; done
   rm -rf "$CLASS_DIR"
   mkdir -p "$CLASS_DIR"
-  javac -encoding UTF-8 --release 17 -proc:none -cp "$cp" -d "$CLASS_DIR" @"$SOURCE_LIST"
+  if ! javac -encoding UTF-8 --release 17 -proc:none -cp "$cp" -d "$CLASS_DIR" @"$SOURCE_LIST"; then
+    rm -f "$BUILD_INFO" "$STATE_DIR/build.ok"
+    die "Build Java thất bại; server không được khởi động."
+  fi
+  build_finished_at="$(date '+%Y-%m-%d %H:%M:%S %Z' 2>/dev/null || printf 'unknown')"
+  printf 'built_at=%s\nsource_count=%s\nclass_dir=%s\n' "$build_finished_at" "$source_count" "$CLASS_DIR" > "$BUILD_INFO"
   touch "$STATE_DIR/build.ok"
-  export NRO_BUILD_DONE=1
-  say "Build Java thành công; server chỉ được khởi động bằng class vừa biên dịch."
+  say "Build Java thành công lúc $build_finished_at; $source_count file nguồn đã biên dịch."
 }
 
 server_alive() {
@@ -620,15 +629,9 @@ start_server() {
   if [ "${NRO_LAN_MODE:-0}" = "1" ]; then
     configure_lan
   fi
-  termux_keep_awake
-  start_database
-  ensure_database_user
-  automatic_backup_database
-  import_database
-  build_server
   if server_alive; then
     if server_ready; then
-      say "Server game đang READY với PID $(cat "$SERVER_PID")."
+      say "Server game đang READY với PID $(cat "$SERVER_PID"); giữ nguyên tiến trình hiện tại. Dùng restart để build và chạy mã mới."
       start_panel
       return 0
     fi
@@ -637,6 +640,12 @@ start_server() {
     start_panel
     return 0
   fi
+  termux_keep_awake
+  start_database
+  ensure_database_user
+  automatic_backup_database
+  import_database
+  build_server
   rm -f "$STATE_DIR/server.ready"
   local jvm_opts cp jar
   jvm_opts="${NRO_JVM_OPTS:-}"
@@ -695,6 +704,10 @@ status() {
 }
 setup() {
   ensure_layout
+  if server_alive; then
+    say "Dừng server game hiện tại trước setup để không giữ mã Java cũ."
+    stop_server
+  fi
   install_dependencies
   init_database
   start_database
