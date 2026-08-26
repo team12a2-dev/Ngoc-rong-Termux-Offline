@@ -2001,7 +2001,7 @@ case 1045:
     private boolean isFusionBlockedInHome(Player pl) {
         if (pl != null && pl.zone != null && pl.zone.map != null
                 && MapService.gI().isHome(pl.zone.map.mapId)) {
-            Service.gI().sendThongBao(pl, "Không thể hợp thể trong nhà Gohan, Moori hoặc Broly.");
+            Service.gI().sendThongBao(pl, "Không thể hợp thể trong nhà");
             return true;
         }
         return false;
