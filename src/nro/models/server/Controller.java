@@ -918,7 +918,8 @@ public class Controller implements IMessageHandler {
     }
 
     public void login2(MySession session, Message msg) {
-        Service.gI().sendThongBaoOK(session, "Truy Cập: " + ServerManager.DOMAIN + "\n Đề Đăng Ký & Tải Game");
+        Service.gI().sendThongBaoOK(session,
+                "Đăng ký tài khoản tại:\nhttp://" + ServerManager.IP + ":3001/register\n\nSau khi đăng ký, hãy quay lại game để đăng nhập.");
     }
 
     public void sendInfo(MySession session) {
