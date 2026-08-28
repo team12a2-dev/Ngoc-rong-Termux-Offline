@@ -2,12 +2,14 @@ package nro.models.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import nro.models.consts.ConstItem;
 import nro.models.item.Item;
 import nro.models.item.Item.ItemOption;
 import nro.models.map.ItemMap;
 import nro.models.map.Zone;
 import nro.models.mob.Mob;
 import nro.models.player.Player;
+import nro.models.map.service.MapService;
 import nro.models.utils.Util;
 
 /**
@@ -35,7 +37,13 @@ public final class StarEquipmentDropService {
             return null;
         }
 
-        int tier = getTier(mob.zone.map.mapId, mob.point.getHpFull());
+        int mapId = mob.zone.map.mapId;
+        // 3 map đầu mỗi hành tinh chỉ cho roll đồ sao khi tài khoản còn Hạt mầm.
+        if (MapService.gI().isMapUpSKH(mapId) && !hasSeed(player)) {
+            return null;
+        }
+
+        int tier = getTier(mapId, mob.point.getHpFull());
         if (!Util.isTrue(DROP_CHANCE_BP[tier - 1], DENOMINATOR)) {
             return null;
         }
@@ -46,6 +54,11 @@ public final class StarEquipmentDropService {
             item.options.add(new ItemOption(107, star));
         }
         return item;
+    }
+
+    private boolean hasSeed(Player player) {
+        Item seed = InventoryService.gI().findItemBag(player, ConstItem.HAT_MAM);
+        return seed != null && seed.quantity > 0;
     }
 
     /**
