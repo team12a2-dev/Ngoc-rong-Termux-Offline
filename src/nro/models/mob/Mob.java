@@ -28,6 +28,7 @@ import nro.models.services_dungeon.TrainingService;
 import nro.models.services.ChatGlobalService;
 import nro.models.services.ItemService;
 import nro.models.services.MapDropConfigService;
+import nro.models.services.StarEquipmentDropService;
 import nro.models.map.service.MapService;
 import nro.models.skill.Skill;
 import nro.models.task.BadgesTaskService;
@@ -619,6 +620,13 @@ public class Mob {
         boolean hasCustomMapDrop = mapDropRule != null && mapDropRule.enabled;
         if (hasCustomMapDrop) {
             list.addAll(MapDropConfigService.gI().rollItems(mapDropRule, zone, player, this.tempId, x, yEnd));
+        }
+
+        // Drop trang bị có lỗ sao theo tier map/HP quái.
+        // Luôn roll độc lập để áp dụng cho cả map chưa có cấu hình panel.
+        ItemMap starEquipment = StarEquipmentDropService.gI().roll(player, this, x, yEnd);
+        if (starEquipment != null) {
+            list.add(starEquipment);
         }
         //========================Capsul Kì Bí========================
         if (player.itemTime.isUseMayDo
