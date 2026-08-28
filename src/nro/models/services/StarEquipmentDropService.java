@@ -56,7 +56,7 @@ public final class StarEquipmentDropService {
         return item;
     }
 
-    private boolean hasSeed(Player player) {
+    public boolean hasSeed(Player player) {
         Item seed = InventoryService.gI().findItemBag(player, ConstItem.HAT_MAM);
         return seed != null && seed.quantity > 0;
     }
