@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import nro.models.consts.ConstTaskBadges;
 import nro.models.services.AchievementService;
+import nro.models.services.ActivationEquipmentDropService;
 import nro.models.services_dungeon.TrainingService;
 import nro.models.services.ChatGlobalService;
 import nro.models.services.ItemService;
@@ -628,6 +629,12 @@ public class Mob {
         if (starEquipment != null) {
             list.add(starEquipment);
         }
+
+        // Sét kích hoạt hiếm theo tier map, chỉ roll khi tài khoản còn Hạt mầm.
+        ItemMap activationEquipment = ActivationEquipmentDropService.gI().roll(player, this, x, yEnd);
+        if (activationEquipment != null) {
+            list.add(activationEquipment);
+        }
         //========================Capsul Kì Bí========================
         if (player.itemTime.isUseMayDo
                 && (Util.isTrue(1, 50))
@@ -1090,7 +1097,7 @@ if (MapService.gI().isMapUpPorata(mapid)) {
         // }
 
 
-      if (!hasCustomMapDrop && (MapService.gI().isMapUpSKH(mapid) || MapService.gI().isMapRiengTu(mapid))) {
+      if (!hasCustomMapDrop && MapService.gI().isMapRiengTu(mapid)) {
 
     boolean isMapRiengTu = MapService.gI().isMapRiengTu(mapid);
 
@@ -1165,7 +1172,7 @@ if (isMapRiengTu) {
         );
     }
 
-    if (isMapRiengTu && Util.isTrue(1, 500)) {
+    if (isMapRiengTu && StarEquipmentDropService.gI().hasSeed(player) && Util.isTrue(1, 500)) {
 
         short itTemp = 1634;
         ItemMap it = new ItemMap(zone, itTemp, 1, x, yEnd, player.id);
