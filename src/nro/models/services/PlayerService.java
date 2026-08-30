@@ -279,12 +279,12 @@ public class PlayerService {
                         return;
                     }
                 } else {
-                    if (player.inventory.gold >= COST_GEM_HOI_SINH) {
-                        player.inventory.gold -= COST_GEM_HOI_SINH;
+                    if (player.inventory.gem >= COST_GEM_HOI_SINH) {
+                        player.inventory.subGem(COST_GEM_HOI_SINH);
                         canHs = true;
                     } else {
-                        Service.gI().sendThongBao(player, "Không đủ vàng để thực hiện, còn thiếu "
-                                + Util.numberToMoney(COST_GEM_HOI_SINH - player.inventory.gem) + " vàng");
+                        Service.gI().sendThongBao(player, "Không đủ ngọc để hồi sinh, còn thiếu "
+                                + Util.numberToMoney(COST_GEM_HOI_SINH - player.inventory.gem) + " ngọc");
                         return;
                     }
                 }
