@@ -104,7 +104,7 @@ public class AmodsubVN {
                             player.thachdauwhis = rs.getInt("thachdauwhis");
                             player.point_maydam = rs.getInt("point_maydam");
                             player.total_damage_maydam = rs.getLong("total_damage_maydam");
-                            player.isNewMember = !Util.isTimeDifferenceGreaterThanNDays(createTime, 35);
+                            player.isNewMember = !Util.isTimeDifferenceGreaterThanNDays(createTime, 30);
                             LocalManager.executeUpdate("update account set last_time_login = '" + new Timestamp(System.currentTimeMillis()) + "', ip_address = '" + session.ipAddress + "' where id = " + session.userId);
                         }
                     }
@@ -130,7 +130,7 @@ public class AmodsubVN {
                             player.thachdauwhis = rs.getInt("thachdauwhis");
                             player.point_maydam = rs.getInt("point_maydam");
                             player.total_damage_maydam = rs.getLong("total_damage_maydam");
-                            player.isNewMember = !Util.isTimeDifferenceGreaterThanNDays(createTime, 35);
+                            player.isNewMember = !Util.isTimeDifferenceGreaterThanNDays(createTime, 30);
                             LocalManager.executeUpdate("update account set last_time_login = '" + new Timestamp(System.currentTimeMillis()) + "', ip_address = '" + session.ipAddress + "' where id = " + session.userId);
                         }
                     }
