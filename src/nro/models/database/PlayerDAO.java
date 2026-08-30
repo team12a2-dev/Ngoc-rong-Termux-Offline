@@ -1,6 +1,7 @@
 package nro.models.database;
 
 import nro.models.data.LocalManager;
+import nro.models.consts.ConstItem;
 import nro.models.item.Item;
 import nro.models.item.ItemTime;
 import nro.models.player.Friend;
@@ -134,7 +135,14 @@ public class PlayerDAO {
                     item.add(10); //số lượng
                     options.add(opt.toJSONString());
                     opt.clear();
-        //              } else if (i == 1) { // item 579 x10
+                } else if (i == 1) { // hạt mầm tân thủ, hiệu lực 30 ngày
+                    opt.add(93); // hạn sử dụng theo ngày
+                    opt.add(30);
+                    item.add(ConstItem.HAT_MAM);
+                    item.add(1); // số lượng
+                    options.add(opt.toJSONString());
+                    opt.clear();
+        //              } else if (i == 2) { // item 579 x10
         // item.add(579);
         // item.add(5);
 
