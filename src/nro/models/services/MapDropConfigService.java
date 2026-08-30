@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import nro.models.consts.ConstItem;
 import nro.models.data.LocalManager;
 import nro.models.item.Item;
 import nro.models.map.ItemMap;
@@ -161,8 +160,7 @@ public final class MapDropConfigService {
 
     public ItemMap rollActivation(DropRule rule, Zone zone, Player player, int x, int yEnd) {
         if (rule == null || !rule.enabled || !rule.activationEnabled
-                || InventoryService.gI().findItemBag(player, ConstItem.HAT_MAM) == null
-                || InventoryService.gI().findItemBag(player, ConstItem.HAT_MAM).quantity <= 0
+                || player == null || !player.isNewMember
                 || !roll(rule.activationChancePercent)) return null;
         short tempId = (short) ItemService.gI().randTempItemKichHoat(player.gender);
         ItemMap item = new ItemMap(zone, tempId, 1, x, yEnd, player.id);

@@ -2,7 +2,6 @@ package nro.models.services;
 
 import java.util.ArrayList;
 import java.util.List;
-import nro.models.consts.ConstItem;
 import nro.models.item.Item;
 import nro.models.item.Item.ItemOption;
 import nro.models.map.ItemMap;
@@ -57,8 +56,7 @@ public final class StarEquipmentDropService {
     }
 
     public boolean hasSeed(Player player) {
-        Item seed = InventoryService.gI().findItemBag(player, ConstItem.HAT_MAM);
-        return seed != null && seed.quantity > 0;
+        return player != null && player.isNewMember;
     }
 
     /**
