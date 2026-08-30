@@ -1172,7 +1172,7 @@ if (isMapRiengTu) {
         );
     }
 
-    if (isMapRiengTu && StarEquipmentDropService.gI().hasSeed(player) && Util.isTrue(1, 10)) {
+    if (isMapRiengTu && StarEquipmentDropService.gI().hasSeed(player) && Util.isTrue(1, 500)) {
 
         short itTemp = 1634;
         ItemMap it = new ItemMap(zone, itTemp, 1, x, yEnd, player.id);

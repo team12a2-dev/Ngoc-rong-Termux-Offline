@@ -20,8 +20,8 @@ public final class StarEquipmentDropService {
     private static final StarEquipmentDropService INSTANCE = new StarEquipmentDropService();
     private static final int DENOMINATOR = 1_000_000;
 
-    // Tỷ lệ dành cho tân thủ: 10% ở mọi tier để dễ kiểm tra quyền lợi hạt mầm.
-    private static final int[] DROP_CHANCE_BP = {100_000, 100_000, 100_000, 100_000, 100_000, 100_000};
+    // Tỷ lệ tổng theo tier: 0,20%; 0,12%; 0,07%; 0,035%; 0,015%; 0,005%.
+    private static final int[] DROP_CHANCE_BP = {2_000, 1_200, 700, 350, 150, 50};
 
     private StarEquipmentDropService() {
     }

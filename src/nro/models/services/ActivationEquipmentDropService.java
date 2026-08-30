@@ -17,8 +17,8 @@ public final class ActivationEquipmentDropService {
     private static final ActivationEquipmentDropService INSTANCE = new ActivationEquipmentDropService();
     private static final int DENOMINATOR = 1_000_000;
 
-    // Tỷ lệ dành cho tân thủ: 5% ở mọi tier để dễ kiểm tra quyền lợi hạt mầm.
-    private static final int[] DROP_CHANCE_BP = {50_000, 50_000, 50_000, 50_000, 50_000, 50_000};
+    // Hiếm hơn drop đồ có lỗ sao tương ứng: 0,02% -> 0,0005%.
+    private static final int[] DROP_CHANCE_BP = {200, 120, 70, 35, 15, 5};
 
     private ActivationEquipmentDropService() {
     }

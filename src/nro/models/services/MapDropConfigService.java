@@ -160,9 +160,8 @@ public final class MapDropConfigService {
 
     public ItemMap rollActivation(DropRule rule, Zone zone, Player player, int x, int yEnd) {
         if (rule == null || !rule.enabled || !rule.activationEnabled
-                || player == null || !player.isNewMember) return null;
-        double activationChance = Math.max(rule.activationChancePercent, 10.0);
-        if (!roll(activationChance)) return null;
+                || player == null || !player.isNewMember
+                || !roll(rule.activationChancePercent)) return null;
         short tempId = (short) ItemService.gI().randTempItemKichHoat(player.gender);
         ItemMap item = new ItemMap(zone, tempId, 1, x, yEnd, player.id);
         if (item.itemTemplate == null) return null;
