@@ -9,7 +9,32 @@ export default function AccountsPage() {
   const [rows, setRows] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({ username: '', password: '', confirmPassword: '' });
   const fb = useFeedback();
+
+  async function createAccount(e) {
+    e.preventDefault();
+    fb.clear();
+    if (createForm.password !== createForm.confirmPassword) {
+      fb.error('Mật khẩu xác nhận không trùng khớp.');
+      return;
+    }
+    setCreating(true);
+    try {
+      const res = await api('/accounts', {
+        method: 'POST',
+        body: JSON.stringify({ username: createForm.username, password: createForm.password }),
+      });
+      setCreateForm({ username: '', password: '', confirmPassword: '' });
+      await search();
+      fb.success(`Đã tạo tài khoản ${res.data.username} (ID ${res.data.id}).`);
+    } catch (err) {
+      fb.error(err.message);
+    } finally {
+      setCreating(false);
+    }
+  }
 
   async function search(e) {
     e?.preventDefault();
@@ -43,6 +68,17 @@ export default function AccountsPage() {
       </div>
 
       <PageFeedback msg={fb.msg} type={fb.type} onDismiss={fb.clear} />
+
+      <form className="card" onSubmit={createAccount} style={{ marginBottom: '1rem' }}>
+        <h3>Tạo tài khoản game</h3>
+        <p className="muted">Tạo account mới trực tiếp trong panel. Tài khoản mặc định không có quyền admin và chưa bị khóa.</p>
+        <div className="row filters">
+          <input placeholder="Username (5–20 ký tự)" value={createForm.username} onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })} maxLength={20} required />
+          <input type="password" placeholder="Mật khẩu (tối thiểu 6 ký tự)" value={createForm.password} onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })} minLength={6} required />
+          <input type="password" placeholder="Xác nhận mật khẩu" value={createForm.confirmPassword} onChange={(e) => setCreateForm({ ...createForm, confirmPassword: e.target.value })} minLength={6} required />
+          <button className="btn primary" type="submit" disabled={creating}>{creating ? 'Đang tạo...' : 'Tạo tài khoản'}</button>
+        </div>
+      </form>
 
       <form className="row filters" onSubmit={search}>
         <input placeholder="Tìm username..." value={q} onChange={(e) => setQ(e.target.value)} />

@@ -1,11 +1,39 @@
 import { Router } from 'express';
 import { authMiddleware, requirePermission } from '../middleware/auth.js';
-import { query } from '../db.js';
+import { query, exec } from '../db.js';
 import { auditLog } from '../services/audit.js';
 import { agentPost } from '../services/agent.js';
 
 const router = Router();
 router.use(authMiddleware);
+
+router.post('/', requirePermission('account.edit'), async (req, res) => {
+  const username = String(req.body?.username || '').trim().toLowerCase();
+  const password = String(req.body?.password || '');
+
+  if (!/^[a-z0-9]{5,20}$/.test(username)) {
+    return res.status(400).json({ ok: false, error: 'Username phải dài 5–20 ký tự và chỉ gồm a-z, 0-9.' });
+  }
+  if (password.length < 6 || password.length > 100) {
+    return res.status(400).json({ ok: false, error: 'Mật khẩu phải dài từ 6 đến 100 ký tự.' });
+  }
+
+  try {
+    const exists = await query('SELECT id FROM account WHERE username = ? LIMIT 1', [username]);
+    if (exists.length) return res.status(409).json({ ok: false, error: 'Username đã tồn tại.' });
+
+    const result = await exec(
+      `INSERT INTO account (username, password, email, ban, is_admin, active, server_login, is_gift_box, gift_time, token, xsrf_token, newpass)
+       VALUES (?, ?, '', 0, 0, 1, -1, 0, '0', '', '', '')`,
+      [username, password]
+    );
+    await auditLog({ userId: req.user.id, action: 'account.create', target: String(result.insertId), requestBody: { username }, ip: req.ip });
+    return res.status(201).json({ ok: true, data: { id: result.insertId, username } });
+  } catch (e) {
+    if (e?.code === 'ER_DUP_ENTRY') return res.status(409).json({ ok: false, error: 'Username đã tồn tại.' });
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
 
 router.get('/search', requirePermission('account.view'), async (req, res) => {
   const q = `%${req.query.q || ''}%`;
