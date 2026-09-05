@@ -176,7 +176,7 @@ POST   /data-assets/images-by-name     { name, n_frame, imageBase64 }
 DELETE /data-assets/images-by-name/:name
 ```
 
-Ảnh PNG khi ghi sẽ được sao chép vào đủ `data/icon/x4`, `x3`, `x2`, `x1` hoặc `data/img_by_name/x4`, `x3`, `x2`, `x1`. `img_by_name` đồng thời được upsert vào bảng SQL với `n_frame`. Endpoint preview công khai chỉ đọc file x4; các thao tác thay đổi vẫn yêu cầu đăng nhập và quyền panel.
+Ảnh PNG khi ghi sẽ được resize theo `sourceZoom` rồi ghi vào đủ `data/icon/x4`, `x3`, `x2`, `x1` hoặc `data/img_by_name/x4`, `x3`, `x2`, `x1`. Ví dụ chọn ảnh nguồn x4 sẽ tạo đúng kích thước x3 bằng 3/4, x2 bằng 1/2 và x1 bằng 1/4. Panel hỗ trợ tìm kiếm theo ID/tên và nhập trực tiếp số trang. `img_by_name` đồng thời được upsert vào bảng SQL với `n_frame`. Endpoint preview công khai chỉ đọc file x4; các thao tác thay đổi vẫn yêu cầu đăng nhập và quyền panel.
 
 ## Flag bag
 
