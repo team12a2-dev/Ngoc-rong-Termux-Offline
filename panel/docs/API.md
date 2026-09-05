@@ -163,6 +163,10 @@ Trên giao diện `/items`, khu vực **Nhập nhanh dữ liệu SQL** nhận tr
 
 Các danh sách dữ liệu trên panel dùng `GET /items?limit=&offset=`, `GET /items/parts?limit=&offset=` và `GET /items/head-avatars?limit=&offset=`; cả ba danh sách đều phân trang 50 bản ghi/trang. Khi chuyển trang, panel chỉ tải lại phần dữ liệu của bảng tương ứng.
 
+## Flag bag
+
+`POST /items/flag-bags` nhận 6 cột theo thứ tự `id`, `icon_data`, `NAME`, `gold`, `gem`, `icon_id`. Panel hỗ trợ dán trực tiếp dòng Tab-separated, ví dụ `179<Tab>16982,16983,16984,16985,16986,16987<Tab>Cờ đeo lưng sao may mắn<Tab>-1<Tab>-1<Tab>16981`. Danh sách hiện có dùng `GET /items/flag-bags?limit=&offset=` và được phân trang 50 bản ghi/trang.
+
 ## Audit
 
 ```

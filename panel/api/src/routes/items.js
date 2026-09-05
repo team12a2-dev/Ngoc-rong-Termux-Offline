@@ -185,6 +185,40 @@ router.get('/head-avatars', requirePermission('giftcode.manage'), async (req, re
   }
 });
 
+router.get('/flag-bags', requirePermission('giftcode.manage'), async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit || 50), 1), 500);
+    const offset = Math.max(Number(req.query.offset || 0), 0);
+    const rows = await query('SELECT id, icon_data, NAME, gold, gem, icon_id FROM flag_bag ORDER BY id LIMIT ? OFFSET ?', [limit, offset]);
+    const countRows = await query('SELECT COUNT(*) AS total FROM flag_bag');
+    res.json({ ok: true, data: { rows, total: Number(countRows[0]?.total || 0), limit, offset } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.post('/flag-bags', requirePermission('giftcode.manage'), async (req, res) => {
+  try {
+    const id = Number(req.body?.id);
+    const iconData = String(req.body?.icon_data ?? '').trim();
+    const name = String(req.body?.name ?? '').trim();
+    const gold = Number(req.body?.gold);
+    const gem = Number(req.body?.gem);
+    const iconId = Number(req.body?.icon_id);
+    if (![id, gold, gem, iconId].every(Number.isInteger) || id < 0 || gold < -1 || gem < -1 || iconId < 0 || !iconData || iconData.length > 1000 || !name || name.length > 255) {
+      return res.status(400).json({ ok: false, error: 'flag_bag cần id, icon_data, name, gold, gem và icon_id hợp lệ' });
+    }
+    const duplicate = await query('SELECT id FROM flag_bag WHERE id = ? LIMIT 1', [id]);
+    if (duplicate.length) return res.status(409).json({ ok: false, error: `flag_bag #${id} đã tồn tại` });
+    await exec('INSERT INTO flag_bag (id, icon_data, NAME, gold, gem, icon_id) VALUES (?, ?, ?, ?, ?, ?)', [id, iconData, name, gold, gem, iconId]);
+    const rows = await query('SELECT id, icon_data, NAME, gold, gem, icon_id FROM flag_bag WHERE id = ? LIMIT 1', [id]);
+    await auditLog({ userId: req.user.id, action: 'flag_bag.create', target: id, requestBody: req.body, response: { databaseSaved: true }, ip: req.ip });
+    res.status(201).json({ ok: true, data: { row: rows[0] } });
+  } catch (e) {
+    res.status(400).json({ ok: false, error: e.message });
+  }
+});
+
 router.post('/', requirePermission('giftcode.manage'), async (req, res) => {
   try {
     const maxRows = await query('SELECT COUNT(*) AS count, COALESCE(MAX(id), -1) AS max_id FROM item_template');

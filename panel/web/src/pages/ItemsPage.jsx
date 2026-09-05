@@ -30,6 +30,7 @@ export default function ItemsPage() {
   const itemPageSize = 50;
   const [partPage, setPartPage] = useState(1);
   const [avatarPage, setAvatarPage] = useState(1);
+  const [flagPage, setFlagPage] = useState(1);
   const catalogPageSize = 50;
   const [meta, setMeta] = useState({ total: 0, nextId: 0 });
   const [form, setForm] = useState(EMPTY_FORM);
@@ -38,6 +39,8 @@ export default function ItemsPage() {
   const [quickItem, setQuickItem] = useState('');
   const [quickParts, setQuickParts] = useState('');
   const [quickAvatar, setQuickAvatar] = useState('');
+  const [quickFlag, setQuickFlag] = useState('');
+  const [flagRows, setFlagRows] = useState([]);
   const fb = useFeedback();
 
   async function load(page = itemPage) {
@@ -58,6 +61,13 @@ export default function ItemsPage() {
       setMeta((prev) => ({ ...prev, partTotal: partsRes.data?.total || 0, avatarTotal: avatarsRes.data?.total || 0 }));
     }).catch((e) => fb.error(e.message));
   }, [partPage, avatarPage]);
+
+  useEffect(() => {
+    api(`/items/flag-bags?limit=${catalogPageSize}&offset=${(flagPage - 1) * catalogPageSize}`).then((res) => {
+      setFlagRows(res.data?.rows || []);
+      setMeta((prev) => ({ ...prev, flagTotal: res.data?.total || 0 }));
+    }).catch((e) => fb.error(e.message));
+  }, [flagPage]);
 
   function edit(row) {
     setEditingId(row.id);
@@ -91,6 +101,23 @@ export default function ItemsPage() {
     });
     setEditingId(null);
     fb.success(`Đã phân tích item #${id}: tự điền ${parts.length} dòng part${avatar == null ? '' : ' và head_avatar'}. Hãy kiểm tra rồi bấm lưu.`);
+  }
+
+  async function saveFlagBag() {
+    const columns = quickFlag.trim().split(/\t/);
+    if (columns.length !== 6) throw new Error(`Dòng flag_bag cần đúng 6 cột, hiện có ${columns.length}.`);
+    const [id, icon_data, name, gold, gem, icon_id] = columns;
+    setBusy(true);
+    try {
+      await api('/items/flag-bags', { method: 'POST', body: JSON.stringify({ id: Number(id), icon_data, name, gold: Number(gold), gem: Number(gem), icon_id: Number(icon_id) }) });
+      fb.success(`Đã thêm flag_bag #${id} vào database.`);
+      setQuickFlag('');
+      setFlagPage(1);
+    } catch (e) {
+      fb.error(e.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function save(e) {
@@ -138,6 +165,7 @@ export default function ItemsPage() {
   const totalItemPages = Math.max(1, Math.ceil(meta.total / itemPageSize));
   const totalPartPages = Math.max(1, Math.ceil((meta.partTotal || 0) / catalogPageSize));
   const totalAvatarPages = Math.max(1, Math.ceil((meta.avatarTotal || 0) / catalogPageSize));
+  const totalFlagPages = Math.max(1, Math.ceil((meta.flagTotal || 0) / catalogPageSize));
 
   return (
     <div>
@@ -160,6 +188,12 @@ export default function ItemsPage() {
         <label className="field">Các dòng <code>part</code> (mỗi dòng 3 cột)<textarea rows="7" value={quickParts} onChange={(e) => setQuickParts(e.target.value)} placeholder={'2006\t0\t[[17094,3,2],[17095,3,3],[2955,0,0]]\n2007\t1\t[[17096,0,0],[17097,0,-1]]\n2008\t2\t[[17108,9,7],[17109,-1,-1]]'} /></label>
         <label className="field">Dòng <code>head_avatar</code> (2 cột)<input value={quickAvatar} onChange={(e) => setQuickAvatar(e.target.value)} placeholder="2006&#9;17122" /></label>
         <button className="btn" type="button" onClick={() => { try { parseQuickImport(); } catch (e) { fb.error(e.message); } }}>Phân tích và tự điền biểu mẫu</button>
+      </div>
+
+      <div className="control-card section">
+        <div className="section-head"><div><h3>Nhập nhanh flag_bag</h3><p className="muted">Dán 6 cột theo thứ tự: <code>id, icon_data, NAME, gold, gem, icon_id</code>.</p></div></div>
+        <label className="field">Dòng <code>flag_bag</code><input value={quickFlag} onChange={(e) => setQuickFlag(e.target.value)} placeholder="179&#9;16982,16983,16984,16985,16986,16987&#9;Cờ đeo lưng sao may mắn&#9;-1&#9;-1&#9;16981" /></label>
+        <button className="btn" type="button" disabled={busy} onClick={() => saveFlagBag().catch((e) => fb.error(e.message))}>Thêm flag_bag</button>
       </div>
 
       <form className="control-card section" onSubmit={save}>
@@ -227,6 +261,13 @@ export default function ItemsPage() {
           {headAvatarRows.map((row) => <tr key={row.head_id}><td><code>#{row.head_id}</code></td><td>{row.avatar_id}</td></tr>)}
         </tbody></table></div>
         <div className="section-head" style={{ marginTop: 16 }}><span className="muted">Hiển thị {headAvatarRows.length} / {meta.avatarTotal || 0} mapping</span><div className="row"><button className="btn sm" type="button" disabled={avatarPage <= 1} onClick={() => setAvatarPage((p) => Math.max(1, p - 1))}>Trang trước</button><span className="muted">{avatarPage} / {totalAvatarPages}</span><button className="btn sm" type="button" disabled={avatarPage >= totalAvatarPages} onClick={() => setAvatarPage((p) => Math.min(totalAvatarPages, p + 1))}>Trang sau</button></div></div>
+      </div>
+      <div className="card section">
+        <div className="section-head"><div><h3>Danh sách flag_bag</h3><p className="muted">{meta.flagTotal || 0} bản ghi · trang {flagPage}/{totalFlagPages}</p></div></div>
+        <div className="table-wrap"><table><thead><tr><th>ID</th><th>Icon data</th><th>Tên</th><th>Gold</th><th>Gem</th><th>Icon ID</th></tr></thead><tbody>
+          {flagRows.map((row) => <tr key={row.id}><td><code>#{row.id}</code></td><td><code>{row.icon_data}</code></td><td>{row.NAME}</td><td>{row.gold}</td><td>{row.gem}</td><td>{row.icon_id}</td></tr>)}
+        </tbody></table></div>
+        <div className="section-head" style={{ marginTop: 16 }}><span className="muted">Hiển thị {flagRows.length} / {meta.flagTotal || 0} flag</span><div className="row"><button className="btn sm" type="button" disabled={flagPage <= 1} onClick={() => setFlagPage((p) => Math.max(1, p - 1))}>Trang trước</button><span className="muted">{flagPage} / {totalFlagPages}</span><button className="btn sm" type="button" disabled={flagPage >= totalFlagPages} onClick={() => setFlagPage((p) => Math.min(totalFlagPages, p + 1))}>Trang sau</button></div></div>
       </div>
     </div>
   );
