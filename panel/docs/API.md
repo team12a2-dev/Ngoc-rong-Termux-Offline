@@ -139,6 +139,26 @@ POST   /usable-items/reload                          → yêu cầu Java Agent r
 
 `options` là danh sách option chỉ số gắn cho item, ví dụ `[{ "id": 47, "param": 5 }, { "id": 77, "param": 20 }]`. API xác thực item có `type = 29`, option tồn tại trong `item_option_template`, option thuộc nhóm stat mà `NPoint.addOption` đang xử lý, không trùng option trong cùng item và giới hạn tối đa 12 option. `durationSeconds` mặc định 600 giây, tối đa 30 ngày. Khi lưu, API thay toàn bộ danh sách option cũ trong `panel_usable_item_options`, sau đó gọi Java Agent reload cache. Bổ huyết chỉ là item mẫu của source, không còn là behavior key trong API.
 
+## Tạo item hoàn chỉnh
+
+`POST /items` và `PUT /items/:id` (JWT, quyền `giftcode.manage`) hỗ trợ ghi đồng bộ `item_template`, `part` và `head_avatar`:
+
+```json
+{
+  "name": "Cải trang chú hề Picolo",
+  "type": 5, "gender": 3, "level": 1, "icon_id": 17121,
+  "part": 2006, "head": 2006, "body": 2007, "leg": 2008,
+  "head_avatar": 17122,
+  "parts": [
+    { "id": 2006, "type": 0, "data": "[[17094,3,2],[17095,3,3],[2955,0,0]]" },
+    { "id": 2007, "type": 1, "data": "[[17096,0,0],[17097,0,-1]]" },
+    { "id": 2008, "type": 2, "data": "[[17108,9,7],[17109,-1,-1]]" }
+  ]
+}
+```
+
+Panel ghi dữ liệu trong cùng transaction. Nếu ID part hoặc `head_id` đã tồn tại với nội dung khác, request bị từ chối để không ghi đè item đang dùng; dữ liệu giống nhau được tái sử dụng.
+
 ## Audit
 
 ```

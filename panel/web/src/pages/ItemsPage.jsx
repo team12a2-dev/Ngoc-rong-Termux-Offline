@@ -7,6 +7,7 @@ import ItemIcon from '../components/ItemIcon';
 const EMPTY_FORM = {
   type: 0, gender: 3, name: '', description: '', level: 1, icon_id: 0, part: -1,
   is_up_to_up: 0, power_require: 0, gold: 0, gem: 0, head: -1, body: -1, leg: -1,
+  head_avatar: '', partsJson: '',
 };
 
 const TYPES = [
@@ -45,7 +46,7 @@ export default function ItemsPage() {
 
   function edit(row) {
     setEditingId(row.id);
-    setForm({ ...EMPTY_FORM, ...row, name: row.NAME || row.name || '' });
+    setForm({ ...EMPTY_FORM, ...row, name: row.NAME || row.name || '', partsJson: row.parts?.length ? JSON.stringify(row.parts, null, 2) : '' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -58,7 +59,12 @@ export default function ItemsPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      const payload = { ...form, serverId: getServerId() };
+      let parts = [];
+      if (form.partsJson.trim()) {
+        try { parts = JSON.parse(form.partsJson); } catch { throw new Error('Dữ liệu part phải là JSON hợp lệ'); }
+      }
+      const payload = { ...form, parts, head_avatar: form.head_avatar === '' ? null : numberField(form.head_avatar, -1), serverId: getServerId() };
+      delete payload.partsJson;
       const res = await api(editingId == null ? '/items' : `/items/${editingId}`, {
         method: editingId == null ? 'POST' : 'PUT',
         body: JSON.stringify(payload),
@@ -128,8 +134,13 @@ export default function ItemsPage() {
           <label className="field">Head<input type="number" min="-1" value={form.head} onChange={(e) => patch('head', numberField(e.target.value, -1))} /></label>
           <label className="field">Body<input type="number" min="-1" value={form.body} onChange={(e) => patch('body', numberField(e.target.value, -1))} /></label>
           <label className="field">Leg<input type="number" min="-1" value={form.leg} onChange={(e) => patch('leg', numberField(e.target.value, -1))} /></label>
+          <label className="field">Head avatar<input type="number" min="0" value={form.head_avatar} onChange={(e) => patch('head_avatar', e.target.value)} placeholder="Ví dụ: 17122" /><span className="muted">Gắn vào head_id ở cột Head.</span></label>
           <label className="field checkbox-field"><span>Cho phép nâng cấp</span><input type="checkbox" checked={Boolean(Number(form.is_up_to_up))} onChange={(e) => patch('is_up_to_up', e.target.checked ? 1 : 0)} /></label>
         </div>
+        <label className="field" style={{ display: 'block', marginTop: 16 }}>Part đầy đủ (JSON)
+          <textarea rows="8" value={form.partsJson} onChange={(e) => patch('partsJson', e.target.value)} placeholder={'[{"id":2006,"type":0,"data":"[[17094,3,2],[17095,3,3],[2955,0,0]]"},\n {"id":2007,"type":1,"data":"[[17096,0,0],[17097,0,-1]]"},\n {"id":2008,"type":2,"data":"[[17108,9,7],[17109,-1,-1]]"}]'} />
+          <span className="muted">Mỗi dòng gồm <code>id</code>, <code>type</code> (0 áo, 1 thân, 2 quần) và <code>data</code> dạng mảng <code>[[icon, dx, dy], ...]</code>. ID đã có với dữ liệu khác sẽ bị từ chối, không ghi đè.</span>
+        </label>
         <button className="btn primary" type="submit" disabled={busy}>{busy ? 'Đang lưu/reload...' : editingId == null ? `Tạo item #${meta.nextId}` : `Lưu item #${editingId}`}</button>
       </form>
 
