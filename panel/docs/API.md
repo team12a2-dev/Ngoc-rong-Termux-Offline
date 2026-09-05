@@ -161,7 +161,7 @@ Panel ghi dữ liệu trong cùng transaction. Nếu ID part hoặc `head_id` đ
 
 Trên giao diện `/items`, khu vực **Nhập nhanh dữ liệu SQL** nhận trực tiếp một dòng `item_template` gồm 15 cột, nhiều dòng `part` gồm 3 cột và một dòng `head_avatar` gồm 2 cột, phân cách bằng Tab. Nút **Phân tích và tự điền biểu mẫu** sẽ tách dữ liệu, điền các trường item và gửi cả ba nhóm dữ liệu vào đúng bảng riêng khi lưu.
 
-Các danh sách dữ liệu trên panel dùng `GET /items?limit=&offset=` (phân trang 50 item/trang), `GET /items/parts` và `GET /items/head-avatars`; chúng lần lượt hiển thị dữ liệu trong `item_template`, `part` và `head_avatar`. Khi chuyển trang, panel chỉ tải lại phần item cần thiết; hai catalog `part` và `head_avatar` chỉ tải một lần.
+Các danh sách dữ liệu trên panel dùng `GET /items?limit=&offset=`, `GET /items/parts?limit=&offset=` và `GET /items/head-avatars?limit=&offset=`; cả ba danh sách đều phân trang 50 bản ghi/trang. Khi chuyển trang, panel chỉ tải lại phần dữ liệu của bảng tương ứng.
 
 ## Audit
 

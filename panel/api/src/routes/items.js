@@ -161,19 +161,25 @@ router.get('/options', requirePermission('giftcode.manage'), async (_req, res) =
   }
 });
 
-router.get('/parts', requirePermission('giftcode.manage'), async (_req, res) => {
+router.get('/parts', requirePermission('giftcode.manage'), async (req, res) => {
   try {
-    const rows = await query('SELECT id, TYPE AS type, DATA AS data FROM part ORDER BY id, TYPE');
-    res.json({ ok: true, data: { rows, total: rows.length } });
+    const limit = Math.min(Math.max(Number(req.query.limit || 50), 1), 500);
+    const offset = Math.max(Number(req.query.offset || 0), 0);
+    const rows = await query('SELECT id, TYPE AS type, DATA AS data FROM part ORDER BY id, TYPE LIMIT ? OFFSET ?', [limit, offset]);
+    const countRows = await query('SELECT COUNT(*) AS total FROM part');
+    res.json({ ok: true, data: { rows, total: Number(countRows[0]?.total || 0), limit, offset } });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
 
-router.get('/head-avatars', requirePermission('giftcode.manage'), async (_req, res) => {
+router.get('/head-avatars', requirePermission('giftcode.manage'), async (req, res) => {
   try {
-    const rows = await query('SELECT head_id, avatar_id FROM head_avatar ORDER BY head_id');
-    res.json({ ok: true, data: { rows, total: rows.length } });
+    const limit = Math.min(Math.max(Number(req.query.limit || 50), 1), 500);
+    const offset = Math.max(Number(req.query.offset || 0), 0);
+    const rows = await query('SELECT head_id, avatar_id FROM head_avatar ORDER BY head_id LIMIT ? OFFSET ?', [limit, offset]);
+    const countRows = await query('SELECT COUNT(*) AS total FROM head_avatar');
+    res.json({ ok: true, data: { rows, total: Number(countRows[0]?.total || 0), limit, offset } });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }

@@ -28,6 +28,9 @@ export default function ItemsPage() {
   const [q, setQ] = useState('');
   const [itemPage, setItemPage] = useState(1);
   const itemPageSize = 50;
+  const [partPage, setPartPage] = useState(1);
+  const [avatarPage, setAvatarPage] = useState(1);
+  const catalogPageSize = 50;
   const [meta, setMeta] = useState({ total: 0, nextId: 0 });
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -40,7 +43,7 @@ export default function ItemsPage() {
   async function load(page = itemPage) {
     const itemsRes = await api(`/items?q=${encodeURIComponent(q)}&limit=${itemPageSize}&offset=${(page - 1) * itemPageSize}`);
     setRows(itemsRes.data?.rows || []);
-    setMeta({ total: itemsRes.data?.total || 0, nextId: itemsRes.data?.nextId || 0, limit: itemPageSize });
+    setMeta((prev) => ({ ...prev, total: itemsRes.data?.total || 0, nextId: itemsRes.data?.nextId || 0, limit: itemPageSize }));
   }
 
   useEffect(() => {
@@ -48,12 +51,13 @@ export default function ItemsPage() {
   }, [itemPage]);
 
   useEffect(() => {
-    Promise.all([api('/items/options'), api('/items/parts'), api('/items/head-avatars')]).then(([optionsRes, partsRes, avatarsRes]) => {
+    Promise.all([api('/items/options'), api(`/items/parts?limit=${catalogPageSize}&offset=${(partPage - 1) * catalogPageSize}`), api(`/items/head-avatars?limit=${catalogPageSize}&offset=${(avatarPage - 1) * catalogPageSize}`)]).then(([optionsRes, partsRes, avatarsRes]) => {
       setOptions(optionsRes.data || []);
       setPartRows(partsRes.data?.rows || []);
       setHeadAvatarRows(avatarsRes.data?.rows || []);
+      setMeta((prev) => ({ ...prev, partTotal: partsRes.data?.total || 0, avatarTotal: avatarsRes.data?.total || 0 }));
     }).catch((e) => fb.error(e.message));
-  }, []);
+  }, [partPage, avatarPage]);
 
   function edit(row) {
     setEditingId(row.id);
@@ -132,6 +136,8 @@ export default function ItemsPage() {
 
   const patch = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
   const totalItemPages = Math.max(1, Math.ceil(meta.total / itemPageSize));
+  const totalPartPages = Math.max(1, Math.ceil((meta.partTotal || 0) / catalogPageSize));
+  const totalAvatarPages = Math.max(1, Math.ceil((meta.avatarTotal || 0) / catalogPageSize));
 
   return (
     <div>
@@ -209,16 +215,18 @@ export default function ItemsPage() {
         </div>
       </div>
       <div className="card section">
-        <div className="section-head"><div><h3>Danh sách part</h3><p className="muted">{partRows.length} bản ghi từ bảng <code>part</code></p></div></div>
+        <div className="section-head"><div><h3>Danh sách part</h3><p className="muted">{meta.partTotal || 0} bản ghi · trang {partPage}/{totalPartPages}</p></div></div>
         <div className="table-wrap"><table><thead><tr><th>ID</th><th>Type</th><th>Data</th></tr></thead><tbody>
           {partRows.map((row, index) => <tr key={`${row.id}-${row.type}-${index}`}><td><code>#{row.id}</code></td><td>{row.type}</td><td><code className="wrap-code">{row.data}</code></td></tr>)}
         </tbody></table></div>
+        <div className="section-head" style={{ marginTop: 16 }}><span className="muted">Hiển thị {partRows.length} / {meta.partTotal || 0} part</span><div className="row"><button className="btn sm" type="button" disabled={partPage <= 1} onClick={() => setPartPage((p) => Math.max(1, p - 1))}>Trang trước</button><span className="muted">{partPage} / {totalPartPages}</span><button className="btn sm" type="button" disabled={partPage >= totalPartPages} onClick={() => setPartPage((p) => Math.min(totalPartPages, p + 1))}>Trang sau</button></div></div>
       </div>
       <div className="card section">
-        <div className="section-head"><div><h3>Danh sách head_avatar</h3><p className="muted">{headAvatarRows.length} bản ghi từ bảng <code>head_avatar</code></p></div></div>
+        <div className="section-head"><div><h3>Danh sách head_avatar</h3><p className="muted">{meta.avatarTotal || 0} bản ghi · trang {avatarPage}/{totalAvatarPages}</p></div></div>
         <div className="table-wrap"><table><thead><tr><th>Head ID</th><th>Avatar ID</th></tr></thead><tbody>
           {headAvatarRows.map((row) => <tr key={row.head_id}><td><code>#{row.head_id}</code></td><td>{row.avatar_id}</td></tr>)}
         </tbody></table></div>
+        <div className="section-head" style={{ marginTop: 16 }}><span className="muted">Hiển thị {headAvatarRows.length} / {meta.avatarTotal || 0} mapping</span><div className="row"><button className="btn sm" type="button" disabled={avatarPage <= 1} onClick={() => setAvatarPage((p) => Math.max(1, p - 1))}>Trang trước</button><span className="muted">{avatarPage} / {totalAvatarPages}</span><button className="btn sm" type="button" disabled={avatarPage >= totalAvatarPages} onClick={() => setAvatarPage((p) => Math.min(totalAvatarPages, p + 1))}>Trang sau</button></div></div>
       </div>
     </div>
   );
