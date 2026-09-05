@@ -5,7 +5,7 @@ import PageFeedback, { useFeedback } from '../components/PageFeedback';
 import ItemIcon from '../components/ItemIcon';
 
 const EMPTY_FORM = {
-  type: 0, gender: 3, name: '', description: '', level: 1, icon_id: 0, part: -1,
+  id: '', type: 0, gender: 3, name: '', description: '', level: 1, icon_id: 0, part: -1,
   is_up_to_up: 0, power_require: 0, gold: 0, gem: 0, head: -1, body: -1, leg: -1,
   head_avatar: '', partsJson: '',
 };
@@ -28,6 +28,9 @@ export default function ItemsPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [quickItem, setQuickItem] = useState('');
+  const [quickParts, setQuickParts] = useState('');
+  const [quickAvatar, setQuickAvatar] = useState('');
   const fb = useFeedback();
 
   async function load() {
@@ -55,6 +58,29 @@ export default function ItemsPage() {
     setForm(EMPTY_FORM);
   }
 
+  function parseQuickImport() {
+    const itemColumns = quickItem.trim().split(/\t/);
+    if (itemColumns.length !== 15) throw new Error(`Dòng item_template cần đúng 15 cột, hiện có ${itemColumns.length}. Hãy dán dữ liệu phân cách bằng phím Tab.`);
+    const [id, type, gender, name, description, level, icon_id, part, is_up_to_up, power_require, gold, gem, head, body, leg] = itemColumns;
+    const parts = quickParts.trim() ? quickParts.trim().split(/\r?\n/).filter(Boolean).map((line, index) => {
+      const columns = line.split(/\t/);
+      if (columns.length !== 3) throw new Error(`Dòng part ${index + 1} cần 3 cột: id, type, data`);
+      return { id: Number(columns[0]), type: Number(columns[1]), data: columns[2] };
+    }) : [];
+    const avatarColumns = quickAvatar.trim().split(/\t/);
+    const avatar = quickAvatar.trim() ? Number(avatarColumns[1] ?? quickAvatar.trim()) : null;
+    if (quickAvatar.trim() && (avatarColumns.length > 2 || !Number.isInteger(avatar))) throw new Error('Dòng head_avatar cần dạng: head_id<Tab>avatar_id');
+    setForm({
+      ...EMPTY_FORM, id: Number(id), type: Number(type), gender: Number(gender), name, description,
+      level: Number(level), icon_id: Number(icon_id), part: Number(part), is_up_to_up: Number(is_up_to_up),
+      power_require: Number(power_require), gold: Number(gold), gem: Number(gem), head: Number(head),
+      body: Number(body), leg: Number(leg), head_avatar: avatar == null ? '' : avatar,
+      partsJson: JSON.stringify(parts, null, 2),
+    });
+    setEditingId(null);
+    fb.success(`Đã phân tích item #${id}: tự điền ${parts.length} dòng part${avatar == null ? '' : ' và head_avatar'}. Hãy kiểm tra rồi bấm lưu.`);
+  }
+
   async function save(e) {
     e.preventDefault();
     setBusy(true);
@@ -64,6 +90,7 @@ export default function ItemsPage() {
         try { parts = JSON.parse(form.partsJson); } catch { throw new Error('Dữ liệu part phải là JSON hợp lệ'); }
       }
       const payload = { ...form, parts, head_avatar: form.head_avatar === '' ? null : numberField(form.head_avatar, -1), serverId: getServerId() };
+      if (payload.id === '') delete payload.id;
       delete payload.partsJson;
       const res = await api(editingId == null ? '/items' : `/items/${editingId}`, {
         method: editingId == null ? 'POST' : 'PUT',
@@ -112,15 +139,24 @@ export default function ItemsPage() {
         <p className="muted">Đã nạp {options.length} option template. Item mới chỉ dùng được hiệu ứng game mà source Java đã hỗ trợ; icon/part tùy chỉnh cần asset client tương ứng.</p>
       </div>
 
+      <div className="control-card section">
+        <div className="section-head"><div><h3>Nhập nhanh dữ liệu SQL</h3><p className="muted">Dán nguyên dòng theo đúng thứ tự cột trong database. Các cột được phân cách bằng phím <code>Tab</code>.</p></div></div>
+        <label className="field">Dòng <code>item_template</code> (15 cột)<textarea rows="3" value={quickItem} onChange={(e) => setQuickItem(e.target.value)} placeholder={'2033\t5\t3\tCải trang chú hề Picolo\tHề Hước : Tăng 5% né cho người xung quanh\t1\t17121\t2006\t0\t0\t0\t0\t2006\t2007\t2008'} /></label>
+        <label className="field">Các dòng <code>part</code> (mỗi dòng 3 cột)<textarea rows="7" value={quickParts} onChange={(e) => setQuickParts(e.target.value)} placeholder={'2006\t0\t[[17094,3,2],[17095,3,3],[2955,0,0]]\n2007\t1\t[[17096,0,0],[17097,0,-1]]\n2008\t2\t[[17108,9,7],[17109,-1,-1]]'} /></label>
+        <label className="field">Dòng <code>head_avatar</code> (2 cột)<input value={quickAvatar} onChange={(e) => setQuickAvatar(e.target.value)} placeholder="2006&#9;17122" /></label>
+        <button className="btn" type="button" onClick={() => { try { parseQuickImport(); } catch (e) { fb.error(e.message); } }}>Phân tích và tự điền biểu mẫu</button>
+      </div>
+
       <form className="control-card section" onSubmit={save}>
         <div className="section-head">
           <div>
             <h3>{editingId == null ? 'Tạo item mới' : `Sửa item #${editingId}`}</h3>
-            <p className="muted">Database: <code>item_template</code> · Option: <code>item_option_template</code></p>
+            <p className="muted">Database: <code>item_template</code> · <code>part</code> · <code>head_avatar</code></p>
           </div>
           {editingId != null && <button className="btn" type="button" onClick={resetForm}>Hủy sửa</button>}
         </div>
         <div className="form-grid">
+          <label className="field">ID item<input type="number" min="0" value={form.id} onChange={(e) => patch('id', numberField(e.target.value))} disabled={editingId != null} /><span className="muted">Dùng ID từ dòng SQL; để trống để tự chọn ID kế tiếp.</span></label>
           <label className="field">Tên vật phẩm<input value={form.name} maxLength={255} onChange={(e) => patch('name', e.target.value)} required /></label>
           <label className="field">Mô tả<input value={form.description} maxLength={75} onChange={(e) => patch('description', e.target.value)} /></label>
           <label className="field">Loại type<select value={form.type} onChange={(e) => patch('type', numberField(e.target.value))}>{TYPES.map(([v, label]) => <option key={v} value={v}>{v} · {label}</option>)}<option value="7">7 · Khác</option><option value="8">8 · Khác</option><option value="19">19 · Khác</option></select></label>

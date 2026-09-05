@@ -159,6 +159,8 @@ POST   /usable-items/reload                          → yêu cầu Java Agent r
 
 Panel ghi dữ liệu trong cùng transaction. Nếu ID part hoặc `head_id` đã tồn tại với nội dung khác, request bị từ chối để không ghi đè item đang dùng; dữ liệu giống nhau được tái sử dụng.
 
+Trên giao diện `/items`, khu vực **Nhập nhanh dữ liệu SQL** nhận trực tiếp một dòng `item_template` gồm 15 cột, nhiều dòng `part` gồm 3 cột và một dòng `head_avatar` gồm 2 cột, phân cách bằng Tab. Nút **Phân tích và tự điền biểu mẫu** sẽ tách dữ liệu, điền các trường item và gửi cả ba nhóm dữ liệu vào đúng bảng riêng khi lưu.
+
 ## Audit
 
 ```

@@ -166,10 +166,18 @@ router.post('/', requirePermission('giftcode.manage'), async (req, res) => {
     const maxRows = await query('SELECT COUNT(*) AS count, COALESCE(MAX(id), -1) AS max_id FROM item_template');
     const count = Number(maxRows[0]?.count || 0);
     const maxId = Number(maxRows[0]?.max_id ?? -1);
-    if (maxId + 1 !== count) {
+    const requestedId = req.body?.id == null || req.body.id === '' ? null : Number(req.body.id);
+    if (requestedId != null && (!Number.isInteger(requestedId) || requestedId < 0)) {
+      return res.status(400).json({ ok: false, error: 'ID item không hợp lệ' });
+    }
+    if (requestedId == null && maxId + 1 !== count) {
       return res.status(409).json({ ok: false, error: 'item_template đang có ID bị khuyết; hãy khôi phục ID trước khi thêm item' });
     }
-    const id = maxId + 1;
+    const id = requestedId == null ? maxId + 1 : requestedId;
+    if (requestedId != null) {
+      const duplicate = await query('SELECT id FROM item_template WHERE id = ? LIMIT 1', [id]);
+      if (duplicate.length) return res.status(409).json({ ok: false, error: `item_template #${id} đã tồn tại` });
+    }
     const item = normalizeItem(req.body);
     await withTransaction(async (conn) => {
       await persistVisualData(conn, item);
