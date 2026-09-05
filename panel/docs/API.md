@@ -163,6 +163,21 @@ Trên giao diện `/items`, khu vực **Nhập nhanh dữ liệu SQL** nhận tr
 
 Các danh sách dữ liệu trên panel dùng `GET /items?limit=&offset=`, `GET /items/parts?limit=&offset=` và `GET /items/head-avatars?limit=&offset=`; cả ba danh sách đều phân trang 50 bản ghi/trang. Khi chuyển trang, panel chỉ tải lại phần dữ liệu của bảng tương ứng.
 
+## Data Assets: icon và img_by_name
+
+Trang `/data-assets` quản lý trực tiếp các file trong repository. API yêu cầu JWT và quyền `giftcode.manage`:
+
+```text
+GET    /data-assets/icons?zoom=4&limit=50&offset=0
+POST   /data-assets/icons              { id, imageBase64 }
+DELETE /data-assets/icons/:id
+GET    /data-assets/images-by-name?limit=50&offset=0
+POST   /data-assets/images-by-name     { name, n_frame, imageBase64 }
+DELETE /data-assets/images-by-name/:name
+```
+
+Ảnh PNG khi ghi sẽ được sao chép vào đủ `data/icon/x4`, `x3`, `x2`, `x1` hoặc `data/img_by_name/x4`, `x3`, `x2`, `x1`. `img_by_name` đồng thời được upsert vào bảng SQL với `n_frame`. Endpoint preview công khai chỉ đọc file x4; các thao tác thay đổi vẫn yêu cầu đăng nhập và quyền panel.
+
 ## Flag bag
 
 `POST /items/flag-bags` nhận 6 cột theo thứ tự `id`, `icon_data`, `NAME`, `gold`, `gem`, `icon_id`. Panel hỗ trợ dán trực tiếp dòng Tab-separated, ví dụ `179<Tab>16982,16983,16984,16985,16986,16987<Tab>Cờ đeo lưng sao may mắn<Tab>-1<Tab>-1<Tab>16981`. Danh sách hiện có dùng `GET /items/flag-bags?limit=&offset=` và được phân trang 50 bản ghi/trang.

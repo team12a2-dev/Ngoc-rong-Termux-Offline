@@ -33,6 +33,7 @@ const navGroups = [
 
       { to: '/giftcodes', label: 'Giftcodes', icon: 'giftcode' },
       { to: '/items', label: 'Item Templates', icon: 'giftcode' },
+      { to: '/data-assets', label: 'Data Assets (icon/img)', icon: 'giftcode' },
       { to: '/shops', label: 'Cửa hàng', icon: 'shop' },
       { to: '/drop-config', label: 'Drop theo Map', icon: 'giftcode' },
       { to: '/usable-items', label: 'Item bổ trợ', icon: 'giftcode' },

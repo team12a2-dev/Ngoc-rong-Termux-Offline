@@ -22,6 +22,7 @@ import setupRoutes from './routes/setup.js';
 import alertRoutes from './routes/alerts.js';
 import backupRoutes from './routes/backups.js';
 import assetRoutes from './routes/assets.js';
+import dataAssetRoutes from './routes/dataAssets.js';
 import itemRoutes from './routes/items.js';
 import runtimeRoutes from './routes/runtime.js';
 import dropConfigRoutes from './routes/dropConfig.js';
@@ -50,7 +51,7 @@ const bindHost = process.env.PANEL_BIND_HOST || '127.0.0.1';
 const server = createServer(app);
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 
 app.get('/api/v1/system/health', async (_req, res) => {
   try {
@@ -86,6 +87,7 @@ app.use('/api/v1/plugins', pluginRoutes);
 app.use('/api/v1/alerts', alertRoutes);
 app.use('/api/v1/backups', backupRoutes);
 app.use('/api/v1/assets', assetRoutes);
+app.use('/api/v1/data-assets', dataAssetRoutes);
 app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/runtime', runtimeRoutes);
 app.use('/api/v1/drop-config', dropConfigRoutes);

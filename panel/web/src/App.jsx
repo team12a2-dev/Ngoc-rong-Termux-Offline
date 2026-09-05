@@ -15,6 +15,7 @@ import GodSpinPage from './pages/GodSpinPage';
 
 import GiftcodesPage from './pages/GiftcodesPage';
 import ItemsPage from './pages/ItemsPage';
+import DataAssetsPage from './pages/DataAssetsPage';
 
 import ShopsPage from './pages/ShopsPage';
 import ClansPage from './pages/ClansPage';
@@ -58,6 +59,7 @@ export default function App() {
 
           <Route path="giftcodes" element={<GiftcodesPage />} />
           <Route path="items" element={<ItemsPage />} />
+          <Route path="data-assets" element={<DataAssetsPage />} />
 
           <Route path="shops" element={<ShopsPage />} />
           <Route path="clans" element={<ClansPage />} />

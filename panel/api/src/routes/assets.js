@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import path from 'path';
 import { query } from '../db.js';
 import { findIconFile, getGameDataPath } from '../services/gameAssets.js';
 
@@ -79,6 +80,13 @@ router.get('/icons/meta', (_req, res) => {
       zoomOrder: process.env.GAME_ICON_ZOOM ? [Number(process.env.GAME_ICON_ZOOM)] : [4, 3, 2, 1],
     },
   });
+});
+
+router.get('/data/:kind/:filename', (req, res) => {
+  const kind = req.params.kind === 'icon' ? 'icon' : req.params.kind === 'img_by_name' ? 'img_by_name' : null;
+  const filename = req.params.filename;
+  if (!kind || !/^[A-Za-z0-9_.-]+\.png$/i.test(filename)) return res.status(400).json({ ok: false, error: 'Invalid asset path' });
+  return sendIconPng(res, path.join(getGameDataPath(), kind, 'x4', filename));
 });
 
 export default router;
