@@ -178,6 +178,8 @@ DELETE /data-assets/images-by-name/:name
 
 Ảnh PNG khi ghi sẽ được resize theo `sourceZoom` rồi ghi vào đủ `data/icon/x4`, `x3`, `x2`, `x1` hoặc `data/img_by_name/x4`, `x3`, `x2`, `x1`. Ví dụ chọn ảnh nguồn x4 sẽ tạo đúng kích thước x3 bằng 3/4, x2 bằng 1/2 và x1 bằng 1/4. Panel hỗ trợ tìm kiếm theo ID/tên và nhập trực tiếp số trang. `img_by_name` đồng thời được upsert vào bảng SQL với `n_frame`. Endpoint preview công khai chỉ đọc file x4; các thao tác thay đổi vẫn yêu cầu đăng nhập và quyền panel.
 
+Panel cũng có thể chọn cả thư mục bằng `webkitdirectory`. Với thư mục icon, mỗi file phải có tên là ID, ví dụ `16981.png`; với `img_by_name`, tên file không có đuôi `.png` sẽ trở thành cột `NAME`, ví dụ `mount_1_0.png` thành `mount_1_0`. Các file trong thư mục được upload tuần tự để tránh vượt giới hạn request và mỗi file đều được resize đồng bộ đủ bốn zoom.
+
 ## Flag bag
 
 `POST /items/flag-bags` nhận 6 cột theo thứ tự `id`, `icon_data`, `NAME`, `gold`, `gem`, `icon_id`. Panel hỗ trợ dán trực tiếp dòng Tab-separated, ví dụ `179<Tab>16982,16983,16984,16985,16986,16987<Tab>Cờ đeo lưng sao may mắn<Tab>-1<Tab>-1<Tab>16981`. Danh sách hiện có dùng `GET /items/flag-bags?limit=&offset=` và được phân trang 50 bản ghi/trang.

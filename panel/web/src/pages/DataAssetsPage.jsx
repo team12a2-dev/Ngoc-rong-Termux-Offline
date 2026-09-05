@@ -31,9 +31,11 @@ export default function DataAssetsPage() {
   const [imageSearch, setImageSearch] = useState('');
   const [iconId, setIconId] = useState('');
   const [iconFile, setIconFile] = useState(null);
+  const [iconFolderFiles, setIconFolderFiles] = useState([]);
   const [imageName, setImageName] = useState('');
   const [nFrame, setNFrame] = useState(1);
   const [imageFile, setImageFile] = useState(null);
+  const [imageFolderFiles, setImageFolderFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const fb = useFeedback();
 
@@ -64,6 +66,37 @@ export default function DataAssetsPage() {
       fb.success(`Đã resize từ x${sourceZoom}, ghi ${imageName}.png vào đủ x4, x3, x2, x1 và cập nhật img_by_name.`); setImageFile(null); e.target.reset(); await loadImages();
     } catch (e2) { fb.error(e2.message); } finally { setBusy(false); }
   }
+  async function saveIconFolder(e) {
+    e.preventDefault();
+    const files = iconFolderFiles.filter((file) => file.name.toLowerCase().endsWith('.png'));
+    if (!files.length) return fb.error('Hãy chọn một thư mục có PNG tên bằng ID icon, ví dụ 16981.png.');
+    setBusy(true);
+    try {
+      for (let index = 0; index < files.length; index += 1) {
+        const id = Number(files[index].name.replace(/\.png$/i, ''));
+        if (!Number.isInteger(id) || id < 0) throw new Error(`Tên file ${files[index].name} không phải ID icon hợp lệ`);
+        const imageBase64 = await imageToBase64(files[index]);
+        await api('/data-assets/icons', { method: 'POST', body: JSON.stringify({ id, sourceZoom, imageBase64 }) });
+        fb.show(`Đang tải thư mục icon: ${index + 1}/${files.length}`, 'info');
+      }
+      fb.success(`Đã tải ${files.length} icon và đồng bộ đủ x4, x3, x2, x1.`); setIconFolderFiles([]); e.target.reset(); await loadIcons();
+    } catch (e2) { fb.error(e2.message); } finally { setBusy(false); }
+  }
+  async function saveImageFolder(e) {
+    e.preventDefault();
+    const files = imageFolderFiles.filter((file) => file.name.toLowerCase().endsWith('.png'));
+    if (!files.length) return fb.error('Hãy chọn một thư mục có các file PNG img_by_name.');
+    setBusy(true);
+    try {
+      for (let index = 0; index < files.length; index += 1) {
+        const name = files[index].name.replace(/\.png$/i, '');
+        const imageBase64 = await imageToBase64(files[index]);
+        await api('/data-assets/images-by-name', { method: 'POST', body: JSON.stringify({ name, n_frame: Number(nFrame), sourceZoom, imageBase64 }) });
+        fb.show(`Đang tải thư mục img_by_name: ${index + 1}/${files.length}`, 'info');
+      }
+      fb.success(`Đã tải ${files.length} ảnh img_by_name và cập nhật database.`); setImageFolderFiles([]); e.target.reset(); await loadImages();
+    } catch (e2) { fb.error(e2.message); } finally { setBusy(false); }
+  }
   async function remove(kind, value) {
     if (!window.confirm(`Xóa ${value} khỏi dữ liệu repository?`)) return;
     try { await api(`/data-assets/${kind}/${encodeURIComponent(value)}`, { method: 'DELETE' }); fb.success('Đã xóa dữ liệu.'); kind === 'icons' ? loadIcons() : loadImages(); } catch (e) { fb.error(e.message); }
@@ -76,9 +109,11 @@ export default function DataAssetsPage() {
     <div className="row" style={{ marginBottom: 16 }}><button className={`btn ${tab === 'icons' ? 'primary' : ''}`} onClick={() => setTab('icons')}>Icon</button><button className={`btn ${tab === 'images' ? 'primary' : ''}`} onClick={() => setTab('images')}>img_by_name</button></div>
     {tab === 'icons' ? <>
       <form className="control-card section" onSubmit={saveIcon}><h3>Thêm / chỉnh sửa icon</h3><div className="form-grid"><label className="field">Icon ID<input type="number" min="0" value={iconId} onChange={(e) => setIconId(e.target.value)} required /></label><label className="field">Zoom nguồn<select value={sourceZoom} onChange={(e) => setSourceZoom(Number(e.target.value))}><option value="4">Ảnh x4</option><option value="3">Ảnh x3</option><option value="2">Ảnh x2</option><option value="1">Ảnh x1</option></select></label><label className="field">Ảnh PNG cần tải lên<input type="file" accept="image/png" onChange={(e) => setIconFile(e.target.files?.[0] || null)} required />{iconFile && <span className="muted">Đã chọn: {iconFile.name}</span>}</label></div><p className="muted">Server sẽ đọc kích thước ảnh nguồn và resize đúng tỷ lệ để tạo đủ bốn phiên bản.</p><button className="btn primary" disabled={busy}>{busy ? 'Đang tải và resize...' : 'Tải ảnh lên & đồng bộ x4, x3, x2, x1'}</button></form>
+      <form className="control-card section" onSubmit={saveIconFolder}><h3>Tải cả thư mục icon</h3><p className="muted">Chọn thư mục chứa các file đặt tên theo ID, ví dụ <code>16981.png</code>, <code>16982.png</code>. Panel tự lấy ID từ tên file.</p><label className="field">Thư mục icon<input type="file" accept="image/png" multiple webkitdirectory="" directory="" onChange={(e) => setIconFolderFiles(Array.from(e.target.files || []))} required />{iconFolderFiles.length > 0 && <span className="muted">Đã chọn {iconFolderFiles.length} file trong thư mục</span>}</label><button className="btn primary" disabled={busy}>{busy ? 'Đang tải cả thư mục...' : 'Tải thư mục icon lên & đồng bộ'}</button></form>
       <div className="card section"><div className="section-head"><div><h3>Danh sách icon</h3><p className="muted">Đang xem x{zoom}</p></div><div className="row"><input placeholder="Tìm ID/file..." value={iconSearch} onChange={(e) => { setIconSearch(e.target.value); setIconPage(1); }} /><select value={zoom} onChange={(e) => { setZoom(Number(e.target.value)); setIconPage(1); }}><option value="4">x4</option><option value="3">x3</option><option value="2">x2</option><option value="1">x1</option></select></div></div><div className="table-wrap"><table><thead><tr><th>ID</th><th>Preview</th><th>File</th><th /></tr></thead><tbody>{icons.rows.map((row) => <tr key={row.id}><td>#{row.id}</td><td><img src={row.preview} alt={`icon ${row.id}`} style={{ width: 48, height: 48, objectFit: 'contain' }} /></td><td><code>data/icon/x4/{row.filename}</code></td><td><button className="btn sm" onClick={() => { setIconId(row.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Chỉnh sửa</button><button className="btn sm" onClick={() => remove('icons', row.id)}>Xóa</button></td></tr>)}</tbody></table></div><Pager page={iconPage} total={icons.total} onChange={setIconPage} /></div>
     </> : <>
       <form className="control-card section" onSubmit={saveImage}><h3>Thêm / chỉnh sửa img_by_name</h3><div className="form-grid"><label className="field">Tên ảnh<input value={imageName} onChange={(e) => setImageName(e.target.value)} placeholder="mount_1_0" required /></label><label className="field">Số frame<input type="number" min="1" max="255" value={nFrame} onChange={(e) => setNFrame(e.target.value)} required /></label><label className="field">Zoom nguồn<select value={sourceZoom} onChange={(e) => setSourceZoom(Number(e.target.value))}><option value="4">Ảnh x4</option><option value="3">Ảnh x3</option><option value="2">Ảnh x2</option><option value="1">Ảnh x1</option></select></label><label className="field">Ảnh PNG cần tải lên<input type="file" accept="image/png" onChange={(e) => setImageFile(e.target.files?.[0] || null)} required />{imageFile && <span className="muted">Đã chọn: {imageFile.name}</span>}</label></div><button className="btn primary" disabled={busy}>{busy ? 'Đang tải và resize...' : 'Tải ảnh lên & cập nhật database'}</button></form>
+      <form className="control-card section" onSubmit={saveImageFolder}><h3>Tải cả thư mục img_by_name</h3><p className="muted">Chọn thư mục chứa PNG; tên file trở thành <code>NAME</code>, ví dụ <code>mount_1_0.png</code>. Số frame và zoom nguồn áp dụng cho toàn bộ thư mục.</p><label className="field">Thư mục img_by_name<input type="file" accept="image/png" multiple webkitdirectory="" directory="" onChange={(e) => setImageFolderFiles(Array.from(e.target.files || []))} required />{imageFolderFiles.length > 0 && <span className="muted">Đã chọn {imageFolderFiles.length} file trong thư mục</span>}</label><button className="btn primary" disabled={busy}>{busy ? 'Đang tải cả thư mục...' : 'Tải thư mục img_by_name lên & đồng bộ'}</button></form>
       <div className="card section"><div className="section-head"><div><h3>Danh sách img_by_name</h3><p className="muted">{images.total} bản ghi trong database</p></div><input placeholder="Tìm theo tên ảnh..." value={imageSearch} onChange={(e) => { setImageSearch(e.target.value); setImagePage(1); }} /></div><div className="table-wrap"><table><thead><tr><th>ID</th><th>Tên</th><th>Frame</th><th>Preview</th><th /></tr></thead><tbody>{images.rows.map((row) => <tr key={row.id}><td>#{row.id}</td><td><code>{row.name}</code></td><td>{row.n_frame}</td><td><img src={row.preview} alt={row.name} style={{ width: 80, height: 48, objectFit: 'contain' }} /></td><td><button className="btn sm" onClick={() => { setImageName(row.name); setNFrame(row.n_frame); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Chỉnh sửa</button><button className="btn sm" onClick={() => remove('images-by-name', row.name)}>Xóa</button></td></tr>)}</tbody></table></div><Pager page={imagePage} total={images.total} onChange={setImagePage} /></div>
     </>}
   </div>;
