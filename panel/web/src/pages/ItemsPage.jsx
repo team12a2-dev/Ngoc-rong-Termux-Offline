@@ -26,6 +26,8 @@ export default function ItemsPage() {
   const [headAvatarRows, setHeadAvatarRows] = useState([]);
   const [options, setOptions] = useState([]);
   const [q, setQ] = useState('');
+  const [itemPage, setItemPage] = useState(1);
+  const itemPageSize = 50;
   const [meta, setMeta] = useState({ total: 0, nextId: 0 });
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -35,22 +37,22 @@ export default function ItemsPage() {
   const [quickAvatar, setQuickAvatar] = useState('');
   const fb = useFeedback();
 
-  async function load() {
-    const [itemsRes, optionsRes, partsRes, avatarsRes] = await Promise.all([
-      api(`/items?q=${encodeURIComponent(q)}&limit=10000&offset=0`),
-      api('/items/options'),
-      api('/items/parts'),
-      api('/items/head-avatars'),
-    ]);
+  async function load(page = itemPage) {
+    const itemsRes = await api(`/items?q=${encodeURIComponent(q)}&limit=${itemPageSize}&offset=${(page - 1) * itemPageSize}`);
     setRows(itemsRes.data?.rows || []);
-    setMeta({ total: itemsRes.data?.total || 0, nextId: itemsRes.data?.nextId || 0 });
-    setOptions(optionsRes.data || []);
-    setPartRows(partsRes.data?.rows || []);
-    setHeadAvatarRows(avatarsRes.data?.rows || []);
+    setMeta({ total: itemsRes.data?.total || 0, nextId: itemsRes.data?.nextId || 0, limit: itemPageSize });
   }
 
   useEffect(() => {
     load().catch((e) => fb.error(e.message));
+  }, [itemPage]);
+
+  useEffect(() => {
+    Promise.all([api('/items/options'), api('/items/parts'), api('/items/head-avatars')]).then(([optionsRes, partsRes, avatarsRes]) => {
+      setOptions(optionsRes.data || []);
+      setPartRows(partsRes.data?.rows || []);
+      setHeadAvatarRows(avatarsRes.data?.rows || []);
+    }).catch((e) => fb.error(e.message));
   }, []);
 
   function edit(row) {
@@ -129,6 +131,7 @@ export default function ItemsPage() {
   }
 
   const patch = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+  const totalItemPages = Math.max(1, Math.ceil(meta.total / itemPageSize));
 
   return (
     <div>
@@ -188,13 +191,21 @@ export default function ItemsPage() {
 
       <div className="card section">
         <div className="section-head">
-          <div><h3>Danh sách item_template</h3><p className="muted">{meta.total} item trong database · đang hiển thị toàn bộ danh sách</p></div>
-          <form className="row" onSubmit={(e) => { e.preventDefault(); load(); }}><input placeholder="Tìm ID hoặc tên..." value={q} onChange={(e) => setQ(e.target.value)} /><button className="btn" type="submit">Tìm</button></form>
+          <div><h3>Danh sách item_template</h3><p className="muted">{meta.total} item · trang {itemPage}/{totalItemPages} · {itemPageSize} item/trang</p></div>
+          <form className="row" onSubmit={(e) => { e.preventDefault(); setItemPage(1); load(1).catch((err) => fb.error(err.message)); }}><input placeholder="Tìm ID hoặc tên..." value={q} onChange={(e) => setQ(e.target.value)} /><button className="btn" type="submit">Tìm</button></form>
         </div>
         <div className="table-wrap">
           <table><thead><tr><th>ID</th><th>Icon</th><th>Tên</th><th>Type/Gender</th><th>Part</th><th>Level</th><th>Power</th><th /></tr></thead>
             <tbody>{rows.map((row) => <tr key={row.id}><td><code>#{row.id}</code></td><td><ItemIcon iconId={row.icon_id} tempId={row.id} name={row.NAME} size={40} /><small>#{row.icon_id}</small></td><td><strong>{row.NAME}</strong><small>{row.description}</small></td><td>{row.type} / {row.gender}</td><td>{row.part}</td><td>{row.level}</td><td>{Number(row.power_require || 0).toLocaleString('vi-VN')}</td><td><button className="btn sm" type="button" onClick={() => edit(row)}>Sửa</button></td></tr>)}</tbody>
           </table>
+        </div>
+        <div className="section-head" style={{ marginTop: 16 }}>
+          <span className="muted">Hiển thị {rows.length} / {meta.total} item</span>
+          <div className="row">
+            <button className="btn sm" type="button" disabled={itemPage <= 1} onClick={() => setItemPage((p) => Math.max(1, p - 1))}>Trang trước</button>
+            <span className="muted">{itemPage} / {totalItemPages}</span>
+            <button className="btn sm" type="button" disabled={itemPage >= totalItemPages} onClick={() => setItemPage((p) => Math.min(totalItemPages, p + 1))}>Trang sau</button>
+          </div>
         </div>
       </div>
       <div className="card section">
