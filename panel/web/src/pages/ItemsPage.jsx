@@ -22,6 +22,8 @@ function numberField(value, fallback = 0) {
 
 export default function ItemsPage() {
   const [rows, setRows] = useState([]);
+  const [partRows, setPartRows] = useState([]);
+  const [headAvatarRows, setHeadAvatarRows] = useState([]);
   const [options, setOptions] = useState([]);
   const [q, setQ] = useState('');
   const [meta, setMeta] = useState({ total: 0, nextId: 0 });
@@ -34,13 +36,17 @@ export default function ItemsPage() {
   const fb = useFeedback();
 
   async function load() {
-    const [itemsRes, optionsRes] = await Promise.all([
-      api(`/items?q=${encodeURIComponent(q)}&limit=100&offset=0`),
+    const [itemsRes, optionsRes, partsRes, avatarsRes] = await Promise.all([
+      api(`/items?q=${encodeURIComponent(q)}&limit=10000&offset=0`),
       api('/items/options'),
+      api('/items/parts'),
+      api('/items/head-avatars'),
     ]);
     setRows(itemsRes.data?.rows || []);
     setMeta({ total: itemsRes.data?.total || 0, nextId: itemsRes.data?.nextId || 0 });
     setOptions(optionsRes.data || []);
+    setPartRows(partsRes.data?.rows || []);
+    setHeadAvatarRows(avatarsRes.data?.rows || []);
   }
 
   useEffect(() => {
@@ -182,7 +188,7 @@ export default function ItemsPage() {
 
       <div className="card section">
         <div className="section-head">
-          <div><h3>Danh sách item_template</h3><p className="muted">{meta.total} item trong database · hiển thị tối đa 100 kết quả</p></div>
+          <div><h3>Danh sách item_template</h3><p className="muted">{meta.total} item trong database · đang hiển thị toàn bộ danh sách</p></div>
           <form className="row" onSubmit={(e) => { e.preventDefault(); load(); }}><input placeholder="Tìm ID hoặc tên..." value={q} onChange={(e) => setQ(e.target.value)} /><button className="btn" type="submit">Tìm</button></form>
         </div>
         <div className="table-wrap">
@@ -190,6 +196,18 @@ export default function ItemsPage() {
             <tbody>{rows.map((row) => <tr key={row.id}><td><code>#{row.id}</code></td><td><ItemIcon iconId={row.icon_id} tempId={row.id} name={row.NAME} size={40} /><small>#{row.icon_id}</small></td><td><strong>{row.NAME}</strong><small>{row.description}</small></td><td>{row.type} / {row.gender}</td><td>{row.part}</td><td>{row.level}</td><td>{Number(row.power_require || 0).toLocaleString('vi-VN')}</td><td><button className="btn sm" type="button" onClick={() => edit(row)}>Sửa</button></td></tr>)}</tbody>
           </table>
         </div>
+      </div>
+      <div className="card section">
+        <div className="section-head"><div><h3>Danh sách part</h3><p className="muted">{partRows.length} bản ghi từ bảng <code>part</code></p></div></div>
+        <div className="table-wrap"><table><thead><tr><th>ID</th><th>Type</th><th>Data</th></tr></thead><tbody>
+          {partRows.map((row, index) => <tr key={`${row.id}-${row.type}-${index}`}><td><code>#{row.id}</code></td><td>{row.type}</td><td><code className="wrap-code">{row.data}</code></td></tr>)}
+        </tbody></table></div>
+      </div>
+      <div className="card section">
+        <div className="section-head"><div><h3>Danh sách head_avatar</h3><p className="muted">{headAvatarRows.length} bản ghi từ bảng <code>head_avatar</code></p></div></div>
+        <div className="table-wrap"><table><thead><tr><th>Head ID</th><th>Avatar ID</th></tr></thead><tbody>
+          {headAvatarRows.map((row) => <tr key={row.head_id}><td><code>#{row.head_id}</code></td><td>{row.avatar_id}</td></tr>)}
+        </tbody></table></div>
       </div>
     </div>
   );

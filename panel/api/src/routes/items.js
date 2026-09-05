@@ -131,7 +131,7 @@ async function reloadOrReportDatabaseSaved({ req, res, sid, item, action, status
 
 router.get('/', requirePermission('giftcode.manage'), async (req, res) => {
   const q = String(req.query.q || '').trim();
-  const limit = Math.min(Math.max(Number(req.query.limit || 100), 1), 500);
+  const limit = Math.min(Math.max(Number(req.query.limit || 5000), 1), 10000);
   const offset = Math.max(Number(req.query.offset || 0), 0);
   try {
     const like = `%${q}%`;
@@ -156,6 +156,24 @@ router.get('/options', requirePermission('giftcode.manage'), async (_req, res) =
   try {
     const rows = await query('SELECT id, NAME AS name FROM item_option_template ORDER BY id');
     res.json({ ok: true, data: rows });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.get('/parts', requirePermission('giftcode.manage'), async (_req, res) => {
+  try {
+    const rows = await query('SELECT id, TYPE AS type, DATA AS data FROM part ORDER BY id, TYPE');
+    res.json({ ok: true, data: { rows, total: rows.length } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.get('/head-avatars', requirePermission('giftcode.manage'), async (_req, res) => {
+  try {
+    const rows = await query('SELECT head_id, avatar_id FROM head_avatar ORDER BY head_id');
+    res.json({ ok: true, data: { rows, total: rows.length } });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
