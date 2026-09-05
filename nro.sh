@@ -453,7 +453,8 @@ ensure_panel_admin_password() {
 panel_api_dependencies_ready() {
   [ -d "$PANEL_API_ROOT/node_modules/mysql2" ] \
     && [ -d "$PANEL_API_ROOT/node_modules/express" ] \
-    && [ -d "$PANEL_API_ROOT/node_modules/ws" ]
+    && [ -d "$PANEL_API_ROOT/node_modules/ws" ] \
+    && [ -d "$PANEL_API_ROOT/node_modules/pngjs" ]
 }
 panel_web_dependencies_ready() {
   [ -x "$PANEL_WEB_ROOT/node_modules/.bin/vite" ] \

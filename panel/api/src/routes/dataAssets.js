@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
-import sharp from 'sharp';
 import { authMiddleware, requirePermission } from '../middleware/auth.js';
 import { exec, query } from '../db.js';
 import { getGameDataPath } from '../services/gameAssets.js';
@@ -11,6 +10,13 @@ const router = Router();
 router.use(authMiddleware, requirePermission('giftcode.manage'));
 const ZOOMS = [4, 3, 2, 1];
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+let pngPromise;
+async function getPng() {
+  pngPromise ||= import('pngjs').then((module) => module.PNG || module.default?.PNG).catch(() => {
+    throw new Error('Thiếu dependency pngjs. Hãy chạy npm install trong panel/api rồi khởi động lại panel.');
+  });
+  return pngPromise;
+}
 
 function zoomOf(value) {
   const zoom = Number(value || 4);
@@ -35,12 +41,30 @@ async function ensureDirs(kind) {
 }
 async function writeAllZooms(kind, filename, bytes, sourceZoom = 4) {
   await ensureDirs(kind);
-  const metadata = await sharp(bytes).metadata();
-  if (!metadata.width || !metadata.height) throw new Error('Không đọc được kích thước PNG');
+  const PNG = await getPng();
+  let source;
+  try { source = PNG.sync.read(bytes); } catch { throw new Error('Không đọc được PNG hợp lệ'); }
+  if (!source.width || !source.height) throw new Error('Không đọc được kích thước PNG');
   await Promise.all(ZOOMS.map(async (zoom) => {
-    const width = Math.max(1, Math.round(metadata.width * zoom / sourceZoom));
-    const height = Math.max(1, Math.round(metadata.height * zoom / sourceZoom));
-    const output = zoom === sourceZoom ? bytes : await sharp(bytes).resize(width, height, { fit: 'fill' }).png().toBuffer();
+    const width = Math.max(1, Math.round(source.width * zoom / sourceZoom));
+    const height = Math.max(1, Math.round(source.height * zoom / sourceZoom));
+    let output = bytes;
+    if (zoom !== sourceZoom) {
+      const target = new PNG({ width, height });
+      for (let y = 0; y < height; y += 1) {
+        const sourceY = Math.min(source.height - 1, Math.floor(y * source.height / height));
+        for (let x = 0; x < width; x += 1) {
+          const sourceX = Math.min(source.width - 1, Math.floor(x * source.width / width));
+          const sourceIndex = (sourceY * source.width + sourceX) * 4;
+          const targetIndex = (y * width + x) * 4;
+          target.data[targetIndex] = source.data[sourceIndex];
+          target.data[targetIndex + 1] = source.data[sourceIndex + 1];
+          target.data[targetIndex + 2] = source.data[sourceIndex + 2];
+          target.data[targetIndex + 3] = source.data[sourceIndex + 3];
+        }
+      }
+      output = PNG.sync.write(target);
+    }
     await fs.writeFile(path.join(getGameDataPath(), kind, `x${zoom}`, filename), output);
   }));
 }
