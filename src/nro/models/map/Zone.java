@@ -326,6 +326,8 @@ public class Zone {
                                     player.sendMessage(msg);
                                     Service.gI().sendToAntherMePickItem(player, itemMapId);
                                     PlayerService.gI().sendInfoHpMpMoney(player);
+                                } catch (Exception e) {
+                                    Logger.logException(Zone.class, e);
                                 } finally {
                                     if (msg != null) {
                                         msg.cleanup();
