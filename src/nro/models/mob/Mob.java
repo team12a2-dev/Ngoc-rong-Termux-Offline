@@ -37,6 +37,10 @@ import nro.models.utils.TimeUtil;
 
 public class Mob {
 
+    // Trung bình 1 phần thưởng tiền tệ trên 100 quái; hồng ngọc chiếm 20%.
+    private static final int CURRENCY_DROP_RATE = 100;
+    private static final int RUBY_DROP_RATE = 20;
+
     public int id;
     public Zone zone;
     public int tempId;
@@ -713,6 +717,23 @@ if (player.zone.map.mapId == 100 && Util.isTrue(1, 30)) {
   if (MapService.gI().AllMap(mapid)) {
 
         player.monsterKillCountAutoTrain++;
+
+        // Rơi trực tiếp trên mặt đất, không chiếm ô hành trang khi nhặt.
+        // Không áp dụng cho boss (được xử lý ở hệ thống boss riêng).
+        boolean normalMap = !MapService.gI().isMapPhoBan(mapid)
+                && !MapService.gI().isMapOffline(mapid)
+                && !MapService.gI().isMapMaBu(mapid)
+                && !MapService.gI().isMapMabu2H(mapid)
+                && !MapService.gI().isMapBlackBallWar(mapid);
+        if (normalMap && Util.isTrue(1, CURRENCY_DROP_RATE)) {
+            boolean ruby = Util.isTrue(RUBY_DROP_RATE, 100);
+            long ownerId = player.isPet && ((Pet) player).master != null
+                    ? ((Pet) player).master.id : player.id;
+            int displayItemId = ruby ? 222 : 77;
+            byte currencyType = ruby ? (byte) 2 : (byte) 1;
+            list.add(new ItemMap(zone, displayItemId, 1, x, yEnd, ownerId)
+                    .asCurrency(currencyType, 1));
+        }
 
         int rate220 = 0;
         int rateNgoc = 0;

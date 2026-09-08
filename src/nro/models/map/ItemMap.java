@@ -31,6 +31,9 @@ public class ItemMap {
     public boolean isBlackBall;
     public boolean isNamecBall;
     public boolean isPickedUp;
+    /** 0: vật phẩm thường, 1: ngọc xanh, 2: hồng ngọc. */
+    public byte currencyType;
+    public int currencyAmount;
     public String id;
 
     public ItemMap(Zone zone, int tempId, int quantity, int x, int y, long playerId) {
@@ -71,6 +74,12 @@ public class ItemMap {
         this.zone.addItem(this);
     }
 
+    public ItemMap asCurrency(byte currencyType, int currencyAmount) {
+        this.currencyType = currencyType;
+        this.currencyAmount = currencyAmount;
+        return this;
+    }
+
     public ItemMap(ItemMap itemMap) {
         this.zone = itemMap.zone;
         this.itemMapId = itemMap.itemMapId;
@@ -82,6 +91,8 @@ public class ItemMap {
         this.options = itemMap.options;
         this.isBlackBall = itemMap.isBlackBall;
         this.isNamecBall = itemMap.isNamecBall;
+        this.currencyType = itemMap.currencyType;
+        this.currencyAmount = itemMap.currencyAmount;
         this.lastTimeMoveToPlayer = itemMap.lastTimeMoveToPlayer;
         this.createTime = System.currentTimeMillis();
         this.zone.addItem(this);

@@ -307,6 +307,33 @@ public class Zone {
                         }
                         int playerId = Math.abs(itemMap.playerId > 100000000 ? 1000000000 - (int) itemMap.playerId : (int) itemMap.playerId);
                         if (playerId == player.id || itemMap.playerId == player.id || itemMap.playerId == -1) {
+                            if (itemMap.currencyType != 0 && itemMap.currencyAmount > 0) {
+                                if (itemMap.currencyType == 1) {
+                                    player.inventory.gem += itemMap.currencyAmount;
+                                } else if (itemMap.currencyType == 2) {
+                                    player.inventory.ruby += itemMap.currencyAmount;
+                                } else {
+                                    return;
+                                }
+                                itemMap.isPickedUp = true;
+                                Message msg = null;
+                                try {
+                                    msg = new Message(-20);
+                                    msg.writer().writeShort(itemMapId);
+                                    msg.writer().writeUTF("Bạn nhận được " + itemMap.currencyAmount
+                                            + (itemMap.currencyType == 1 ? " ngọc." : " hồng ngọc."));
+                                    msg.writer().writeShort(itemMap.currencyAmount);
+                                    player.sendMessage(msg);
+                                    Service.gI().sendToAntherMePickItem(player, itemMapId);
+                                    PlayerService.gI().sendInfoHpMpMoney(player);
+                                } finally {
+                                    if (msg != null) {
+                                        msg.cleanup();
+                                    }
+                                }
+                                removeItemMap(itemMap);
+                                return;
+                            }
                             Item item = ItemService.gI().createItemFromItemMap(itemMap);
                             boolean picked = false; // Variable to track if the item was successfully picked
                             if (item.template.id == 648) {
