@@ -55,10 +55,10 @@ public class AchievementService {
         if (InventoryService.gI().getCountEmptyBag(player) > 0) {
             int money = Manager.ACHIEVEMENT_TEMPLATE.get(select).money;
             player.achievement.reward(select);
-            player.inventory.gem += money;
+            player.inventory.ruby += money;
             InventoryService.gI().sendItemBags(player);
             Service.gI().sendMoney(player);
-            Service.gI().sendThongBao(player, "Bạn vừa nhận được " + money + " ngọc.");
+            Service.gI().sendThongBao(player, "Bạn vừa nhận được " + money + " hồng ngọc.");
         } else {
             Service.gI().sendThongBao(player, "Cần tối thiểu 1 ô trống hành trang để nhận thưởng");
             return;
