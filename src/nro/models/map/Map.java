@@ -21,6 +21,7 @@ import nro.models.npc.NpcFactory;
 import nro.models.player.Player;
 import nro.models.server.Manager;
 import nro.models.services.Service;
+import nro.models.map.service.MapService;
 import nro.models.utils.Functions;
 import nro.models.utils.Util;
 import java.util.ArrayList;
@@ -179,7 +180,9 @@ public class Map implements Runnable {
                     && (templateId == ConstNpc.HUNG_VUONG || templateId == ConstNpc.NOI_BANH);
             boolean phoAnhHaiDisabled = !EventManager.gI().isPhoAnhHaiRuntimeEnabled()
                     && templateId == ConstNpc.PHO_ANH_HAI;
-            if (hungVuongDisabled || phoAnhHaiDisabled) {
+            boolean boMongDisabledAtHome = templateId == ConstNpc.BO_MONG
+                    && MapService.gI().isHome(this.mapId);
+            if (hungVuongDisabled || phoAnhHaiDisabled || boMongDisabledAtHome) {
                 continue;
             }
             Npc npc = NpcFactory.createNPC(this.mapId, 1, npcX[i], npcY[i], npcId[i]);
