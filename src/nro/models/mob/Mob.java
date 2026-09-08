@@ -38,8 +38,8 @@ import nro.models.utils.TimeUtil;
 public class Mob {
 
     // Trung bình 1 phần thưởng tiền tệ trên 100 quái; hồng ngọc chiếm 20%.
-    private static final int CURRENCY_DROP_RATE = 100;
-    private static final int RUBY_DROP_RATE = 20;
+    private static final int CURRENCY_DROP_RATE = 50;
+    private static final int RUBY_DROP_RATE = 50;
 
     public int id;
     public Zone zone;
