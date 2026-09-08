@@ -127,6 +127,10 @@ public class ChangeMapService {
             Service.gI().sendThongBao(pl, MapService.MSG_KARIN_NO_ZONE_CHANGE);
             return;
         }
+        if (MapService.gI().isHome(pl.zone.map.mapId)) {
+            Service.gI().sendThongBao(pl, MapService.MSG_KARIN_NO_ZONE_CHANGE);
+            return;
+        }
         if (MapService.gI().isMapKhiGasHuyDiet(pl.zone.map.mapId)) {
             Service.gI().sendThongBaoOK(pl, "Không thể đổi khu vực trong map Khí Gas Hủy Diệt");
             return;
@@ -185,6 +189,10 @@ public class ChangeMapService {
             return;
         }
         if (MapService.gI().isMapKarinNoZoneChange(pl.zone.map.mapId)) {
+            Service.gI().sendThongBao(pl, MapService.MSG_KARIN_NO_ZONE_CHANGE);
+            return;
+        }
+        if (MapService.gI().isHome(pl.zone.map.mapId)) {
             Service.gI().sendThongBao(pl, MapService.MSG_KARIN_NO_ZONE_CHANGE);
             return;
         }
