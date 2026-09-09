@@ -313,6 +313,7 @@ public class BaHatMit extends Npc {
                             select++;
                         }
                         boolean hasBt1or2 = InventoryService.gI().findItem(player, 454) || InventoryService.gI().findItem(player, 921);
+                        boolean hasBt2 = InventoryService.gI().findItemBongTaiCap2(player) || InventoryService.gI().findItem(player, 921);
                         boolean hasBt3 = InventoryService.gI().findItem(player, 1819);
                         if (!(hasBt1or2 || hasBt3)) {
                             if (select >= 4) {
@@ -349,8 +350,6 @@ public class BaHatMit extends Npc {
                                 CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_VAT_PHAM);
                                 break;
                             case 4: {
-                                boolean hasBt3 = InventoryService.gI().findItem(player, 1819);
-                                boolean hasBt2 = InventoryService.gI().findItemBongTaiCap2(player) || InventoryService.gI().findItem(player, 921);
                                 if (hasBt3) {
                                     CombineService.gI().openTabCombine(player, CombineService.NANG_CHI_SO_BONG_TAI3);
                                 } else if (hasBt2) {
