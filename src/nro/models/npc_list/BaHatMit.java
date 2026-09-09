@@ -101,23 +101,9 @@ public class BaHatMit extends Npc {
                             "Nhập\nNgọc Rồng"
                     ));
 
-                    // Nếu có BT1/2 thì chèn mục BT2 đúng slot (để mapping select giữ nguyên)
-                    if (hasBt1or2) {
-                        menu = new ArrayList<>(Arrays.asList(
-                                "Sách\nTuyệt Kỹ",
-                                "Cửa hàng\nBùa",
-                                "Nâng cấp\nVật phẩm",
-                                hasBt2 ? "Mở chỉ số\nBông tai\nPorata cấp\n2" : "Nâng cấp\nBông tai\nPorata",
-                                "Làm phép\nNhập đá",
-                                "Nhập\nNgọc Rồng"
-                        ));
-                    }
-
-                    // Thêm mục BT3 ở CUỐI danh sách (case 7 trong handler)
-                    if (hasBt2 || hasBt3) {
-                        menu.add(hasBt3
-                                ? "Mở chỉ số\nBông tai\nPorata cấp\n3"
-                                : "Nâng cấp\nBông tai\nPorata cấp\n3");
+                    // Nếu có BT1/2/BT3 thì chèn mục "Nâng cấp bông tai" sau "Nâng cấp vật phẩm"
+                    if (hasBt1or2 || hasBt3) {
+                        menu.add(3, "Nâng cấp\nBông tai");
                     }
 
                     // Thêm thưởng bùa nếu còn lượt hôm nay (đặt lên đầu để case 0 vẫn là thưởng bùa)
@@ -326,8 +312,10 @@ public class BaHatMit extends Npc {
                         if (!DailyGiftService.checkDailyGift(player, ConstDailyGift.NHAN_BUA_MIEN_PHI)) {
                             select++;
                         }
-                        if (!InventoryService.gI().findItem(player, 454) && !InventoryService.gI().findItem(player, 921)) {
-                            if (select >= 3) {
+                        boolean hasBt1or2 = InventoryService.gI().findItem(player, 454) || InventoryService.gI().findItem(player, 921);
+                        boolean hasBt3 = InventoryService.gI().findItem(player, 1819);
+                        if (!(hasBt1or2 || hasBt3)) {
+                            if (select >= 4) {
                                 select++;
                             }
                         }
@@ -360,36 +348,26 @@ public class BaHatMit extends Npc {
                             case 3:
                                 CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_VAT_PHAM);
                                 break;
-                            case 4:
-                                if (InventoryService.gI().findItemBongTaiCap2(player)) {
-                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CHI_SO_BONG_TAI);
+                            case 4: {
+                                boolean hasBt3 = InventoryService.gI().findItem(player, 1819);
+                                boolean hasBt2 = InventoryService.gI().findItemBongTaiCap2(player) || InventoryService.gI().findItem(player, 921);
+                                if (hasBt3) {
+                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CHI_SO_BONG_TAI3);
+                                } else if (hasBt2) {
+                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_BONG_TAI3);
                                 } else {
                                     CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_BONG_TAI);
                                 }
                                 break;
+                            }
                             case 5:
                                 CombineService.gI().openTabCombine(player, CombineService.LAM_PHEP_NHAP_DA);
                                 break;
                             case 6:
                                 CombineService.gI().openTabCombine(player, CombineService.NHAP_NGOC_RONG);
                                 break;
-                            case 7: {
-                                boolean hasBt3 = InventoryService.gI().findItem(player, 1819);
-                                boolean hasBt2 = InventoryService.gI().findItemBongTaiCap2(player) || InventoryService.gI().findItem(player, 921);
-                                if (hasBt3) {
-                                    // Mở tab "Mở chỉ số BT3"
-                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CHI_SO_BONG_TAI3);
-                                } else if (hasBt2) {
-                                    // Mở tab "Nâng cấp lên BT3"
-                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_BONG_TAI3);
-                                } else {
-                                    Service.gI().sendThongBao(player, "Cần có Bông tai Porata cấp 2 hoặc 3.");
-                                }
-                                break;
-                            }
-                       }
-                    
-                     } else if
+                        }
+                    } else if
                       (player.idMark.getIndexMenu() == ConstNpc.MENU_SACH_TUYET_KY) {
                         switch (select) {
                             // case 0:
