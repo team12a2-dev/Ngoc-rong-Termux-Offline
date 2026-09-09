@@ -431,10 +431,12 @@ public final class BossSpawnSchedule {
         return id == BossID.BROLY || id == BossID.SUPER_BROLY;
     }
 
-    private static boolean isHourAllowed(Boss boss, int hour, BossSpawnTier tier, boolean weekend) {
+private static boolean isHourAllowed(Boss boss, int hour, BossSpawnTier tier, boolean weekend) {
 
-        if ((int) boss.id == BossID.BROLY) {
-            return BossSpawnConfig.brolyWindowsFor(weekend).contains(hour);
+        // Broly/Super Broly luôn xuất hiện không cố định thời gian
+        int id = (int) boss.id;
+        if (id == BossID.BROLY || id == BossID.SUPER_BROLY) {
+            return true;
         }
         if (BossSpawnConfig.windowsFor(tier, weekend).contains(hour)) {
             return true;

@@ -415,9 +415,7 @@ public final class BossSpawnConfig {
             return superBrolyMaxConcurrent;
         }
         int players = onlinePlayerCount();
-        if (players < superBrolyMinPlayers) {
-            return 0;
-        }
+        // Không giới hạn tối thiểu player để luôn spawn được Super Broly
         int dynamicLimit = Math.max(1, (players + superBrolyPlayersPerBoss - 1) / superBrolyPlayersPerBoss);
         return Math.min(superBrolyMaxConcurrent, dynamicLimit);
     }
@@ -440,10 +438,8 @@ public final class BossSpawnConfig {
     }
 
     /** Khung Broly/Super Broly chính xác theo phút: từ 10:00 đến trước 05:00 hôm sau. */
-    public static boolean isBrolyFamilyWindow(ZonedDateTime moment) {
-        if (moment == null) return false;
-        LocalTime time = moment.withZoneSameInstant(java.time.ZoneId.of("Asia/Ho_Chi_Minh")).toLocalTime();
-        return !time.isBefore(LocalTime.of(10, 0)) || time.isBefore(LocalTime.of(5, 0));
+public static boolean isBrolyFamilyWindow(ZonedDateTime moment) {
+        return true; // Luôn cho phép Broly/Super Broly xuất hiện
     }
 
     public static int jitterMin(BossSpawnTier tier) {
