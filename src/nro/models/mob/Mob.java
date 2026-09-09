@@ -569,20 +569,26 @@ public class Mob {
     /**
      * Thử spawn siêu quái khi kill quái thường.
      * Chỉ áp dụng map thường, quái tempId 1-69, không boss.
+     * Siêu quái được scale theo chỉ số người chơi: HP = 2x HP player, Dame = 2x Dame player
      */
     private void trySpawnEliteOnKill(Player killer) {
-        if (killer == null || killer.zone == null) return;
+        if (killer == null || killer.zone == null || killer.nPoint == null) return;
         if (!MapService.gI().AllMap(killer.zone.map.mapId)) return;
 
-        int baseHp = this.point.maxHp;
+        // Xác định tier dựa trên sức mạnh player
+        // Tier 1: HP player < 30K, Dame < 3K
+        // Tier 2: HP player 30K-100K, Dame 3K-10K
+        // Tier 3: HP player > 100K, Dame > 10K
         int eliteTier = 0;
+        int playerHp = killer.nPoint.hpMax;
+        int playerDame = killer.nPoint.getDameAttack(false);
 
-        if (baseHp >= ELITE_HP_TIER_3 && Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_3)) {
-            eliteTier = 3;
-        } else if (baseHp >= ELITE_HP_TIER_2 && Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_2)) {
-            eliteTier = 2;
-        } else if (baseHp >= ELITE_HP_TIER_1 && Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_1)) {
-            eliteTier = 1;
+        if (playerHp >= 100000 || playerDame >= 10000) {
+            if (Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_3)) eliteTier = 3;
+        } else if (playerHp >= 30000 || playerDame >= 3000) {
+            if (Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_2)) eliteTier = 2;
+        } else if (playerHp >= 5000 || playerDame >= 1000) {
+            if (Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_1)) eliteTier = 1;
         }
 
         if (eliteTier > 0) {
@@ -592,6 +598,7 @@ public class Mob {
 
     /**
      * Tạo siêu quái mới tại vị trí chỉ định.
+     * Scale theo chỉ số player: HP = 2x HP player, Dame = 2x Dame player
      */
     private void spawnEliteMob(Zone zone, int tempId, int tier, int x, int y, Player killer) {
         try {
@@ -606,20 +613,23 @@ public class Mob {
             Mob eliteMob = new Mob();
             eliteMob.tempId = tempId;
             eliteMob.zone = zone;
-            eliteMob.level = (byte) (this.level + tier * 2); // Level cao hơn
+            eliteMob.level = (byte) (this.level + tier * 2);
             eliteMob.location.x = x;
             eliteMob.location.y = y;
             eliteMob.lvMob = tier;
             eliteMob.status = 5;
             eliteMob.type = 1;
 
-            // HP đã được scale trong lvMob() -> gọi lại để set HP
-            var template = Manager.getMobTemplateByTemp(tempId);
-            int baseHp = template != null ? template.hp : 3000;
-            // Damage tự tính từ HP trong MobPoint.getDameAttack() nếu dame = 0
-            eliteMob.point.maxHp = Math.min(baseHp * ELITE_HP_MULT[tier], 2000000000);
+            // Scale theo player: HP = 2x HP max, Dame = 2x Dame player
+            int eliteHp = killer.nPoint.hpMax * 2;
+            int eliteDame = killer.nPoint.getDameAttack(false) * 2;
+
+            // Cap an toàn
+            eliteMob.point.maxHp = Math.min(eliteHp, 2000000000);
             eliteMob.point.hp = eliteMob.point.maxHp;
-            eliteMob.point.dame = 0; // Tự động tính từ HP và level
+            eliteMob.point.dame = Math.min(eliteDame, 200000000);
+            
+            var template = Manager.getMobTemplateByTemp(tempId);
             eliteMob.name = template != null ? template.name : "Siêu Quái";
             eliteMob.setTiemNang();
 
@@ -628,7 +638,7 @@ public class Mob {
 
             // Thông báo toàn zone
             String tierName = getEliteTierName(tier);
-            String msg = "⚡ " + tierName + " " + eliteMob.name + " đã xuất hiện từ xác quái thường!";
+            String msg = "⚡ " + tierName + " " + eliteMob.name + " đã xuất hiện từ xác quái thường! (HP: " + eliteMob.point.maxHp + ", Dame: " + eliteMob.point.dame + ")";
             for (Player pl : zone.players) {
                 if (pl != null) Service.gI().sendThongBao(pl, msg);
             }
