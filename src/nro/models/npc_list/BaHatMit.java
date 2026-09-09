@@ -355,7 +355,7 @@ public class BaHatMit extends Npc {
                                 break;
                             case 2:
                                 createOtherMenu(player, ConstNpc.MENU_OPTION_SHOP_BUA, "Bùa của ta rất lợi hại, nhìn ngươi yếu đuối thế này, chắc muốn mua bùa để " + "mạnh mẽ à, mua không ta bán cho, xài rồi lại thích cho mà xem.",
-                                        "Bùa\n1 giờ", "Bùa\n8 giờ", "Bùa\n1 tháng", "Đóng");
+                                        "Bùa Dùng\n1 giờ", "Bùa Dùng\n8 giờ", "Bùa Dùng\n1 tháng", "Đóng");
                                 break;
                             case 3:
                                 CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_VAT_PHAM);
