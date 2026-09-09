@@ -17,6 +17,7 @@ import nro.models.player.Pet;
 import nro.models.player.Player;
 import nro.models.network.Message;
 import java.io.IOException;
+import nro.models.server.Manager;
 import nro.models.server.Maintenance;
 import nro.models.utils.Util;
 import java.util.ArrayList;
@@ -40,6 +41,32 @@ public class Mob {
     // Trung bình 1 phần thưởng tiền tệ trên 100 quái; hồng ngọc chiếm 20%.
     private static final int CURRENCY_DROP_RATE = 50;
     private static final int RUBY_DROP_RATE = 50;
+
+    // ===== SIÊU QUÁI (ELITE MOB) CONFIG =====
+    // Phân cấp theo HP cơ sở: Cấp 1 (≥3K), Cấp 2 (≥10K), Cấp 3 (≥50K)
+    private static final int ELITE_HP_TIER_1 = 3000;
+    private static final int ELITE_HP_TIER_2 = 10000;
+    private static final int ELITE_HP_TIER_3 = 50000;
+
+    // Tỷ lệ spawn tự nhiên (cao hơn mặc định 0.01%)
+    private static final int ELITE_NATURAL_RATE_TIER_1 = 500;   // 0.2% (1/500)
+    private static final int ELITE_NATURAL_RATE_TIER_2 = 1000;  // 0.1% (1/1000)
+    private static final int ELITE_NATURAL_RATE_TIER_3 = 2000;  // 0.05% (1/2000)
+
+    // Tỷ lệ xuất hiện khi kill quái thường
+    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_1 = 50;   // 2% (1/50)
+    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_2 = 100;  // 1% (1/100)
+    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_3 = 200;  // 0.5% (1/200)
+
+    // Hệ số HP cho từng cấp
+    private static final int[] ELITE_HP_MULT = {1, 10, 20, 50};
+
+    // Giới hạn siêu quái/zone
+    private static final int MAX_ELITE_PER_ZONE = 3;
+
+    // Bonus TN/SM và vàng khi đánh/nhận đánh siêu quái
+    private static final double ELITE_TNSM_BONUS_MULT = 2.0;    // x2 TN/SM
+    private static final double ELITE_GOLD_BONUS_MULT = 3.0;    // x3 vàng
 
     public int id;
     public Zone zone;
@@ -178,6 +205,10 @@ public class Mob {
                     TaskService.gI().checkDoneSideTaskKillMob(plAtt, this);
                     TaskService.gI().checkDoneClanTaskKillMob(plAtt, this);
                     AchievementService.gI().checkDoneTaskKillMob(plAtt, this);
+                    // Thử spawn siêu quái khi kill quái thường (không phải siêu quái, không phải boss)
+                    if (this.lvMob == 0 && !isBigBoss()) {
+                        trySpawnEliteOnKill(plAtt);
+                    }
                 }
                 if (this.id == 13) {
                     this.zone.isbulon1Alive = false;
@@ -194,6 +225,10 @@ public class Mob {
                 }
                 if (this.tempId != ConstMob.MAY_DO_SUC_MANH) {
                     long tiemNang = getTiemNangForPlayer(plAtt, damage);
+                    // Bonus TN/SM khi đánh siêu quái
+                    if (this.lvMob > 0) {
+                        tiemNang = (long) (tiemNang * ELITE_TNSM_BONUS_MULT * this.lvMob);
+                    }
                     Service.gI().addSMTN(plAtt, (byte) 2, tiemNang, true);
                     TrainingService.gI().tangTnsmLuyenTap(plAtt, tiemNang);
                 }
@@ -436,6 +471,21 @@ public class Mob {
         }
 
         int dame = player.injured(null, dameMob, false, true);
+        
+        // Bonus TN/SM và vàng khi nhận sát thương từ siêu quái
+        if (this.lvMob > 0 && player.isPl()) {
+            long tiemNang = (long) (dameMob * ELITE_TNSM_BONUS_MULT * this.lvMob / 10);
+            Service.gI().addSMTN(player, (byte) 2, tiemNang, true);
+            TrainingService.gI().tangTnsmLuyenTap(player, tiemNang);
+            
+            // Rơi vàng ngay tại chân player
+            int goldBonus = (int) (dameMob * ELITE_GOLD_BONUS_MULT * this.lvMob / 100);
+            if (goldBonus > 0) {
+                ItemMap goldItem = new ItemMap(this.zone, getGoldItemId(goldBonus), goldBonus, player.location.x, player.location.y, player.id);
+                this.zone.addItem(goldItem);
+            }
+        }
+        
         this.sendMobAttackMe(player, dame);
         this.sendMobAttackPlayer(player);
         this.phanSatThuong(player, dame);
@@ -477,14 +527,126 @@ public class Mob {
     }
 
     public int lvMob() {
+        // Giới hạn tối đa 3 siêu quái/zone
+        int eliteCount = 0;
         for (Mob mobMap : this.zone.mobs) {
             if (mobMap.lvMob > 0) {
-                return 0;
+                eliteCount++;
             }
         }
-        this.lvMob = this.tempId > 12 && this.tempId < 34 && !isBigBoss() ? Util.isTrue(0, 10000) ? 1 : 0 : 0;
-        this.point.hp = this.lvMob > 0 ? this.point.maxHp <= 20000000 ? this.point.maxHp * 10 : 2000000000 : this.point.maxHp;
+        if (eliteCount >= MAX_ELITE_PER_ZONE) {
+            return 0;
+        }
+
+        // Chỉ áp dụng cho map thường, không phó bản
+        int mapid = this.zone.map.mapId;
+        if (!MapService.gI().AllMap(mapid)) {
+            return 0;
+        }
+
+        int baseHp = this.point.maxHp;
+        int eliteTier = 0;
+
+        // Xác định cấp siêu quái theo HP cơ sở với tỷ lệ cao hơn
+        if (baseHp >= ELITE_HP_TIER_3 && Util.isTrue(0, ELITE_NATURAL_RATE_TIER_3)) {
+            eliteTier = 3;
+        } else if (baseHp >= ELITE_HP_TIER_2 && Util.isTrue(0, ELITE_NATURAL_RATE_TIER_2)) {
+            eliteTier = 2;
+        } else if (baseHp >= ELITE_HP_TIER_1 && Util.isTrue(0, ELITE_NATURAL_RATE_TIER_1)) {
+            eliteTier = 1;
+        }
+
+        this.lvMob = eliteTier;
+
+        if (eliteTier > 0) {
+            // HP = HP cơ sở * hệ số (x10, x20, x50), cap 2 tỷ
+            this.point.hp = Math.min(this.point.maxHp * ELITE_HP_MULT[eliteTier], 2000000000);
+            this.point.maxHp = this.point.hp;
+        }
         return this.lvMob;
+    }
+
+    /**
+     * Thử spawn siêu quái khi kill quái thường.
+     * Chỉ áp dụng map thường, quái tempId 1-69, không boss.
+     */
+    private void trySpawnEliteOnKill(Player killer) {
+        if (killer == null || killer.zone == null) return;
+        if (!MapService.gI().AllMap(killer.zone.map.mapId)) return;
+
+        int baseHp = this.point.maxHp;
+        int eliteTier = 0;
+
+        if (baseHp >= ELITE_HP_TIER_3 && Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_3)) {
+            eliteTier = 3;
+        } else if (baseHp >= ELITE_HP_TIER_2 && Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_2)) {
+            eliteTier = 2;
+        } else if (baseHp >= ELITE_HP_TIER_1 && Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_1)) {
+            eliteTier = 1;
+        }
+
+        if (eliteTier > 0) {
+            spawnEliteMob(killer.zone, this.tempId, eliteTier, this.location.x, this.location.y, killer);
+        }
+    }
+
+    /**
+     * Tạo siêu quái mới tại vị trí chỉ định.
+     */
+    private void spawnEliteMob(Zone zone, int tempId, int tier, int x, int y, Player killer) {
+        try {
+            // Kiểm tra lại giới hạn
+            int eliteCount = 0;
+            for (Mob m : zone.mobs) {
+                if (m.lvMob > 0) eliteCount++;
+            }
+            if (eliteCount >= MAX_ELITE_PER_ZONE) return;
+
+            // Tạo mob mới từ template
+            Mob eliteMob = new Mob();
+            eliteMob.tempId = tempId;
+            eliteMob.zone = zone;
+            eliteMob.level = (byte) (this.level + tier * 2); // Level cao hơn
+            eliteMob.location.x = x;
+            eliteMob.location.y = y;
+            eliteMob.lvMob = tier;
+            eliteMob.status = 5;
+            eliteMob.type = 1;
+
+            // HP đã được scale trong lvMob() -> gọi lại để set HP
+            var template = Manager.getMobTemplateByTemp(tempId);
+            int baseHp = template != null ? template.hp : 3000;
+            // Damage tự tính từ HP trong MobPoint.getDameAttack() nếu dame = 0
+            eliteMob.point.maxHp = Math.min(baseHp * ELITE_HP_MULT[tier], 2000000000);
+            eliteMob.point.hp = eliteMob.point.maxHp;
+            eliteMob.point.dame = 0; // Tự động tính từ HP và level
+            eliteMob.name = template != null ? template.name : "Siêu Quái";
+            eliteMob.setTiemNang();
+
+            // Add vào zone
+            zone.mobs.add(eliteMob);
+
+            // Thông báo toàn zone
+            String tierName = getEliteTierName(tier);
+            String msg = "⚡ " + tierName + " " + eliteMob.name + " đã xuất hiện từ xác quái thường!";
+            for (Player pl : zone.players) {
+                if (pl != null) Service.gI().sendThongBao(pl, msg);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Lấy tên hiển thị theo cấp siêu quái.
+     */
+    private String getEliteTierName(int tier) {
+        return switch (tier) {
+            case 1 -> "Siêu Quái";
+            case 2 -> "Siêu Quái Ưu Tú";
+            case 3 -> "Siêu Quái Huyền Thoại";
+            default -> "Siêu Quái";
+        };
     }
 
     public void sendMobHoiSinh() {
@@ -1514,8 +1676,56 @@ if (player.setClothes.checkSetDes()
 //         ));
 //     }
 // }
+        // ======================== SIÊU QUÁI BONUS DROPS ========================
+        if (this.lvMob > 0) {
+            int tier = this.lvMob;
+            // Vàng rơi: 30%, 60%, 90%
+            if (Util.isTrue(tier * 30, 100)) {
+                int goldQty = (int) (Math.sqrt(this.point.maxHp) * 20 * tier);
+                list.add(new ItemMap(zone, getGoldItemId(goldQty), goldQty, x, yEnd, player.id));
+            }
+            // Ngọc xanh: 5%, 10%, 20%
+            if (Util.isTrue(tier * 5, 100)) {
+                list.add(new ItemMap(zone, 77, 1, x, yEnd, player.id).asCurrency((byte) 1, 1));
+            }
+            // Hồng ngọc: 2%, 5%, 10%
+            if (Util.isTrue(tier * 2, 100)) {
+                list.add(new ItemMap(zone, 222, 1, x, yEnd, player.id).asCurrency((byte) 2, 1));
+            }
+            // Ngọc rồng 5-7★: 0.5%, 1%, 2%
+            if (Util.isTrue(tier, 200)) {
+                int ngocId = Util.nextInt(18, 20);
+                list.add(new ItemMap(zone, ngocId, 1, x, yEnd, player.id));
+            }
+            // Đá 220-224: 1%, 2%, 5%
+            if (Util.isTrue(tier * 2, 100)) {
+                int rand = Util.nextInt(0, 4);
+                ItemMap it = new ItemMap(zone, 220 + rand, 1, x, yEnd, player.id);
+                it.options.add(new Item.ItemOption(71 - rand, 0));
+                list.add(it);
+            }
+            // Sao pha lê: 0.2%, 0.5%, 1%
+            if (Util.isTrue(tier, 1000)) {
+                int itemId = 0, optionId = 0;
+                int rand = Util.nextInt(0, 4);
+                switch (rand) {
+                    case 0 -> { itemId = 441; optionId = 95; }
+                    case 1 -> { itemId = 442; optionId = 96; }
+                    case 2 -> { itemId = 443; optionId = 97; }
+                    case 3 -> { itemId = 447; optionId = 101; }
+                    case 4 -> { itemId = 446; optionId = 100; }
+                }
+                ItemMap it = new ItemMap(zone, itemId, 1, x, yEnd, player.id);
+                it.options.add(new Item.ItemOption(optionId, 5));
+                list.add(it);
+            }
+            // Capsule kỳ bí: 0.1%, 0.2%, 0.5%
+            if (Util.isTrue(tier, 10000)) {
+                list.add(new ItemMap(zone, 380, 1, x, yEnd, player.id));
+            }
+        }
 
-return list;
+        return list;
 
 
     }
