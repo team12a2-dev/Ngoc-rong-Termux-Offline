@@ -43,20 +43,20 @@ public class Mob {
     private static final int RUBY_DROP_RATE = 50;
 
     // ===== SIÊU QUÁI (ELITE MOB) CONFIG =====
-    // Phân cấp theo HP cơ sở: Cấp 1 (≥100), Cấp 2 (≥3K), Cấp 3 (≥10K)
-    private static final int ELITE_HP_TIER_1 = 100;
-    private static final int ELITE_HP_TIER_2 = 3000;
-    private static final int ELITE_HP_TIER_3 = 10000;
+    // Phân cấp theo HP cơ sở: Cấp 1 (≥3K), Cấp 2 (≥10K), Cấp 3 (≥50K)
+    private static final int ELITE_HP_TIER_1 = 3000;
+    private static final int ELITE_HP_TIER_2 = 10000;
+    private static final int ELITE_HP_TIER_3 = 50000;
 
-    // Tỷ lệ spawn tự nhiên (test: 100%, 50%, 20%)
-    private static final int ELITE_NATURAL_RATE_TIER_1 = 1;     // 100% (1/1)
-    private static final int ELITE_NATURAL_RATE_TIER_2 = 2;     // 50% (1/2)
-    private static final int ELITE_NATURAL_RATE_TIER_3 = 5;     // 20% (1/5)
+    // Tỷ lệ spawn tự nhiên (cân bằng)
+    private static final int ELITE_NATURAL_RATE_TIER_1 = 100;   // 1% (1/100)
+    private static final int ELITE_NATURAL_RATE_TIER_2 = 200;   // 0.5% (1/200)
+    private static final int ELITE_NATURAL_RATE_TIER_3 = 500;   // 0.2% (1/500)
 
-    // Tỷ lệ xuất hiện khi kill quái thường (test: 100%, 50%, 20%)
-    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_1 = 1;   // 100% (1/1)
-    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_2 = 2;   // 50% (1/2)
-    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_3 = 5;   // 20% (1/5)
+    // Tỷ lệ xuất hiện khi kill quái thường
+    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_1 = 6;   // ~16.7% (1/6)
+    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_2 = 10;  // 10% (1/10)
+    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_3 = 12;  // ~8.3% (1/12)
 
     // Hệ số HP cho từng cấp (giảm: x5, x10, x20)
     private static final int[] ELITE_HP_MULT = {1, 5, 10, 20};
