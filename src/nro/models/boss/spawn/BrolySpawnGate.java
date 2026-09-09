@@ -63,14 +63,12 @@ public final class BrolySpawnGate {
     }
 
     private static boolean passesSuperInterval(long now) {
-        return now >= nextSuperSpawnAllowedMs;
+        return true; // Luôn cho phép spawn không cố định thời gian
     }
 
     private static void markSuperSpawned(long now) {
         lastSuperSpawnMs = now;
-        int intervalSec = Util.nextInt(BossSpawnConfig.superBrolyIntervalMinSec,
-                BossSpawnConfig.superBrolyIntervalMaxSec);
-        nextSuperSpawnAllowedMs = now + intervalSec * 1000L;
+        // Không giới hạn interval để luôn có thể spawn tiếp
     }
 
     public static int[] brolyMaps() {
@@ -96,10 +94,7 @@ public final class BrolySpawnGate {
         if (broly.nPoint.hpMax < hpThreshold) {
             return false;
         }
-        if (System.currentTimeMillis() - brolyJoinedAtMs
-                < BossSpawnConfig.superBrolyMinBrolyActiveSec * 1000L) {
-            return false;
-        }
+        // Không kiểm tra thời gian tối thiểu để luôn biến hình khi đủ điều kiện
         if (!isWithinSuperWindow()) {
             return false;
         }
@@ -176,31 +171,15 @@ public final class BrolySpawnGate {
      * Mỗi lần roll đều qua lại toàn bộ hard gate để không vượt giới hạn map/khu/slot.
      */
     public static synchronized void tickNaturalSuperBrolySpawn() {
-        long now = System.currentTimeMillis();
-        if (now < nextNaturalRollMs) {
-            return;
-        }
-        nextNaturalRollMs = now + Util.nextInt(
-                BossSpawnConfig.superBrolyNaturalRollMinSec * 1000,
-                BossSpawnConfig.superBrolyNaturalRollMaxSec * 1000);
-        if (!BossSpawnConfig.superBrolyNaturalEnabled || !isWithinSuperWindow()) {
+        if (!BossSpawnConfig.superBrolyNaturalEnabled) {
             return;
         }
         int limit = currentSuperConcurrentLimit();
         if (limit <= 0 || liveSuperCount() >= limit) {
             return;
         }
-        if (!passesSuperInterval(now)) {
-            return;
-        }
         int slot = currentTimeSlot();
         if (countLiveSuperInSlot(slot) >= currentSuperSlotLimit()) {
-            return;
-        }
-        int chance = BossSpawnConfig.superBrolyNaturalChancePercent;
-        int deficit = Math.max(0, BossSpawnConfig.superBrolyTargetMin - liveSuperCount());
-        chance = Math.min(95, chance + deficit * 4);
-        if (!Util.isTrue(chance, 100)) {
             return;
         }
         int mapId = pickSpreadSuperMapId(BROLY_MAPS);
@@ -283,23 +262,7 @@ public final class BrolySpawnGate {
     }
 
     public static int currentTimeSlot() {
-        int hour = ZonedDateTime.now(BossSpawnSchedule.ZONE_VN).getHour();
-        int slots = Math.max(1, BossSpawnConfig.superBrolyTimeSlots);
-        if (slots == 4) {
-            if (hour >= 10 && hour <= 14) {
-                return 0;
-            }
-            if (hour >= 15 && hour <= 19) {
-                return 1;
-            }
-            if (hour >= 20 && hour <= 23) {
-                return 2;
-            }
-            return 3;
-        }
-        int span = 20;
-        int normalized = hour >= 10 ? hour - 10 : hour + 14;
-        return Math.min(slots - 1, normalized * slots / span);
+        return 0; // Luôn slot 0 để không bị giới hạn theo thời gian
     }
 
     private static int countLiveSuperInSlot(int slot) {
@@ -340,7 +303,7 @@ public final class BrolySpawnGate {
     }
 
     private static boolean isWithinSuperWindow() {
-        return BossSpawnConfig.isBrolyFamilyWindow(ZonedDateTime.now(BossSpawnSchedule.ZONE_VN));
+        return true; // Luôn cho phép spawn không cố định thời gian
     }
 
     public static int countActiveBroly() {
