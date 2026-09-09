@@ -53,10 +53,10 @@ public class Mob {
     private static final int ELITE_NATURAL_RATE_TIER_2 = 200;   // 0.5% (1/200)
     private static final int ELITE_NATURAL_RATE_TIER_3 = 500;   // 0.2% (1/500)
 
-    // Tỷ lệ xuất hiện khi kill quái thường (cao hơn: 5%, 2%, 1%)
-    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_1 = 20;   // 5% (1/20)
-    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_2 = 50;   // 2% (1/50)
-    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_3 = 100;  // 1% (1/100)
+    // Tỷ lệ xuất hiện khi kill quái thường (15%, 10%, 8%)
+    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_1 = 6;   // ~16.7% (1/6)
+    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_2 = 10;  // 10% (1/10)
+    private static final int ELITE_SPAWN_ON_KILL_RATE_TIER_3 = 12;  // ~8.3% (1/12)
 
     // Hệ số HP cho từng cấp (giảm: x5, x10, x20)
     private static final int[] ELITE_HP_MULT = {1, 5, 10, 20};
