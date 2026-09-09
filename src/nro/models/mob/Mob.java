@@ -548,9 +548,7 @@ public class Mob {
         }
     }
 
-<<<<<<< ours
-=======
-/**
+    /**
      * Lấy effect ID aura cho siêu quái theo tier.
      * Aura giống 1.5M power 3 hành tinh: Tier 1=72 (xanh dương), Tier 2=76 (vàng kim), Tier 3=80 (tím huyền bí)
      */
@@ -563,7 +561,6 @@ public class Mob {
         };
     }
 
->>>>>>> theirs
     private void sendMobDieAffterAttacked(Player plKill, int dameHit) {
         Message msg;
         try {
