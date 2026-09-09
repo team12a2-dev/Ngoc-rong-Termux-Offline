@@ -548,11 +548,11 @@ public class Mob {
         int eliteTier = 0;
 
         // Xác định cấp siêu quái theo HP cơ sở với tỷ lệ cao hơn
-        if (baseHp >= ELITE_HP_TIER_3 && Util.isTrue(0, ELITE_NATURAL_RATE_TIER_3)) {
+        if (baseHp >= ELITE_HP_TIER_3 && Util.isTrue(1, ELITE_NATURAL_RATE_TIER_3)) {
             eliteTier = 3;
-        } else if (baseHp >= ELITE_HP_TIER_2 && Util.isTrue(0, ELITE_NATURAL_RATE_TIER_2)) {
+        } else if (baseHp >= ELITE_HP_TIER_2 && Util.isTrue(1, ELITE_NATURAL_RATE_TIER_2)) {
             eliteTier = 2;
-        } else if (baseHp >= ELITE_HP_TIER_1 && Util.isTrue(0, ELITE_NATURAL_RATE_TIER_1)) {
+        } else if (baseHp >= ELITE_HP_TIER_1 && Util.isTrue(1, ELITE_NATURAL_RATE_TIER_1)) {
             eliteTier = 1;
         }
 
@@ -584,11 +584,11 @@ public class Mob {
         int playerDame = killer.nPoint.getDameAttack(false);
 
         if (playerHp >= 100000 || playerDame >= 10000) {
-            if (Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_3)) eliteTier = 3;
+            if (Util.isTrue(1, ELITE_SPAWN_ON_KILL_RATE_TIER_3)) eliteTier = 3;
         } else if (playerHp >= 30000 || playerDame >= 3000) {
-            if (Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_2)) eliteTier = 2;
+            if (Util.isTrue(1, ELITE_SPAWN_ON_KILL_RATE_TIER_2)) eliteTier = 2;
         } else if (playerHp >= 5000 || playerDame >= 1000) {
-            if (Util.isTrue(0, ELITE_SPAWN_ON_KILL_RATE_TIER_1)) eliteTier = 1;
+            if (Util.isTrue(1, ELITE_SPAWN_ON_KILL_RATE_TIER_1)) eliteTier = 1;
         }
 
         if (eliteTier > 0) {
