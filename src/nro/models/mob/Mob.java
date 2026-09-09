@@ -309,6 +309,12 @@ public class Mob {
             sendEffect(55);
             lastTimeSendEffect = System.currentTimeMillis();
         }
+        // Aura cho siêu quái
+        if (!this.isDie() && this.lvMob > 0 && Util.canDoWithTime(lastTimeSendEffect, 2000)) {
+            int auraEffect = getEliteAuraEffect(this.lvMob);
+            sendEffect(auraEffect);
+            lastTimeSendEffect = System.currentTimeMillis();
+        }
 
         if (this.isDie() && !Maintenance.isRunning && !isBigBoss()) {
             switch (zone.map.type) {
@@ -718,6 +724,19 @@ public class Mob {
                 msg = null;
             }
         }
+    }
+
+    /**
+     * Lấy effect ID aura cho siêu quái theo tier.
+     * Effect IDs: Tier 1=55 (vàng), Tier 2=63 (đỏ), Tier 3=71 (tím)
+     */
+    private int getEliteAuraEffect(int tier) {
+        return switch (tier) {
+            case 1 -> 55;  // Effect vàng (giống máy hũy diệt)
+            case 2 -> 63;  // Effect đỏ
+            case 3 -> 71;  // Effect tím
+            default -> 55;
+        };
     }
 
     private void sendMobDieAffterAttacked(Player plKill, int dameHit) {
