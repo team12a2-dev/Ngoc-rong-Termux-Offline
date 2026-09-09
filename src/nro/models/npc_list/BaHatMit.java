@@ -360,7 +360,7 @@ public class BaHatMit extends Npc {
                                 } else {
                                     menuBt.add("Nâng cấp\nBông tai\nPorata");
                                 }
-                                createOtherMenu(player, ConstNpc.MENU_OPTION_BONG_TAI, "Chọn chức năng bông tai:", menuBt.toArray(new String[0]));
+                                createOtherMenu(player, ConstNpc.MENU_OPTION_BONG_TAI, "Bạn muốn nâng cấp hay mở chỉ số nào?", menuBt.toArray(new String[0]));
                                 break;
                             }
                             case 5:
