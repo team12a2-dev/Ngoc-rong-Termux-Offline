@@ -620,8 +620,9 @@ public class Mob {
             eliteMob.tempId = tempId;
             eliteMob.zone = zone;
             eliteMob.level = (byte) (this.level + tier * 2);
-            eliteMob.location.x = x;
-            eliteMob.location.y = y;
+            // Random vị trí ±30px để không chồng lên nhau
+            eliteMob.location.x = (short) (x + Util.nextInt(-30, 30));
+            eliteMob.location.y = (short) (y + Util.nextInt(-30, 30));
             eliteMob.lvMob = tier;
             eliteMob.status = 5;
             eliteMob.type = 1;
@@ -634,7 +635,7 @@ public class Mob {
             eliteMob.point.maxHp = Math.min(eliteHp, 2000000000);
             eliteMob.point.hp = eliteMob.point.maxHp;
             eliteMob.point.dame = Math.min(eliteDame, 200000000);
-            
+
             var template = Manager.getMobTemplateByTemp(tempId);
             eliteMob.name = template != null ? template.name : "Siêu Quái";
             eliteMob.setTiemNang();
