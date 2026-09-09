@@ -182,6 +182,7 @@ public class ConstNpc {
     public static final int MENU_PHA_LE_HOA_TRANG_BI = 500;
     public static final int MENU_CHUYEN_HOA_TRANG_BI = 501;
     public static final int MENU_OPTION_SHOP_BUA = 502;
+    public static final int MENU_OPTION_BONG_TAI = 534;
     public static final int MENU_START_COMBINE = 503;
     public static final int MENU_PHAN_RA_DO_THAN_LINH = 504;
     public static final int MENU_NANG_CAP_DO_TS = 505;

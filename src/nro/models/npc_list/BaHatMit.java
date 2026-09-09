@@ -350,13 +350,17 @@ public class BaHatMit extends Npc {
                                 CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_VAT_PHAM);
                                 break;
                             case 4: {
+                                List<String> menuBt = new ArrayList<>();
                                 if (hasBt3) {
-                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CHI_SO_BONG_TAI3);
+                                    menuBt.add("Mở chỉ số\nBông tai\nPorata cấp\n3");
+                                    menuBt.add("Nâng cấp\nBông tai\nPorata cấp\n3");
                                 } else if (hasBt2) {
-                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_BONG_TAI3);
+                                    menuBt.add("Mở chỉ số\nBông tai\nPorata cấp\n2");
+                                    menuBt.add("Nâng cấp\nBông tai\nPorata cấp\n3");
                                 } else {
-                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_BONG_TAI);
+                                    menuBt.add("Nâng cấp\nBông tai\nPorata");
                                 }
+                                createOtherMenu(player, ConstNpc.MENU_OPTION_BONG_TAI, "Chọn chức năng bông tai:", menuBt.toArray(new String[0]));
                                 break;
                             }
                             case 5:
@@ -420,6 +424,29 @@ public class BaHatMit extends Npc {
                                 ShopService.gI().opendShop(player, "BUA_8H", true);
                             case 2 ->
                                 ShopService.gI().opendShop(player, "BUA_1M", true);
+                        }
+                    } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_BONG_TAI) {
+                        switch (select) {
+                            case 0 -> {
+                                // Mở chỉ số BT2 hoặc BT3
+                                if (InventoryService.gI().findItem(player, 1819)) {
+                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CHI_SO_BONG_TAI3);
+                                } else if (InventoryService.gI().findItemBongTaiCap2(player) || InventoryService.gI().findItem(player, 921)) {
+                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CHI_SO_BONG_TAI);
+                                } else {
+                                    Service.gI().sendThongBao(player, "Cần có Bông tai Porata cấp 2 hoặc 3.");
+                                }
+                            }
+                            case 1 -> {
+                                // Nâng cấp BT2→BT3 hoặc BT1→BT2
+                                if (InventoryService.gI().findItem(player, 1819)) {
+                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_BONG_TAI3);
+                                } else if (InventoryService.gI().findItemBongTaiCap2(player) || InventoryService.gI().findItem(player, 921)) {
+                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_BONG_TAI3);
+                                } else {
+                                    CombineService.gI().openTabCombine(player, CombineService.NANG_CAP_BONG_TAI);
+                                }
+                            }
                         }
                     } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_START_COMBINE) {
                         switch (player.combineNew.typeCombine) {
