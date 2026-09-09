@@ -726,16 +726,16 @@ public class Mob {
         }
     }
 
-    /**
+/**
      * Lấy effect ID aura cho siêu quái theo tier.
-     * Effect IDs: Tier 1=55 (vàng), Tier 2=63 (đỏ), Tier 3=71 (tím)
+     * Aura giống 1.5M power 3 hành tinh: Tier 1=72 (xanh dương), Tier 2=76 (vàng kim), Tier 3=80 (tím huyền bí)
      */
     private int getEliteAuraEffect(int tier) {
         return switch (tier) {
-            case 1 -> 55;  // Effect vàng (giống máy hũy diệt)
-            case 2 -> 63;  // Effect đỏ
-            case 3 -> 71;  // Effect tím
-            default -> 55;
+            case 1 -> 72;  // Aura xanh dương (giống 1.5M power)
+            case 2 -> 76;  // Aura vàng kim
+            case 3 -> 80;  // Aura tím huyền bí
+            default -> 72;
         };
     }
 
