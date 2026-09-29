@@ -374,6 +374,13 @@ import_database() {
   sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
 }
 
+apply_yardart_mob_migration() {
+  local migration="$ROOT/sql/fix_yardart_mobs.sql"
+  [ -f "$migration" ] || die "Thiếu migration $migration."
+  say "Kiểm tra và khôi phục mob còn trống trên các map Yardart."
+  mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration"
+}
+
 backup_database() {
   [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh trong thư mục dự án."
   chmod 700 "$BACKUP_SCRIPT"
@@ -735,6 +742,7 @@ start_server() {
   ensure_database_user
   automatic_backup_database
   import_database
+  apply_yardart_mob_migration
   build_server
   rm -f "$STATE_DIR/server.ready"
   local jvm_opts cp jar build_time source_commit
@@ -807,6 +815,7 @@ setup() {
   ensure_database_user
   automatic_backup_database
   import_database
+  apply_yardart_mob_migration
   build_server
   setup_panel
   if panel_alive; then
