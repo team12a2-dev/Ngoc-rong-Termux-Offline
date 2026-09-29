@@ -585,12 +585,12 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
                                 this.zone = this.zone.map.zones.get(0);
                             }
                         }
-                        int x = this.zone.map.mapWidth > 100 ? Util.nextInt(100, this.zone.map.mapWidth - 100) : Util.nextInt(100);
-                        int y = this.zone.map.yPhysicInTop(x, 100);
+                        int x = getMapSpawnX();
+                        int y = getMapSpawnY(x);
                         ChangeMapService.gI().changeMap(this, this.zone, x, y);
                     } else {
-                        int x = this.parentBoss.location.x - (this.lv + 1) * 30;
-                        int y = this.zone.map.yPhysicInTop(x, 100);
+                        int x = getGroupMemberSpawnX();
+                        int y = getMapSpawnY(x);
                         ChangeMapService.gI().changeMap(this, this.zone, x, y);
                     }
                     if (this.parentBoss == null) {
@@ -616,11 +616,25 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         }
     }
 
+    protected int getMapSpawnX() {
+        return this.zone.map.mapWidth > 100
+                ? Util.nextInt(100, this.zone.map.mapWidth - 100)
+                : Util.nextInt(100);
+    }
+
+    protected int getGroupMemberSpawnX() {
+        return this.parentBoss.location.x - (this.lv + 1) * 30;
+    }
+
+    protected int getMapSpawnY(int x) {
+        return this.zone.map.yPhysicInTop(x, 100);
+    }
+
     public void joinMapByZone(Zone zone) {
         if (zone != null) {
             this.zone = zone;
-            int x = this.zone.map.mapWidth > 100 ? Util.nextInt(100, this.zone.map.mapWidth - 100) : Util.nextInt(100);
-            int y = this.zone.map.yPhysicInTop(x, 100);
+            int x = getMapSpawnX();
+            int y = getMapSpawnY(x);
             ChangeMapService.gI().changeMap(this, this.zone, x, y);
         }
     }
@@ -707,7 +721,8 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
                     return;
                 }
                 this.playerSkill.skillSelect = this.playerSkill.skills.get(Util.nextInt(0, this.playerSkill.skills.size() - 1));
-                if (Util.getDistance(this, pl) <= this.getRangeCanAttackWithSkillSelect()) {
+                boolean targetAtAttackHeight = canAttackTargetAtCurrentHeight(pl);
+                if (targetAtAttackHeight && Util.getDistance(this, pl) <= this.getRangeCanAttackWithSkillSelect()) {
                     if (Util.isTrue(5, 20)) {
                         if (SkillUtil.isUseSkillChuong(this)) {
                             this.moveTo(pl.location.x + (Util.getOne(-1, 1) * Util.nextInt(20, 200)),
@@ -719,7 +734,7 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
                     }
                     SkillService.gI().useSkill(this, pl, null, -1, null);
                     checkPlayerDie(pl);
-                } else {
+                } else if (targetAtAttackHeight) {
                     if (Util.isTrue(1, 2)) {
                         this.moveToPlayer(pl);
                     }
@@ -735,6 +750,10 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         if (player.isDie()) {
 
         }
+    }
+
+    protected boolean canAttackTargetAtCurrentHeight(Player target) {
+        return true;
     }
 
     protected int getRangeCanAttackWithSkillSelect() {

@@ -5,7 +5,6 @@ import nro.models.consts.ConstPlayer;
 import nro.models.boss.Broly.Broly;
 import nro.models.boss.Broly.SuperBroly;
 import nro.models.boss.sieu_hang.Rival;
-import nro.models.boss.yardrat.Yardart;
 import nro.models.consts.ConstAchievement;
 import nro.models.intrinsic.Intrinsic;
 import nro.models.mob.Mob;
@@ -973,16 +972,6 @@ public class SkillService {
                 ? plInjure.idMark.getDamePST() : dameHit;
         phanSatThuong(plAtt, plInjure, miss ? 0 : damePST);
         hutHPMP(plAtt, dameHit, plInjure, null);
-        if (plInjure instanceof Yardart) {
-            if (plInjure.nPoint.hp < dameHit) {
-                dameHit = plInjure.nPoint.hp - 1;
-                if (dameHit == 0) {
-                    return;
-                }
-            } else if (plInjure.nPoint.hp <= plInjure.nPoint.hpMax / 10) {
-                return;
-            }
-        }
         Message msg = null;
         try {
             msg = new Message(-60);
