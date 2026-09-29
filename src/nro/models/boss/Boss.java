@@ -245,6 +245,7 @@ public Player bomAttacker; // thêm dòng này
                     Boss boss = BossManager.gI().createBoss(this.data[i].getBossesAppearTogether()[j], false);
                     if (boss != null) {
                         boss.parentBoss = this;
+                        boss.lv = j;
                         this.bossAppearTogether[i][j] = boss;
                         BossSpawnSchedule.initOnCreate(boss);
                     }

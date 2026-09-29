@@ -34,14 +34,23 @@ public class GokuSSJ2 extends Npc {
             if (select == 0) {
                 int soluong = InventoryService.gI().getParam(player, 31, 590);
                 if (soluong >= 9999) {
-                    InventoryService.gI().subParamItemsBag(player, 590, 31, 9999);
+                    if (InventoryService.gI().getCountEmptyBag(player) <= 0) {
+                        Service.gI().sendThongBao(player, "Túi đồ đã đầy, hãy chừa ít nhất 1 ô trống.");
+                        return;
+                    }
                     Item yardart = ItemService.gI().createNewItem((short) (player.gender + 592));
                     yardart.itemOptions.add(new Item.ItemOption(47, 400));
                     yardart.itemOptions.add(new Item.ItemOption(97, 10));
                     yardart.itemOptions.add(new Item.ItemOption(14, 10));
-                    InventoryService.gI().addItemBag(player, yardart);
+                    if (!InventoryService.gI().addItemBag(player, yardart)) {
+                        Service.gI().sendThongBao(player, "Không thể nhận thưởng, hãy kiểm tra lại túi đồ.");
+                        return;
+                    }
+                    InventoryService.gI().subParamItemsBag(player, 590, 31, 9999);
                     InventoryService.gI().sendItemBags(player);
                     Service.gI().sendThongBao(player, "Bạn nhận được võ phục của người Yardrat");
+                } else {
+                    Service.gI().sendThongBao(player, "Bạn còn thiếu " + (9999 - soluong) + " Bí Kiếp.");
                 }
             }
         }

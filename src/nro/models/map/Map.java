@@ -343,12 +343,12 @@ public class Map implements Runnable {
                 //     bossId = BossID.MABU;
                 // case 128 ->
                 //     bossId = BossID.SUPERBU;
-                // case 131 ->
-                //     bossId = BossID.TAN_BINH_5;
-                // case 132 ->
-                //     bossId = BossID.CHIEN_BINH_5;
-                // case 133 ->
-                //     bossId = BossID.DOI_TRUONG_5;
+                case 131 ->
+                    bossId = BossID.TAN_BINH_5;
+                case 132 ->
+                    bossId = BossID.CHIEN_BINH_5;
+                case 133 ->
+                    bossId = BossID.DOI_TRUONG_5;
             }
             if (bossId != -1) {
                 Boss boss = BossManager.gI().createBoss(bossId);

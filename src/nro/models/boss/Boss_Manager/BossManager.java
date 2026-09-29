@@ -10,6 +10,7 @@ import nro.models.boss.Android.Pic;
 import nro.models.boss.Android.Poc;
 import nro.models.boss.Black_Goku.BlackGoku;
 import nro.models.boss.Boss;
+import nro.models.boss.BossesData;
 import nro.models.boss.BossID;
 import nro.models.boss.Boss_mini.AnTrom;
 import nro.models.boss.Boss_mini.Odo;
@@ -66,24 +67,7 @@ import nro.models.boss.tieu_doi_sat_thu.SO3;
 import nro.models.boss.tieu_doi_sat_thu.SO4;
 import nro.models.boss.tieu_doi_sat_thu.TDT;
 import nro.models.boss.Tau_PayPay.TaoPaiPai;
-// import nro.models.boss.yardrat.CHIENBINH0;
-// import nro.models.boss.yardrat.CHIENBINH1;
-// import nro.models.boss.yardrat.CHIENBINH2;
-// import nro.models.boss.yardrat.CHIENBINH3;
-// import nro.models.boss.yardrat.CHIENBINH4;
-// import nro.models.boss.yardrat.CHIENBINH5;
-// import nro.models.boss.yardrat.DOITRUONG5;
-// import nro.models.boss.yardrat.TANBINH0;
-// import nro.models.boss.yardrat.TANBINH1;
-// import nro.models.boss.yardrat.TANBINH2;
-// import nro.models.boss.yardrat.TANBINH3;
-// import nro.models.boss.yardrat.TANBINH4;
-// import nro.models.boss.yardrat.TANBINH5;
-// import nro.models.boss.yardrat.TAPSU0;
-// import nro.models.boss.yardrat.TAPSU1;
-// import nro.models.boss.yardrat.TAPSU2;
-// import nro.models.boss.yardrat.TAPSU3;
-// import nro.models.boss.yardrat.TAPSU4;
+import nro.models.boss.yardrat.YardratBoss;
 import nro.models.boss.event.Halloween.BiMa;
 import nro.models.boss.event.Halloween.Doi;
 import nro.models.boss.event.Halloween.MaTroi;
@@ -203,42 +187,24 @@ public class BossManager implements Runnable {
                     new Broly();
                      case BossID.KU ->
                     new Ku();
-                // case BossID.TAP_SU_0 ->
-                //     new TAPSU0();
-                // case BossID.TAP_SU_1 ->
-                //     new TAPSU1();
-                // case BossID.TAP_SU_2 ->
-                //     new TAPSU2();
-                // case BossID.TAP_SU_3 ->
-                //     new TAPSU3();
-                // case BossID.TAP_SU_4 ->
-                //     new TAPSU4();
-                // case BossID.TAN_BINH_5 ->
-                //     new TANBINH5();
-                // case BossID.TAN_BINH_0 ->
-                //     new TANBINH0();
-                // case BossID.TAN_BINH_1 ->
-                //     new TANBINH1();
-                // case BossID.TAN_BINH_2 ->
-                //     new TANBINH2();
-                // case BossID.TAN_BINH_3 ->
-                //     new TANBINH3();
-                // case BossID.TAN_BINH_4 ->
-                //     new TANBINH4();
-                // case BossID.CHIEN_BINH_5 ->
-                //     new CHIENBINH5();
-                // case BossID.CHIEN_BINH_0 ->
-                //     new CHIENBINH0();
-                // case BossID.CHIEN_BINH_1 ->
-                //     new CHIENBINH1();
-                // case BossID.CHIEN_BINH_2 ->
-                //     new CHIENBINH2();
-                // case BossID.CHIEN_BINH_3 ->
-                //     new CHIENBINH3();
-                // case BossID.CHIEN_BINH_4 ->
-                //     new CHIENBINH4();
-                // case BossID.DOI_TRUONG_5 ->
-                //     new DOITRUONG5();
+                case BossID.TAP_SU_0 -> new YardratBoss(BossID.TAP_SU_0, BossesData.TAP_SU_0);
+                case BossID.TAP_SU_1 -> new YardratBoss(BossID.TAP_SU_1, BossesData.TAP_SU_1);
+                case BossID.TAP_SU_2 -> new YardratBoss(BossID.TAP_SU_2, BossesData.TAP_SU_2);
+                case BossID.TAP_SU_3 -> new YardratBoss(BossID.TAP_SU_3, BossesData.TAP_SU_3);
+                case BossID.TAP_SU_4 -> new YardratBoss(BossID.TAP_SU_4, BossesData.TAP_SU_4);
+                case BossID.TAN_BINH_5 -> new YardratBoss(BossID.TAN_BINH_5, BossesData.TAN_BINH_5);
+                case BossID.TAN_BINH_0 -> new YardratBoss(BossID.TAN_BINH_0, BossesData.TAN_BINH_0);
+                case BossID.TAN_BINH_1 -> new YardratBoss(BossID.TAN_BINH_1, BossesData.TAN_BINH_1);
+                case BossID.TAN_BINH_2 -> new YardratBoss(BossID.TAN_BINH_2, BossesData.TAN_BINH_2);
+                case BossID.TAN_BINH_3 -> new YardratBoss(BossID.TAN_BINH_3, BossesData.TAN_BINH_3);
+                case BossID.TAN_BINH_4 -> new YardratBoss(BossID.TAN_BINH_4, BossesData.TAN_BINH_4);
+                case BossID.CHIEN_BINH_5 -> new YardratBoss(BossID.CHIEN_BINH_5, BossesData.CHIEN_BINH_5);
+                case BossID.CHIEN_BINH_0 -> new YardratBoss(BossID.CHIEN_BINH_0, BossesData.CHIEN_BINH_0);
+                case BossID.CHIEN_BINH_1 -> new YardratBoss(BossID.CHIEN_BINH_1, BossesData.CHIEN_BINH_1);
+                case BossID.CHIEN_BINH_2 -> new YardratBoss(BossID.CHIEN_BINH_2, BossesData.CHIEN_BINH_2);
+                case BossID.CHIEN_BINH_3 -> new YardratBoss(BossID.CHIEN_BINH_3, BossesData.CHIEN_BINH_3);
+                case BossID.CHIEN_BINH_4 -> new YardratBoss(BossID.CHIEN_BINH_4, BossesData.CHIEN_BINH_4);
+                case BossID.DOI_TRUONG_5 -> new YardratBoss(BossID.DOI_TRUONG_5, BossesData.DOI_TRUONG_5);
                 case BossID.SO_4 ->
                     new SO4();
                 case BossID.SO_3 ->

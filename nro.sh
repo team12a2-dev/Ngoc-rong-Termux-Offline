@@ -377,7 +377,7 @@ import_database() {
 apply_yardart_mob_migration() {
   local migration="$ROOT/sql/fix_yardart_mobs.sql"
   [ -f "$migration" ] || die "Thiếu migration $migration."
-  say "Kiểm tra và khôi phục mob còn trống trên các map Yardart."
+  say "Dọn payload mob thường cũ trên map Yardart để dùng chuỗi boss đúng."
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration"
 }
 
