@@ -1,6 +1,7 @@
 package nro.models.map;
 
 import nro.models.consts.ConstTask;
+import nro.models.consts.ConstItem;
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
 import nro.models.boss.luyen_tap_tu_dong.TrainingBoss;
@@ -303,6 +304,11 @@ public class Zone {
                 if (!itemMap.isPickedUp) {
                     if (itemMap.itemTemplate != null) {
                         if (itemMap.itemTemplate.type == 22) {
+                            return;
+                        }
+                        if (itemMap.itemTemplate.id == ConstItem.BI_KIEP
+                                && (player.location == null
+                                || Util.getDistance(player.location.x, player.location.y, itemMap.x, itemMap.y) > 60)) {
                             return;
                         }
                         int playerId = Math.abs(itemMap.playerId > 100000000 ? 1000000000 - (int) itemMap.playerId : (int) itemMap.playerId);

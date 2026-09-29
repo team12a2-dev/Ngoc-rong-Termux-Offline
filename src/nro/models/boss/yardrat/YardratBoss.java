@@ -27,6 +27,16 @@ public final class YardratBoss extends Yardart {
         super(id, data);
     }
 
+    /** Keep a single player hit from removing an entire low-HP Yardrat boss. */
+    @Override
+    public synchronized int injured(Player attacker, long damage, boolean piercing, boolean isMobAttack) {
+        if (damage <= 0) {
+            return 0;
+        }
+        long maxDamagePerHit = Math.max(1L, this.nPoint.hpMax / 10);
+        return super.injured(attacker, Math.min(damage, maxDamagePerHit), piercing, isMobAttack);
+    }
+
     @Override
     public void reward(Player player) {
         super.reward(player);
@@ -39,8 +49,15 @@ public final class YardratBoss extends Yardart {
             return;
         }
 
-        int x = this.location.x + Util.nextInt(-20, 20);
+        // Keep the owner's drop visibly on the ground instead of spawning under the killer
+        // where the client can immediately auto-pick it.
+        int directionAwayFromPlayer = player.location == null || player.location.x <= this.location.x ? 1 : -1;
+        int x = Math.max(0, Math.min(this.zone.map.mapWidth - 1,
+                this.location.x + directionAwayFromPlayer * 120));
         int y = this.zone.map.yPhysicInTop(x, this.location.y - TILE_SIZE);
+        if (y <= 0) {
+            y = this.location.y;
+        }
         ItemMap biKiep = new ItemMap(this.zone, ConstItem.BI_KIEP, 1, x, y, player.id);
         biKiep.options.add(new Item.ItemOption(31, points));
         Service.gI().dropItemMap(this.zone, biKiep);
