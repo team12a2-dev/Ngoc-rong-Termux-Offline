@@ -56,6 +56,9 @@ lan_addresses() {
   if [ -z "$out" ] && command -v ifconfig >/dev/null 2>&1; then
     out="$(ifconfig 2>/dev/null | awk '/inet / && $2 !~ /^127\\./ {print $2}' | paste -sd ' ' -)"
   fi
+  if [ -z "$out" ] && command -v hostname >/dev/null 2>&1; then
+    out="$(hostname -I 2>/dev/null | tr -s ' \t' ' ' | sed 's/^ //;s/ $//')"
+  fi
   printf '%s' "${out:-không phát hiện}"
 }
 
