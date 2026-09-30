@@ -9,6 +9,7 @@ import nro.models.consts.ConstTask;
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
 import nro.models.clan.ClanMember;
+import nro.models.database.PlayerDAO;
 import nro.models.consts.ConstAchievement;
 import nro.models.consts.ConstTaskBadges;
 import nro.models.item.Item;
@@ -1332,6 +1333,54 @@ public void checkDoneTaskUseItem(Player player, Item item) {
     /** Ẩn boss map Đông Nam Karin: đã xong NV hoặc đang dùng boss NV 3000 HP riêng. */
     public boolean shouldHideTauPayPayMapBoss(Player player) {
         return hasCompletedTauPayPayQuest(player) || isCurrentTaskTauPayPayQuest(player);
+    }
+
+    //==============HOÀN THÀNH NHANH NHIỆM VỤ CHÍNH==============
+    /** Số Ngọc Xanh mỗi bước nhỏ của nhiệm vụ chính. */
+    public static final int COST_FAST_MAIN_TASK = 200;
+    /** Nhiệm vụ bái sư. */
+    private static final int FAST_MAIN_TASK_BEGIN_ID = 9;
+    /** Nhiệm vụ chạm trán Fide đại ca. */
+    private static final int FAST_MAIN_TASK_END_ID = 21;
+
+    /** Nhiệm vụ chính hiện tại có nằm trong khoảng được phép mua nhanh không. */
+    public boolean canFastMainTask(Player player) {
+        if (player == null || !player.isPl() || player.playerTask == null || player.playerTask.taskMain == null) {
+            return false;
+        }
+        TaskMain taskMain = player.playerTask.taskMain;
+        if (taskMain.id < FAST_MAIN_TASK_BEGIN_ID || taskMain.id > FAST_MAIN_TASK_END_ID) {
+            return false;
+        }
+        return taskMain.index >= 0 && taskMain.index < taskMain.subTasks.size();
+    }
+
+    /** Hoàn thành ngay bước nhỏ hiện tại của nhiệm vụ chính, tốn COST_FAST_MAIN_TASK Ngọc Xanh. */
+    public void fastMainTask(Player player) {
+        if (!canFastMainTask(player)) {
+            Service.gI().sendThongBao(player, "Tính năng này chỉ áp dụng cho nhiệm vụ chính từ Nhiệm vụ bái sư"
+                    + " đến Nhiệm vụ chạm trán Fide đại ca");
+            return;
+        }
+        if (player.inventory.gem < COST_FAST_MAIN_TASK) {
+            Service.gI().sendThongBao(player, "Bạn không đủ " + Util.numberToMoney(COST_FAST_MAIN_TASK)
+                    + " Ngọc Xanh để hoàn thành nhanh nhiệm vụ, còn thiếu "
+                    + Util.numberToMoney(COST_FAST_MAIN_TASK - player.inventory.gem) + " Ngọc Xanh");
+            return;
+        }
+        player.inventory.gem -= COST_FAST_MAIN_TASK;
+        Service.gI().sendMoney(player);
+
+        SubTaskMain subTask = player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index);
+        String subTaskName = subTask.name;
+        this.addDoneSubTask(player, Math.max(0, subTask.maxCount - subTask.count));
+        Service.gI().sendThongBao(player, "Đã hoàn thành nhanh: " + subTaskName + ". Bạn tốn "
+                + Util.numberToMoney(COST_FAST_MAIN_TASK) + " Ngọc Xanh");
+        TaskMain taskMain = player.playerTask.taskMain;
+        if (taskMain.index >= 0 && taskMain.index < taskMain.subTasks.size()) {
+            Service.gI().sendThongBao(player, "Nhiệm vụ hiện tại của bạn là " + taskMain.subTasks.get(taskMain.index).name);
+        }
+        PlayerDAO.updatePlayer(player);
     }
 
     //========================SIDE TASK========================

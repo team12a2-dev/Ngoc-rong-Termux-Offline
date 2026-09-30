@@ -14,6 +14,7 @@ import nro.models.services.PlayerService;
 import nro.models.services.Service;
 import nro.models.services.TaskService;
 import nro.models.services_func.Input;
+import nro.models.utils.Util;
 
 /**
  *
@@ -28,17 +29,20 @@ public class BoMong extends Npc {
 
     @Override
     public void openBaseMenu(Player player) {
-       if (TaskService.gI().checkDoneTaskTalkNpc(player, this)) {
-        return;
-    }
-
+       boolean doneTalkNpcTask = TaskService.gI().checkDoneTaskTalkNpc(player, this);
 
             if (canOpenNpc(player)) {
                 if (this.mapId == 47 || this.mapId == 84 ||this.mapId == 21||this.mapId == 22||this.mapId == 23) {
+                    if (doneTalkNpcTask) {
+                        this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
+                                fastMainTaskSay(player), "Hoàn thành nhanh\nnhiệm vụ chính", "Từ chối");
+                        return;
+                    }
                     this.createOtherMenu(player, ConstNpc.BASE_MENU,
                             "Ngươi muốn có thêm ngọc thì chịu khó làm vài nhiệm vụ sẽ được ngọc thưởng", "Nhiệm vụ\nhàng ngày", "Nhiệm vụ\nthành tích"
                              , "Nạp Ngọc"
                             , "Điểm danh"
+                            , "Hoàn thành nhanh\nnhiệm vụ chính"
                             , "Từ chối");
                 }
             }
@@ -95,6 +99,15 @@ public class BoMong extends Npc {
 
                             Service.gI().sendThongBao(player, "Điểm danh thành công! Bạn nhận được 10 ngọc ruby.");
                         }
+                        case 4 -> {
+                            if (TaskService.gI().canFastMainTask(player)) {
+                                this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK, fastMainTaskSay(player),
+                                        "Hoàn thành nhanh\n" + Util.numberToMoney(TaskService.COST_FAST_MAIN_TASK) + " Ngọc Xanh",
+                                        "Từ chối");
+                            } else {
+                                Service.gI().sendThongBao(player, fastMainTaskSay(player));
+                            }
+                        }
 
                     }
                 } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_LEVEL_SIDE_TASK) {
@@ -109,8 +122,26 @@ public class BoMong extends Npc {
                         case 1 ->
                             TaskService.gI().removeSideTask(player);
                     }
+                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_FAST_MAIN_TASK) {
+                    switch (select) {
+                        case 0 -> {
+                            TaskService.gI().fastMainTask(player);
+                            this.openBaseMenu(player);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    /** Lời thoại giới thiệu tính năng hoàn thành nhanh nhiệm vụ chính. */
+    private String fastMainTaskSay(Player player) {
+        String cost = Util.numberToMoney(TaskService.COST_FAST_MAIN_TASK) + " Ngọc Xanh";
+        if (!TaskService.gI().canFastMainTask(player)) {
+            return "Tính năng này chỉ áp dụng cho nhiệm vụ chính từ Nhiệm vụ bái sư đến Nhiệm vụ chạm trán Fide đại ca";
+        }
+        return "Nhiệm vụ chính hiện tại: " + player.playerTask.taskMain.name
+                + "\nBước đang làm: " + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).name
+                + "\nMỗi lần dùng tốn " + cost + " cho 1 nhiệm vụ nhỏ";
     }
 }
