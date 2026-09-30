@@ -146,6 +146,8 @@ public class Player implements Runnable {
    public int typeChibi;
    public long lastTimeChibi;
    public long lastTimeUpdateChibi;
+   /** Số vàng chibi type 0 hồi mỗi giây. */
+   public static final long CHIBI_GOLD_PER_TICK = 500L;
    public String captcha = "";
    public boolean doesNotAttack;
    public long lastTimePlayerNotAttack;
@@ -456,12 +458,13 @@ public class Player implements Runnable {
                if (this.nPoint.timeXinbatoBuff + 10000 < System.currentTimeMillis()) {
                   this.nPoint.tlNeDonBuffXinbato = 0;
                }
-               // if (this.isPl() && !this.isBot && !this.isDie() && this.effectSkill != null && !this.effectSkill.isChibi && Util.canDoWithTime(lastTimeChibi, 1000)) {
-               //     if (Util.isTrue(20, 100) && !MapService.gI().isMapBlackBallWar(this.zone.map.mapId)) {
-               //         EffectSkillService.gI().setChibi(this, 600000);
-               //     }
-               //     lastTimeChibi = System.currentTimeMillis();
-               // }
+               if (this.isPl() && !this.isBot && !this.isDie() && this.effectSkill != null && !this.effectSkill.isChibi
+                       && this.zone != null && this.zone.map != null && Util.canDoWithTime(lastTimeChibi, 1000)) {
+                  if (Util.isTrue(15, 100) && !MapService.gI().isMapBlackBallWar(this.zone.map.mapId)) {
+                     EffectSkillService.gI().setChibi(this, 600000);
+                  }
+                  lastTimeChibi = System.currentTimeMillis();
+               }
                if (this.isPl() && !this.isBot && !this.isDie() && this.effectSkill != null && this.effectSkill.isChibi && Util.canDoWithTime(lastTimeUpdateChibi, 1000)) {
                   if (this.typeChibi == 1) {
                      if (this.nPoint.mp < this.nPoint.mpMax) {
@@ -481,6 +484,9 @@ public class Player implements Runnable {
                         }
                      }
                      PlayerService.gI().sendInfoHp(this);
+                  } else if (this.typeChibi == 0) {
+                     this.inventory.gold += CHIBI_GOLD_PER_TICK;
+                     Service.gI().sendMoney(this);
                   }
                   lastTimeUpdateChibi = System.currentTimeMillis();
                }
