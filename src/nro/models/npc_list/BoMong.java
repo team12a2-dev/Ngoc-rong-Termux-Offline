@@ -1,14 +1,10 @@
 package nro.models.npc_list;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import nro.models.consts.ConstNpc;
 import nro.models.consts.ConstTask;
 import nro.models.npc.Npc;
 import nro.models.player.Player;
-import nro.models.services.InventoryService;
-import nro.models.services.PlayerService;
-import nro.models.services.Service;
+import nro.models.services.AchievementService;
 import nro.models.services.TaskService;
 import nro.models.services_func.Input;
 
@@ -54,22 +50,7 @@ public class BoMong extends Npc {
                     switch (select) {
                         case 0 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GEM,
                                 "Ngươi muốn nạp ngọc bằng cách nào?", "Hướng dẫn nạp thẻ", "Nhập Gift Code");
-                        case 1 -> {
-                            if (player.lastCheckIn != null) {
-                                LocalDate last = player.lastCheckIn.toLocalDate();
-                                LocalDate today = LocalDate.now();
-                                if (last.isEqual(today)) {
-                                    Service.gI().sendThongBao(player, "Bạn đã nhận ngọc miễn phí hôm nay rồi!");
-                                    return;
-                                }
-                            }
-                            player.lastCheckIn = LocalDateTime.now();
-                            player.inventory.ruby += 10;
-                            PlayerService.gI().sendInfoHpMpMoney(player);
-                            InventoryService.gI().sendItemBags(player);
-
-                            Service.gI().sendThongBao(player, "Nhận ngọc miễn phí thành công! Bạn nhận được 10 ngọc ruby.");
-                        }
+                        case 1 -> AchievementService.gI().openAchievementUI(player);
                         case 2 -> {
                             if (player.playerTask.sideTask.template != null) {
                                 String npcSay = "Nhiệm vụ hiện tại: " + player.playerTask.sideTask.getName() + " ("
