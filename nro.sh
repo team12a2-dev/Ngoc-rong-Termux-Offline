@@ -283,9 +283,51 @@ mysql_alive() {
   mariadb-admin --protocol=socket --socket="$DB_SOCKET" -uroot ping >/dev/null 2>&1
 }
 
+# Nếu MariaDB thiếu --skip-name-resolve thì nó reverse-DNS client và đối chiếu
+# grant theo tên/IP phân giải được, khiến kết nối tới 127.0.0.1 vẫn bị từ chối
+# với "Host '<IP Wi-Fi>' is not allowed to connect".
+# Trả về: 1 = đang tắt reverse DNS (đúng), 0 = đang bật (sai), rỗng = không đọc được.
+database_resolve_state() {
+  mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse \
+    "SELECT @@global.skip_name_resolve" 2>/dev/null | tr -d '[:space:]' | tr 'A-Z' 'a-z'
+}
+
+stop_database() {
+  if ! mysql_alive; then
+    rm -f "$DB_SOCKET" "$DB_PID"
+    return 0
+  fi
+  say "Dừng MariaDB đang chạy"
+  mariadb-admin --protocol=socket --socket="$DB_SOCKET" -uroot shutdown >/dev/null 2>&1 || true
+  local i
+  for i in $(seq 1 30); do
+    mysql_alive || break
+    sleep 1
+  done
+  if mysql_alive; then
+    [ -f "$DB_PID" ] && kill "$(cat "$DB_PID" 2>/dev/null)" 2>/dev/null || true
+    sleep 2
+  fi
+  rm -f "$DB_SOCKET" "$DB_PID"
+}
+
 start_database() {
   init_database
-  if mysql_alive; then return 0; fi
+  if mysql_alive; then
+    case "$(database_resolve_state)" in
+      1|on|true)
+        return 0
+        ;;
+      0|off|false)
+        say "MariaDB đang chạy thiếu --skip-name-resolve; khởi động lại với cấu hình đúng"
+        stop_database
+        ;;
+      *)
+        warn "Không đọc được @@skip_name_resolve; giữ nguyên MariaDB đang chạy."
+        return 0
+        ;;
+    esac
+  fi
   say "Khởi động MariaDB cục bộ trên socket $DB_SOCKET"
   local server_bin
   server_bin="$(command -v mariadbd || command -v mysqld)"
@@ -329,6 +371,19 @@ ensure_database_user() {
 
   local escaped_password
   escaped_password="$(sql_escape "$password")"
+  # MariaDB đôi khi đối chiếu grant theo IP LAN của chính máy (reverse DNS khi
+  # thiếu --skip-name-resolve), nên cấp quyền cho các IP này luôn. An toàn vì
+  # MariaDB chỉ bind 127.0.0.1 nên không IP nào ngoài máy này tới được.
+  local grants="" host_ip
+  for host_ip in $(lan_addresses); do
+    case "$host_ip" in
+      ''|*[!0-9.]*) continue ;;
+    esac
+    grants="$grants
+CREATE USER IF NOT EXISTS '$DB_USER'@'$host_ip' IDENTIFIED BY '$escaped_password';
+ALTER USER '$DB_USER'@'$host_ip' IDENTIFIED BY '$escaped_password';
+GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'$host_ip';"
+  done
   say "Tạo/cập nhật database $DB_NAME và user nội bộ $DB_USER"
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot <<SQL
 CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -337,7 +392,7 @@ CREATE USER IF NOT EXISTS '$DB_USER'@'127.0.0.1' IDENTIFIED BY '$escaped_passwor
 ALTER USER '$DB_USER'@'localhost' IDENTIFIED BY '$escaped_password';
 ALTER USER '$DB_USER'@'127.0.0.1' IDENTIFIED BY '$escaped_password';
 GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'localhost';
-GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'127.0.0.1';
+GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'127.0.0.1';$grants
 FLUSH PRIVILEGES;
 SQL
 
