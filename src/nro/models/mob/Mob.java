@@ -5,6 +5,7 @@ import nro.models.services.Service;
 import nro.models.services.TaskService;
 import nro.models.map.service.ItemMapService;
 import nro.models.consts.ConstMap;
+import nro.models.consts.ConstItem;
 import nro.models.consts.ConstMob;
 import nro.models.consts.ConstTask;
 import nro.models.item.Item;
@@ -44,6 +45,8 @@ public class Mob {
     // Trung bình 1 phần thưởng tiền tệ trên 100 quái; hồng ngọc chiếm 20%.
     private static final int CURRENCY_DROP_RATE = 50;
     private static final int RUBY_DROP_RATE = 50;
+    private static final int FRAGMENT_STONE_DROP_RATE = 100;
+    private static final int UPGRADE_STONE_DROP_RATE = 100;
     /** HP tối đa tối thiểu để quái thường được roll thành siêu quái. */
     public static final int SIEU_QUAI_MIN_HP = 3000;
     /**
@@ -849,6 +852,21 @@ if (player.zone.map.mapId == 100 && Util.isTrue(1, 30)) {
                     .asCurrency(currencyType, 1));
         }
 
+        // Mảnh đá vụn: rơi ở các map 3 hành tinh và Doanh Trại, tỉ lệ 1/100.
+        if ((MapService.gI().isMap3Planets(mapid) || MapService.gI().isMapDoanhTrai(mapid))
+                && Util.isTrue(1, FRAGMENT_STONE_DROP_RATE)) {
+            ItemMap fragmentStone = new ItemMap(zone, ConstItem.MANH_DA_VUN, 1, x, yEnd, player.id);
+            fragmentStone.options.add(new ItemOption(74, 0));
+            list.add(fragmentStone);
+        }
+
+        // Đá nâng cấp cấp 1–5 là nguyên liệu chế tạo trang bị Thiên Sứ ở Hành tinh Ngục Tù.
+        if (MapService.gI().isMapNgucTu(mapid) && Util.isTrue(1, UPGRADE_STONE_DROP_RATE)) {
+            int upgradeStoneId = Util.nextInt(
+                    ConstItem.DA_NANG_CAP_CAP_1, ConstItem.DA_NANG_CAP_CAP_5);
+            list.add(new ItemMap(zone, upgradeStoneId, 1, x, yEnd, player.id));
+        }
+
         int rate220 = 0;
         int rateNgoc = 0;
         int ratePhaLe = 0;
@@ -1546,18 +1564,6 @@ if (player.setClothes.checkSetDes()
         //         it.options.add(new Item.ItemOption(71 - rand, 0));
         //         list.add(it);
         //     }
-        // }
-
-        // if (MapService.gI().isMapDoanhTrai(mapid) && (Util.isTrue(1, 100))) {
-        //     ItemMap it = new ItemMap(zone, 225, 1, x, yEnd, player.id);
-        //     it.options.add(new Item.ItemOption(74, 0));
-        //     list.add(it);
-        // }
-
-        // if (MapService.gI().isMap3Planets(mapid) && (Util.isTrue(1, 100))) {
-        //     ItemMap it = new ItemMap(zone, 225, 1, x, yEnd, player.id);
-        //     it.options.add(new Item.ItemOption(74, 0));
-        //     list.add(it);
         // }
 
         // if (MapService.gI().isMap3Planets(mapid) || MapService.gI().isMapNappa(mapid) || MapService.gI().isMapTuongLai(mapid) || MapService.gI().isMapCold(mapid)) {
