@@ -970,20 +970,8 @@ public class Player implements Runnable {
       }
    }
 
-   /**
-    * Kẻ tấn công có đánh trúng mục tiêu đang ở cao hơn nó hay không. Mặc định là có
-    * (mọi boss đều đánh được); boss giới hạn tầm đánh sẽ override (xem YardratBoss).
-    * Chốt chặn cuối trong injured() để các đường đánh theo vùng — chiêu lan, bom — cũng bị lọc.
-    */
-   public boolean canHitTargetAtHeight(Player target) {
-      return true;
-   }
-
    public synchronized int injured(Player plAtt, long damage, boolean piercing, boolean isMobAttack) {
       if (!this.isDie()) {
-         if (plAtt != null && !plAtt.equals(this) && !plAtt.canHitTargetAtHeight(this)) {
-            return 0;
-         }
          if (plAtt != null && !plAtt.equals(this)) {
             setTemporaryEnemies(plAtt);
          }

@@ -504,7 +504,6 @@ public class Map implements Runnable {
     public final void readTileMap(int mapId) {
         try {
             try (DataInputStream dis = new DataInputStream(new FileInputStream("data/map/tile_map_data/" + mapId))) {
-                dis.readByte();
                 tmw = dis.readByte();
                 tmh = dis.readByte();
                 pxw = tmw * SIZE;
