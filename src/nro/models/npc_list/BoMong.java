@@ -29,20 +29,24 @@ public class BoMong extends Npc {
     @Override
     public void openBaseMenu(Player player) {
        boolean doneTalkNpcTask = TaskService.gI().checkDoneTaskTalkNpc(player, this);
+       boolean showFastMainTask = TaskService.gI().isFastMainTaskQuest(player);
 
             if (canOpenNpc(player)) {
                 if (this.mapId == 47 || this.mapId == 84 ||this.mapId == 21||this.mapId == 22||this.mapId == 23) {
                     if (doneTalkNpcTask) {
-                        this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
-                                TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
+                        if (showFastMainTask) {
+                            this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
+                                    TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
+                        }
                         return;
                     }
+                    String[] menuSelect = showFastMainTask
+                            ? new String[]{"Nhiệm vụ\nhàng ngày", "Nhiệm vụ\nthành tích", "Nạp Ngọc", "Điểm danh",
+                                "Hoàn thành nhanh\nnhiệm vụ chính", "Từ chối"}
+                            : new String[]{"Nhiệm vụ\nhàng ngày", "Nhiệm vụ\nthành tích", "Nạp Ngọc", "Điểm danh",
+                                "Từ chối"};
                     this.createOtherMenu(player, ConstNpc.BASE_MENU,
-                            "Ngươi muốn có thêm ngọc thì chịu khó làm vài nhiệm vụ sẽ được ngọc thưởng", "Nhiệm vụ\nhàng ngày", "Nhiệm vụ\nthành tích"
-                             , "Nạp Ngọc"
-                            , "Điểm danh"
-                            , "Hoàn thành nhanh\nnhiệm vụ chính"
-                            , "Từ chối");
+                            "Ngươi muốn có thêm ngọc thì chịu khó làm vài nhiệm vụ sẽ được ngọc thưởng", menuSelect);
                 }
             }
         }
@@ -98,14 +102,8 @@ public class BoMong extends Npc {
 
                             Service.gI().sendThongBao(player, "Điểm danh thành công! Bạn nhận được 10 ngọc ruby.");
                         }
-                        case 4 -> {
-                            if (TaskService.gI().canFastMainTask(player)) {
-                                this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
-                                        TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
-                            } else {
-                                Service.gI().sendThongBao(player, TaskService.gI().getFastMainTaskSay(player));
-                            }
-                        }
+                        case 4 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
+                                TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
 
                     }
                 } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_LEVEL_SIDE_TASK) {
