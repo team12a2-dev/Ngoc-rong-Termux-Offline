@@ -236,10 +236,9 @@ public class QuyLaoKame extends Npc {
             case 0: // Nhiệm vụ
                 NpcService.gI().createTutorial(player, tempId, avartar, player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).name);
                 break;
-          case 1: // Học Kỹ năng
-    Service.gI().sendThongBaoOK(player, "Mua ở Uron cho nhanh");
-    break;
-
+            case 1: // Học Kỹ năng
+                handleSkillLearning(player);
+                break;
             case 2: // Về khu vực bang
                 handleClanMapChange(player);
                 break;
