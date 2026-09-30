@@ -46,7 +46,7 @@ public class Mob {
     private static final int CURRENCY_DROP_RATE = 50;
     private static final int RUBY_DROP_RATE = 50;
     private static final int FRAGMENT_STONE_DROP_RATE = 100;
-    private static final int UPGRADE_STONE_DROP_RATE = 100;
+    private static final int GEMSTONE_DROP_RATE = 100;
     /** HP tối đa tối thiểu để quái thường được roll thành siêu quái. */
     public static final int SIEU_QUAI_MIN_HP = 3000;
     /**
@@ -860,42 +860,38 @@ if (player.zone.map.mapId == 100 && Util.isTrue(1, 30)) {
             list.add(fragmentStone);
         }
 
-        // Đá nâng cấp cấp 1–5 là nguyên liệu chế tạo trang bị Thiên Sứ ở Hành tinh Ngục Tù.
-        if (MapService.gI().isMapNgucTu(mapid) && Util.isTrue(1, UPGRADE_STONE_DROP_RATE)) {
-            int upgradeStoneId = Util.nextInt(
-                    ConstItem.DA_NANG_CAP_CAP_1, ConstItem.DA_NANG_CAP_CAP_5);
-            list.add(new ItemMap(zone, upgradeStoneId, 1, x, yEnd, player.id));
-        }
-
         int rate220 = 0;
         int rateNgoc = 0;
         int ratePhaLe = 0;
 
-        // ======================== PHÂN CẤP QUÁI (drop phụ: 220, ngọc, pha lê) ========================
+        // Đá quý 220–224 rơi 1% từ quái thường; ngọc và pha lê giữ tỉ lệ theo cấp quái.
 
-        if (this.tempId > 1 && this.tempId < 38) {
+        if (this.tempId >= 1 && this.tempId < 38) {
 
-            rate220 = 500;
+            rate220 = GEMSTONE_DROP_RATE;
             rateNgoc = 1500;
             ratePhaLe = 1000;
 
         } else if (this.tempId >= 38 && this.tempId < 58) {
 
-            rate220 = 400;
+            rate220 = GEMSTONE_DROP_RATE;
             rateNgoc = 1250;
             ratePhaLe = 900;
 
          } else if (this.tempId >= 58 && this.tempId < 66) {
 
-            rate220 = 300;
+            rate220 = GEMSTONE_DROP_RATE;
             rateNgoc = 1000;
             ratePhaLe = 800;
             
         } else if (this.tempId >= 66 && this.tempId < 70) {
 
-            rate220 = 200;
+            rate220 = GEMSTONE_DROP_RATE;
             rateNgoc = 750;
             ratePhaLe = 700;
+        } else if (MapService.gI().isMapNgucTu(mapid)) {
+            // Quái Hành tinh Ngục Tù có tempId 78–79, trước đây bị bỏ khỏi nhóm drop 220–224.
+            rate220 = GEMSTONE_DROP_RATE;
         }
 
         // ======================== DROP 220 -> 224 ========================
