@@ -754,6 +754,13 @@ public class AmodsubVN {
             } else {
                 taskMain.lastTime = System.currentTimeMillis();
             }
+            if (dataArray.size() > 4) {
+                player.playerTask.fastMainTask.usedCount = Integer.parseInt(String.valueOf(dataArray.get(4)));
+            }
+            if (dataArray.size() > 5) {
+                player.playerTask.fastMainTask.lastTime = Long.parseLong(String.valueOf(dataArray.get(5)));
+            }
+            player.playerTask.fastMainTask.renew();
             player.playerTask.taskMain = taskMain;
             dataArray.clear();
 

@@ -238,6 +238,9 @@ public class PlayerDAO {
             dataArray.add(taskIndex); //id nhiệm vụ
             dataArray.add(0); //index nhiệm vụ con
             dataArray.add(0); //số lượng đã làm
+            dataArray.add(System.currentTimeMillis()); //thời điểm nhiệm vụ
+            dataArray.add(0); //số lần hoàn thành nhanh đã dùng
+            dataArray.add(0); //thời điểm hoàn thành nhanh
             String task = dataArray.toJSONString();
             dataArray.clear();
 
@@ -661,6 +664,8 @@ public class PlayerDAO {
                 dataArray.add(player.playerTask.taskMain.index);
                 dataArray.add(player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count);
                 dataArray.add(player.playerTask.taskMain.lastTime);
+                dataArray.add(player.playerTask.fastMainTask.usedCount);
+                dataArray.add(player.playerTask.fastMainTask.lastTime);
                 String task = dataArray.toJSONString();
                 dataArray.clear();
 

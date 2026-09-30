@@ -14,7 +14,6 @@ import nro.models.services.PlayerService;
 import nro.models.services.Service;
 import nro.models.services.TaskService;
 import nro.models.services_func.Input;
-import nro.models.utils.Util;
 
 /**
  *
@@ -35,7 +34,7 @@ public class BoMong extends Npc {
                 if (this.mapId == 47 || this.mapId == 84 ||this.mapId == 21||this.mapId == 22||this.mapId == 23) {
                     if (doneTalkNpcTask) {
                         this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
-                                fastMainTaskSay(player), "Hoàn thành nhanh\nnhiệm vụ chính", "Từ chối");
+                                TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
                         return;
                     }
                     this.createOtherMenu(player, ConstNpc.BASE_MENU,
@@ -101,11 +100,10 @@ public class BoMong extends Npc {
                         }
                         case 4 -> {
                             if (TaskService.gI().canFastMainTask(player)) {
-                                this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK, fastMainTaskSay(player),
-                                        "Hoàn thành nhanh\n" + Util.numberToMoney(TaskService.COST_FAST_MAIN_TASK) + " Ngọc Xanh",
-                                        "Từ chối");
+                                this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
+                                        TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
                             } else {
-                                Service.gI().sendThongBao(player, fastMainTaskSay(player));
+                                Service.gI().sendThongBao(player, TaskService.gI().getFastMainTaskSay(player));
                             }
                         }
 
@@ -132,16 +130,5 @@ public class BoMong extends Npc {
                 }
             }
         }
-    }
-
-    /** Lời thoại giới thiệu tính năng hoàn thành nhanh nhiệm vụ chính. */
-    private String fastMainTaskSay(Player player) {
-        String cost = Util.numberToMoney(TaskService.COST_FAST_MAIN_TASK) + " Ngọc Xanh";
-        if (!TaskService.gI().canFastMainTask(player)) {
-            return "Tính năng này chỉ áp dụng cho nhiệm vụ chính từ Nhiệm vụ bái sư đến Nhiệm vụ chạm trán Fide đại ca";
-        }
-        return "Nhiệm vụ chính hiện tại: " + player.playerTask.taskMain.name
-                + "\nBước đang làm: " + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).name
-                + "\nMỗi lần dùng tốn " + cost + " cho 1 nhiệm vụ nhỏ";
     }
 }

@@ -1338,6 +1338,8 @@ public void checkDoneTaskUseItem(Player player, Item item) {
     //==============HOÀN THÀNH NHANH NHIỆM VỤ CHÍNH==============
     /** Số Ngọc Xanh mỗi bước nhỏ của nhiệm vụ chính. */
     public static final int COST_FAST_MAIN_TASK = 200;
+    /** Số lần được dùng mỗi ngày. */
+    public static final int MAX_FAST_MAIN_TASK = 5;
     /** Nhiệm vụ bái sư. */
     private static final int FAST_MAIN_TASK_BEGIN_ID = 9;
     /** Nhiệm vụ chạm trán Fide đại ca. */
@@ -1352,14 +1354,46 @@ public void checkDoneTaskUseItem(Player player, Item item) {
         if (taskMain.id < FAST_MAIN_TASK_BEGIN_ID || taskMain.id > FAST_MAIN_TASK_END_ID) {
             return false;
         }
-        return taskMain.index >= 0 && taskMain.index < taskMain.subTasks.size();
+        if (taskMain.index < 0 || taskMain.index >= taskMain.subTasks.size()) {
+            return false;
+        }
+        return getLeftFastMainTask(player) > 0;
+    }
+
+    /** Số lần hoàn thành nhanh còn dùng được hôm nay. */
+    public int getLeftFastMainTask(Player player) {
+        if (player == null || player.playerTask == null || player.playerTask.fastMainTask == null) {
+            return MAX_FAST_MAIN_TASK;
+        }
+        player.playerTask.fastMainTask.renew();
+        return Math.max(0, MAX_FAST_MAIN_TASK - player.playerTask.fastMainTask.usedCount);
+    }
+
+    /** Câu thoại xác nhận hoàn thành nhanh kèm số lần đã dùng. */
+    public String getFastMainTaskSay(Player player) {
+        if (!canFastMainTask(player)) {
+            return getFastMainTaskNotAvailableSay(player);
+        }
+        return "Hoàn thành nhanh 1 bước nhiệm vụ hiện tại với giá " + Util.numberToMoney(COST_FAST_MAIN_TASK)
+                + " ngọc xanh?\nĐã dùng " + player.playerTask.fastMainTask.usedCount + "/" + MAX_FAST_MAIN_TASK + " lần.";
+    }
+
+    private String getFastMainTaskNotAvailableSay(Player player) {
+        if (player == null || player.playerTask == null || player.playerTask.taskMain == null) {
+            return "Tính năng này chỉ áp dụng cho nhiệm vụ chính từ Nhiệm vụ bái sư đến Nhiệm vụ chạm trán Fide đại ca";
+        }
+        TaskMain taskMain = player.playerTask.taskMain;
+        if (taskMain.id < FAST_MAIN_TASK_BEGIN_ID || taskMain.id > FAST_MAIN_TASK_END_ID) {
+            return "Tính năng này chỉ áp dụng cho nhiệm vụ chính từ Nhiệm vụ bái sư đến Nhiệm vụ chạm trán Fide đại ca";
+        }
+        return "Hôm nay bạn đã dùng đủ " + MAX_FAST_MAIN_TASK
+                + "/" + MAX_FAST_MAIN_TASK + " lần. Hãy quay lại vào ngày mai";
     }
 
     /** Hoàn thành ngay bước nhỏ hiện tại của nhiệm vụ chính, tốn COST_FAST_MAIN_TASK Ngọc Xanh. */
     public void fastMainTask(Player player) {
         if (!canFastMainTask(player)) {
-            Service.gI().sendThongBao(player, "Tính năng này chỉ áp dụng cho nhiệm vụ chính từ Nhiệm vụ bái sư"
-                    + " đến Nhiệm vụ chạm trán Fide đại ca");
+            Service.gI().sendThongBao(player, getFastMainTaskNotAvailableSay(player));
             return;
         }
         if (player.inventory.gem < COST_FAST_MAIN_TASK) {
@@ -1370,6 +1404,7 @@ public void checkDoneTaskUseItem(Player player, Item item) {
         }
         player.inventory.gem -= COST_FAST_MAIN_TASK;
         Service.gI().sendMoney(player);
+        player.playerTask.fastMainTask.increase();
 
         SubTaskMain subTask = player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index);
         String subTaskName = subTask.name;
@@ -1380,6 +1415,8 @@ public void checkDoneTaskUseItem(Player player, Item item) {
         if (taskMain.index >= 0 && taskMain.index < taskMain.subTasks.size()) {
             Service.gI().sendThongBao(player, "Nhiệm vụ hiện tại của bạn là " + taskMain.subTasks.get(taskMain.index).name);
         }
+        Service.gI().sendThongBao(player, "Đã dùng " + player.playerTask.fastMainTask.usedCount + "/"
+                + MAX_FAST_MAIN_TASK + " lần hôm nay");
         PlayerDAO.updatePlayer(player);
     }
 
