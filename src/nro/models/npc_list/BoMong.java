@@ -4,12 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import nro.models.consts.ConstNpc;
 import nro.models.consts.ConstTask;
-import nro.models.item.Item;
-import nro.models.services.AchievementService;
 import nro.models.npc.Npc;
 import nro.models.player.Player;
 import nro.models.services.InventoryService;
-import nro.models.services.ItemService;
 import nro.models.services.PlayerService;
 import nro.models.services.Service;
 import nro.models.services.TaskService;
@@ -40,11 +37,8 @@ public class BoMong extends Npc {
                         }
                         return;
                     }
-                    String[] menuSelect = showFastMainTask
-                            ? new String[]{"Nhiệm vụ\nhàng ngày", "Nhiệm vụ\nthành tích", "Nạp Ngọc", "Điểm danh",
-                                "Hoàn thành nhanh\nnhiệm vụ chính", "Từ chối"}
-                            : new String[]{"Nhiệm vụ\nhàng ngày", "Nhiệm vụ\nthành tích", "Nạp Ngọc", "Điểm danh",
-                                "Từ chối"};
+                    String[] menuSelect = {"Nạp Ngọc", "Nhận ngọc\nMiễn phí", "Nhiệm vụ\nhàng ngày",
+                        "Hoàn thành nhanh\nnhiệm vụ chính"};
                     this.createOtherMenu(player, ConstNpc.BASE_MENU,
                             "Ngươi muốn có thêm ngọc thì chịu khó làm vài nhiệm vụ sẽ được ngọc thưởng", menuSelect);
                 }
@@ -58,7 +52,25 @@ public class BoMong extends Npc {
             if (this.mapId == 47 || this.mapId == 84||this.mapId == 21||this.mapId == 22||this.mapId == 23) {
                 if (player.idMark.isBaseMenu()) {
                     switch (select) {
-                        case 0 -> {
+                        case 0 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GEM,
+                                "Ngươi muốn nạp ngọc bằng cách nào?", "Hướng dẫn nạp thẻ", "Nhập Gift Code");
+                        case 1 -> {
+                            if (player.lastCheckIn != null) {
+                                LocalDate last = player.lastCheckIn.toLocalDate();
+                                LocalDate today = LocalDate.now();
+                                if (last.isEqual(today)) {
+                                    Service.gI().sendThongBao(player, "Bạn đã nhận ngọc miễn phí hôm nay rồi!");
+                                    return;
+                                }
+                            }
+                            player.lastCheckIn = LocalDateTime.now();
+                            player.inventory.ruby += 10;
+                            PlayerService.gI().sendInfoHpMpMoney(player);
+                            InventoryService.gI().sendItemBags(player);
+
+                            Service.gI().sendThongBao(player, "Nhận ngọc miễn phí thành công! Bạn nhận được 10 ngọc ruby.");
+                        }
+                        case 2 -> {
                             if (player.playerTask.sideTask.template != null) {
                                 String npcSay = "Nhiệm vụ hiện tại: " + player.playerTask.sideTask.getName() + " ("
                                         + player.playerTask.sideTask.getLevel() + ")"
@@ -75,36 +87,14 @@ public class BoMong extends Npc {
                                         "Dễ", "Bình thường", "Khó", "Từ chối");
                             }
                         }
-                        case 1 -> {
-                            AchievementService.gI().openAchievementUI(player);
-                        }
-                    
-                        case 2 -> {
-                            Input.gI().createFormTradeGem(player);
-                        }
-                        case 3 -> {
-                            if (player.lastCheckIn != null) {
-                                LocalDate last = player.lastCheckIn.toLocalDate();
-                                LocalDate today = LocalDate.now();
-                                if (last.isEqual(today)) {
-                                    Service.gI().sendThongBao(player, "Bạn đã điểm danh hôm nay rồi!");
-                                    return;
-                                }
-                            }
-                            player.lastCheckIn = LocalDateTime.now();
-                            player.inventory.ruby += 10;
-                            // Item item457 = ItemService.gI().createNewItem((short) 457);
-                            // item457.quantity = 10;
-                            // item457.itemOptions.add(new Item.ItemOption(30, 0));
-                            // InventoryService.gI().addItemBag(player, item457);
-                            PlayerService.gI().sendInfoHpMpMoney(player);
-                            InventoryService.gI().sendItemBags(player);
-
-                            Service.gI().sendThongBao(player, "Điểm danh thành công! Bạn nhận được 10 ngọc ruby.");
-                        }
-                        case 4 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
+                        case 3 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
                                 TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
 
+                    }
+                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GEM) {
+                    switch (select) {
+                        case 0 -> Input.gI().createFormTradeGem(player);
+                        case 1 -> Input.gI().createFormGiftCode(player);
                     }
                 } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_LEVEL_SIDE_TASK) {
                     switch (select) {
