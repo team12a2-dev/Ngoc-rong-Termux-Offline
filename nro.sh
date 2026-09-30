@@ -345,6 +345,23 @@ SQL
   update_config "database.user" "$DB_USER"
   update_config "database.pass" "$password"
   update_config "server.port" "$GAME_PORT"
+  force_local_db_host
+}
+
+# MariaDB do nro.sh khởi động chỉ bind 127.0.0.1 và chỉ cấp quyền cho
+# 'user'@'localhost' + 'user'@'127.0.0.1'. Nếu database.host trỏ về chính
+# IP LAN của máy thì MariaDB trả lỗi "Host ... is not allowed to connect".
+force_local_db_host() {
+  local host
+  host="$(prop "database.host")"
+  [ -n "$host" ] || return 0
+  case "$host" in
+    localhost|localhost.localdomain|::1|127.*) return 0 ;;
+  esac
+  if printf ' %s ' "$(lan_addresses)" | grep -q " $host "; then
+    warn "database.host=$host là IP LAN của chính máy này; MariaDB chỉ nghe 127.0.0.1 nên sẽ bị từ chối. Đổi về 127.0.0.1."
+    update_config "database.host" "127.0.0.1"
+  fi
 }
 
 update_config() {
