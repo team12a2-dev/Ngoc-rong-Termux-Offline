@@ -50,7 +50,7 @@ public class BoMong extends Npc {
                     "Bước 2: Chờ hệ thống xác nhận giao dịch. Khi thành công, tiền sẽ được cộng vào số dư VNĐ của tài khoản. Nếu giao dịch chưa cập nhật, hãy kiểm tra trạng thái hoặc liên hệ quản trị viên; đừng gửi lại thẻ đã dùng.",
                     "Tiếp tục", "Quy đổi ngọc", "Quay lại");
             case 3 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GUIDE_3,
-                    "Bước 3: Dùng số dư VNĐ để đổi thành Ngọc Xanh. Tỉ lệ: 10.000 VNĐ = 1.000 ngọc. Mỗi lần đổi tối thiểu 10.000 VNĐ và tối đa 5.000.000 VNĐ. Chọn Quy đổi ngọc để nhập số tiền cần đổi.",
+                    "Bước 3: Dùng số dư VNĐ để đổi thành Ngọc Xanh. Tỉ lệ: 10.000 VNĐ = 120 ngọc. Mỗi lần đổi tối thiểu 10.000 VNĐ và tối đa 5.000.000 VNĐ. Chọn Quy đổi ngọc để nhập số tiền cần đổi.",
                     "Quy đổi ngọc", "Quay lại");
         }
     }

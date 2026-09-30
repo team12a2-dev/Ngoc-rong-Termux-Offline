@@ -235,9 +235,9 @@ public void createFormAdminAddVnd(Player pl) {
                     } else if (!PlayerDAO.subvnd(player, quantity)) {
                         Service.gI().sendThongBao(player, "Không thể trừ số dư VND, vui lòng thử lại.");
                     } else {
-                        int soGem = quantity / 10;
-                        player.inventory.gem = Math.min(Integer.MAX_VALUE,
-                                player.inventory.gem + soGem);
+                        int soGem = (int) ((long) quantity * 120 / 10_000);
+                        player.inventory.gem = (int) Math.min(Integer.MAX_VALUE,
+                                (long) player.inventory.gem + soGem);
 
                         Service.gI().sendMoney(player);
 
@@ -744,7 +744,7 @@ public void createFormAdminAddVnd(Player pl) {
     }
 
     public void createFormTradeGem(Player pl) {
-        createForm(pl, TRADE_GEM, "Tỉ lệ quy đổi: 10.000 vnđ = 1.000 ngọc \n Số dư hiện tại: " + pl.getSession().vnd, new SubInput("Số tiền muốn đổi", NUMERIC));
+        createForm(pl, TRADE_GEM, "Tỉ lệ quy đổi: 10.000 vnđ = 120 ngọc \n Số dư hiện tại: " + pl.getSession().vnd, new SubInput("Số tiền muốn đổi", NUMERIC));
     }
 
     public void createFormChangeName(Player pl, Player plChanged) {
