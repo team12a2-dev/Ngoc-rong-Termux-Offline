@@ -1022,6 +1022,10 @@ public class NPoint {
         if (this.player.itemTime != null && this.player.itemTime.isUseBoKhi && !this.player.itemTime.isUseBoKhi2) {
             mpMax *= 2;
         }
+        // Xử lý chibi
+        if (this.player.effectSkill != null && this.player.effectSkill.isChibi && this.player.typeChibi == 1) {
+            mpMax *= 2;
+        }
         // Xá»­ lÃ½ item sieu cap
         if (this.player.itemTime != null && this.player.itemTime.isUseBoKhi2) {
             mpMax *= 2.2;

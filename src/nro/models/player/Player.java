@@ -146,8 +146,8 @@ public class Player implements Runnable {
    public int typeChibi;
    public long lastTimeChibi;
    public long lastTimeUpdateChibi;
-   /** Số vàng chibi type 0 hồi mỗi giây. */
-   public static final long CHIBI_GOLD_PER_TICK = 500L;
+   /** Hệ số vàng rơi từ quái của chibi type 0. */
+   public static final int CHIBI_GOLD_DROP_MULTIPLIER = 3;
    public String captcha = "";
    public boolean doesNotAttack;
    public long lastTimePlayerNotAttack;
@@ -484,9 +484,6 @@ public class Player implements Runnable {
                         }
                      }
                      PlayerService.gI().sendInfoHp(this);
-                  } else if (this.typeChibi == 0) {
-                     this.inventory.gold += CHIBI_GOLD_PER_TICK;
-                     Service.gI().sendMoney(this);
                   }
                   lastTimeUpdateChibi = System.currentTimeMillis();
                }

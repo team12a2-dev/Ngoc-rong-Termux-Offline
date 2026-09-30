@@ -877,6 +877,10 @@ if (op110 > 0 && ratePhaLe > 0 && Util.isTrue(1, ratePhaLe)) {
                 quantity += quantity * intrinsicGold / 100;
             }
 
+            if (player.effectSkill != null && player.effectSkill.isChibi && player.typeChibi == 0) {
+                quantity *= Player.CHIBI_GOLD_DROP_MULTIPLIER;
+            }
+
             list.add(new ItemMap(zone, getGoldItemId(quantity), quantity, x, yEnd, player.id));
         }
     }
@@ -1762,6 +1766,9 @@ return list;
         }
         if (intrinsicGoldPercent > 0) {
             totalGold += totalGold * intrinsicGoldPercent / 100;
+        }
+        if (player.effectSkill != null && player.effectSkill.isChibi && player.typeChibi == 0) {
+            totalGold *= Player.CHIBI_GOLD_DROP_MULTIPLIER;
         }
         if (totalGold <= 0) {
             return;
