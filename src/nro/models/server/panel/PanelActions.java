@@ -420,6 +420,75 @@ public final class PanelActions {
         return bossId == BossID.TIEU_DOI_TRUONG || bossId == BossID.TIEU_DOI_TRUONG_NM;
     }
 
+    /**
+     * Chẩn đoán phân bổ boss trên map: nhóm theo map → khu, kèm x/y thực tế của từng boss
+     * (kể cả boss con). Dùng để xác nhận boss có bị dồn vào một khu / một điểm hay không.
+     */
+    public static List<Map<String, Object>> bossSpread() {
+        Map<Integer, Map<Integer, List<Boss>>> grouped = new LinkedHashMap<>();
+        for (Boss boss : BossManager.getAllBosses()) {
+            if (boss == null || boss.zone == null || boss.zone.map == null || boss.location == null || boss.isDie()) {
+                continue;
+            }
+            if (boss.bossStatus == BossStatus.REST || boss.bossStatus == BossStatus.LEAVE_MAP) {
+                continue;
+            }
+            grouped.computeIfAbsent(boss.zone.map.mapId, k -> new LinkedHashMap<>())
+                    .computeIfAbsent(boss.zone.zoneId, k -> new ArrayList<>())
+                    .add(boss);
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<Integer, Map<Integer, List<Boss>>> mapEntry : grouped.entrySet()) {
+            int mapId = mapEntry.getKey();
+            String mapName = "";
+            nro.models.map.Map map = MapService.gI().getMapById(mapId);
+            if (map != null) {
+                mapName = map.mapName;
+            }
+            List<Map<String, Object>> zoneRows = new ArrayList<>();
+            for (Map.Entry<Integer, List<Boss>> zoneEntry : mapEntry.getValue().entrySet()) {
+                List<Boss> bosses = zoneEntry.getValue();
+                int minX = Integer.MAX_VALUE;
+                int maxX = Integer.MIN_VALUE;
+                java.util.Set<Integer> distinctX = new java.util.HashSet<>();
+                List<Map<String, Object>> rows = new ArrayList<>();
+                for (Boss boss : bosses) {
+                    int x = boss.location.x;
+                    int y = boss.location.y;
+                    minX = Math.min(minX, x);
+                    maxX = Math.max(maxX, x);
+                    distinctX.add(x);
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("id", (int) boss.id);
+                    row.put("name", boss.name);
+                    row.put("x", x);
+                    row.put("y", y);
+                    row.put("parent", boss.getParentBoss() != null ? (int) boss.getParentBoss().id : 0);
+                    row.put("lv", boss.lv);
+                    row.put("status", boss.bossStatus != null ? boss.bossStatus.name() : "UNKNOWN");
+                    rows.add(row);
+                }
+                Map<String, Object> zoneRow = new LinkedHashMap<>();
+                zoneRow.put("zoneId", zoneEntry.getKey());
+                zoneRow.put("count", bosses.size());
+                zoneRow.put("minX", minX);
+                zoneRow.put("maxX", maxX);
+                zoneRow.put("spreadX", maxX - minX);
+                zoneRow.put("distinctX", distinctX.size());
+                zoneRow.put("bosses", rows);
+                zoneRows.add(zoneRow);
+            }
+            Map<String, Object> mapRow = new LinkedHashMap<>();
+            mapRow.put("mapId", mapId);
+            mapRow.put("mapName", mapName);
+            mapRow.put("mapWidth", map != null ? map.mapWidth : -1);
+            mapRow.put("mapHeight", map != null ? map.mapHeight : -1);
+            mapRow.put("zones", zoneRows);
+            result.add(mapRow);
+        }
+        return result;
+    }
+
     public static boolean spawnBoss(int bossId) {
         if (bossId >= 0) return false;
         Boss oldBoss = BossManager.gI().getBossById(bossId);

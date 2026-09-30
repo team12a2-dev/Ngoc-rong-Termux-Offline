@@ -28,6 +28,8 @@ public final class BossSpawnConfig {
     public static int maxNormalConcurrent = 12;
 
     public static boolean distributionEnabled = true;
+    /** Chẩn đoán: ghi log map/khu/x/y mỗi lần boss vào map (tắt mặc định để không spam) */
+    public static boolean spawnDebugLog = false;
     public static int maxBossesPerMap = 2;
     public static int eliteMinGapSec = 90;
     public static int worldMinGapSec = 1800;
@@ -194,6 +196,7 @@ public final class BossSpawnConfig {
         maxNormalConcurrent = parseInt(p, "spawn.normal.max.concurrent", 12, 0, 50);
 
         distributionEnabled = parseBool(p, "spawn.distribution.enabled", true);
+        spawnDebugLog = parseBool(p, "spawn.debug.log.enabled", false);
         maxBossesPerMap = parseInt(p, "spawn.map.max.per.map", 2, 0, 10);
         eliteMinGapSec = parseInt(p, "spawn.elite.min.gap.sec", 90, 0, 3600);
         worldMinGapSec = parseInt(p, "spawn.world.min.gap.sec", 1800, 0, 86400);
@@ -493,6 +496,7 @@ public static boolean isBrolyFamilyWindow(ZonedDateTime moment) {
         maxWorldConcurrent = 1;
         maxNormalConcurrent = 12;
         distributionEnabled = true;
+        spawnDebugLog = false;
         maxBossesPerMap = 2;
         eliteMinGapSec = 90;
         worldMinGapSec = 1800;

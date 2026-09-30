@@ -55,6 +55,7 @@ public final class PanelAgent {
         server.createContext("/players", exchange -> handle(exchange, this::players));
         server.createContext("/runtime-config", exchange -> handle(exchange, this::runtimeConfig));
         server.createContext("/boss/list", exchange -> handle(exchange, this::bossList));
+        server.createContext("/boss/spread", exchange -> handle(exchange, this::bossSpread));
         server.createContext("/broadcast", exchange -> handle(exchange, this::broadcast));
         server.createContext("/clan/dissolve", exchange -> handle(exchange, this::dissolveClan));
         server.createContext("/maintenance", exchange -> handle(exchange, this::maintenance));
@@ -213,6 +214,11 @@ public final class PanelAgent {
 
     private void bossList(HttpExchange exchange, String method, String path, String body) throws IOException {
         writeJson(exchange, 200, success(PanelActions.listBosses()));
+    }
+
+    /** Chẩn đoán phân bổ boss: map → khu → x/y thực tế. */
+    private void bossSpread(HttpExchange exchange, String method, String path, String body) throws IOException {
+        writeJson(exchange, 200, success(PanelActions.bossSpread()));
     }
 
     private void broadcast(HttpExchange exchange, String method, String path, String body) throws IOException {

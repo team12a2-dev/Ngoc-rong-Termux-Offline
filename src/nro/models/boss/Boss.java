@@ -588,10 +588,12 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
                         int x = getMapSpawnX();
                         int y = getMapSpawnY(x);
                         ChangeMapService.gI().changeMap(this, this.zone, x, y);
+                        logSpawnPosition("root");
                     } else {
                         int x = getGroupMemberSpawnX();
                         int y = getMapSpawnY(x);
                         ChangeMapService.gI().changeMap(this, this.zone, x, y);
+                        logSpawnPosition("child");
                     }
                     if (this.parentBoss == null) {
                         this.panelZoneLocked = false;
@@ -630,12 +632,34 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         return this.zone.map.yPhysicInTop(x, 100);
     }
 
+    /**
+     * Log chẩn đoán mỗi lần boss vào map: in map/khu/x/y thực tế để kiểm tra boss có bị dồn cụm.
+     * Bật bằng {@code spawn.debug.log.enabled=true} trong boss_spawn.properties.
+     */
+    protected void logSpawnPosition(String role) {
+        if (!BossSpawnConfig.spawnDebugLog) {
+            return;
+        }
+        Logger.warningln(String.format(
+                "[SPAWN] role=%s id=%d name=%s map=%d zone=%d x=%d y=%d parentLv=%d zoneFinal=%s",
+                role,
+                (int) this.id,
+                this.name,
+                this.zone != null && this.zone.map != null ? this.zone.map.mapId : -1,
+                this.zone != null ? this.zone.zoneId : -1,
+                this.location != null ? this.location.x : -1,
+                this.location != null ? this.location.y : -1,
+                this.lv,
+                this.zoneFinal != null));
+    }
+
     public void joinMapByZone(Zone zone) {
         if (zone != null) {
             this.zone = zone;
             int x = getMapSpawnX();
             int y = getMapSpawnY(x);
             ChangeMapService.gI().changeMap(this, this.zone, x, y);
+            logSpawnPosition("zoneFinal");
         }
     }
 

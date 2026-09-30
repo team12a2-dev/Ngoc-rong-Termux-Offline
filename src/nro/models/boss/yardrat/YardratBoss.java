@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import nro.models.boss.BossData;
 import nro.models.boss.BossID;
+import nro.models.boss.spawn.BossSpawnConfig;
 import nro.models.consts.ConstItem;
 import nro.models.item.Item;
 import nro.models.map.ItemMap;
 import nro.models.player.Player;
 import nro.models.services.PlayerService;
 import nro.models.services.Service;
+import nro.models.utils.Logger;
 import nro.models.utils.Util;
 
 /** A configured Yardrat boss whose reward contributes to the Goku SSJ2 exchange. */
@@ -19,6 +21,13 @@ public final class YardratBoss extends Yardart {
     private static final int SPAWN_MARGIN = 120;
     private static final int MAX_VERTICAL_DELTA = 48;
     private static final int CHILD_COUNT = 5;
+
+    /** Số lần nhóm boss chính đã vào map — dùng để xoay vị trí, không spawn cố định 1 điểm */
+    private int spawnCounter;
+    /** Index điểm rải đã dùng cho boss chính; boss con đọc lại để giãn đều quanh điểm này */
+    private int spawnRootIndex = -1;
+    /** Lần tính điểm rải gần nhất có phải chia đều bề ngang (dùng cho log chẩn đoán) */
+    private boolean lastPointsEvenSpread;
 
     private record SpawnPoint(int x, int y) {
     }
@@ -67,9 +76,13 @@ public final class YardratBoss extends Yardart {
     protected int getMapSpawnX() {
         List<SpawnPoint> points = getStableSpawnPoints();
         if (points.isEmpty()) {
-            return this.zone != null && this.zone.map != null ? this.zone.map.mapWidth / 2 : super.getMapSpawnX();
+            this.spawnRootIndex = -1;
+            return super.getMapSpawnX();
         }
-        return points.get(rootSpawnIndex(points)).x();
+        // Xoay vòng mỗi lần spawn: không bắn boss chính về đúng một điểm cố định
+        this.spawnRootIndex = Util.nextInt(0, points.size() - 1);
+        this.spawnCounter++;
+        return points.get(this.spawnRootIndex).x();
     }
 
     @Override
@@ -79,7 +92,7 @@ public final class YardratBoss extends Yardart {
             return super.getGroupMemberSpawnX();
         }
 
-        int rootIndex = rootSpawnIndex(points);
+        int rootIndex = currentRootIndex(points.size());
         List<SpawnPoint> available = new ArrayList<>(points.size() - 1);
         for (int i = 0; i < points.size(); i++) {
             if (i != rootIndex) {
@@ -91,14 +104,32 @@ public final class YardratBoss extends Yardart {
         return available.get(slot).x();
     }
 
+    /** Chẩn đoán: in số điểm rải và điểm boss chính vừa chọn. */
+    @Override
+    protected void logSpawnPosition(String role) {
+        super.logSpawnPosition(role);
+        if (!BossSpawnConfig.spawnDebugLog || this.zone == null || this.zone.map == null) {
+            return;
+        }
+        List<SpawnPoint> points = getStableSpawnPoints();
+        Logger.warningln(String.format(
+                "[SPAWN-YARDART] id=%d zone=%d spawnNo=%d points=%d rootIndex=%d evenSpread=%s baselineY=%d mapHeight=%d",
+                (int) this.id,
+                this.zone.zoneId,
+                this.spawnCounter,
+                points.size(),
+                points.isEmpty() ? -1 : currentRootIndex(points.size()),
+                lastPointsEvenSpread,
+                clampedBaseline(),
+                this.zone.map.mapHeight));
+    }
+
     @Override
     protected int getMapSpawnY(int x) {
         if (this.zone == null || this.zone.map == null) {
             return super.getMapSpawnY(x);
         }
-        int baseline = preferredSpawnY();
-        int surfaceY = this.zone.map.yPhysicInTop(x, baseline);
-        return surfaceY > 0 && Math.abs(surfaceY - baseline) <= MAX_VERTICAL_DELTA ? surfaceY : baseline;
+        return groundYAt(x);
     }
 
     @Override
@@ -129,26 +160,103 @@ public final class YardratBoss extends Yardart {
         PlayerService.gI().playerMove(this, nextX, nextY);
     }
 
+    /**
+     * Các cột đứng an toàn để rải boss. Không phụ thuộc mốc Y hardcode: mốc nằm ngoài map
+     * (tile data thiếu/nhỏ hơn) sẽ được kẹp vào trong map, và nếu map không có đủ điểm
+     * đệm thì chia đều bề ngang — tuyệt đối không rơi về dồn cụm 30px của boss con.
+     */
     private List<SpawnPoint> getStableSpawnPoints() {
+        List<SpawnPoint> points = new ArrayList<>();
+        lastPointsEvenSpread = false;
+        if (this.zone == null || this.zone.map == null) {
+            return points;
+        }
+        int width = this.zone.map.mapWidth;
+        int baseline = clampedBaseline();
+        for (int x = SPAWN_MARGIN; x < width - SPAWN_MARGIN; x += TILE_SIZE) {
+            int y = this.zone.map.yPhysicInTop(x, baseline);
+            if (isValidSurface(y, baseline)) {
+                points.add(new SpawnPoint(x, y));
+            }
+        }
+        if (points.size() < CHILD_COUNT + 1) {
+            points = evenlySpreadPoints();
+            lastPointsEvenSpread = true;
+        }
+        return points;
+    }
+
+    /** Chia đều CHILD_COUNT + 1 điểm trên bề ngang dùng được — thay cho fallback dồn cụm. */
+    private List<SpawnPoint> evenlySpreadPoints() {
         List<SpawnPoint> points = new ArrayList<>();
         if (this.zone == null || this.zone.map == null) {
             return points;
         }
         int width = this.zone.map.mapWidth;
-        int baseline = preferredSpawnY();
-        for (int x = SPAWN_MARGIN; x < width - SPAWN_MARGIN; x += TILE_SIZE) {
-            int y = this.zone.map.yPhysicInTop(x, baseline);
-            if (y > 0 && Math.abs(y - baseline) <= MAX_VERTICAL_DELTA) {
-                points.add(new SpawnPoint(x, y));
-            }
+        int lastX = width - SPAWN_MARGIN - 1;
+        if (lastX <= SPAWN_MARGIN) {
+            // Map quá hẹp để rải — để Boss tự random thay vì chồng lên nhau
+            return points;
+        }
+        int slot = Math.max(TILE_SIZE, (width - 2 * SPAWN_MARGIN) / (CHILD_COUNT + 1));
+        for (int i = 0; i <= CHILD_COUNT; i++) {
+            int x = Math.min(lastX, SPAWN_MARGIN + i * slot);
+            points.add(new SpawnPoint(x, groundYAt(x)));
         }
         return points;
     }
 
-    private int rootSpawnIndex(List<SpawnPoint> points) {
+    /** Mốc Y ưu tiên, kẹp vào trong map để yPhysicInTop không trả về giá trị ngoài bản đồ. */
+    private int clampedBaseline() {
+        if (this.zone == null || this.zone.map == null) {
+            return 456;
+        }
+        int height = this.zone.map.mapHeight;
+        int baseline = preferredSpawnY();
+        if (baseline <= 0) {
+            return Math.max(TILE_SIZE, height - MAX_VERTICAL_DELTA);
+        }
+        if (baseline >= height) {
+            return Math.max(TILE_SIZE, height - TILE_SIZE);
+        }
+        return baseline;
+    }
+
+    /** Nền thật tại cột x; quanh mốc ưu tiên, nếu không có thì dò từ đáy map lên. */
+    private int groundYAt(int x) {
+        if (this.zone == null || this.zone.map == null) {
+            return 0;
+        }
+        int baseline = clampedBaseline();
+        int y = this.zone.map.yPhysicInTop(x, baseline);
+        if (isValidSurface(y, baseline)) {
+            return y;
+        }
+        int bottomProbe = Math.max(TILE_SIZE, this.zone.map.mapHeight - TILE_SIZE);
+        y = this.zone.map.yPhysicInTop(x, bottomProbe);
+        if (isValidSurface(y, baseline)) {
+            return y;
+        }
+        return baseline;
+    }
+
+    private boolean isValidSurface(int y, int baseline) {
+        return y > 0 && y < this.zone.map.mapHeight && Math.abs(y - baseline) <= MAX_VERTICAL_DELTA;
+    }
+
+    /** Boss con dùng lại đúng điểm boss chính vừa chọn, nếu không mới quay về điểm mặc định. */
+    private int currentRootIndex(int pointCount) {
+        if (this.parentBoss instanceof YardratBoss parent
+                && parent.spawnRootIndex >= 0 && parent.spawnRootIndex < pointCount) {
+            return parent.spawnRootIndex;
+        }
+        return Math.floorMod(rootSpawnIndex(), pointCount);
+    }
+
+    private int rootSpawnIndex() {
         int zoneId = this.zone == null ? 0 : this.zone.zoneId;
         int mapId = this.zone == null || this.zone.map == null ? 0 : this.zone.map.mapId;
-        return Math.floorMod(zoneId + mapId, points.size());
+        return zoneId + mapId;
     }
 
     private int preferredSpawnY() {
