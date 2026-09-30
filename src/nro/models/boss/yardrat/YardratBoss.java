@@ -6,12 +6,9 @@ import nro.models.boss.BossData;
 import nro.models.boss.BossID;
 import nro.models.boss.spawn.BossSpawnConfig;
 import nro.models.consts.ConstItem;
-import nro.models.consts.ConstPlayer;
 import nro.models.item.Item;
 import nro.models.map.ItemMap;
-import nro.models.player.Pet;
 import nro.models.player.Player;
-import nro.models.services.PlayerService;
 import nro.models.services.Service;
 import nro.models.utils.Logger;
 import nro.models.utils.Util;
@@ -22,8 +19,6 @@ public final class YardratBoss extends Yardart {
     private static final int TILE_SIZE = 24;
     private static final int SPAWN_MARGIN = 120;
     private static final int MAX_VERTICAL_DELTA = 48;
-    /** Chênh lệch cao tối đa được phép **trên** boss (1 ô = 24px) — platform thấp vẫn đánh được. */
-    private static final int MAX_ABOVE_TARGET_DELTA = 24;
     private static final int CHILD_COUNT = 5;
 
     /** Số lần nhóm boss chính đã vào map — dùng để xoay vị trí, không spawn cố định 1 điểm */
@@ -134,167 +129,6 @@ public final class YardratBoss extends Yardart {
             return super.getMapSpawnY(x);
         }
         return groundYAt(x);
-    }
-
-    @Override
-    protected boolean canAttackTargetAtCurrentHeight(Player target) {
-        return isTargetWithinHeight(target);
-    }
-
-    /** Chốt chặn cuối cho mọi đường đánh (chiêu, lan, bom) — xem Player.injured. */
-    @Override
-    public boolean canHitTargetAtHeight(Player target) {
-        return isTargetWithinHeight(target);
-    }
-
-    /**
-     * Boss Yardrat đứng trên mặt đất nên chỉ đánh được mục tiêu cùng tầm hoặc thấp hơn,
-     * không đánh lên người chơi đang đứng trên khu cao. Trục y tăng xuống nên mục tiêu
-     * ở trên cao có y nhỏ hơn boss.
-     */
-    private boolean isTargetWithinHeight(Player target) {
-        if (target == null || this.zone == null || target.zone == null || !this.zone.equals(target.zone)) {
-            return false;
-        }
-        if (this.location == null || target.location == null) {
-            return false;
-        }
-        int deltaY = target.location.y - this.location.y;
-        return deltaY >= -MAX_ABOVE_TARGET_DELTA && deltaY <= MAX_VERTICAL_DELTA;
-    }
-
-    /** Ưu tiên mục tiêu đứng cùng tầm với boss thay vì chọn ngẫu nhiên rồi đứng yên. */
-    @Override
-    public Player getPlayerAttack() {
-        Player target = super.getPlayerAttack();
-        if (isTargetWithinHeight(target)) {
-            return target;
-        }
-        Player onSameGround = pickTargetOnSameGround();
-        if (onSameGround != null) {
-            this.playerTarger = onSameGround;
-            this.lastTimeTargetPlayer = System.currentTimeMillis();
-            this.timeTargetPlayer = Util.nextInt(5000, 7000);
-            return onSameGround;
-        }
-        this.playerTarger = null;
-        return null;
-    }
-
-    private Player pickTargetOnSameGround() {
-        if (this.zone == null) {
-            return null;
-        }
-        List<Player> candidates = this.zone.getNotBosses();
-        if (candidates == null || candidates.isEmpty()) {
-            return null;
-        }
-        List<Player> valid = new ArrayList<>();
-        for (Player player : candidates) {
-            if (player == null || player.isDie()) {
-                continue;
-            }
-            // Giữ đúng bộ lọc mục tiêu của Zone.getRandomPlayerInMap
-            if (player.effectSkin != null && player.effectSkin.isVoHinh) {
-                continue;
-            }
-            if (player.maBuHold != null || player.isMabuHold) {
-                continue;
-            }
-            if (player.isPet && ((Pet) player).master != null && ((Pet) player).master.equals(this)) {
-                continue;
-            }
-            if (isTargetWithinHeight(player)) {
-                valid.add(player);
-            }
-        }
-        if (valid.isEmpty()) {
-            return null;
-        }
-        return valid.get(Util.nextInt(0, valid.size() - 1));
-    }
-
-    /** Yardrat bosses walk horizontally on their current/lower surface; they never jump up. */
-    @Override
-    public void moveTo(int x, int ignoredY) {
-        if (this.zone == null || this.zone.map == null || this.location == null) {
-            return;
-        }
-        int currentX = this.location.x;
-        if (currentX == x) {
-            return;
-        }
-        int step = Math.min(Math.abs(x - currentX), Util.nextInt(40, 60));
-        int nextX = currentX + (x > currentX ? step : -step);
-        nextX = Math.max(0, Math.min(this.zone.map.mapWidth - 1, nextX));
-
-        int nextY = this.location.y;
-        int surfaceY = this.zone.map.yPhysicInTop(nextX, nextY);
-        // Chỉ chấp nhận bề mặt **ngang hoặc thấp hơn** (y tăng xuống). Không bao giờ nhảy lên.
-        if (surfaceY >= nextY && surfaceY - nextY <= MAX_VERTICAL_DELTA) {
-            nextY = surfaceY;
-        }
-        PlayerService.gI().playerMove(this, nextX, nextY);
-    }
-
-    /**
-     * Yardrat boss chủ động: nếu không có mục tiêu cùng tầm, vẫn di chuyển ngang về phía
-     * người chơi gần nhất để tìm vị trí đánh được — không đứng yên chờ.
-     */
-    @Override
-    public void attack() {
-        if (Util.canDoWithTime(this.lastTimeAttack, 100) && this.typePk == ConstPlayer.PK_ALL) {
-            this.lastTimeAttack = System.currentTimeMillis();
-            try {
-                Player target = getPlayerAttack(); // đã lọc theo chiều cao
-                if (target != null && !target.isDie()) {
-                    // Có mục tiêu hợp lệ → dùng logic cha (đánh + moveToPlayer nếu xa)
-                    super.attack();
-                    return;
-                }
-                // Không có mục tiêu hợp lệ (tất cả player đều ở trên cao) → di chuyển ngang
-                // về phía người chơi gần nhất theo trục x để tìm vị trí đánh được.
-                Player nearest = findNearestPlayerHorizontal();
-                if (nearest != null && nearest.location != null) {
-                    moveTo(nearest.location.x, 0);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-
-    /** Tìm người chơi gần nhất theo trục x (bỏ qua chiều cao). */
-    private Player findNearestPlayerHorizontal() {
-        if (this.zone == null) {
-            return null;
-        }
-        List<Player> candidates = this.zone.getNotBosses();
-        if (candidates == null || candidates.isEmpty()) {
-            return null;
-        }
-        Player nearest = null;
-        int bestDist = Integer.MAX_VALUE;
-        for (Player pl : candidates) {
-            if (pl == null || pl.isDie() || pl.location == null) {
-                continue;
-            }
-            if (pl.effectSkin != null && pl.effectSkin.isVoHinh) {
-                continue;
-            }
-            if (pl.maBuHold != null || pl.isMabuHold) {
-                continue;
-            }
-            if (pl.isPet && ((Pet) pl).master != null && ((Pet) pl).master.equals(this)) {
-                continue;
-            }
-            int dist = Math.abs(pl.location.x - this.location.x);
-            if (dist < bestDist) {
-                bestDist = dist;
-                nearest = pl;
-            }
-        }
-        return nearest;
     }
 
     /**

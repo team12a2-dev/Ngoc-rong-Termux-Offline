@@ -970,22 +970,8 @@ public class Player implements Runnable {
       }
    }
 
-   /**
-    * Kẻ tấn công có đánh trúng mục tiêu theo chiều cao hay không. Mặc định mọi đòn đánh đều
-    * trúng; boss giới hạn tầm chiều cao sẽ override (xem YardratBoss).
-    * Dùng như chốt chặn cuối trong injured() để mọi kiểu đánh (chiêu, lan, bom) đều bị lọc.
-    */
-   public boolean canHitTargetAtHeight(Player target) {
-      return true;
-   }
-
    public synchronized int injured(Player plAtt, long damage, boolean piercing, boolean isMobAttack) {
       if (!this.isDie()) {
-         // Chặn đòn khi mục tiêu nằm ngoài tầm chiều cao của kẻ tấn công
-         // (vd: boss Yardrat đứng dưới đất không đánh được người chơi đứng trên khu cao)
-         if (plAtt != null && !plAtt.equals(this) && !plAtt.canHitTargetAtHeight(this)) {
-            return 0;
-         }
          if (plAtt != null && !plAtt.equals(this)) {
             setTemporaryEnemies(plAtt);
          }
