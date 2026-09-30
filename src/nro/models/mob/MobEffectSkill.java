@@ -55,6 +55,29 @@ public class MobEffectSkill {
         return isAnTroi || isBlindDCTT || isStun || isThoiMien;
     }
 
+    /**
+     * Bật aura cố định cho mob (hào quang nhận diện siêu quái). Dùng cùng packet -124
+     * với removeAnTroi nhưng form 4 byte vì aura do hệ thống bật, không có người chơi
+     * dùng chiêu để ghi id.
+     */
+    public void setAura(int effectId) {
+        Message msg = null;
+        try {
+            msg = new Message(-124);
+            msg.writer().writeByte(1); // 1: bắt đầu hiệu ứng
+            msg.writer().writeByte(1); // 1: phần mob
+            msg.writer().writeByte(effectId);
+            msg.writer().writeByte(mob.id);
+            Service.gI().sendMessAllPlayerInMap(mob.zone, msg);
+        } catch (Exception e) {
+            nro.models.utils.Logger.logException(MobEffectSkill.class, e);
+        } finally {
+            if (msg != null) {
+                msg.cleanup();
+            }
+        }
+    }
+
     public void startStun(long lastTimeStartBlind, int timeBlind) {
         this.lastTimeStun = lastTimeStartBlind;
         this.timeStun = timeBlind;

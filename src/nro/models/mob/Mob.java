@@ -40,6 +40,10 @@ public class Mob {
     // Trung bình 1 phần thưởng tiền tệ trên 100 quái; hồng ngọc chiếm 20%.
     private static final int CURRENCY_DROP_RATE = 50;
     private static final int RUBY_DROP_RATE = 50;
+    /** HP tối đa tối thiểu để quái thường được roll thành siêu quái. */
+    public static final int SIEU_QUAI_MIN_HP = 3000;
+    /** Tỉ lệ roll siêu quái: 1 trên SIEU_QUAI_RATE lần quái hồi sinh. Giảm số này để siêu quái xuất hiện nhiều hơn. */
+    public static final int SIEU_QUAI_RATE = 1000;
 
     public int id;
     public Zone zone;
@@ -303,7 +307,7 @@ public class Mob {
                     }
                     if (Util.canDoWithTime(lastTimeDie, 3000)) {
                         this.hoiSinh();
-                        this.sendMobHoiSinh();
+                        this.sendMobHoiSinh(true);
                     }
                     if (Util.canDoWithTime(lastTimePhucHoi, 30000) && !isDie()) {
                         lastTimePhucHoi = System.currentTimeMillis();
@@ -311,7 +315,7 @@ public class Mob {
                         if (this.point.hp < hpMax) {
                             hoi_hp(hpMax / 10);
                         } else {
-                            this.sendMobHoiSinh();
+                            this.sendMobHoiSinh(false);
                         }
                     }
             }
@@ -477,23 +481,48 @@ public class Mob {
     }
 
     public int lvMob() {
-        for (Mob mobMap : this.zone.mobs) {
-            if (mobMap.lvMob > 0) {
-                return 0;
+        this.lvMob = 0;
+        if (this.canRollSieuQuai()) {
+            for (Mob mobMap : this.zone.mobs) {
+                if (mobMap != this && mobMap.lvMob > 0) {
+                    return 0;
+                }
+            }
+            if (Util.isTrue(1, SIEU_QUAI_RATE)) {
+                this.lvMob = 1;
             }
         }
-        this.lvMob = this.tempId > 12 && this.tempId < 34 && !isBigBoss() ? Util.isTrue(0, 10000) ? 1 : 0 : 0;
         this.point.hp = this.lvMob > 0 ? this.point.maxHp <= 20000000 ? this.point.maxHp * 10 : 2000000000 : this.point.maxHp;
+        if (this.lvMob > 0) {
+            this.sendSieuQuai(this.lvMob);
+            this.effectSkill.setAura(this.getEliteAuraEffect(this.lvMob));
+        }
         return this.lvMob;
     }
 
+    /** Quái đủ điều kiện để roll thành siêu quái: HP tối đa từ SIEU_QUAI_MIN_HP, không phải big boss, không ở map phó bản. */
+    private boolean canRollSieuQuai() {
+        if (this.point == null || this.point.maxHp < SIEU_QUAI_MIN_HP || isBigBoss()) {
+            return false;
+        }
+        return this.zone != null && this.zone.map != null && !MapService.gI().isMapPhoBan(this.zone.map.mapId);
+    }
+
     public void sendMobHoiSinh() {
+        this.sendMobHoiSinh(true);
+    }
+
+    /**
+     * @param roll true khi quái vừa hồi sinh sau khi bị giết (mới roll siêu quái),
+     *             false khi chỉ gửi lại HP cho quái đang sống để không roll lại giữa trận.
+     */
+    public void sendMobHoiSinh(boolean roll) {
         Message msg = null;
         try {
             msg = new Message(-13);
             msg.writer().writeByte(this.id);
             msg.writer().writeByte(this.tempId);
-            msg.writer().writeByte(lvMob());
+            msg.writer().writeByte(roll ? lvMob() : this.lvMob);
             msg.writer().writeInt(this.point.hp);
             Service.gI().sendMessAllPlayerInMap(this.zone, msg);
             this.sendMobMaxHp(this.point.hp);
