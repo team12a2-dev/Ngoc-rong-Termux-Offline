@@ -37,10 +37,24 @@ public class BoMong extends Npc {
                         "Hoàn thành nhanh\nnhiệm vụ chính"};
                     this.createOtherMenu(player, ConstNpc.BASE_MENU,
                             "Ngươi muốn có thêm ngọc thì chịu khó làm vài nhiệm vụ sẽ được ngọc thưởng", menuSelect);
-                }
             }
         }
-    
+    }
+
+    private void openRechargeGuide(Player player, int page) {
+        switch (page) {
+            case 1 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GUIDE_1,
+                    "Ta sẽ hướng dẫn ngươi cách nạp thẻ.\nBước 1: Nạp thẻ qua kênh nạp của máy chủ, chọn đúng nhà mạng và mệnh giá, rồi nhập chính xác mã thẻ cùng số seri.",
+                    "Tiếp tục", "Quy đổi ngọc");
+            case 2 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GUIDE_2,
+                    "Bước 2: Chờ hệ thống xác nhận giao dịch. Khi thành công, tiền sẽ được cộng vào số dư VNĐ của tài khoản. Nếu giao dịch chưa cập nhật, hãy kiểm tra trạng thái hoặc liên hệ quản trị viên; đừng gửi lại thẻ đã dùng.",
+                    "Tiếp tục", "Quy đổi ngọc", "Quay lại");
+            case 3 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GUIDE_3,
+                    "Bước 3: Dùng số dư VNĐ để đổi thành Ngọc Xanh. Tỉ lệ: 10.000 VNĐ = 1.000 ngọc. Mỗi lần đổi tối thiểu 10.000 VNĐ và tối đa 5.000.000 VNĐ. Chọn Quy đổi ngọc để nhập số tiền cần đổi.",
+                    "Quy đổi ngọc", "Quay lại");
+        }
+    }
+
 
     @Override
     public void confirmMenu(Player player, int select) {
@@ -74,8 +88,24 @@ public class BoMong extends Npc {
                     }
                 } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GEM) {
                     switch (select) {
-                        case 0 -> Input.gI().createFormTradeGem(player);
+                        case 0 -> openRechargeGuide(player, 1);
                         case 1 -> Input.gI().createFormGiftCode(player);
+                    }
+                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GUIDE_1) {
+                    switch (select) {
+                        case 0 -> openRechargeGuide(player, 2);
+                        case 1 -> Input.gI().createFormTradeGem(player);
+                    }
+                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GUIDE_2) {
+                    switch (select) {
+                        case 0 -> openRechargeGuide(player, 3);
+                        case 1 -> Input.gI().createFormTradeGem(player);
+                        case 2 -> openRechargeGuide(player, 1);
+                    }
+                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GUIDE_3) {
+                    switch (select) {
+                        case 0 -> Input.gI().createFormTradeGem(player);
+                        case 1 -> openRechargeGuide(player, 2);
                     }
                 } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_LEVEL_SIDE_TASK) {
                     switch (select) {

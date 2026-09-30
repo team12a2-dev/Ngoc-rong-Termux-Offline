@@ -318,6 +318,9 @@ public class ConstNpc {
     public static final int MENU_OPTION_PAY_SIDE_TASK = 501;
     public static final int MENU_OPTION_FAST_MAIN_TASK = 502;
     public static final int MENU_OPTION_RECHARGE_GEM = 503;
+    public static final int MENU_OPTION_RECHARGE_GUIDE_1 = 504;
+    public static final int MENU_OPTION_RECHARGE_GUIDE_2 = 505;
+    public static final int MENU_OPTION_RECHARGE_GUIDE_3 = 506;
     public static final int event3 = 3333;
     public static final int event3_1 = 3334;
 
