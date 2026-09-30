@@ -9,6 +9,7 @@ import static nro.models.npc.NpcFactory.PLAYERID_OBJECT;
 import nro.models.player.Player;
 import nro.models.services.ItemService;
 import nro.models.services.InventoryService;
+import nro.models.services.LearnSkillService;
 import nro.models.map.service.NpcService;
 import nro.models.services.ClanService;
 import nro.models.services.RewardService;
@@ -129,6 +130,9 @@ public class QuyLaoKame extends Npc {
             case 12:
                 handleMenu12(player, select);
                 break;
+            case 13:
+                LearnSkillService.gI().cancel(player);
+                break;
             case 0:
                 handleMenu0(player, select);
                 break;
@@ -196,21 +200,7 @@ public class QuyLaoKame extends Npc {
     }
 
     private void handleTalk(Player player) {
-        if (player.LearnSkill.Time != -1 && player.LearnSkill.Time <= System.currentTimeMillis()) {
-            player.LearnSkill.Time = -1;
-            try {
-                var curSkill = SkillUtil.createSkill(SkillUtil.getTempSkillSkillByItemID(player.LearnSkill.ItemTemplateSkillId), SkillUtil.getSkillByItemID(player, player.LearnSkill.ItemTemplateSkillId).point);
-                player.BoughtSkill.add((int) player.LearnSkill.ItemTemplateSkillId);
-                SkillUtil.setSkill(player, curSkill);
-                var msg = Service.gI().messageSubCommand((byte) 62);
-                msg.writer().writeShort(curSkill.skillId);
-                player.sendMessage(msg);
-                msg.cleanup();
-                PlayerService.gI().sendInfoHpMpMoney(player);
-            } catch (Exception e) {
-                Logger.log(e.toString());
-            }
-        }
+        LearnSkillService.gI().checkFinish(player);
 
         ArrayList<String> menu = new ArrayList<>();
         menu.add("Nhiệm vụ");
@@ -232,39 +222,10 @@ public class QuyLaoKame extends Npc {
         }
     }
 
-    private void learnSkill(Player player) {
-        try {
-            String[] subName = ItemService.gI().getTemplate(player.LearnSkill.ItemTemplateSkillId).name.split("");
-            byte level = Byte.parseByte(subName[subName.length - 1]);
-            Skill curSkill = SkillUtil.createSkill(SkillUtil.getTempSkillSkillByItemID(player.LearnSkill.ItemTemplateSkillId), level);
-            player.BoughtSkill.add((int) player.LearnSkill.ItemTemplateSkillId);
-            SkillUtil.setSkill(player, curSkill);
-            var msg = Service.gI().messageSubCommand((byte) 62);
-            msg.writer().writeShort(curSkill.skillId);
-            player.sendMessage(msg);
-            msg.cleanup();
-            PlayerService.gI().sendInfoHpMpMoney(player);
-        } catch (Exception e) {
-            Logger.log(e.toString());
-        }
-    }
-
     private void handleMenu12(Player player, int select) {
         switch (select) {
-            case 0 -> {
-                var time = player.LearnSkill.Time - System.currentTimeMillis();
-                var ngoc = 5;
-                if (time / 600_000 >= 2) {
-                    ngoc += time / 600_000;
-                }
-                if (player.inventory.gem < ngoc) {
-                    Service.gI().sendThongBao(player, "Bạn không có đủ ngọc");
-                    return;
-                }
-                player.inventory.subGem(ngoc);
-                player.LearnSkill.Time = -1;
-                learnSkill(player);
-            }
+            case 0 ->
+                LearnSkillService.gI().finishFast(player);
             case 1 ->
                 createOtherMenu(player, 13, "Con có muốn huỷ học kỹ năng này và nhận lại 50% số tiềm năng không ?", "Ok", "Đóng");
         }
@@ -295,14 +256,14 @@ public class QuyLaoKame extends Npc {
     }
 
     private void handleSkillLearning(Player player) {
-        if (player.LearnSkill.Time != -1) {
-            var ngoc = 5;
-            var time = player.LearnSkill.Time - System.currentTimeMillis();
-            if (time / 600_000 >= 2) {
-                ngoc += time / 600_000;
+        if (LearnSkillService.gI().isLearning(player)) {
+            var ngoc = LearnSkillService.gI().getGemCost(player);
+            var time = Math.max(0, player.LearnSkill.Time - System.currentTimeMillis());
+            byte level = LearnSkillService.gI().getLevel(player.LearnSkill.ItemTemplateSkillId);
+            if (level < 0) {
+                Service.gI().sendThongBao(player, "Không tìm thấy sách kỹ năng đang học, hãy thử lại");
+                return;
             }
-            String[] subName = ItemService.gI().getTemplate(player.LearnSkill.ItemTemplateSkillId).name.split("");
-            byte level = Byte.parseByte(subName[subName.length - 1]);
             createOtherMenu(player, 12,
                     "Con đang học kỹ năng\n" + SkillUtil.findSkillTemplate(SkillUtil.getTempSkillSkillByItemID(player.LearnSkill.ItemTemplateSkillId)).name
                     + " cấp " + level + "\nThời gian còn lại " + TimeUtil.getTime(time),

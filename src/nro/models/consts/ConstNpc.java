@@ -309,6 +309,10 @@ public class ConstNpc {
     public static final int MENU_OPTION_PHU_HP = 501;
     public static final int MENU_OPTION_GO_HOME = 502;
 
+    //index menu học kỹ năng
+    public static final int MENU_LEARN_SKILL = 12;
+    public static final int MENU_CANCEL_LEARN_SKILL = 13;
+
     //index menu bò mộng
     public static final int MENU_OPTION_LEVEL_SIDE_TASK = 500;
     public static final int MENU_OPTION_PAY_SIDE_TASK = 501;
