@@ -8,6 +8,7 @@ import nro.models.boss.spawn.BossSpawnConfig;
 import nro.models.consts.ConstItem;
 import nro.models.item.Item;
 import nro.models.map.ItemMap;
+import nro.models.player.Pet;
 import nro.models.player.Player;
 import nro.models.services.PlayerService;
 import nro.models.services.Service;
@@ -20,6 +21,8 @@ public final class YardratBoss extends Yardart {
     private static final int TILE_SIZE = 24;
     private static final int SPAWN_MARGIN = 120;
     private static final int MAX_VERTICAL_DELTA = 48;
+    /** Chênh lệch cao tối đa được phép — chặn đánh lên người chơi đứng trên khu cao (1 ô = 24px) */
+    private static final int MAX_ABOVE_TARGET_DELTA = 12;
     private static final int CHILD_COUNT = 5;
 
     /** Số lần nhóm boss chính đã vào map — dùng để xoay vị trí, không spawn cố định 1 điểm */
@@ -134,8 +137,80 @@ public final class YardratBoss extends Yardart {
 
     @Override
     protected boolean canAttackTargetAtCurrentHeight(Player target) {
-        return target != null && target.zone == this.zone && this.location != null && target.location != null
-                && Math.abs(target.location.y - this.location.y) <= MAX_VERTICAL_DELTA;
+        return isTargetWithinHeight(target);
+    }
+
+    /** Chốt chặn cuối cho mọi đường đánh (chiêu, lan, bom) — xem Player.injured. */
+    @Override
+    public boolean canHitTargetAtHeight(Player target) {
+        return isTargetWithinHeight(target);
+    }
+
+    /**
+     * Boss Yardrat đứng trên mặt đất nên chỉ đánh được mục tiêu cùng tầm hoặc thấp hơn,
+     * không đánh lên người chơi đang đứng trên khu cao. Trục y tăng xuống nên mục tiêu
+     * ở trên cao có y nhỏ hơn boss.
+     */
+    private boolean isTargetWithinHeight(Player target) {
+        if (target == null || this.zone == null || target.zone == null || !this.zone.equals(target.zone)) {
+            return false;
+        }
+        if (this.location == null || target.location == null) {
+            return false;
+        }
+        int deltaY = target.location.y - this.location.y;
+        return deltaY >= -MAX_ABOVE_TARGET_DELTA && deltaY <= MAX_VERTICAL_DELTA;
+    }
+
+    /** Ưu tiên mục tiêu đứng cùng tầm với boss thay vì chọn ngẫu nhiên rồi đứng yên. */
+    @Override
+    public Player getPlayerAttack() {
+        Player target = super.getPlayerAttack();
+        if (isTargetWithinHeight(target)) {
+            return target;
+        }
+        Player onSameGround = pickTargetOnSameGround();
+        if (onSameGround != null) {
+            this.playerTarger = onSameGround;
+            this.lastTimeTargetPlayer = System.currentTimeMillis();
+            this.timeTargetPlayer = Util.nextInt(5000, 7000);
+            return onSameGround;
+        }
+        this.playerTarger = null;
+        return null;
+    }
+
+    private Player pickTargetOnSameGround() {
+        if (this.zone == null) {
+            return null;
+        }
+        List<Player> candidates = this.zone.getNotBosses();
+        if (candidates == null || candidates.isEmpty()) {
+            return null;
+        }
+        List<Player> valid = new ArrayList<>();
+        for (Player player : candidates) {
+            if (player == null || player.isDie()) {
+                continue;
+            }
+            // Giữ đúng bộ lọc mục tiêu của Zone.getRandomPlayerInMap
+            if (player.effectSkin != null && player.effectSkin.isVoHinh) {
+                continue;
+            }
+            if (player.maBuHold != null || player.isMabuHold) {
+                continue;
+            }
+            if (player.isPet && ((Pet) player).master != null && ((Pet) player).master.equals(this)) {
+                continue;
+            }
+            if (isTargetWithinHeight(player)) {
+                valid.add(player);
+            }
+        }
+        if (valid.isEmpty()) {
+            return null;
+        }
+        return valid.get(Util.nextInt(0, valid.size() - 1));
     }
 
     /** Yardrat bosses walk horizontally on their current/lower surface; they do not jump to a higher target. */
@@ -222,18 +297,27 @@ public final class YardratBoss extends Yardart {
         return baseline;
     }
 
-    /** Nền thật tại cột x; quanh mốc ưu tiên, nếu không có thì dò từ đáy map lên. */
+    /** Nền thật tại cột x: dò quanh mốc ưu tiên (trên và dưới) để không bị lơ lửng. */
     private int groundYAt(int x) {
         if (this.zone == null || this.zone.map == null) {
             return 0;
         }
         int baseline = clampedBaseline();
+        // 1) Dò xuống từ mốc — nơi nền thật nằm ở hoặc thấp hơn mốc
         int y = this.zone.map.yPhysicInTop(x, baseline);
         if (isValidSurface(y, baseline)) {
             return y;
         }
-        int bottomProbe = Math.max(TILE_SIZE, this.zone.map.mapHeight - TILE_SIZE);
-        y = this.zone.map.yPhysicInTop(x, bottomProbe);
+        // 2) Dò lên trên — mốc hardcode có thể thấp hơn nền thật, đứng ở mốc sẽ bị lơ lửng
+        int topLimit = Math.max(TILE_SIZE, baseline - TILE_SIZE * 4);
+        for (int probe = baseline - TILE_SIZE; probe >= topLimit; probe -= TILE_SIZE) {
+            y = this.zone.map.yPhysicInTop(x, probe);
+            if (y > 0 && y < this.zone.map.mapHeight && y <= baseline) {
+                return y;
+            }
+        }
+        // 3) Dò từ đáy map — phòng map không có nền đúng mốc
+        y = this.zone.map.yPhysicInTop(x, Math.max(TILE_SIZE, this.zone.map.mapHeight - TILE_SIZE));
         if (isValidSurface(y, baseline)) {
             return y;
         }
