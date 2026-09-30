@@ -46,8 +46,12 @@ public class Mob {
     private static final int RUBY_DROP_RATE = 50;
     /** HP tối đa tối thiểu để quái thường được roll thành siêu quái. */
     public static final int SIEU_QUAI_MIN_HP = 3000;
-    /** Tỉ lệ roll siêu quái: 1 trên SIEU_QUAI_RATE lần quái hồi sinh. Giảm số này để siêu quái xuất hiện nhiều hơn. */
-    public static final int SIEU_QUAI_RATE = 100;
+    /**
+     * Tỉ lệ roll siêu quái: 1 trên SIEU_QUAI_RATE lần người chơi hạ quái thường.
+     * Vì mỗi khu vực chỉ có tối đa 1 siêu quái nên tỉ lệ này là xác suất quái
+     * tiếp theo sau khi hạ xong siêu quái sẽ thành siêu quái mới.
+     */
+    public static final int SIEU_QUAI_RATE = 10;
     /** Ghi log mỗi lần siêu quái xuất hiện để kiểm chứng roll có thực sự chạy không. */
     public static final boolean SIEU_QUAI_LOG = true;
 
@@ -113,6 +117,8 @@ public class Mob {
 
     public long lastTimeDie;
     public int lvMob = 0;
+    /** Đã roll trúng lúc người chơi hạ quái, chờ quái hồi sinh để biến thành siêu quái. */
+    public boolean pendingSieuQuai;
     public int status = 5;
     public int type = 1;
 
@@ -224,6 +230,7 @@ public class Mob {
                 this.setDie();
                 this.temporaryEnemies.clear();
                 if (plAtt != null) {
+                    this.tryRollSieuQuaiOnKill();
                     this.sendMobDieAffterAttacked(plAtt, (int) damage);
                     TaskService.gI().checkDoneTaskKillMob(plAtt, this);
                     TaskService.gI().checkDoneSideTaskKillMob(plAtt, this);
@@ -529,16 +536,10 @@ public class Mob {
 
     public int lvMob() {
         this.lvMob = 0;
-        if (this.canRollSieuQuai()) {
-            for (Mob mobMap : this.zone.mobs) {
-                if (mobMap != this && mobMap.lvMob > 0) {
-                    return 0;
-                }
-            }
-            if (Util.isTrue(1, sieuQuaiRate())) {
-                this.lvMob = 1;
-            }
+        if (this.pendingSieuQuai || this.rollSieuQuai()) {
+            this.lvMob = 1;
         }
+        this.pendingSieuQuai = false;
         this.point.hp = this.lvMob > 0 ? this.point.maxHp <= 20000000 ? this.point.maxHp * 10 : 2000000000 : this.point.maxHp;
         if (this.lvMob > 0) {
             this.sendSieuQuai(this.lvMob);
@@ -552,12 +553,31 @@ public class Mob {
         return this.lvMob;
     }
 
-    /** Quái đủ điều kiện để roll thành siêu quái: HP tối đa từ ngưỡng, không phải big boss, không ở map phó bản. */
-    private boolean canRollSieuQuai() {
+    /**
+     * Roll ngay tại thời điểm người chơi hạ quái thường. Chỉ đánh dấu, siêu quái
+     * thực sự xuất hiện khi quái hồi sinh vài giây sau đó nên client không bị
+     * giật khi vừa giết xong.
+     */
+    public void tryRollSieuQuaiOnKill() {
+        if (this.rollSieuQuai()) {
+            this.pendingSieuQuai = true;
+        }
+    }
+
+    /** Quái này còn đủ điều kiện roll không: đạt ngưỡng HP, không phải big boss, không ở map phó bản, khu vực chưa có siêu quái. */
+    private boolean rollSieuQuai() {
         if (this.point == null || this.point.maxHp < sieuQuaiMinHp() || isBigBoss()) {
             return false;
         }
-        return this.zone != null && this.zone.map != null && !MapService.gI().isMapPhoBan(this.zone.map.mapId);
+        if (this.zone == null || this.zone.map == null || MapService.gI().isMapPhoBan(this.zone.map.mapId)) {
+            return false;
+        }
+        for (Mob mobMap : this.zone.mobs) {
+            if (mobMap != this && mobMap.lvMob > 0) {
+                return false;
+            }
+        }
+        return Util.isTrue(1, sieuQuaiRate());
     }
 
     public void sendMobHoiSinh() {

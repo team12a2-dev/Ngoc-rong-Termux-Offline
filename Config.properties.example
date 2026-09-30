@@ -31,8 +31,10 @@ panel.agent.host=127.0.0.1
 panel.agent.port=14446
 panel.agent.key=change-me-in-production
 
-# SIÊU QUÁI - roll khi quái thường hồi sinh sau khi bị giết
-# 1 trên sieuquai.rate lần hồi sinh; 100 = 1%, 20 = 5%, 10 = 10%
-sieuquai.rate=100
+# SIÊU QUÁI - roll khi người chơi hạ quái thường, siêu quái xuất hiện khi quái hồi sinh
+# Mỗi khu vực chỉ có tối đa 1 siêu quái, nên sieuquai.rate là xác suất quái tiếp theo
+# sau khi hạ xong siêu quái sẽ thành siêu quái mới.
+# 1 trên sieuquai.rate: 10 = 10%  ·  5 = 20%  ·  20 = 5%  ·  100 = 1%
+sieuquai.rate=10
 # HP tối đa tối thiểu để quái được roll thành siêu quái
 sieuquai.minhp=3000
