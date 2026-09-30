@@ -10,7 +10,10 @@ import nro.models.consts.ConstTask;
 import nro.models.item.Item;
 import nro.models.item.Item.ItemOption;
 import nro.models.map.ItemMap;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 import nro.models.map.Zone;
 import nro.models.player.Location;
 import nro.models.player.Pet;
@@ -18,6 +21,7 @@ import nro.models.player.Player;
 import nro.models.network.Message;
 import java.io.IOException;
 import nro.models.server.Maintenance;
+import nro.models.utils.Logger;
 import nro.models.utils.Util;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +47,50 @@ public class Mob {
     /** HP tối đa tối thiểu để quái thường được roll thành siêu quái. */
     public static final int SIEU_QUAI_MIN_HP = 3000;
     /** Tỉ lệ roll siêu quái: 1 trên SIEU_QUAI_RATE lần quái hồi sinh. Giảm số này để siêu quái xuất hiện nhiều hơn. */
-    public static final int SIEU_QUAI_RATE = 1000;
+    public static final int SIEU_QUAI_RATE = 100;
+    /** Ghi log mỗi lần siêu quái xuất hiện để kiểm chứng roll có thực sự chạy không. */
+    public static final boolean SIEU_QUAI_LOG = true;
+
+    // Khai báo trước static block: static field có initializer chạy theo thứ tự văn bản,
+    // nếu khai báo sau thì initializer sẽ ghi đè giá trị đọc từ Config.properties.
+    private static int SIEU_QUAI_RATE_OVERRIDE = -1;
+    private static int SIEU_QUAI_MIN_HP_OVERRIDE = -1;
+
+    static {
+        try (FileInputStream fis = new FileInputStream("Config.properties")) {
+            Properties prop = new Properties();
+            prop.load(fis);
+            String rate = prop.getProperty("sieuquai.rate", "").trim();
+            if (!rate.isEmpty()) {
+                try {
+                    int parsed = Integer.parseInt(rate);
+                    if (parsed > 0) {
+                        SIEU_QUAI_RATE_OVERRIDE = parsed;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            String minHp = prop.getProperty("sieuquai.minhp", "").trim();
+            if (!minHp.isEmpty()) {
+                try {
+                    int parsed = Integer.parseInt(minHp);
+                    if (parsed > 0) {
+                        SIEU_QUAI_MIN_HP_OVERRIDE = parsed;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        } catch (IOException ignored) {
+        }
+    }
+
+    private static int sieuQuaiRate() {
+        return SIEU_QUAI_RATE_OVERRIDE > 0 ? SIEU_QUAI_RATE_OVERRIDE : SIEU_QUAI_RATE;
+    }
+
+    private static int sieuQuaiMinHp() {
+        return SIEU_QUAI_MIN_HP_OVERRIDE > 0 ? SIEU_QUAI_MIN_HP_OVERRIDE : SIEU_QUAI_MIN_HP;
+    }
 
     public int id;
     public Zone zone;
@@ -488,7 +535,7 @@ public class Mob {
                     return 0;
                 }
             }
-            if (Util.isTrue(1, SIEU_QUAI_RATE)) {
+            if (Util.isTrue(1, sieuQuaiRate())) {
                 this.lvMob = 1;
             }
         }
@@ -496,13 +543,18 @@ public class Mob {
         if (this.lvMob > 0) {
             this.sendSieuQuai(this.lvMob);
             this.effectSkill.setAura(this.getEliteAuraEffect(this.lvMob));
+            if (SIEU_QUAI_LOG) {
+                Logger.log(Logger.PURPLE, "[SIEUQUAI] " + this.name + " (id " + this.tempId + ", map "
+                        + this.zone.map.mapId + ", zone " + this.zone.zoneId + ") HP "
+                        + this.point.maxHp + " -> " + this.point.hp + "\n");
+            }
         }
         return this.lvMob;
     }
 
-    /** Quái đủ điều kiện để roll thành siêu quái: HP tối đa từ SIEU_QUAI_MIN_HP, không phải big boss, không ở map phó bản. */
+    /** Quái đủ điều kiện để roll thành siêu quái: HP tối đa từ ngưỡng, không phải big boss, không ở map phó bản. */
     private boolean canRollSieuQuai() {
-        if (this.point == null || this.point.maxHp < SIEU_QUAI_MIN_HP || isBigBoss()) {
+        if (this.point == null || this.point.maxHp < sieuQuaiMinHp() || isBigBoss()) {
             return false;
         }
         return this.zone != null && this.zone.map != null && !MapService.gI().isMapPhoBan(this.zone.map.mapId);

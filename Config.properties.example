@@ -30,3 +30,9 @@ panel.agent.enabled=true
 panel.agent.host=127.0.0.1
 panel.agent.port=14446
 panel.agent.key=change-me-in-production
+
+# SIÊU QUÁI - roll khi quái thường hồi sinh sau khi bị giết
+# 1 trên sieuquai.rate lần hồi sinh; 100 = 1%, 20 = 5%, 10 = 10%
+sieuquai.rate=100
+# HP tối đa tối thiểu để quái được roll thành siêu quái
+sieuquai.minhp=3000
