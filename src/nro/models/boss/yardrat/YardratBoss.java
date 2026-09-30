@@ -6,9 +6,11 @@ import nro.models.boss.BossData;
 import nro.models.boss.BossID;
 import nro.models.boss.spawn.BossSpawnConfig;
 import nro.models.consts.ConstItem;
+import nro.models.consts.ConstPlayer;
 import nro.models.item.Item;
 import nro.models.map.ItemMap;
 import nro.models.player.Player;
+import nro.models.services.PlayerService;
 import nro.models.services.Service;
 import nro.models.utils.Logger;
 import nro.models.utils.Util;
@@ -19,6 +21,8 @@ public final class YardratBoss extends Yardart {
     private static final int TILE_SIZE = 24;
     private static final int SPAWN_MARGIN = 120;
     private static final int MAX_VERTICAL_DELTA = 48;
+    /** Sai số cao tối đa vẫn chấp nhận là "ngang tầm" — chặn đánh lên người đứng cao hơn. */
+    private static final int MAX_ABOVE_TARGET_DELTA = 12;
     private static final int CHILD_COUNT = 5;
 
     /** Số lần nhóm boss chính đã vào map — dùng để xoay vị trí, không spawn cố định 1 điểm */
@@ -129,6 +133,85 @@ public final class YardratBoss extends Yardart {
             return super.getMapSpawnY(x);
         }
         return groundYAt(x);
+    }
+
+    /**
+     * Boss Yardrat đứng trên mặt đất nên **không đánh lên** người chơi đang ở cao hơn nó.
+     * Trục y tăng xuống: mục tiêu ở trên cao có y nhỏ hơn boss. Mục tiêu ngang tầm hoặc
+     * thấp hơn thì vẫn đánh bình thường.
+     */
+    @Override
+    protected boolean canAttackTargetAtCurrentHeight(Player target) {
+        return isTargetNotAboveMe(target);
+    }
+
+    /** Chốt chặn cuối cho các đường đánh không qua mục tiêu chính: chiêu lan, bom. */
+    @Override
+    public boolean canHitTargetAtHeight(Player target) {
+        return isTargetNotAboveMe(target);
+    }
+
+    private boolean isTargetNotAboveMe(Player target) {
+        if (target == null || this.zone == null || target.zone == null || !this.zone.equals(target.zone)) {
+            return false;
+        }
+        if (this.location == null || target.location == null) {
+            return false;
+        }
+        return target.location.y >= this.location.y - MAX_ABOVE_TARGET_DELTA;
+    }
+
+    /**
+     * Đi ngang trên cao độ hiện tại và chỉ bước xuống khi mục tiêu thấp hơn.
+     * Cố ý KHÔNG dùng Map.yPhysicInTop ở đây: tile data của map Yardrat (131/132/133) đọc
+     * sai vùng dữ liệu nên toạ độ tính ra sai, đưa vào đây chính là nguồn gây nhảy.
+     * Y của mục tiêu lấy từ client nên tin được; y của boss giữ nguyên để không bị kéo lên cao.
+     */
+    @Override
+    public void moveTo(int x, int targetY) {
+        if (this.zone == null || this.zone.map == null || this.location == null) {
+            return;
+        }
+        int currentX = this.location.x;
+        if (currentX == x) {
+            return;
+        }
+        int step = Math.min(Math.abs(x - currentX), Util.nextInt(40, 60));
+        int nextX = currentX + (x > currentX ? step : -step);
+        nextX = Math.max(0, Math.min(this.zone.map.mapWidth - 1, nextX));
+
+        int nextY = this.location.y;
+        if (targetY > nextY && targetY - nextY <= MAX_VERTICAL_DELTA) {
+            nextY = targetY;
+        }
+        PlayerService.gI().playerMove(this, nextX, nextY);
+    }
+
+    /**
+     * Khi mục tiêu đang ở cao hơn (không đánh được) thì boss vẫn đi ngang tới gần để áp chân
+     * bắt, thay vì đứng yên. Không dùng super.attack() vì lớp cha sẽ bỏ qua nhánh di chuyển
+     * khi canAttackTargetAtCurrentHeight() trả false.
+     */
+    @Override
+    public void attack() {
+        if (!Util.canDoWithTime(this.lastTimeAttack, 100) || this.typePk != ConstPlayer.PK_ALL) {
+            return;
+        }
+        this.lastTimeAttack = System.currentTimeMillis();
+        try {
+            Player target = getPlayerAttack();
+            if (target == null || target.isDie()) {
+                return;
+            }
+            if (isTargetNotAboveMe(target)) {
+                super.attack();
+                return;
+            }
+            // Mục tiêu ở trên cao: chỉ đi lại gần, không đánh
+            moveTo(target.location.x, target.location.y);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
