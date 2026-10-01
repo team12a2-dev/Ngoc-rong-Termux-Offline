@@ -103,6 +103,8 @@ WHERE `tab_id` = @tab_hang_doc
 
 -- 9. Mô tả hiển thị dưới tên vệ tinh trong shop, đúng như bản gốc:
 --    80 = HP+#%/30s, 81 = KI+#%/30s, 82 = không bị quái chủ động đánh, 83 = +20% sức mạnh/tiềm năng.
+--    84 = dùng để bay không tốn KI (ván bay thường), 85 = dùng để bay và phục hồi KI (ván bay VIP).
+--    Bản Namec (347, 350) đã có option sẵn trong seed; 6 item này bổ sung cho đủ 3 tộc.
 INSERT INTO `item_shop_option` (`item_shop_id`, `option_id`, `param`)
 SELECT s.`id`, o.`option_id`, o.`param`
 FROM `item_shop` s
@@ -111,8 +113,15 @@ JOIN (
   UNION ALL SELECT 343, 83, 0
   UNION ALL SELECT 344, 82, 0
   UNION ALL SELECT 345, 80, 5
+  UNION ALL SELECT 346, 84, 0
+  UNION ALL SELECT 347, 84, 0
+  UNION ALL SELECT 348, 84, 0
+  UNION ALL SELECT 349, 85, 0
+  UNION ALL SELECT 350, 85, 0
+  UNION ALL SELECT 351, 85, 0
 ) o ON o.`temp_id` = s.`temp_id`
 WHERE s.`tab_id` = @tab_hang_doc
+  AND s.`is_sell` = 1
   AND NOT EXISTS (
     SELECT 1 FROM `item_shop_option` x
     WHERE x.`item_shop_id` = s.`id` AND x.`option_id` = o.`option_id`
