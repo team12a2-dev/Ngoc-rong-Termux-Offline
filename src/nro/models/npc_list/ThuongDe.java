@@ -46,7 +46,8 @@ public void openBaseMenu(Player player) {
                 "Tập luyện\nvới\nMr.PôPô",
                 "Tập luyện\nvới\nThượng Đế",
                 "Đến\nKaio",
-                "Quay ngọc\nMay mắn");
+                "Quay ngọc\nMay mắn",
+                "Rương\nphụ");
         return;
     }
 
@@ -200,6 +201,8 @@ if (player.playerTask.taskMain.id < 21) {
                     ChangeMapService.gI().changeMapBySpaceShip(player, MAP_HANH_TINH_KAIO, -1, 354);
                 case 4 ->
                     openLuckyRoundMenu(player);
+                case 5 ->
+                    ShopService.gI().opendShop(player, "ITEMS_LUCKY_ROUND", true);
             }
             return;
         }

@@ -12,7 +12,6 @@ import java.util.List;
 import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
 import nro.models.services.GodSpinConfigService;
-import nro.models.shop.ShopService;
 
 /**
  *
@@ -234,9 +233,6 @@ PlayerDAO.updatePlayer(player);
                 msg.writer().writeShort(item.template.iconID);
             }
             player.sendMessage(msg);
-            if (!items.isEmpty()) {
-                ShopService.gI().opendShop(player, "ITEMS_LUCKY_ROUND", true);
-            }
         } catch (IOException e) {
         } finally {
             if (msg != null) {
