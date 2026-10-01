@@ -116,9 +116,9 @@ public class ItemMap {
             }
 
             //========================SATELLITE========================
-            // if (this.itemTemplate.type == 22) {
-            //     satelliteUpdate();
-            // }
+            if (this.itemTemplate.type == 22) {
+                satelliteUpdate();
+            }
             if (Util.canDoWithTime(createTime, 15000)) {
                 if (this.itemTemplate.type != 22 && this.itemTemplate.id != 726 && this.itemTemplate.id != 992) {
                     this.playerId = -1;
@@ -153,6 +153,9 @@ public class ItemMap {
     }
 
     private void satelliteUpdate() {
+        if (this.zone == null) {
+            return;
+        }
         for (Player pl : this.zone.getPlayers()) {
             if (!pl.isDie() && Util.getDistance(pl.location.x, pl.location.y, x, y) < 200 && pl.satellite != null && (pl.id == this.playerId || this.clanId != -1 && pl.clan != null && pl.clan.id == this.clanId)) {
                 switch (this.itemTemplate.id) {
