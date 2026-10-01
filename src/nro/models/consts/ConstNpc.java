@@ -376,6 +376,7 @@ public class ConstNpc {
     public static final int MENU_NOT_OPEN_MMB_NO_JAR = 1004;
     public static final int BUA_HO_TRO = 1005;
     public static final int BINH_HUT_NANG_LUONG = 1006;
+    public static final int MENU_OPEN_MMB_14H = 1016;
     public static final int KOL_QUEST_MENU = 1007;
     public static final int KOL_VIP_REWARD_MENU = 1008;
     public static final int KOL_QUEST_TYPE_ITEM_COLLECTION = 1009;

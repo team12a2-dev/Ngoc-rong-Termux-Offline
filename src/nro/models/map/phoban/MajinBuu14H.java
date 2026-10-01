@@ -1,8 +1,11 @@
 package nro.models.map.phoban;
 
 import nro.models.utils.Functions;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import nro.models.boss.Boss;
+import nro.models.boss.MajinBuu_14h.Mabu2H;
+import nro.models.boss.MajinBuu_14h.SuperBu;
 import nro.models.map.Zone;
 import nro.models.map.MaBuHold;
 import nro.models.player.Player;
@@ -15,10 +18,14 @@ public final class MajinBuu14H implements Runnable {
     public static final int AVAILABLE = 7;
     public int id;
     public final List<Zone> zones;
+    private volatile Mabu2H mabuBoss;
+    private volatile SuperBu superBuBoss;
+    private boolean eventWindowOpen;
+    private boolean eventBossesStarted;
 
     public MajinBuu14H(int id) {
         this.id = id;
-        this.zones = new ArrayList<>();
+        this.zones = new CopyOnWriteArrayList<>();
         this.init();
     }
 
@@ -32,7 +39,8 @@ public final class MajinBuu14H implements Runnable {
             try {
                 long startTime = System.currentTimeMillis();
                 update();
-                Functions.sleep(Math.max(150 - (System.currentTimeMillis() - startTime), 10));
+                long interval = TimeUtil.isMabu14HOpen() ? 150L : 1000L;
+                Functions.sleep(Math.max(interval - (System.currentTimeMillis() - startTime), 10L));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -41,16 +49,56 @@ public final class MajinBuu14H implements Runnable {
 
     public void update() {
         if (!TimeUtil.isMabu14HOpen()) {
+            if (eventWindowOpen) {
+                eventWindowOpen = false;
+                eventBossesStarted = false;
+                stopEventBosses();
+            }
             finish();
             return;
+        }
+        if (!eventWindowOpen) {
+            eventWindowOpen = true;
+            eventBossesStarted = false;
+        }
+        if (!eventBossesStarted) {
+            eventBossesStarted = startEventBosses();
         }
         for (int j = zones.size() - 1; j >= 0; j--) {
             Zone zone = zones.get(j);
             for (MaBuHold hold : zone.maBuHolds) {
-                if (hold.player != null && hold.player.maBuHold == null && hold.player.zone != null) {
+                if (hold.player != null && (hold.player.maBuHold == null || hold.player.zone == null)) {
                     hold.player = null;
                 }
             }
+        }
+    }
+
+    public synchronized void registerBoss(Boss boss) {
+        if (boss instanceof Mabu2H mabu) {
+            this.mabuBoss = mabu;
+        } else if (boss instanceof SuperBu superBu) {
+            this.superBuBoss = superBu;
+        }
+    }
+
+    private synchronized boolean startEventBosses() {
+        Zone mabuZone = getMapById(127);
+        Zone stomachZone = getMapById(128);
+        if (mabuZone == null || stomachZone == null || mabuBoss == null || superBuBoss == null) {
+            return false;
+        }
+        mabuBoss.startMabu14HEvent(mabuZone);
+        superBuBoss.startMabu14HEvent(stomachZone);
+        return true;
+    }
+
+    private synchronized void stopEventBosses() {
+        if (mabuBoss != null) {
+            mabuBoss.stopMabu14HEvent();
+        }
+        if (superBuBoss != null) {
+            superBuBoss.stopMabu14HEvent();
         }
     }
 
@@ -89,7 +137,8 @@ public final class MajinBuu14H implements Runnable {
     }
 
     private void kickOut(Player player) {
-        if (MapService.gI().isMapMabu2H(player.zone.map.mapId) && !player.isAdmin()) {
+        if (player != null && player.zone != null
+                && MapService.gI().isMapMabu2H(player.zone.map.mapId) && !player.isAdmin()) {
             ChangeMapService.gI().changeMapBySpaceShip(player, player.gender + 21, -1, 336);
         }
     }

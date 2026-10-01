@@ -339,10 +339,10 @@ public class Map implements Runnable {
                     bossId = BossID.DRABURA_2;
                 case 120 ->
                     bossId = BossID.MABU_12H;
-                // case 127 ->
-                //     bossId = BossID.MABU;
-                // case 128 ->
-                //     bossId = BossID.SUPERBU;
+                case 127 ->
+                    bossId = BossID.MABU;
+                case 128 ->
+                    bossId = BossID.SUPERBU;
                 case 131 ->
                     bossId = BossID.TAN_BINH_5;
                 case 132 ->
@@ -351,13 +351,18 @@ public class Map implements Runnable {
                     bossId = BossID.DOI_TRUONG_5;
             }
             if (bossId != -1) {
-                Boss boss = BossManager.gI().createBoss(bossId);
+                boolean mabu14H = MapService.gI().isMapMabu2H(this.mapId);
+                Boss boss = BossManager.gI().createBoss(bossId, !mabu14H);
                 if (boss == null) {
                     Logger.error("initBoss: không tạo được boss id=" + bossId + " trên map " + this.mapId + "\n");
                     continue;
                 }
                 boss.zoneFinal = zone;
                 boss.setLastTimeRest(System.currentTimeMillis());
+                if (mabu14H) {
+                    MajinBuu14HService.gI().registerEventBoss(zone, boss);
+                    continue;
+                }
                 if (boss.currentLevel < 0) {
                     boss.respawn();
                 } else {

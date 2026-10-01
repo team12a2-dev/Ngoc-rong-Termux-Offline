@@ -17,15 +17,65 @@ import nro.models.server.ServerNotify;
 import nro.models.services.SkillService;
 import nro.models.services.TaskService;
 import nro.models.map.service.ChangeMapService;
+import nro.models.map.service.MapService;
+import nro.models.map.Zone;
 import nro.models.utils.SkillUtil;
+import nro.models.utils.TimeUtil;
 
 public class SuperBu extends Boss {
 
     private long lastTimeUseSkill;
     private long timeUseSkill;
+    private volatile boolean mabu14HEventActive;
 
     public SuperBu() throws Exception {
         super(FINAL, BossID.SUPERBU, BossesData.SUPER_BU_BUNG);
+    }
+
+    public synchronized void startMabu14HEvent(Zone eventZone) {
+        if (eventZone == null) {
+            return;
+        }
+        if (this.zone != null) {
+            ChangeMapService.gI().exitMap(this);
+        }
+        this.zoneFinal = eventZone;
+        this.currentLevel = -1;
+        this.lastTimeUseSkill = 0;
+        this.timeUseSkill = 0;
+        this.mabu14HEventActive = true;
+        this.respawn();
+        this.setLastTimeRest(System.currentTimeMillis());
+        this.joinMap();
+    }
+
+    public synchronized void stopMabu14HEvent() {
+        this.mabu14HEventActive = false;
+        if (this.zone != null && MapService.gI().isMapMabu2H(this.zone.map.mapId)) {
+            ChangeMapService.gI().exitMap(this);
+        }
+        if (this.bossStatus != BossStatus.REST) {
+            this.changeStatus(BossStatus.REST);
+        }
+        this.setLastTimeRest(System.currentTimeMillis());
+    }
+
+    @Override
+    public void update() {
+        if (!mabu14HEventActive || !TimeUtil.isMabu14HOpen()) {
+            if (mabu14HEventActive) {
+                stopMabu14HEvent();
+            }
+            return;
+        }
+        super.update();
+    }
+
+    @Override
+    public void rest() {
+        if (mabu14HEventActive && TimeUtil.isMabu14HOpen()) {
+            super.rest();
+        }
     }
 
     @Override
