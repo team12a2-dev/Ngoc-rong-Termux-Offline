@@ -37,9 +37,20 @@ public class Virut extends Boss {
                 BossesData.MINI_BOSS_MAPS,
                 new int[]{5, 7, 0, 14},
                 new int[][]{{Skill.DRAGON, 7, 1000}},
-                new String[]{}, // Text chat 1
-                new String[]{}, // Text chat 2
-                new String[]{},
+                new String[]{
+                    "|-1|Khè khè... ta ngửi thấy mùi sinh lực của các ngươi.",
+                    "|-1|Đừng chạy! Virus của ta sẽ tìm được ngươi.",
+                    "|-1|Một khu vực mới, một ổ dịch mới!"
+                }, // Text chat 1
+                new String[]{
+                    "|-1|Ha ha! Càng chống cự, các ngươi càng yếu đi.",
+                    "|-1|Ai sẽ là vật chủ tiếp theo đây?",
+                    "|-1|Thuốc giải ư? Không có đâu, chỉ có tuyệt vọng thôi!"
+                }, // Text chat 2
+                new String[]{
+                    "|-1|Khè... khè... lần này ta sẽ quay lại với ổ dịch lớn hơn!",
+                    "|-1|Các ngươi tưởng đã diệt được ta sao?"
+                },
                 600));
     }
 

@@ -49,9 +49,21 @@ public class AnTrom extends Boss {
                 new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 79, 80, 81, 82, 83, 84, 92, 93, 94, 96, 97, 98, 99, 100, 102, 103, 104, 105, 106, 107, 108, 109, 110},
                 new int[][]{
                     {Skill.THAI_DUONG_HA_SAN, 5, 8000}},
-                new String[]{"|-1|Có ai mang vàng không ta?"},
-                new String[]{"|-1|Haha, ví nào cũng là của ta!", "|-1|Chạy đi, ta chỉ lấy vàng thôi!"},
-                new String[]{"|-1|Thôi, đủ rồi — ta đi đây!"},
+                new String[]{
+                    "|-1|Có ai mang vàng không ta? Ta nghe tiếng leng keng rồi.",
+                    "|-1|Khu này nhìn nghèo quá... chắc phải lục kỹ hơn thôi.",
+                    "|-1|Đừng để ta thấy túi vàng của ngươi!"
+                },
+                new String[]{
+                    "|-1|Haha, ví nào cũng là của ta!",
+                    "|-1|Chạy đi, ta chỉ lấy vàng thôi!",
+                    "|-1|Đứng lại! Ta chưa kiểm tra hết túi của ngươi.",
+                    "|-1|Đông người thế này càng vui, vàng sẽ rơi nhiều hơn!"
+                },
+                new String[]{
+                    "|-1|Thôi, đủ rồi — ta đi trước khi các ngươi gọi thêm người!",
+                    "|-1|Vàng đã đầy túi, hẹn gặp lại ở khu khác nhé!"
+                },
                 3600));
     }
 

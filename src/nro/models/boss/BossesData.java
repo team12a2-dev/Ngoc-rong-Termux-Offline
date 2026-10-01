@@ -1302,9 +1302,20 @@ public class BossesData {
                 {Skill.KAMEJOKO, 7, 5000},
                 {Skill.GALICK, 7, 1000},},
             //skill
-            new String[]{}, //text chat 1
-            new String[]{}, //text chat 2
-            new String[]{}, //text chat 3
+            new String[]{
+                "|-1|Gừ... ai cho các ngươi bước vào lãnh địa của ta?",
+                "|-1|Ta ngửi thấy mùi xương ngon ở quanh đây.",
+                "|-1|Đừng tưởng đông người là có thể bắt nạt ta!"
+            }, //text chat 1
+            new String[]{
+                "|-1|Gâu! Đứng lại, để ta xem ngươi có gì trong túi.",
+                "|-1|Một cục xương thôi cũng đủ khiến ta vui cả ngày.",
+                "|-1|Các ngươi đánh đau đấy... nhưng ta còn nhiều răng lắm!"
+            }, //text chat 2
+            new String[]{
+                "|-1|Ta sẽ nhớ mùi của các ngươi... lần sau ta sẽ săn ngược lại!",
+                "|-1|Không thể nào... ta còn chưa ăn xong mà!"
+            }, //text chat 3
             REST_5_M //second rest
     );
 
@@ -1319,9 +1330,20 @@ public class BossesData {
                 {Skill.KAMEJOKO, 7, 5000},
                 {Skill.GALICK, 7, 1000},},
             //skill
-            new String[]{}, //text chat 1
-            new String[]{}, //text chat 2
-            new String[]{}, //text chat 3
+            new String[]{
+                "|-1|Hôi quá... có ai dám lại gần ta không?",
+                "|-1|Ta vừa tìm thấy một khu rất thích hợp để bẩn thêm một chút.",
+                "|-1|Đừng nhìn ta như thế, sạch sẽ đâu có vui!"
+            }, //text chat 1
+            new String[]{
+                "|-1|Bùm! Tránh ra, ta sắp làm bẩn cả khu này.",
+                "|-1|Các ngươi đánh ta càng mạnh thì mùi càng nồng đấy!",
+                "|-1|Ha ha, thử chịu đựng mùi của ta thêm một lúc nữa xem."
+            }, //text chat 2
+            new String[]{
+                "|-1|Ta sẽ quay lại... và lần sau sẽ còn ở dơ hơn!",
+                "|-1|Không thể tin được, các ngươi chịu được mùi này sao?"
+            }, //text chat 3
             REST_5_S //second rest
     );
 
@@ -2620,9 +2642,21 @@ public class BossesData {
             new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37}, //map join
             new int[][]{
                 {Skill.GALICK, 5, 1000000000}},
-            new String[]{"|-1|Tới giờ làm việc"}, //text chat 1
-            new String[]{"|-1|Ái chà chà"}, //text chat 2
-            new String[]{"|-1|Ái chà chà"},
+            new String[]{
+                "|-1|Tới giờ làm việc rồi! Ai muốn thử sức với ta nào?",
+                "|-1|Một ngày đẹp trời để kiếm thêm vài chiến công.",
+                "|-1|Ta nghe nói khu này có nhiều chiến binh mạnh lắm."
+            }, //text chat 1
+            new String[]{
+                "|-1|Ái chà chà, cú đánh này cũng được đấy!",
+                "|-1|Đừng tưởng ta nhỏ con mà dễ bắt nạt nhé.",
+                "|-1|Nào, cùng nhau làm cho trận chiến náo nhiệt hơn đi!",
+                "|-1|Các ngươi chạy đi đâu? Ta còn chưa nghiêm túc mà."
+            }, //text chat 2
+            new String[]{
+                "|-1|Hôm nay đến đây thôi, lần sau ta sẽ mạnh hơn!",
+                "|-1|Ta sẽ quay lại khi các ngươi mất cảnh giác."
+            },
             REST_1_M //type appear
     );
 
