@@ -44,10 +44,8 @@ public class SoiHecQuyn extends Boss {
         if (this.zone == null) {
             if (this.parentBoss != null) {
                 this.zone = parentBoss.zone;
-            } else if (this.lastZone == null) {
-                this.zone = getMapJoin();
             } else {
-                this.zone = this.lastZone;
+                this.zone = getRandomMiniSpawnZone();
             }
         }
 

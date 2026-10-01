@@ -201,16 +201,12 @@ public void reward(Player plKill) {
         if (this.zone == null) {
             if (this.parentBoss != null) {
                 this.zone = parentBoss.zone;
-            } else if (this.lastZone == null) {
-                this.zone = getMapJoin();
             } else {
-                this.zone = this.lastZone;
+                this.zone = getRandomMiniSpawnZone();
             }
         }
         if (this.zone != null) {
             try {
-                int zoneid = 0;
-                this.zone = this.zone.map.zones.get(zoneid);
                 ChangeMapService.gI().changeMap(this, this.zone, -1, -1);
 
                 this.changeStatus(BossStatus.CHAT_S);

@@ -1,6 +1,7 @@
 package nro.models.boss.Boss_mini;
 
 import nro.models.boss.Boss;
+import nro.models.boss.BossesData;
 import nro.models.boss.BossData;
 import nro.models.boss.BossID;
 import nro.models.consts.BossStatus;
@@ -33,7 +34,7 @@ public class Virut extends Boss {
                 ConstPlayer.TRAI_DAT,
                 new short[]{651, 778, 779, -1, -1, -1},
                 10,
-                new int[]{100},
+                BossesData.MINI_BOSS_MAPS,
                 new int[]{5, 7, 0, 14},
                 new int[][]{{Skill.DRAGON, 7, 1000}},
                 new String[]{}, // Text chat 1
@@ -164,16 +165,12 @@ public class Virut extends Boss {
         if (this.zone == null) {
             if (this.parentBoss != null) {
                 this.zone = parentBoss.zone;
-            } else if (this.lastZone == null) {
-                this.zone = getMapJoin();
             } else {
-                this.zone = this.lastZone;
+                this.zone = getRandomMiniSpawnZone();
             }
         }
         if (this.zone != null) {
             try {
-                int zoneid = 0;
-                this.zone = this.zone.map.zones.get(zoneid);
                 ChangeMapService.gI().changeMap(this, this.zone, -1, -1);
 
                 this.changeStatus(BossStatus.CHAT_S);

@@ -44,6 +44,7 @@ import static nro.models.consts.BossType.TRUNGTHU_EVENT;
 import static nro.models.consts.BossType.YARDART;
 import nro.models.network.Message;
 import java.util.List;
+import java.util.ArrayList;
 import nro.models.map.Zone;
 import nro.models.mob.Mob;
 import nro.models.player.Pet;
@@ -362,6 +363,42 @@ public Player bomAttacker; // thêm dòng này
         }
         Zone map = MapService.gI().getMapWithRandZone(mapId);
         return map;
+    }
+
+    /**
+     * Chọn vị trí spawn mới cho mini boss: không tái sử dụng lastZone,
+     * ưu tiên map ít boss đang hoạt động và khu chưa có boss.
+     */
+    protected Zone getRandomMiniSpawnZone() {
+        Zone selectedMapZone = getMapJoin();
+        if (selectedMapZone == null || selectedMapZone.map == null
+                || selectedMapZone.map.zones == null || selectedMapZone.map.zones.isEmpty()) {
+            return selectedMapZone;
+        }
+
+        List<Zone> freeZones = new ArrayList<>();
+        int minBosses = Integer.MAX_VALUE;
+        List<Zone> leastBusyZones = new ArrayList<>();
+        for (Zone candidate : selectedMapZone.map.zones) {
+            if (candidate == null) {
+                continue;
+            }
+            int bossCount = candidate.getBosses().size();
+            if (bossCount == 0) {
+                freeZones.add(candidate);
+            }
+            if (bossCount < minBosses) {
+                minBosses = bossCount;
+                leastBusyZones.clear();
+                leastBusyZones.add(candidate);
+            } else if (bossCount == minBosses) {
+                leastBusyZones.add(candidate);
+            }
+        }
+        List<Zone> candidates = freeZones.isEmpty() ? leastBusyZones : freeZones;
+        return candidates.isEmpty()
+                ? selectedMapZone
+                : candidates.get(Util.nextInt(0, candidates.size() - 1));
     }
 
     @Override
