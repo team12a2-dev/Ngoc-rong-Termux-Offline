@@ -7,6 +7,7 @@ import nro.models.npc.Npc;
 import nro.models.player.Player;
 import nro.models.services.AchievementService;
 import nro.models.services.TaskService;
+import nro.models.services_func.Input;
 
 /**
  *
@@ -42,6 +43,12 @@ public class BoMong extends Npc {
     }
 
     private void openRechargeMenu(Player player) {
+        this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GEM,
+                "Ngươi muốn nạp ngọc bằng cách nào?",
+                "Hướng dẫn nạp thẻ", "Nhập Gift Code", "Quy đổi ngọc");
+    }
+
+    private void openRechargeGuide(Player player) {
         NpcService.gI().createTutorial(player, tempId, avartar,
                 "Bạn có thể có ngọc từ ví điện tử, gift code (thẻ cào rốt)");
     }
@@ -75,6 +82,12 @@ public class BoMong extends Npc {
                         case 3 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
                                 TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
 
+                    }
+                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GEM) {
+                    switch (select) {
+                        case 0 -> openRechargeGuide(player);
+                        case 1 -> Input.gI().createFormGiftCode(player);
+                        case 2 -> Input.gI().createFormTradeGem(player);
                     }
                 } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_LEVEL_SIDE_TASK) {
                     switch (select) {
