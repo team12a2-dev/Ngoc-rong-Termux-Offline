@@ -58,7 +58,16 @@ UPDATE `item_shop` SET `sort_order` = @after_binh_nuoc + 2 WHERE `tab_id` = @tab
 UPDATE `item_shop` SET `sort_order` = @after_binh_nuoc + 3 WHERE `tab_id` = @tab_hang_doc AND `temp_id` = 344;
 UPDATE `item_shop` SET `sort_order` = @after_binh_nuoc + 4 WHERE `tab_id` = @tab_hang_doc AND `temp_id` = 345;
 
--- 7. Mô tả hiển thị dưới tên vật phẩm trong shop, đúng như bản gốc:
+-- 7. Ván bay (Phi Long 347, Phi Long VIP 350) trong item_template để gender = 1 (Namec)
+--    nên ShopService loại khỏi shop với nhân vật TD/Xayda và người chơi không thấy.
+--    Dùng gender_override = 3 (chung mọi tộc) ở cấp dòng bán, không sửa item_template.
+UPDATE `item_shop`
+SET `gender_override` = 3
+WHERE `tab_id` = @tab_hang_doc
+  AND `temp_id` IN (347, 350)
+  AND COALESCE(`gender_override`, -1) <> 3;
+
+-- 8. Mô tả hiển thị dưới tên vật phẩm trong shop, đúng như bản gốc:
 --    80 = HP+#%/30s, 81 = KI+#%/30s, 82 = không bị quái chủ động đánh, 83 = +20% sức mạnh/tiềm năng.
 INSERT INTO `item_shop_option` (`item_shop_id`, `option_id`, `param`)
 SELECT s.`id`, o.`option_id`, o.`param`
