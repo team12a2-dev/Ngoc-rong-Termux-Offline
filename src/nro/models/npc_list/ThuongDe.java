@@ -24,8 +24,8 @@ public class ThuongDe extends Npc {
 
     /** Map Thần điện - nơi đặt NPC Thượng Đế trong dữ liệu map. */
     private static final int MAP_THAN_DIEN = ConstMap.THAN_DIEN;
-    /** Map Thánh địa Kaio. */
-    private static final int MAP_THANH_DIA_KAIO = 50;
+    /** Map Hành tinh Kaio - nơi gặp Thần Vũ Trụ Phương Bắc. */
+    private static final int MAP_HANH_TINH_KAIO = ConstMap.HANH_TINH_KAIO;
 
     public ThuongDe(int mapId, int status, int cx, int cy, int tempId, int avartar) {
         super(mapId, status, cx, cy, tempId, avartar);
@@ -91,7 +91,7 @@ if (player.playerTask.taskMain.id < 21) {
     // ===== MENU CHÍNH =====
     if (player.idMark.isBaseMenu()) {
         switch (select) {
-            case 0 -> LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GEM);
+            case 0 -> openLuckyRoundMenu(player);
             case 1 -> showMilestoneMenu(player);
             case 2 -> showTopLucky(player);
             case 3 -> ShopService.gI().opendShop(player, "ITEMS_LUCKY_ROUND", true);
@@ -197,9 +197,9 @@ if (player.playerTask.taskMain.id < 21) {
                             "Con có chắc muốn tập luyện ?\nTập luyện với ta sẽ tăng 640 sức mạnh mỗi phút",
                             "Đồng ý\nluyện tập", "Không\nđồng ý");
                 case 3 ->
-                    ChangeMapService.gI().changeMap(player, MAP_THANH_DIA_KAIO, -1, 318, 336);
+                    ChangeMapService.gI().changeMap(player, MAP_HANH_TINH_KAIO, -1, 354, 240);
                 case 4 ->
-                    LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GEM);
+                    openLuckyRoundMenu(player);
             }
             return;
         }
@@ -227,7 +227,26 @@ if (player.playerTask.taskMain.id < 21) {
                     TrainingService.gI().callBoss(player, BossID.THUONG_DE, false);
                 }
             }
+            case ConstNpc.MENU_CHOOSE_LUCKY_ROUND -> {
+                switch (select) {
+                    case 0 -> LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GOLD);
+                    case 1 -> LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GEM);
+                    case 2 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_GOLD);
+                    case 3 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_TICKET);
+                }
+            }
         }
+    }
+    private void openLuckyRoundMenu(Player player) {
+        this.createOtherMenu(player, ConstNpc.MENU_CHOOSE_LUCKY_ROUND,
+                "Con có thể chọn từ 1 đến 7 viên\n"
+                + "giá mỗi viên là 4 ngọc hoặc 5 triệu vàng.\n"
+                + "Ưu tiên dùng vé quay trước.",
+                "Vòng quay\nVàng",
+                "Vòng quay\nMay mắn",
+                "Vòng quay\nVàng\nSự kiện",
+                "Vòng quay\nĐặc biệt\nSự kiện",
+                "Đóng");
     }
     // ================= MENU MỐC ĐIỂM =================
    private void showMilestoneMenu(Player player) {
