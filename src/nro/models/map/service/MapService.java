@@ -583,6 +583,11 @@ public class MapService {
         return isMapBanDoKhoBau(mapId) || isMapDoanhTrai(mapId) || isMapConDuongRanDoc(mapId) || isMapKhiGasHuyDiet(mapId);
     }
 
+    /** Lãnh địa Bang Hội: map sự kiện, không lưu vị trí khi người chơi thoát game. */
+    public boolean isMapLanhDiaBangHoi(int mapId) {
+        return mapId == ConstMap.LANH_DIA_BANG_HOI;
+    }
+
     public boolean isskh(int mapId) {
         return (mapId >= 1 && mapId <= 3)
                 || (mapId >= 8 && mapId <= 11)

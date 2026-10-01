@@ -1,5 +1,6 @@
 package nro.models.npc_list;
 
+import nro.models.consts.ConstMap;
 import nro.models.consts.ConstNpc;
 import nro.models.item.Item;
 import nro.models.map.phoban.BanDoKhoBau;
@@ -33,7 +34,7 @@ import java.util.Map;
 public class QuyLaoKame extends Npc {
 
     /** map_template.id = 153 'Lãnh địa Bang Hội' - khu vực bang, 156 là Tây thánh địa. */
-    private static final int MAP_LANH_DIA_BANG_HOI = 153;
+    private static final int MAP_LANH_DIA_BANG_HOI = ConstMap.LANH_DIA_BANG_HOI;
 
     private static class RewardItem {
 

@@ -156,6 +156,8 @@ public class ConstMap {
     public static final int HOANG_MAC = 144;
     public static final int VO_DAI_SIEU_CAP = 145;
     public static final int TAY_KARIN = 146;
+    /** Lãnh địa Bang Hội: map sự kiện, đăng nhập lại sẽ đưa người chơi về Đảo Kame. */
+    public static final int LANH_DIA_BANG_HOI = 153;
     public static final int HANH_TINH_BILL = 154;
     public static final int HANH_TINH_NGUC_TU = 155;
     public static final int KHU_HANG_DONG = 160;

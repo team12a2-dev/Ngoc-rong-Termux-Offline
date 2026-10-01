@@ -306,6 +306,13 @@ public class AmodsubVN {
                     player.location.y = 336;
                     Logger.log("[NRO] Đưa người chơi không đủ điều kiện khỏi Đông Nam Karin khi đăng nhập: " + player.name);
                 }
+                // Lãnh địa Bang Hội là map phó bản tạm, thoát ra khi tắt game không được giữ vị trí.
+                if (MapService.gI().isMapLanhDiaBangHoi(mapId)) {
+                    mapId = ConstMap.DAO_KAME;
+                    player.location.x = 1156;
+                    player.location.y = 408;
+                    Logger.log("[NRO] Đưa người chơi về Đảo Kame sau khi thoát ở Lãnh địa Bang Hội: " + player.name);
+                }
 
                 player.zone = MapService.gI().getMapCanJoin(player, mapId, -1);
             } catch (Exception e) {
