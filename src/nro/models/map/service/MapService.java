@@ -494,7 +494,7 @@ public class MapService {
     }
 
     public boolean isMapMaBu(int mapId) {
-        return mapId >= 114 && mapId <= 120;
+        return mapId == 114 || mapId == 115 || (mapId >= 117 && mapId <= 120);
     }
 
     /**

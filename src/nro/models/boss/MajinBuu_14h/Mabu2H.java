@@ -20,8 +20,11 @@ import nro.models.services.ItemTimeService;
 import nro.models.services.SkillService;
 import nro.models.services.TaskService;
 import nro.models.map.service.ChangeMapService;
+import nro.models.map.service.MapService;
+import nro.models.map.Zone;
 import nro.models.skill.Skill;
 import nro.models.utils.SkillUtil;
+import nro.models.utils.TimeUtil;
 
 public class Mabu2H extends Boss {
 
@@ -29,10 +32,60 @@ public class Mabu2H extends Boss {
 
     private long lastTimeUseSkill;
     private long timeUseSkill;
+    private volatile boolean mabu14HEventActive;
     public List<Player> maBuEat = new ArrayList<>();
 
     public Mabu2H() throws Exception {
         super(FINAL, BossID.MABU, BossesData.MABU, BossesData.SUPER_BU, BossesData.BU_TENK, BossesData.BU_HAN, BossesData.KID_BU);
+    }
+
+    public synchronized void startMabu14HEvent(Zone eventZone) {
+        if (eventZone == null) {
+            return;
+        }
+        if (this.zone != null) {
+            ChangeMapService.gI().exitMap(this);
+        }
+        this.zoneFinal = eventZone;
+        this.currentLevel = -1;
+        this.maBuEat.clear();
+        this.lastTimeEat = 0;
+        this.lastTimeUseSkill = 0;
+        this.timeUseSkill = 0;
+        this.mabu14HEventActive = true;
+        this.respawn();
+        this.setLastTimeRest(System.currentTimeMillis());
+        this.joinMap();
+    }
+
+    public synchronized void stopMabu14HEvent() {
+        this.mabu14HEventActive = false;
+        this.maBuEat.clear();
+        if (this.zone != null && MapService.gI().isMapMabu2H(this.zone.map.mapId)) {
+            ChangeMapService.gI().exitMap(this);
+        }
+        if (this.bossStatus != BossStatus.REST) {
+            this.changeStatus(BossStatus.REST);
+        }
+        this.setLastTimeRest(System.currentTimeMillis());
+    }
+
+    @Override
+    public void update() {
+        if (!mabu14HEventActive || !TimeUtil.isMabu14HOpen()) {
+            if (mabu14HEventActive) {
+                stopMabu14HEvent();
+            }
+            return;
+        }
+        super.update();
+    }
+
+    @Override
+    public void rest() {
+        if (mabu14HEventActive && TimeUtil.isMabu14HOpen()) {
+            super.rest();
+        }
     }
 
     @Override

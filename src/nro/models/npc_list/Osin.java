@@ -3,7 +3,6 @@ package nro.models.npc_list;
 import nro.models.consts.ConstNpc;
 import java.util.ArrayList;
 import nro.models.services_dungeon.MajinBuu14HService;
-import nro.models.services_dungeon.MajinBuuService;
 import nro.models.npc.Npc;
 import nro.models.player.Player;
 import nro.models.services.ItemTimeService;
@@ -44,15 +43,9 @@ public class Osin extends Npc {
                     player.fightMabu.clear();
                     boolean hasEnergyJar = InventoryService.gI().findItemBag(player, 1795) != null;
                     if (TimeUtil.isMabu14HOpen()) {
-                        if (hasEnergyJar) {
-                            this.createOtherMenu(player, ConstNpc.MENU_OPEN_MMB_WITH_JAR,
-                                    "Mabư đã thoát khỏi vỏ bọc\nmau đi cùng ta ngăn chặn hắn lại\ntrước khi hắn tàn phá trái đất này",
-                                    "OK", "Bình hút năng lượng", "Từ chối");
-                        } else {
-                            this.createOtherMenu(player, ConstNpc.MENU_OPEN_MMB_NO_JAR,
-                                    "Mabư đã thoát khỏi vỏ bọc\nmau đi cùng ta ngăn chặn hắn lại\ntrước khi hắn tàn phá trái đất này",
-                                    "OK", "Từ chối");
-                        }
+                        this.createOtherMenu(player, ConstNpc.MENU_OPEN_MMB_14H,
+                                "Sự kiện Mabư 14h đang mở\nMau đi cùng ta ngăn chặn hắn lại!",
+                                "Vào map\nMabư 14h", "Từ chối");
                     } else if (TimeUtil.isMabuOpen()) {
                         if (hasEnergyJar) {
                             this.createOtherMenu(player, ConstNpc.MENU_OPEN_MMB_WITH_JAR,
@@ -66,11 +59,11 @@ public class Osin extends Npc {
                     } else {
                         if (hasEnergyJar) {
                             this.createOtherMenu(player, ConstNpc.MENU_NOT_OPEN_MMB_WITH_JAR,
-                                    "Vào lúc " + MajinBuuService.HOUR_OPEN_MAP_MABU + "h tôi sẽ bí mật...\nđuổi theo 2 tên đồ tể...\nQuý vị nào muốn đi theo thì xin mời !",
+                                    "Map Mabư 12h mở 12:00–13:00; map Mabư 14h mở 14:00–15:00.\nQuý vị hãy quay lại đúng giờ.",
                                     "Ok", "Bình hút năng lượng");
                         } else {
                             this.createOtherMenu(player, ConstNpc.MENU_NOT_OPEN_MMB_NO_JAR,
-                                    "Vào lúc " + MajinBuuService.HOUR_OPEN_MAP_MABU + "h tôi sẽ bí mật...\nđuổi theo 2 tên đồ tể...\nQuý vị nào muốn đi theo thì xin mời !",
+                                    "Map Mabư 12h mở 12:00–13:00; map Mabư 14h mở 14:00–15:00.\nQuý vị hãy quay lại đúng giờ.",
                                     "Ok");
                         }
                     }
@@ -158,17 +151,24 @@ public class Osin extends Npc {
 
             case 52 -> {
                 switch (indexMenu) {
+                    case ConstNpc.MENU_OPEN_MMB_14H -> {
+                        if (select == 0) {
+                            MajinBuu14HService.gI().joinMaBu2H(player);
+                        }
+                    }
+
                     case ConstNpc.MENU_OPEN_MMB_WITH_JAR -> {
                         if (select == 0) {
                             if (TimeUtil.isMabu14HOpen()) {
                                 Service.gI().sendThongBao(player, "Hiện đang là sự kiện Mabu 14h, không thể vào map 12h!");
-                                return;
                             } else if (TimeUtil.isMabuOpen()) {
                                 if (MajinBuuService.gI().isMabu12hDefeated()) {
                                     Service.gI().sendThongBao(player, "Mabư hôm nay đã bị tiêu diệt, hãy quay lại vào ngày mai!");
                                     return;
                                 }
                                 ChangeMapService.gI().changeMap(player, 114, -1, Util.nextInt(100, 500), 312);
+                            } else {
+                                Service.gI().sendThongBao(player, "Sự kiện Mabư 12h đã đóng. Hãy mở lại menu Ôsin đúng giờ.");
                             }
                         } else if (select == 1) {
                             createOtherMenu(player, ConstNpc.BINH_HUT_NANG_LUONG,
@@ -181,13 +181,14 @@ public class Osin extends Npc {
                         if (select == 0) {
                             if (TimeUtil.isMabu14HOpen()) {
                                 Service.gI().sendThongBao(player, "Hiện đang là sự kiện Mabu 14h, không thể vào map 12h!");
-                                return;
                             } else if (TimeUtil.isMabuOpen()) {
                                 if (MajinBuuService.gI().isMabu12hDefeated()) {
                                     Service.gI().sendThongBao(player, "Mabư hôm nay đã bị tiêu diệt, hãy quay lại vào ngày mai!");
                                     return;
                                 }
                                 ChangeMapService.gI().changeMap(player, 114, -1, Util.nextInt(100, 500), 336);
+                            } else {
+                                Service.gI().sendThongBao(player, "Sự kiện Mabư 12h đã đóng. Hãy mở lại menu Ôsin đúng giờ.");
                             }
                         }
                     }
