@@ -232,7 +232,7 @@ if (player.playerTask.taskMain.id < 21) {
                     case 0 -> LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GOLD);
                     case 1 -> LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GEM);
                     case 2 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_GOLD);
-                    case 3 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_TICKET);
+                    case 3 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_GEM);
                 }
             }
         }
