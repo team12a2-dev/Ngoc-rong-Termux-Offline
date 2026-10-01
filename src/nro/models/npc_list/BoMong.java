@@ -50,7 +50,15 @@ public class BoMong extends Npc {
 
     private void openRechargeGuide(Player player) {
         NpcService.gI().createTutorial(player, tempId, avartar,
-                "Bạn có thể có ngọc từ ví điện tử, gift code (thẻ cào rốt)");
+                "CÁCH NẠP NGỌC\n"
+                + "Bạn có thể có ngọc từ 2 nguồn:\n"
+                + "1. Ví điện tử, gift code (thẻ cào rốt)\n"
+                + "2. Quy đổi từ số dư VNĐ\n\n"
+                + "Sau khi nạp thẻ ở kênh nạp của máy chủ, tiền sẽ được cộng vào\n"
+                + "số dư VNĐ của tài khoản. Chọn \"Quy đổi ngọc\" để đổi sang Ngọc Xanh.\n"
+                + "Tỉ lệ: 10.000 VNĐ = 120 ngọc.\n"
+                + "Mỗi lần đổi tối thiểu 10.000 VNĐ, tối đa 5.000.000 VNĐ.\n"
+                + "Mỗi 10.000 VNĐ quy đổi được thêm 50 điểm sự kiện.");
     }
 
 
