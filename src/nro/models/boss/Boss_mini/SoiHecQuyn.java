@@ -172,11 +172,23 @@ public class SoiHecQuyn extends Boss {
 
     @Override
     public synchronized int injured(Player plAtt, long damage, boolean piercing, boolean isMobAttack) {
-        return 0;
+        if (this.isDie()) {
+            return 0;
+        }
+        int actualDamage = (int) Math.max(1L, Math.min(Integer.MAX_VALUE, damage));
+        this.nPoint.subHP(actualDamage);
+        if (this.isDie()) {
+            this.setDie(plAtt);
+            this.die(plAtt);
+        }
+        return actualDamage;
     }
 
     @Override
     public void reward(Player plKill) {
+        if (plKill == null || this.zone == null || this.location == null) {
+            return;
+        }
         try {
             int[] itemDropIds = {1591, 1594};
             for (int itemId : itemDropIds) {

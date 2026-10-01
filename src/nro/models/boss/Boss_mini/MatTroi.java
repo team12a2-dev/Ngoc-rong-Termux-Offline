@@ -88,13 +88,20 @@ public class MatTroi extends Boss {
     }
 
     @Override
-    public void die(Player plKill) {
+    public synchronized void die(Player plKill) {
+        if (this.bossStatus == BossStatus.DIE || this.bossStatus == BossStatus.CHAT_E
+                || this.bossStatus == BossStatus.LEAVE_MAP) {
+            return;
+        }
+        this.setDie(plKill);
         if (plKill != null) {
             this.chat(plKill.name + "... ngươi dám chặn ánh sáng của ta sao? Không thể...");
         } else {
             this.chat("Ta... bị che khuất... không thể nào...");
         }
-        this.reward(plKill);
+        if (plKill != null) {
+            this.reward(plKill);
+        }
         this.changeStatus(BossStatus.DIE);
     }
 
@@ -218,6 +225,9 @@ public class MatTroi extends Boss {
 
     @Override
     public void reward(Player plKill) {
+        if (plKill == null || this.zone == null || this.location == null) {
+            return;
+        }
         BadgesTaskService.updateCountBagesTask(plKill, ConstTaskBadges.KOL, 1);
         int x = this.location.x;
         int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
@@ -244,6 +254,7 @@ public class MatTroi extends Boss {
         this.nPoint.hp = this.nPoint.hpMax;
         this.nPoint.dameg = 1;
         lastApproachChatMs.clear();
+        globalEffectTimers.clear();
         this.joinMap2();
         st = System.currentTimeMillis();
     }
@@ -279,6 +290,7 @@ public class MatTroi extends Boss {
         ChangeMapService.gI().exitMap(this);
         this.lastZone = null;
         lastApproachChatMs.clear();
+        globalEffectTimers.clear();
         markRestAndSchedule();
         this.changeStatus(BossStatus.REST);
     }
@@ -289,9 +301,9 @@ public class MatTroi extends Boss {
             this.changeToTypePK();
         }
         this.attack();
+        this.checkGlobalEffects();
         if (Util.canDoWithTime(st, 900000)) {
             this.changeStatus(BossStatus.LEAVE_MAP);
-            this.checkGlobalEffects();
         }
     }
 

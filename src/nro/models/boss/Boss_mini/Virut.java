@@ -43,8 +43,15 @@ public class Virut extends Boss {
     }
 
     @Override
-    public void die(Player plKill) {
-        this.reward(plKill);
+    public synchronized void die(Player plKill) {
+        if (this.bossStatus == BossStatus.DIE || this.bossStatus == BossStatus.CHAT_E
+                || this.bossStatus == BossStatus.LEAVE_MAP) {
+            return;
+        }
+        this.setDie(plKill);
+        if (plKill != null) {
+            this.reward(plKill);
+        }
         this.changeStatus(BossStatus.DIE);
     }
 
@@ -120,6 +127,9 @@ public class Virut extends Boss {
 
     @Override
     public void reward(Player plKill) {
+        if (plKill == null || this.zone == null || this.location == null) {
+            return;
+        }
         int[] itemIds = {1591, 1594};
         for (int i = 0; i < itemIds.length; i++) {
             int itemId = itemIds[i];
@@ -145,6 +155,7 @@ public class Virut extends Boss {
         this.nPoint.hpMax = 100;
         this.nPoint.hp = this.nPoint.hpMax;
         this.nPoint.dameg = 1;
+        globalEffectTimers.clear();
         this.joinMap2();
         st = System.currentTimeMillis();
     }
@@ -178,6 +189,7 @@ public class Virut extends Boss {
     public void leaveMap() {
         ChangeMapService.gI().exitMap(this);
         this.lastZone = null;
+        globalEffectTimers.clear();
         this.lastTimeRest = System.currentTimeMillis();
         this.changeStatus(BossStatus.REST);
     }
@@ -188,9 +200,9 @@ public class Virut extends Boss {
             this.changeToTypePK();
         }
         this.attack();
+        this.checkGlobalEffects();
         if (Util.canDoWithTime(st, 900000)) {
             this.changeStatus(BossStatus.LEAVE_MAP);
-            this.checkGlobalEffects();
         }
     }
 

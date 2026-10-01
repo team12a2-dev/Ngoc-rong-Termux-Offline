@@ -153,8 +153,11 @@ public int injured(Player plAtt, long damage, boolean piercing, boolean isMobAtt
         PlayerService.gI().playerMove(this, this.location.x + (dir == 1 ? move : -move), y);
     }
 
-   @Override
+ @Override
 public void reward(Player plKill) {
+    if (plKill == null || this.zone == null || this.location == null) {
+        return;
+    }
     try {
         int x = this.location.x + Util.nextInt(-20, 20);
         int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);

@@ -39,6 +39,9 @@ public class RongNhi extends Boss {
 
     @Override
     public void reward(Player plKill) {
+        if (plKill == null || this.zone == null || this.location == null) {
+            return;
+        }
         if (Util.isTrue(20, 100)) {
             int[] items = Util.isTrue(20, 100) ? new int[]{1821} : new int[]{18, 19, 20};
             int randomItem = items[new Random().nextInt(items.length)];
