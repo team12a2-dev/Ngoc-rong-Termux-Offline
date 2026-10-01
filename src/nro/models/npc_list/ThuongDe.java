@@ -41,7 +41,7 @@ public void openBaseMenu(Player player) {
     // Map 5 - Đảo Kame: menu dẫn dắt đầy đủ như bản gốc
     if (player.zone.map.mapId == MAP_DAO_KAME) {
         this.createOtherMenu(player, ConstNpc.BASE_MENU,
-                "Con đã mạnh hơn ta, ta sẽ chỉ dường cho con đến Kaio\n"
+                "Con đã mạnh hơn ta, ta sẽ chỉ đường cho con đến Kaio\n"
                 + "để gặp thần Vũ Trụ Phương Bắc\n"
                 + "Ngài là thần cai quản vũ trụ này, hãy theo ngài ấy học võ công.",
                 player.dangKyTapTuDong ? "Hủy đăng ký\ntập tự động" : "Đăng ký\ntập\ntự động",
@@ -195,7 +195,7 @@ if (player.playerTask.taskMain.id < 21) {
                             "Con có chắc muốn tập luyện ?\nTập luyện với Mr.PôPô sẽ tăng 320 sức mạnh mỗi phút",
                             "Đồng ý\nluyện tập", "Không\nđồng ý");
                 case 2 ->
-                    this.createOtherMenu(player, 2002,
+                    this.createOtherMenu(player, 2003,
                             "Con có chắc muốn tập luyện ?\nTập luyện với ta sẽ tăng 640 sức mạnh mỗi phút",
                             "Đồng ý\nluyện tập", "Không\nđồng ý");
                 case 3 ->
@@ -222,6 +222,11 @@ if (player.playerTask.taskMain.id < 21) {
             case 2002 -> {
                 if (select == 0) {
                     TrainingService.gI().callBoss(player, BossID.MRPOPO, false);
+                }
+            }
+            case 2003 -> {
+                if (select == 0) {
+                    TrainingService.gI().callBoss(player, BossID.THUONG_DE, false);
                 }
             }
         }
@@ -336,4 +341,3 @@ case 1000 -> {
     this.createOtherMenu(player, ConstNpc.IGNORE_MENU, text.toString(), "Đóng");
 }
 }
-
