@@ -2,11 +2,11 @@ package nro.models.npc_list;
 
 import nro.models.consts.ConstNpc;
 import nro.models.consts.ConstTask;
+import nro.models.map.service.NpcService;
 import nro.models.npc.Npc;
 import nro.models.player.Player;
 import nro.models.services.AchievementService;
 import nro.models.services.TaskService;
-import nro.models.services_func.Input;
 
 /**
  *
@@ -42,23 +42,8 @@ public class BoMong extends Npc {
     }
 
     private void openRechargeMenu(Player player) {
-        this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GEM,
-                "Ngươi muốn nạp ngọc bằng cách nào?",
-                "Hướng dẫn nạp thẻ", "Nhập Gift Code", "Quy đổi ngọc");
-    }
-
-    private void openRechargeGuide(Player player, int page) {
-        switch (page) {
-            case 1 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GUIDE_1,
-                    "Ta sẽ hướng dẫn ngươi cách nạp thẻ.\nBước 1/3: Nạp thẻ qua kênh nạp của máy chủ, chọn đúng nhà mạng và mệnh giá, rồi nhập chính xác mã thẻ cùng số seri.",
-                    "Tiếp tục", "Quay lại menu nạp");
-            case 2 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GUIDE_2,
-                    "Bước 2/3: Chờ hệ thống xác nhận giao dịch. Khi thành công, tiền sẽ được cộng vào số dư VNĐ của tài khoản. Nếu giao dịch chưa cập nhật, hãy kiểm tra trạng thái hoặc liên hệ quản trị viên; đừng gửi lại thẻ đã dùng.",
-                    "Tiếp tục", "Quay lại đoạn trước", "Quay lại menu nạp");
-            case 3 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GUIDE_3,
-                    "Bước 3/3: Số dư VNĐ có thể đổi thành Ngọc Xanh theo tỉ lệ 10.000 VNĐ = 120 ngọc. Mỗi lần đổi tối thiểu 10.000 VNĐ và tối đa 5.000.000 VNĐ. Muốn đổi, quay lại menu nạp và chọn Quy đổi ngọc.",
-                    "Quay lại đoạn trước", "Quay lại menu nạp");
-        }
+        NpcService.gI().createTutorial(player, tempId, avartar,
+                "Bạn có thể có ngọc từ ví điện tử, gift code (thẻ cào rốt)");
     }
 
 
@@ -90,28 +75,6 @@ public class BoMong extends Npc {
                         case 3 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
                                 TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
 
-                    }
-                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GEM) {
-                    switch (select) {
-                        case 0 -> openRechargeGuide(player, 1);
-                        case 1 -> Input.gI().createFormGiftCode(player);
-                        case 2 -> Input.gI().createFormTradeGem(player);
-                    }
-                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GUIDE_1) {
-                    switch (select) {
-                        case 0 -> openRechargeGuide(player, 2);
-                        case 1 -> openRechargeMenu(player);
-                    }
-                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GUIDE_2) {
-                    switch (select) {
-                        case 0 -> openRechargeGuide(player, 3);
-                        case 1 -> openRechargeGuide(player, 1);
-                        case 2 -> openRechargeMenu(player);
-                    }
-                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GUIDE_3) {
-                    switch (select) {
-                        case 0 -> openRechargeGuide(player, 2);
-                        case 1 -> openRechargeMenu(player);
                     }
                 } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_LEVEL_SIDE_TASK) {
                     switch (select) {
