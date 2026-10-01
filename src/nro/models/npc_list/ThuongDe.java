@@ -46,8 +46,7 @@ public void openBaseMenu(Player player) {
                 "Tập luyện\nvới\nMr.PôPô",
                 "Tập luyện\nvới\nThượng Đế",
                 "Đến\nKaio",
-                "Quay ngọc\nMay mắn",
-                "Rương\nphụ");
+                "Quay ngọc\nMay mắn");
         return;
     }
 
@@ -201,8 +200,6 @@ if (player.playerTask.taskMain.id < 21) {
                     ChangeMapService.gI().changeMapBySpaceShip(player, MAP_HANH_TINH_KAIO, -1, 354);
                 case 4 ->
                     openLuckyRoundMenu(player);
-                case 5 ->
-                    ShopService.gI().opendShop(player, "ITEMS_LUCKY_ROUND", true);
             }
             return;
         }
@@ -236,20 +233,33 @@ if (player.playerTask.taskMain.id < 21) {
                     case 1 -> LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GEM);
                     case 2 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_GOLD);
                     case 3 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_GEM);
+                    case 4 -> {
+                        if (!player.inventory.itemsBoxCrackBall.isEmpty()) {
+                            ShopService.gI().opendShop(player, "ITEMS_LUCKY_ROUND", true);
+                        }
+                    }
                 }
             }
         }
     }
     private void openLuckyRoundMenu(Player player) {
-        this.createOtherMenu(player, ConstNpc.MENU_CHOOSE_LUCKY_ROUND,
-                "Con có thể chọn từ 1 đến 7 viên\n"
+        String message = "Con có thể chọn từ 1 đến 7 viên\n"
                 + "giá mỗi viên là 4 ngọc hoặc 5 triệu vàng.\n"
-                + "Ưu tiên dùng vé quay trước.",
-                "Vòng quay\nVàng",
-                "Vòng quay\nMay mắn",
-                "Vòng quay\nVàng\nSự kiện",
-                "Vòng quay\nĐặc biệt\nSự kiện",
-                "Đóng");
+                + "Ưu tiên dùng vé quay trước.";
+        String[] spinOptions = {
+            "Vòng quay\nVàng",
+            "Vòng quay\nMay mắn",
+            "Vòng quay\nVàng\nSự kiện",
+            "Vòng quay\nĐặc biệt\nSự kiện"
+        };
+        if (player.inventory.itemsBoxCrackBall.isEmpty()) {
+            this.createOtherMenu(player, ConstNpc.MENU_CHOOSE_LUCKY_ROUND,
+                    message, spinOptions[0], spinOptions[1], spinOptions[2], spinOptions[3], "Đóng");
+        } else {
+            this.createOtherMenu(player, ConstNpc.MENU_CHOOSE_LUCKY_ROUND,
+                    message, spinOptions[0], spinOptions[1], spinOptions[2], spinOptions[3],
+                    "Rương phụ (" + player.inventory.itemsBoxCrackBall.size() + " món)", "Đóng");
+        }
     }
     // ================= MENU MỐC ĐIỂM =================
    private void showMilestoneMenu(Player player) {
