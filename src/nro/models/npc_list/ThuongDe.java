@@ -197,7 +197,7 @@ if (player.playerTask.taskMain.id < 21) {
                             "Con có chắc muốn tập luyện ?\nTập luyện với ta sẽ tăng 640 sức mạnh mỗi phút",
                             "Đồng ý\nluyện tập", "Không\nđồng ý");
                 case 3 ->
-                    ChangeMapService.gI().changeMap(player, MAP_HANH_TINH_KAIO, -1, 354, 240);
+                    ChangeMapService.gI().changeMapBySpaceShip(player, MAP_HANH_TINH_KAIO, -1, 354);
                 case 4 ->
                     openLuckyRoundMenu(player);
             }
