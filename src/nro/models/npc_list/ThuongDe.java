@@ -22,10 +22,8 @@ import java.util.List;
 
 public class ThuongDe extends Npc {
 
-    /** Map Đảo Kame - nơi Thượng Đế dạy người chơi học võ. */
-    private static final int MAP_DAO_KAME = ConstMap.DAO_KAME;
-    /** Map Phòng tập thời gian. */
-    private static final int MAP_PHONG_TAP_THOI_GIAN = 49;
+    /** Map Thần điện - nơi đặt NPC Thượng Đế trong dữ liệu map. */
+    private static final int MAP_THAN_DIEN = ConstMap.THAN_DIEN;
     /** Map Thánh địa Kaio. */
     private static final int MAP_THANH_DIA_KAIO = 50;
 
@@ -38,8 +36,8 @@ public class ThuongDe extends Npc {
 public void openBaseMenu(Player player) {
     if (!canOpenNpc(player)) return;
 
-    // Map 5 - Đảo Kame: menu dẫn dắt đầy đủ như bản gốc
-    if (player.zone.map.mapId == MAP_DAO_KAME) {
+    // Map 45 - Thần điện: menu dẫn dắt đầy đủ như bản gốc
+    if (player.zone.map.mapId == MAP_THAN_DIEN) {
         this.createOtherMenu(player, ConstNpc.BASE_MENU,
                 "Con đã mạnh hơn ta, ta sẽ chỉ đường cho con đến Kaio\n"
                 + "để gặp thần Vũ Trụ Phương Bắc\n"
@@ -79,9 +77,9 @@ public void openBaseMenu(Player player) {
 public void confirmMenu(Player player, int select) {
     if (!canOpenNpc(player)) return;
 
-    // Map 5 - Đảo Kame
-    if (player.zone.map.mapId == MAP_DAO_KAME) {
-        confirmDaoKameMenu(player, select);
+    // Map 45 - Thần điện
+    if (player.zone.map.mapId == MAP_THAN_DIEN) {
+        confirmThanDienMenu(player, select);
         return;
     }
 if (player.playerTask.taskMain.id < 21) {
@@ -176,7 +174,7 @@ if (player.playerTask.taskMain.id < 21) {
     }
 
     // ================= MENU ĐẢO KAME =================
-    private void confirmDaoKameMenu(Player player, int select) {
+    private void confirmThanDienMenu(Player player, int select) {
         if (player.idMark.isBaseMenu()) {
             switch (select) {
                 case 0 -> {
