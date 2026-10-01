@@ -13,6 +13,7 @@ import nro.models.map.Zone;
 import nro.models.player.Player;
 import nro.models.services.Service;
 import nro.models.map.service.ChangeMapService;
+import nro.models.services.SkillService;
 import nro.models.task.BadgesTaskService;
 import nro.models.utils.Logger;
 import nro.models.utils.Util;
@@ -132,30 +133,25 @@ public class SoiHecQuyn extends Boss {
 
     @Override
     public void attack() {
-        if (Util.canDoWithTime(this.lastTimeAttack, 100)) {
+        if (Util.canDoWithTime(this.lastTimeAttack, 600)) {
             this.lastTimeAttack = System.currentTimeMillis();
             try {
                 Player pl = getPlayerAttack();
-                if (pl == null || pl.location == null) {
+                if (pl == null || pl.location == null || pl.isDie()
+                        || this.playerSkill == null || this.playerSkill.skills == null
+                        || this.playerSkill.skills.isEmpty()) {
                     return;
                 }
                 this.playerSkill.skillSelect = this.playerSkill.skills.get(Util.nextInt(0, this.playerSkill.skills.size() - 1));
-                if (Util.getDistance(this, pl) <= this.getRangeCanAttackWithSkillSelect()) {
-                    if (Util.isTrue(5, 20) && Util.getDistance(this, pl) > 50) {
-                        if (Util.isTrue(5, 20)) {
-                            this.moveTo(pl.location.x + (Util.getOne(-1, 1) * Util.nextInt(20, 200)),
-                                    Util.nextInt(10) % 2 == 0 ? pl.location.y : pl.location.y - Util.nextInt(0, 70));
-                        } else {
-                            this.moveTo(pl.location.x + (Util.getOne(-1, 1) * Util.nextInt(10, 40)), pl.location.y);
-                        }
-                    } else if (Util.getDistance(this, pl) <= 50) {
-
+                int distance = Util.getDistance(this, pl);
+                if (distance <= this.getRangeCanAttackWithSkillSelect()) {
+                    if (distance > 50 && Util.isTrue(1, 5)) {
+                        this.moveTo(pl.location.x + Util.getOne(-1, 1) * Util.nextInt(20, 80), pl.location.y);
                     }
+                    SkillService.gI().useSkill(this, pl, null, -1, null);
                     checkPlayerDie(pl);
                 } else {
-                    if (Util.isTrue(1, 2)) {
-                        this.moveToPlayer(pl);
-                    }
+                    this.moveToPlayer(pl);
                 }
                 if (ThoiGianNhatXuong > 0) {
                     if (Util.canDoWithTime(ThoiGianNhatXuong, 5000)) {
@@ -164,6 +160,7 @@ public class SoiHecQuyn extends Boss {
                     }
                 }
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
     }

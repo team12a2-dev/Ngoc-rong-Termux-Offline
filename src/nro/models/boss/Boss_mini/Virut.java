@@ -111,7 +111,7 @@ public class Virut extends Boss {
 
     @Override
     public void attack() {
-        if (Util.canDoWithTime(this.lastTimeAttack, 3000) && this.typePk == ConstPlayer.PK_ALL) {
+        if (Util.canDoWithTime(this.lastTimeAttack, 800) && this.typePk == ConstPlayer.PK_ALL) {
             this.lastTimeAttack = System.currentTimeMillis();
             try {
                 Player pl = this.getPlayerAttack();
