@@ -19,7 +19,9 @@ SET @tab_hang_doc := IFNULL(
 );
 
 INSERT INTO `item_shop` (`tab_id`, `temp_id`, `is_new`, `is_sell`, `type_sell`, `cost`, `icon_spec`, `sort_order`)
-SELECT @tab_hang_doc, t.`temp_id`, 0, 1, 1, 5, 1, 0
+-- sort_order = -1 để vệ tinh nằm ở đầu tab "Phụ kiện" thay vì bị cuốn xuống cuối danh sách
+-- (ShopDAO sắp xếp theo sort_order ASC, item_shop.id ASC).
+SELECT @tab_hang_doc, t.`temp_id`, 0, 1, 1, 5, 1, -1
 FROM (
   SELECT 342 AS `temp_id`
   UNION ALL SELECT 343
@@ -48,7 +50,14 @@ WHERE s.`tab_id` = @tab_hang_doc
     WHERE x.`item_shop_id` = s.`id` AND x.`option_id` = o.`option_id`
   );
 
-SELECT s.`id`, s.`tab_id`, t.`name`, s.`cost`, s.`type_sell`
+-- Dòng đã tạo từ lần chạy trước vẫn được đưa lên đầu tab.
+UPDATE `item_shop`
+SET `sort_order` = -1
+WHERE `tab_id` = @tab_hang_doc
+  AND `temp_id` IN (342, 343, 344, 345)
+  AND COALESCE(`sort_order`, 0) <> -1;
+
+SELECT s.`id`, s.`tab_id`, t.`name`, s.`cost`, s.`type_sell`, s.`sort_order`
 FROM `item_shop` s
 JOIN `tab_shop` ts ON ts.`id` = s.`tab_id`
 JOIN `shop` sh ON sh.`id` = ts.`shop_id`

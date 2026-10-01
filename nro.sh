@@ -452,8 +452,15 @@ import_database() {
 apply_yardart_mob_migration() {
   local migration="$ROOT/sql/fix_yardart_mobs.sql"
   [ -f "$migration" ] || die "Thiếu migration $migration."
-  say "Dọn payload mob thường cũ trên map Yardart để dùng chuỗi boss đúng."
+  say "Dọn payload mob thường trên map Yardart để dùng chuỗi boss đúng."
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration"
+}
+
+apply_ve_tinh_shop_migration() {
+  local migration="$ROOT/sql/add_ve_tinh_shop.sql"
+  [ -f "$migration" ] || die "Thiếu migration $migration."
+  say "Bổ sung vệ tinh (Trí Lực/Trí Tuệ/Phòng Thủ/Sinh Lực) vào shop Uron."
+  mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration" >/dev/null
 }
 
 backup_database() {
@@ -818,6 +825,7 @@ start_server() {
   automatic_backup_database
   import_database
   apply_yardart_mob_migration
+  apply_ve_tinh_shop_migration
   build_server
   rm -f "$STATE_DIR/server.ready"
   local jvm_opts cp jar build_time source_commit
@@ -891,6 +899,7 @@ setup() {
   automatic_backup_database
   import_database
   apply_yardart_mob_migration
+  apply_ve_tinh_shop_migration
   build_server
   setup_panel
   if panel_alive; then
