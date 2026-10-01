@@ -32,6 +32,9 @@ import java.util.Map;
 
 public class QuyLaoKame extends Npc {
 
+    /** map_template.id = 153 'Lãnh địa Bang Hội' - khu vực bang, 156 là Tây thánh địa. */
+    private static final int MAP_LANH_DIA_BANG_HOI = 153;
+
     private static class RewardItem {
 
         int itemId;
@@ -274,7 +277,7 @@ public class QuyLaoKame extends Npc {
 
     private void handleClanMapChange(Player player) {
         if (player.clan != null) {
-            ChangeMapService.gI().changeMapNonSpaceship(player, 156, Util.nextInt(100, 200), 432);
+            ChangeMapService.gI().changeMapNonSpaceship(player, MAP_LANH_DIA_BANG_HOI, Util.nextInt(100, 200), 432);
         } else {
             Service.gI().sendThongBao(player, "Bạn cần có bang hội để thực hiện chức năng này.");
         }
