@@ -1,5 +1,7 @@
 package nro.models.npc_list;
 
+import nro.models.boss.BossID;
+import nro.models.consts.ConstMap;
 import nro.models.consts.ConstNpc;
 import nro.models.item.Item;
 import nro.models.npc.Npc;
@@ -8,6 +10,7 @@ import nro.models.server.Client;
 import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
 import nro.models.services.Service;
+import nro.models.services_dungeon.TrainingService;
 import nro.models.services_func.LuckyRound;
 import nro.models.shop.ShopService;
 import nro.models.data.LocalManager;
@@ -15,8 +18,16 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
  import nro.models.map.service.ChangeMapService;
+ import nro.models.map.service.NpcService;
 
 public class ThuongDe extends Npc {
+
+    /** Map Đảo Kame - nơi Thượng Đế dạy người chơi học võ. */
+    private static final int MAP_DAO_KAME = ConstMap.DAO_KAME;
+    /** Map Phòng tập thời gian. */
+    private static final int MAP_PHONG_TAP_THOI_GIAN = 49;
+    /** Map Thánh địa Kaio. */
+    private static final int MAP_THANH_DIA_KAIO = 50;
 
     public ThuongDe(int mapId, int status, int cx, int cy, int tempId, int avartar) {
         super(mapId, status, cx, cy, tempId, avartar);
@@ -27,12 +38,17 @@ public class ThuongDe extends Npc {
 public void openBaseMenu(Player player) {
     if (!canOpenNpc(player)) return;
 
-    // Map 5
-    if (player.zone.map.mapId == 5) {
+    // Map 5 - Đảo Kame: menu dẫn dắt đầy đủ như bản gốc
+    if (player.zone.map.mapId == MAP_DAO_KAME) {
         this.createOtherMenu(player, ConstNpc.BASE_MENU,
-                "Chào con, chó là loài vật thật đáng yêu",
-                "BXH\nQuay Tay",
-                "Phòng Tập Thời Gian");
+                "Con đã mạnh hơn ta, ta sẽ chỉ dường cho con đến Kaio\n"
+                + "để gặp thần Vũ Trụ Phương Bắc\n"
+                + "Ngài là thần cai quản vũ trụ này, hãy theo ngài ấy học võ công.",
+                player.dangKyTapTuDong ? "Hủy đăng ký\ntập tự động" : "Đăng ký\ntập\ntự động",
+                "Tập luyện\nvới\nMr.PôPô",
+                "Tập luyện\nvới\nThượng Đế",
+                "Đến\nKaio",
+                "Quay ngọc\nMay mắn");
         return;
     }
 
@@ -63,14 +79,9 @@ public void openBaseMenu(Player player) {
 public void confirmMenu(Player player, int select) {
     if (!canOpenNpc(player)) return;
 
-    // Map 5
-    if (player.zone.map.mapId == 5) {
-        if (player.idMark.isBaseMenu()) {
-            switch (select) {
-                case 0 -> showTopLucky(player);
-                case 1 -> ChangeMapService.gI().changeMapNonSpaceship(player, 49, 300, 360);
-            }
-        }
+    // Map 5 - Đảo Kame
+    if (player.zone.map.mapId == MAP_DAO_KAME) {
+        confirmDaoKameMenu(player, select);
         return;
     }
 if (player.playerTask.taskMain.id < 21) {
@@ -162,7 +173,59 @@ if (player.playerTask.taskMain.id < 21) {
             }
         }
     }
-}
+    }
+
+    // ================= MENU ĐẢO KAME =================
+    private void confirmDaoKameMenu(Player player, int select) {
+        if (player.idMark.isBaseMenu()) {
+            switch (select) {
+                case 0 -> {
+                    if (player.dangKyTapTuDong) {
+                        player.dangKyTapTuDong = false;
+                        NpcService.gI().createTutorial(player, tempId, avartar,
+                                "Con đã hủy thành công đăng ký tập tự động\ntừ giờ con muốn tập Offline hãy tự đến đây trước");
+                        return;
+                    }
+                    this.createOtherMenu(player, 2001,
+                            "Đăng ký để mỗi khi Offline quá 30 phút, con sẽ được tự động luyện tập",
+                            "Hướng\ndẫn\nthêm", "Đồng ý\n1 ngọc\nmỗi lần", "Không\nđồng ý");
+                }
+                case 1 ->
+                    this.createOtherMenu(player, 2002,
+                            "Con có chắc muốn tập luyện ?\nTập luyện với Mr.PôPô sẽ tăng 320 sức mạnh mỗi phút",
+                            "Đồng ý\nluyện tập", "Không\nđồng ý");
+                case 2 ->
+                    this.createOtherMenu(player, 2002,
+                            "Con có chắc muốn tập luyện ?\nTập luyện với ta sẽ tăng 640 sức mạnh mỗi phút",
+                            "Đồng ý\nluyện tập", "Không\nđồng ý");
+                case 3 ->
+                    ChangeMapService.gI().changeMap(player, MAP_THANH_DIA_KAIO, -1, 318, 336);
+                case 4 ->
+                    LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GEM);
+            }
+            return;
+        }
+
+        switch (player.idMark.getIndexMenu()) {
+            case 2001 -> {
+                switch (select) {
+                    case 0 ->
+                        NpcService.gI().createTutorial(player, tempId, avartar, ConstNpc.TAP_TU_DONG);
+                    case 1 -> {
+                        player.mapIdDangTapTuDong = mapId;
+                        player.dangKyTapTuDong = true;
+                        NpcService.gI().createTutorial(player, tempId, avartar,
+                                "Từ giờ, quá 30 phút Offline con sẽ được tự động luyện tập");
+                    }
+                }
+            }
+            case 2002 -> {
+                if (select == 0) {
+                    TrainingService.gI().callBoss(player, BossID.MRPOPO, false);
+                }
+            }
+        }
+    }
     // ================= MENU MỐC ĐIỂM =================
    private void showMilestoneMenu(Player player) {
 
@@ -271,5 +334,6 @@ case 1000 -> {
     }
 
     this.createOtherMenu(player, ConstNpc.IGNORE_MENU, text.toString(), "Đóng");
-}}
+}
+}
 
