@@ -108,11 +108,20 @@ public final class BossSpawnConfig {
     public static int brolyRestSec = 180;
     /** Tối đa Broly đang hoạt động cùng lúc */
     public static int brolyMaxConcurrent = 75;
-    /** Tối đa Broly trên một map (mỗi khu một boss) */
+    /**
+     * Sàn Broly tối thiểu — trước đây giới hạn theo player về 0 nên server vắng
+     * (rạng sáng/đêm khuya) không bao giờ spawn được Broly nào.
+     */
+    public static int brolyMinConcurrent = 8;
+    /** Tối đa Broly trên một map — mỗi khu một boss (khác khu) */
     public static int brolyMaxPerMap = 5;
-    /** Khung giờ Broly — 10:00 đến trước 05:00 sáng hôm sau */
-    private static HourWindows brolyHoursWeekday = HourWindows.parse("10-23,0-5");
-    private static HourWindows brolyHoursWeekend = HourWindows.parse("10-23,0-5");
+    /** Broly có nhóm lịch riêng: khoảng cách spawn tối thiểu toàn server (giây) */
+    public static int brolyMinGapSec = 8;
+    /** Trần của gap Broly khi nhiều boss cùng chờ (chống dồn cục) */
+    public static int brolyMaxAdaptiveGapSec = 45;
+    /** Khung giờ Broly — mặc định all (24/7) */
+    private static HourWindows brolyHoursWeekday = HourWindows.allDay();
+    private static HourWindows brolyHoursWeekend = HourWindows.allDay();
     public static boolean superBrolyEnabled = true;
     /** Trần an toàn; giới hạn thực tế được roll trong khoảng động. */
     public static int superBrolyMaxConcurrent = 6;
@@ -162,9 +171,9 @@ public final class BossSpawnConfig {
     /** Khoảng thời gian giữ một profile random trước khi roll lại. */
     public static int superBrolyProfileMinSec = 180;
     public static int superBrolyProfileMaxSec = 600;
-    /** Khung giờ Super Broly: 10h–5h sáng hôm sau */
-    private static HourWindows superBrolyHoursWeekday = HourWindows.parse("10-23,0-5");
-    private static HourWindows superBrolyHoursWeekend = HourWindows.parse("10-23,0-5");
+    /** Khung giờ Super Broly — mặc định all (24/7) */
+    private static HourWindows superBrolyHoursWeekday = HourWindows.allDay();
+    private static HourWindows superBrolyHoursWeekend = HourWindows.allDay();
 
     private BossSpawnConfig() {
     }
@@ -265,10 +274,19 @@ public final class BossSpawnConfig {
         brolyRestSec = parseInt(p, "spawn.broly.rest.sec", 180, 60, 3600);
         brolyMaxConcurrent = parseInt(p, "spawn.broly.max.concurrent", 75, 1, 100);
         brolyMaxPerMap = parseInt(p, "spawn.broly.max.per.map", 5, 1, 10);
-        String brolyWeekdaySpec = p.getProperty("spawn.broly.hours.weekday", "10-23,0-5");
+        brolyMinConcurrent = parseInt(p, "spawn.broly.min.concurrent", 8, 0, 100);
+        if (brolyMinConcurrent > brolyMaxConcurrent) {
+            brolyMinConcurrent = brolyMaxConcurrent;
+        }
+        brolyMinGapSec = parseInt(p, "spawn.broly.min.gap.sec", 8, 0, 3600);
+        brolyMaxAdaptiveGapSec = parseInt(p, "spawn.broly.max.adaptive.gap.sec", 45, 0, 3600);
+        if (brolyMaxAdaptiveGapSec < brolyMinGapSec) {
+            brolyMaxAdaptiveGapSec = brolyMinGapSec;
+        }
+        String brolyWeekdaySpec = p.getProperty("spawn.broly.hours.weekday", "all");
         brolyHoursWeekday = "all".equalsIgnoreCase(brolyWeekdaySpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(brolyWeekdaySpec);
-        String brolyWeekendSpec = p.getProperty("spawn.broly.hours.weekend", "10-23,0-5");
+        String brolyWeekendSpec = p.getProperty("spawn.broly.hours.weekend", "all");
         brolyHoursWeekend = "all".equalsIgnoreCase(brolyWeekendSpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(brolyWeekendSpec);
         superBrolyEnabled = parseBool(p, "spawn.superbroly.enabled", true);
@@ -334,10 +352,10 @@ public final class BossSpawnConfig {
         if (superBrolyProfileMaxSec < superBrolyProfileMinSec) {
             superBrolyProfileMaxSec = superBrolyProfileMinSec;
         }
-        String superWeekdaySpec = p.getProperty("spawn.superbroly.hours.weekday", "10-23,0-5");
+        String superWeekdaySpec = p.getProperty("spawn.superbroly.hours.weekday", "all");
         superBrolyHoursWeekday = "all".equalsIgnoreCase(superWeekdaySpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(superWeekdaySpec);
-        String superWeekendSpec = p.getProperty("spawn.superbroly.hours.weekend", "10-23,0-5");
+        String superWeekendSpec = p.getProperty("spawn.superbroly.hours.weekend", "all");
         superBrolyHoursWeekend = "all".equalsIgnoreCase(superWeekendSpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(superWeekendSpec);
 
@@ -401,15 +419,20 @@ public final class BossSpawnConfig {
         return Math.min(configuredLimit, dynamicLimit);
     }
 
-        public static int effectiveBrolyLimit() {
-        if (!populationAdaptiveEnabled || brolyMaxConcurrent <= 0) {
+    public static int effectiveBrolyLimit() {
+        if (brolyMaxConcurrent <= 0) {
+            return 0;
+        }
+        int floor = Math.max(0, Math.min(brolyMinConcurrent, brolyMaxConcurrent));
+        if (!populationAdaptiveEnabled) {
             return brolyMaxConcurrent;
         }
         int players = onlinePlayerCount();
-        if (players < brolyMinPlayers) {
-            return 0;
+        // Không còn trả về 0 khi server vắng: Broly phải xuất hiện 24/7, kể cả rạng sáng.
+        int dynamicLimit = floor;
+        if (players >= brolyMinPlayers) {
+            dynamicLimit = Math.max(floor, (players + brolyPlayersPerBoss - 1) / brolyPlayersPerBoss);
         }
-        int dynamicLimit = Math.max(1, (players + brolyPlayersPerBoss - 1) / brolyPlayersPerBoss);
         return Math.min(brolyMaxConcurrent, dynamicLimit);
     }
 
@@ -440,9 +463,27 @@ public final class BossSpawnConfig {
         return weekend ? brolyHoursWeekend : brolyHoursWeekday;
     }
 
-    /** Khung Broly/Super Broly chính xác theo phút: từ 10:00 đến trước 05:00 hôm sau. */
-public static boolean isBrolyFamilyWindow(ZonedDateTime moment) {
-        return true; // Luôn cho phép Broly/Super Broly xuất hiện
+/**
+     * Khung giờ của cả nhóm Broly/Super Broly (giờ Việt Nam). Mặc định {@code all} = 24/7.
+     * Cho phép nếu MỘT trong hai khung đang mở, để Broly không bị chặn chỉ vì khung
+     * của nhánh còn lại bị cấu hình hẹp.
+     */
+    public static boolean isBrolyFamilyWindow(ZonedDateTime moment) {
+        if (moment == null) {
+            return false;
+        }
+        boolean weekend = isWeekend(moment);
+        int hour = moment.getHour();
+        return brolyWindowsFor(weekend).contains(hour)
+                || superBrolyWindowsFor(weekend).contains(hour);
+    }
+
+    /** Khung giờ riêng của Super Broly — dùng cho cổng spawn Super Broly. */
+    public static boolean isSuperBrolyWindow(ZonedDateTime moment) {
+        if (moment == null) {
+            return false;
+        }
+        return superBrolyWindowsFor(isWeekend(moment)).contains(moment.getHour());
     }
 
     public static int jitterMin(BossSpawnTier tier) {
@@ -534,12 +575,15 @@ public static boolean isBrolyFamilyWindow(ZonedDateTime moment) {
         waitBoostEnabled = true;
         waitBoostAfterSec = 240;
         waitBoostChance = 96;
-        brolyInitialCount = 75;
+brolyInitialCount = 75;
         brolyRestSec = 180;
         brolyMaxConcurrent = 75;
+        brolyMinConcurrent = 8;
         brolyMaxPerMap = 5;
-        brolyHoursWeekday = HourWindows.parse("10-23,0-5");
-        brolyHoursWeekend = HourWindows.parse("10-23,0-5");
+        brolyMinGapSec = 8;
+        brolyMaxAdaptiveGapSec = 45;
+        brolyHoursWeekday = HourWindows.allDay();
+        brolyHoursWeekend = HourWindows.allDay();
         superBrolyEnabled = true;
         superBrolyMaxConcurrent = 6;
         superBrolyConcurrentMin = 1;
@@ -570,9 +614,9 @@ public static boolean isBrolyFamilyWindow(ZonedDateTime moment) {
         superBrolyIntervalMinSec = 240;
         superBrolyIntervalMaxSec = 900;
         superBrolyProfileMinSec = 180;
-        superBrolyProfileMaxSec = 600;
-        superBrolyHoursWeekday = HourWindows.parse("10-23,0-5");
-        superBrolyHoursWeekend = HourWindows.parse("10-23,0-5");
+superBrolyProfileMaxSec = 600;
+        superBrolyHoursWeekday = HourWindows.allDay();
+        superBrolyHoursWeekend = HourWindows.allDay();
     }
 
     /** Giờ không thuộc khung NORMAL hoặc ELITE — dùng chọn bonus ngày */

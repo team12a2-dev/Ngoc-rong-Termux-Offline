@@ -456,7 +456,11 @@ public class BossManager implements Runnable {
                 for (Boss boss : this.bosses) {
                     boss.update();
                 }
-                BrolySpawnGate.tickNaturalSuperBrolySpawn();
+                // Chỉ manager chính quét Super Broly: các manager chuyên biệt kế thừa
+                // run() này và sẽ gọi trùng nếu không chặn.
+                if (this == instance) {
+                    BrolySpawnGate.tickNaturalSuperBrolySpawn();
+                }
                 long sleepTime = 1500 - (System.currentTimeMillis() - st);
                 Thread.sleep(Math.max(sleepTime, 10));
             } catch (InterruptedException ie) {

@@ -19,6 +19,7 @@ public final class BossSpawnOrchestrator {
     private static volatile long lastEliteSpawnMs;
     private static volatile long lastWorldSpawnMs;
     private static volatile long lastNormalSpawnMs;
+    private static volatile long lastBrolySpawnMs;
     private static volatile long lastEliteOrWorldSpawnMs;
 
     private static volatile long dailyBonusEpochDay = Long.MIN_VALUE;
@@ -100,6 +101,12 @@ public final class BossSpawnOrchestrator {
         }
         BossSpawnTier tier = BossSpawnSchedule.resolveTier(boss);
         long now = System.currentTimeMillis();
+        // Broly có nhóm lịch riêng: 75 instance cùng tier NORMAL sẽ làm ngập
+        // bộ đếm gap của TIÊU ĐỐI/SO/KUKU... nên không dùng chung lastNormalSpawnMs.
+        if ((int) boss.id == BossID.BROLY) {
+            lastBrolySpawnMs = now;
+            return;
+        }
         switch (tier) {
             case ELITE -> {
                 lastEliteSpawnMs = now;
@@ -126,6 +133,71 @@ public final class BossSpawnOrchestrator {
         }
         long last = lastSpawnMs(tier);
         return System.currentTimeMillis() - last >= gapMs;
+    }
+
+    /**
+     * Khoảng cách spawn riêng của nhóm Broly.
+     * KHÔNG dùng chung bộ đếm NORMAL: 75 instance Broly làm phình toàn bộ gap của
+     * TIÊU ĐỐI/SO/KUKU/KU/RAMBO... và ngược lại mỗi lần các boss đó spawn cũng
+     * đẩy lùi lần Broly kế tiếp — đây là lý do Broly thưa thớt bất thường.
+     */
+    public static boolean passesBrolyGap() {
+        if (!BossSpawnConfig.distributionEnabled) {
+            return true;
+        }
+        long gapMs = effectiveBrolyGapMs();
+        if (gapMs <= 0) {
+            return true;
+        }
+        return System.currentTimeMillis() - lastBrolySpawnMs >= gapMs;
+    }
+
+    public static int secondsUntilBrolyGap() {
+        if (!BossSpawnConfig.distributionEnabled) {
+            return 0;
+        }
+        long gapMs = effectiveBrolyGapMs();
+        if (gapMs <= 0) {
+            return 0;
+        }
+        long elapsed = System.currentTimeMillis() - lastBrolySpawnMs;
+        long left = gapMs - elapsed;
+        return left <= 0 ? 0 : (int) ((left + 999) / 1000);
+    }
+
+    /** Gap Broly co giãn theo số instance đang CHỜ và còn slot trống, nhưng bị chặn trần. */
+    private static long effectiveBrolyGapMs() {
+        long baseMs = Math.max(0, BossSpawnConfig.brolyMinGapSec) * 1000L;
+        if (!BossSpawnConfig.adaptiveGapEnabled) {
+            return baseMs;
+        }
+        int waiting = Math.max(0, countWaitingBroly() - 1);
+        if (waiting == 0) {
+            return baseMs;
+        }
+        long extra = (long) waiting * BossSpawnConfig.adaptiveGapPerReadySec * 1000L / 4;
+        long ceiling = Math.max(0, BossSpawnConfig.brolyMaxAdaptiveGapSec) * 1000L;
+        return Math.min(ceiling, baseMs + extra);
+    }
+
+    /** Số instance Broly đã hết cooldown nhưng bị chặn bởi giới hạn đồng thời. */
+    private static int countWaitingBroly() {
+        if (BossSpawnConfig.effectiveBrolyLimit() <= 0) {
+            return 0;
+        }
+        int waiting = 0;
+        for (Boss boss : BossManager.getAllBosses()) {
+            if ((int) boss.id != BossID.BROLY || boss.bossStatus != BossStatus.REST) {
+                continue;
+            }
+            if (boss.zone != null) {
+                continue;
+            }
+            if (Util.canDoWithTime(boss.getLastTimeRest(), boss.getNextRestDelayMs())) {
+                waiting++;
+            }
+        }
+        return waiting;
     }
 
     public static int secondsUntilGlobalGap(Boss boss) {
@@ -238,6 +310,11 @@ public final class BossSpawnOrchestrator {
         if (!BossSpawnConfig.distributionEnabled || !BossSpawnConfig.fairnessEnabled) {
             return true;
         }
+        // Broly có nhóm lịch riêng: hàng đợi FIFO của tier NORMAL với 75 instance
+        // sẽ biến thành "một boss spawn mỗi lần" và chặn ngược cả TIÊU ĐỐI/SO.
+        if (BossSpawnSchedule.isBrolyFamily(boss)) {
+            return true;
+        }
         BossSpawnTier tier = BossSpawnSchedule.resolveTier(boss);
         if (tier == BossSpawnTier.ELITE) {
             if (!BossSpawnConfig.fairnessEliteEnabled) {
@@ -251,6 +328,9 @@ public final class BossSpawnOrchestrator {
         long myReady = readySinceMs(boss);
         for (Boss other : BossManager.getAllBosses()) {
             if (other == boss || !BossSpawnSchedule.appliesTo(other)) {
+                continue;
+            }
+            if (BossSpawnSchedule.isBrolyFamily(other)) {
                 continue;
             }
             if (BossSpawnSchedule.resolveTier(other) != tier) {
@@ -330,6 +410,10 @@ public final class BossSpawnOrchestrator {
         int n = 0;
         for (Boss boss : BossManager.getAllBosses()) {
             if (!BossSpawnSchedule.appliesTo(boss)) {
+                continue;
+            }
+            // Broly có nhóm lịch riêng — không để 75 instance Broly phình gap của tier khác.
+            if (BossSpawnSchedule.isBrolyFamily(boss)) {
                 continue;
             }
             if (BossSpawnSchedule.resolveTier(boss) != tier) {

@@ -73,7 +73,7 @@ public final class BossSpawnSchedule {
             return;
         }
         BossSpawnTier tier = resolveTier(boss);
-        long delayMs = tier.rollInitialStaggerMs((int) boss.id);
+        long delayMs = tier.rollInitialStaggerMs(boss);
                 long scheduled = computeScheduledDelayMs(boss, tier, delayMs);
         boss.setNextRestDelayMs(BossPanelConfigService.gI().overrideRestDelayMs(boss, scheduled));
 
@@ -120,8 +120,11 @@ public final class BossSpawnSchedule {
         if (maxSec <= minSec) {
             return minSec * 1000L;
         }
-        int span = maxSec - minSec;
-        int slot = Math.abs((int) (boss.id * 31L + tier.ordinal() * 17L)) % (span + 1);
+        // Phải trộn thêm identity của từng instance: 75 Broly cùng boss.id sẽ nhận
+        // đúng một giá trị spread nếu chỉ dùng id, khiến tất cả dồn về một thời điểm.
+        long span = maxSec - minSec + 1L;
+        long seed = boss.id * 31L + tier.ordinal() * 17L + System.identityHashCode(boss);
+        int slot = (int) Math.floorMod(seed, span);
         return (minSec + slot) * 1000L;
     }
 
@@ -160,7 +163,12 @@ public final class BossSpawnSchedule {
         if (!isWithinSpawnWindow(boss)) {
             return false;
         }
-        if (!BossSpawnOrchestrator.passesGlobalGap(boss)) {
+        // Broly có nhóm lịch riêng (không dùng chung bộ đếm gap của tier NORMAL).
+        if ((int) boss.id == BossID.BROLY) {
+            if (!BossSpawnOrchestrator.passesBrolyGap()) {
+                return false;
+            }
+        } else if (!BossSpawnOrchestrator.passesGlobalGap(boss)) {
             return false;
         }
         if (!BossSpawnOrchestrator.passesCrossTierGap(boss)) {
@@ -256,6 +264,9 @@ public final class BossSpawnSchedule {
         }
 
         sec = Math.max(sec, BossSpawnOrchestrator.secondsUntilGlobalGap(boss));
+        if ((int) boss.id == BossID.BROLY) {
+            sec = Math.max(sec, BossSpawnOrchestrator.secondsUntilBrolyGap());
+        }
         sec = Math.max(sec, BossSpawnOrchestrator.secondsUntilCrossTierGap(boss));
         return sec;
     }
@@ -285,7 +296,12 @@ public final class BossSpawnSchedule {
             }
             return "chờ khung giờ";
         }
-        if (!BossSpawnOrchestrator.passesGlobalGap(boss)) {
+        if ((int) boss.id == BossID.BROLY) {
+            if (!BossSpawnOrchestrator.passesBrolyGap()) {
+                return "khoảng cách spawn Broly ("
+                        + BossSpawnOrchestrator.secondsUntilBrolyGap() + "s)";
+            }
+        } else if (!BossSpawnOrchestrator.passesGlobalGap(boss)) {
             return "khoảng cách spawn tier (" + BossSpawnOrchestrator.secondsUntilGlobalGap(boss) + "s)";
         }
         if (!BossSpawnOrchestrator.passesCrossTierGap(boss)) {
@@ -425,19 +441,13 @@ public final class BossSpawnSchedule {
         return isHourAllowed(boss, moment.getHour(), tier, weekend);
     }
 
-    private static boolean isBrolyFamily(Boss boss) {
+    public static boolean isBrolyFamily(Boss boss) {
         if (boss == null) return false;
         int id = (int) boss.id;
         return id == BossID.BROLY || id == BossID.SUPER_BROLY;
     }
 
-private static boolean isHourAllowed(Boss boss, int hour, BossSpawnTier tier, boolean weekend) {
-
-        // Broly/Super Broly luôn xuất hiện không cố định thời gian
-        int id = (int) boss.id;
-        if (id == BossID.BROLY || id == BossID.SUPER_BROLY) {
-            return true;
-        }
+    private static boolean isHourAllowed(Boss boss, int hour, BossSpawnTier tier, boolean weekend) {
         if (BossSpawnConfig.windowsFor(tier, weekend).contains(hour)) {
             return true;
         }
@@ -483,3 +493,4 @@ private static boolean isHourAllowed(Boss boss, int hour, BossSpawnTier tier, bo
                 && boss.bossStatus != BossStatus.LEAVE_MAP;
     }
 }
+

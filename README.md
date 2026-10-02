@@ -232,12 +232,19 @@ Thay đổi qua panel được lưu database, ghi audit log và reload runtime n
 
 Boss thường dùng scheduler chung với giới hạn theo population, tier, map density, fairness và cooldown.
 
-Broly và Super Broly chỉ spawn trong khoảng **10:00–05:00 hôm sau** theo giờ Việt Nam. Một map có thể có nhiều boss ở các khu khác nhau; một khu chỉ có một boss.
+Broly và Super Broly chạy **24/7** theo mặc định, kể cả chiều tối và rạng sáng. Muốn giới hạn theo khung giờ thì đặt `spawn.broly.hours.weekday/weekend` và `spawn.superbroly.hours.weekday/weekend` (định dạng `9-12,14-17,19-23`, hoặc `all`). Một map có thể có nhiều boss ở các khu khác nhau; một khu chỉ có một boss.
+
+Broly có nhóm lịch riêng, không dùng chung bộ đếm của tier NORMAL:
+
+- `spawn.broly.min.gap.sec` — khoảng cách tối thiểu giữa hai lần Broly xuất hiện toàn server (mặc định 8s).
+- `spawn.broly.max.adaptive.gap.sec` — trần của khoảng cách đó khi nhiều Broly cùng chờ (mặc định 45s).
+- `spawn.broly.min.concurrent` — số Broly tối thiểu luôn được phép sống cùng lúc. Nhờ đây server vắng hoặc rạng sáng vẫn có Broly, thay vì giới hạn theo population rơi về 0.
+- `spawn.broly.max.concurrent` — trần cứng; số thực tế là `min(max.concurrent, max(min.concurrent, ceil(player / players.per.boss)))`.
 
 Super Broly có hai nguồn spawn:
 
-1. Kích hoạt khi Broly đạt ngưỡng HP và bị tiêu diệt.
-2. Tự roll ngẫu nhiên theo chu kỳ, tỷ lệ và profile động trong cấu hình.
+1. Kích hoạt khi Broly đạt ngưỡng HP và bị tiêu diệt (không bị roll tự nhiên chặn).
+2. Tự roll ngẫu nhiên theo chu kỳ `spawn.superbroly.natural.roll.*` với xác suất `spawn.superbroly.natural.chance.percent`, khi vẫn dưới giới hạn đồng thời.
 
 Khoảng min/max Super Broly nằm trong `boss_spawn.properties`; không cần sửa Java khi tinh chỉnh.
 

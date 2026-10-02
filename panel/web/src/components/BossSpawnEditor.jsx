@@ -49,9 +49,28 @@ function rangeToString([a, b]) {
   return `${a},${b}`;
 }
 
+/**
+ * Các key mà form trực quan không quản lý (Broly/Super Broly, population, fairness ELITE...).
+ * Serializer ghi lại file từ đầu nên phải giữ nguyên các key này, nếu không mỗi lần
+ * bấm "Lưu" trên Panel sẽ xoá sạch cấu hình Broly và làm Broly không spawn.
+ */
+const PRESERVED_PREFIXES = ['spawn.broly.', 'spawn.superbroly.', 'spawn.population.'];
+const PRESERVED_KEYS = new Set(['spawn.fairness.elite.enabled', 'spawn.debug.log.enabled']);
+
+function collectPreserved(p) {
+  const out = [];
+  for (const key of Object.keys(p)) {
+    if (PRESERVED_PREFIXES.some((prefix) => key.startsWith(prefix)) || PRESERVED_KEYS.has(key)) {
+      out.push(key + '=' + p[key]);
+    }
+  }
+  return out;
+}
+
 export function parseBossSpawnConfig(text) {
   const p = parsePropLines(text);
   return {
+    preserved: collectPreserved(p),
     enabled: p['spawn.enabled'] !== 'false',
     maxEliteConcurrent: Number(p['spawn.elite.max.concurrent']) || 5,
     maxWorldConcurrent: Number(p['spawn.world.max.concurrent']) || 1,
@@ -161,6 +180,13 @@ export function serializeBossSpawnConfig(cfg) {
     'spawn.stagger.world.sec=' + rangeToString(cfg.staggerWorld),
     '',
   ];
+  // Giữ lại các key không do form này quản lý (xem PRESERVED_PREFIXES).
+  const preserved = (cfg.preserved || []).filter((line) => line && line.includes('='));
+  if (preserved.length) {
+    lines.push('# --- Giữ nguyên từ file gốc: Broly/Super Broly, population, fairness ELITE ---');
+    lines.push(...preserved);
+    lines.push('');
+  }
   return lines.join('\n');
 }
 
