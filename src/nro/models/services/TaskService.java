@@ -111,9 +111,7 @@ public class TaskService {
         switch (player.playerTask.taskMain.id) {
             case 3 ->
                 nextTaskMainId = player.gender + 4;
-            case 4:
-            case 5:
-            case 6 ->
+            case 4, 5, 6 ->
                 nextTaskMainId = 7;
             default ->
                 nextTaskMainId = player.playerTask.taskMain.id + 1;

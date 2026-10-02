@@ -17,8 +17,6 @@ import nro.models.services.TaskService;
 
 public class Jaco extends Npc {
 
-    private static final String THONG_BOA_CHUA_MO_KHOA = "Jaco chưa có tin gì để nói với cậu";
-
     public Jaco(int mapId, int status, int cx, int cy, int tempId, int avartar) {
         super(mapId, status, cx, cy, tempId, avartar);
     }
@@ -49,7 +47,7 @@ public class Jaco extends Npc {
         if (canOpenNpc(player)) {
             if (!isUnlocked(player)) {
                 Service.gI().hideWaitDialog(player);
-                Service.gI().sendThongBao(player, THONG_BAO_CHUA_MO_KHOA);
+                Service.gI().sendThongBao(player, "Jaco chưa có tin gì để nói với cậu");
                 return;
             }
             if (TaskService.gI().checkDoneTaskTalkNpc(player, this)) {
@@ -73,7 +71,7 @@ public class Jaco extends Npc {
         if (canOpenNpc(player)) {
             if (!isUnlocked(player)) {
                 Service.gI().hideWaitDialog(player);
-                Service.gI().sendThongBao(player, THONG_BAO_CHUA_MO_KHOA);
+                Service.gI().sendThongBao(player, "Jaco chưa có tin gì để nói với cậu");
                 return;
             }
             if (player.idMark.isBaseMenu()) {
