@@ -3,14 +3,19 @@ package nro.models.services_dungeon;
 import java.util.ArrayList;
 import java.util.List;
 import nro.models.boss.Boss;
+import nro.models.consts.ConstItem;
+import nro.models.item.Item;
 import nro.models.map.phoban.MajinBuu14H;
+import nro.models.map.ItemMap;
 import nro.models.map.Zone;
 import nro.models.map.MaBuHold;
 import nro.models.player.Player;
 import nro.models.map.service.ChangeMapService;
 import nro.models.map.service.MapService;
+import nro.models.services.ItemService;
 import nro.models.services.Service;
 import nro.models.utils.TimeUtil;
+import nro.models.utils.Util;
 
 /**
  * Service for the 14h Mabu dungeon instances.
@@ -82,5 +87,36 @@ public class MajinBuu14HService {
         }
         Service.gI().sendThongBao(player, "Các khu vực Mabư 14h hiện đã đầy. Vui lòng thử lại sau.");
         return false;
+    }
+
+    /** Tỷ lệ rơi đồ Thần Linh khi một boss 14h bị hạ. */
+    private static final int TL_DROP_CHANCE = 5;
+    /** Trong số đồ Thần Linh rơi, tỷ lệ có lỗ sao pha lê (option 107). */
+    private static final int TL_STAR_CHANCE = 3;
+    private static final int TL_STAR_MAX_HOLES = 3;
+
+    /**
+     * Phần thưởng chung cho toàn bộ boss 14h: đồ Thần Linh (randDoTLBoss đã gắn
+     * ký gửi ngọc/vàng theo tỷ lệ riêng) và quả trứng Bư. Chỉ người hạ boss nhặt được.
+     */
+    public void rewardEventBoss(Boss boss, Player plKill) {
+        if (boss == null || plKill == null || boss.zone == null) {
+            return;
+        }
+        int x = boss.location.x;
+        int y = boss.zone.map.yPhysicInTop(x, boss.location.y - 24);
+
+        if (Util.isTrue(TL_DROP_CHANCE, 100)) {
+            ItemMap it = ItemService.gI().randDoTLBoss(boss.zone, 1, x, y, plKill.id);
+            if (it != null) {
+                if (Util.isTrue(TL_STAR_CHANCE, 100)) {
+                    it.options.add(new Item.ItemOption(107, Util.nextInt(1, TL_STAR_MAX_HOLES)));
+                }
+                Service.gI().dropItemMap(boss.zone, it);
+            }
+        }
+
+        ItemMap egg = new ItemMap(boss.zone, ConstItem.QUA_TRUNG, 1, x + 20, y, plKill.id);
+        Service.gI().dropItemMap(boss.zone, egg);
     }
 }

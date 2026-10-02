@@ -19,6 +19,7 @@ import nro.models.server.ServerNotify;
 import nro.models.services.ItemTimeService;
 import nro.models.services.SkillService;
 import nro.models.services.TaskService;
+import nro.models.services_dungeon.MajinBuu14HService;
 import nro.models.map.service.ChangeMapService;
 import nro.models.map.service.MapService;
 import nro.models.map.Zone;
@@ -173,6 +174,7 @@ public class Mabu2H extends Boss {
         int diem = 5;
         plKill.event.addEventPoint(diem);
         Service.gI().sendThongBao(plKill, "+5 Point");
+        MajinBuu14HService.gI().rewardEventBoss(this, plKill);
         TaskService.gI().checkDoneTaskKillBoss(plKill, this);
     }
 
