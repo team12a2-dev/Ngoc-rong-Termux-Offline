@@ -14,9 +14,10 @@
 -- GIÁ
 --   1 giờ  : theo dữ liệu gốc, đã được xác nhận giữ nguyên.
 --   8 giờ  : theo ảnh shop người dùng gửi.
---   1 tháng: theo ảnh shop người dùng gửi.
--- Bùa Trí Tuệ (213), Mạnh Mẽ (214), Đá Trầu (215) của shop 8 giờ và 1 tháng không
--- có trong ảnh nên để cost NULL: giữ nguyên giá đang có trong DB.
+--   1 tháng: theo ảnh shop người dùng gửi (213=500, 214=500, 215=250, 216=700,
+--   217=700, 218=100, 219=250, 522=1500, 671=1500, 672=4500).
+-- Bùa Trí Tuệ (213), Mạnh Mẽ (214), Đá Trầu (215) của shop 8 giờ không có trong
+-- ảnh nên để cost NULL: giữ nguyên giá đang có trong DB.
 --
 -- THỨ TỰ HIỂN THỊ (sort_order tăng dần, client đọc thẳng không đảo):
 --   Trí Tuệ, Mạnh Mẽ, Đá Trầu, Oai Hùng, Bất Tử, Đéo Đại, Thu Hút, Đệ Tử,
@@ -64,9 +65,9 @@ INSERT INTO `tmp_bua_shop` (`tag_name`, `tab_id`, `temp_id`, `cost`, `sort_order
   ('BUA_8H', @tab_bua_8h, 522, 60, 8),
   ('BUA_8H', @tab_bua_8h, 671, 60, 9),
   ('BUA_8H', @tab_bua_8h, 672, 180, 10),
-  ('BUA_1M', @tab_bua_1m, 213, NULL, 1),
-  ('BUA_1M', @tab_bua_1m, 214, NULL, 2),
-  ('BUA_1M', @tab_bua_1m, 215, NULL, 3),
+  ('BUA_1M', @tab_bua_1m, 213, 500, 1),
+  ('BUA_1M', @tab_bua_1m, 214, 500, 2),
+  ('BUA_1M', @tab_bua_1m, 215, 250, 3),
   ('BUA_1M', @tab_bua_1m, 216, 700, 4),
   ('BUA_1M', @tab_bua_1m, 217, 700, 5),
   ('BUA_1M', @tab_bua_1m, 218, 100, 6),
