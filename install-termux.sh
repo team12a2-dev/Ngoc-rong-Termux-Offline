@@ -8,6 +8,7 @@ MAX_ATTEMPTS="${NRO_DOWNLOAD_ATTEMPTS:-8}"
 INSTALL_LOG="${NRO_INSTALL_LOG:-$HOME/.ngocrong-termux-install.log}"
 TMP_ROOT="${NRO_TMP_ROOT:-$HOME/.cache/ngocrong-termux}"
 SOURCE_COMMIT_URL="${NRO_SOURCE_COMMIT_URL:-https://api.github.com/repos/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main}"
+SOURCE_FEED_URL="${NRO_SOURCE_FEED_URL:-https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main.atom}"
 DOWNLOAD_DIR=""
 TEMP_ARCHIVE=""
 PRESERVE_DIR=""
@@ -111,7 +112,12 @@ rm -rf "$INSTALL_DIR/.git"
 [ -f "$PRESERVE_DIR/panel-api.env" ] && cp -p "$PRESERVE_DIR/panel-api.env" "$INSTALL_DIR/panel/api/.env"
 REMOTE_SHA="$(curl -fsSL --http1.1 --connect-timeout 10 --max-time 30 \
   -H 'Accept: application/vnd.github+json' "$SOURCE_COMMIT_URL" 2>/dev/null \
-  | sed -n 's/.*"sha"[[:space:]]*:[[:space:]]*"\([0-9a-fA-F]\{40\}\)".*/\1/p' | head -n 1 || true)"
+  | sed -n 's/^{[^}]*"sha"[[:space:]]*:[[:space:]]*"\([0-9a-fA-F]\{40\}\)".*/\1/p' | head -n 1 || true)"
+if ! [[ "$REMOTE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+  REMOTE_SHA="$(curl -fsSL --http1.1 --connect-timeout 10 --max-time 30 \
+    "$SOURCE_FEED_URL" 2>/dev/null \
+    | sed -n 's/.*Grit::Commit\/\([0-9a-fA-F]\{40\}\).*/\1/p' | head -n 1 || true)"
+fi
 if [[ "$REMOTE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
   mkdir -p "$INSTALL_DIR/.runtime"
   printf '%s\n' "$REMOTE_SHA" > "$INSTALL_DIR/.runtime/source-commit"

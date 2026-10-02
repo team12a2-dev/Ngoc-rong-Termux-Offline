@@ -278,6 +278,7 @@ Android có thể trì hoãn job do tối ưu pin. Nên chép `.runtime/backups/
 | Không tìm thấy Java | Chạy `pkg search openjdk`, `termux-change-repo`, rồi `./nro.sh setup`. |
 | `cd ~/ngocrong-termux` báo không tồn tại | Đây là lần cài mới; không chạy `cd` trước, hãy dùng lệnh bootstrap trong mục Cài đặt nhanh. |
 | Không thấy bản sửa mới trên GitHub | Chạy `./nro.sh check-update`. Nếu in cảnh báo "Không kiểm tra được commit GitHub" (api.github.com và feed `main.atom` đều không trả lời vì mạng chặn hoặc rate-limit) thì xem `cat .runtime/source-update.log`; commit đang dùng nằm ở `.runtime/source-commit` và hiển thị bằng `./nro.sh status`. |
+| `check-update` không in gì cả | `nro.sh` trên máy còn là bản cũ nên bỏ qua kiểm tra. Chạy lại lệnh bootstrap ở mục Cài đặt nhanh để nạp `nro.sh` mới nhất; database, `Config.properties` và `.runtime` được giữ nguyên. |
 | `curl: (23) client returned ERROR on write` | Không ghi installer vào `/tmp`; dùng lại lệnh bootstrap mới để ghi vào `$HOME/.cache/ngocrong-termux`, đồng thời kiểm tra dung lượng bộ nhớ. |
 | Server chưa `READY` | Xem `tail -n 160 .runtime/server.log` hoặc chạy `./nro.sh console`. |
 | Không kết nối LAN | Kiểm tra cùng Wi‑Fi, IP, AP isolation và `ss -ltnp \| grep -E '14445\|3001'`. |
