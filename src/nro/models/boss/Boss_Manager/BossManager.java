@@ -162,6 +162,7 @@ public class BossManager implements Runnable {
         // this.createBoss(BossID.GOLDEN_FRIEZA, 1);
         this.createBoss(BossID.SOI_HEC_QUYN1, 5);
         this.createBoss(BossID.AN_TROM, 5);
+        this.createBoss(BossID.THO_DAI_CA);
         this.createBoss(BossID.O_DO1, 1);
         this.createBoss(BossID.BABY, 1);
              this.createBoss(BossID.B, 1);
@@ -351,6 +352,8 @@ public class BossManager implements Runnable {
                     new Cumber();
                 case BossID.AN_TROM ->
                     new AnTrom();
+                case BossID.THO_DAI_CA ->
+                    new Boss(BossID.THO_DAI_CA, BossesData.THO_DAI_CA);
                 case BossID.RONG_NHI ->
                     new RongNhi();
                 case BossID.BABY ->

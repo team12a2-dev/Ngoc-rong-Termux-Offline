@@ -1347,6 +1347,31 @@ public class BossesData {
             REST_5_S //second rest
     );
 
+    public static final BossData THO_DAI_CA = new BossData(
+            "Thỏ Đại Ca",
+            ConstPlayer.TRAI_DAT,
+            new short[]{403, 404, 405, -1, -1, -1}, // Cải trang Thỏ Đại Ca (item 463)
+            3000,
+            new int[]{25000},
+            MINI_BOSS_MAPS,
+            new int[][]{
+                {Skill.GALICK, 7, 1000},
+                {Skill.LIEN_HOAN, 7, 2000}
+            },
+            new String[]{
+                "|-1|Cà rốt của ta đâu? Ai lấy thì bước ra đây!",
+                "|-1|Đừng coi thường Thỏ Đại Ca!"
+            },
+            new String[]{
+                "|-1|Ăn một đòn của ta này!",
+                "|-1|Khu này giờ là địa bàn của ta!"
+            },
+            new String[]{
+                "|-1|Ta sẽ quay lại lấy cà rốt!"
+            },
+            REST_1_M
+    );
+
     public static final BossData XINBATO = new BossData(
             "Xinbatô", //name
             ConstPlayer.TRAI_DAT, //gender

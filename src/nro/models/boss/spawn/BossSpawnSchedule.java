@@ -59,7 +59,7 @@ public final class BossSpawnSchedule {
             case BossID.BROLY, BossID.SUPER_BROLY, BossID.KUKU, BossID.KU,
                     BossID.MAP_DAU_DINH, BossID.RAMBO, BossID.ANDROID_19 ->
                 BossSpawnTier.NORMAL;
-            case BossID.SOI_HEC_QUYN1, BossID.AN_TROM, BossID.MAT_TROI, BossID.O_DO1,
+            case BossID.SOI_HEC_QUYN1, BossID.AN_TROM, BossID.THO_DAI_CA, BossID.MAT_TROI, BossID.O_DO1,
                     BossID.BABY, BossID.B, BossID.Virut ->
                 BossSpawnTier.MINI;
             default ->
