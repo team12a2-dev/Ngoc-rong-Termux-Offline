@@ -132,6 +132,18 @@ JOIN `item_shop` k ON k.`tab_id` = d.`tab_id` AND k.`temp_id` = d.`temp_id` AND 
 WHERE v.`tab_id` IS NOT NULL
   AND d.`is_sell` = 1;
 
+-- 6b. Gom option trùng về một bản cho mỗi dòng bán sau bước 5, tránh client
+--     hiện cùng một nhãn nhiều lần.
+DELETE o FROM `item_shop_option` o
+JOIN `item_shop` s ON s.`id` = o.`item_shop_id`
+JOIN `tmp_bua_shop` v ON v.`tab_id` = s.`tab_id` AND v.`temp_id` = s.`temp_id`
+JOIN `item_shop_option` k
+  ON k.`item_shop_id` = o.`item_shop_id`
+ AND k.`option_id` = o.`option_id`
+ AND k.`id` < o.`id`
+WHERE v.`tab_id` IS NOT NULL
+  AND s.`is_sell` = 1;
+
 -- 7. Sắp lại thứ tự hiển thị của 10 môn trong tab chính.
 UPDATE `item_shop` s
 JOIN `tmp_bua_shop` v ON v.`tab_id` = s.`tab_id` AND v.`temp_id` = s.`temp_id`
@@ -145,15 +157,42 @@ JOIN `shop` s ON s.`id` = t.`shop_id`
 WHERE s.`tag_name` IN ('BUA_1H', 'BUA_8H', 'BUA_1M')
   AND t.`name` = 'Bùa<>Đặc biệt';
 
--- Kiểm tra: mỗi shop đúng 1 tab, đủ 10 môn không trùng lặp, giá và thứ tự đúng.
+-- 9. Gán nhãn "Chưa có" (option 66) cho mọi dòng bán bùa còn thiếu. Client đọc
+--    option này để vẽ dòng thời gian còn lại dưới tên bùa; thiếu option thì dòng
+--    đó trống trơn trong khi các bùa khác vẫn hiện "Chưa có". Các option 63/64/65
+--    ("Còn lại # ngày/giờ/phút") do ShopService.resolveShopBua gắn lúc mở shop
+--    theo thời gian đang chạy nên dữ liệu lưu không được giữ.
+DELETE o FROM `item_shop_option` o
+JOIN `item_shop` s ON s.`id` = o.`item_shop_id`
+JOIN `tmp_bua_shop` v ON v.`tab_id` = s.`tab_id` AND v.`temp_id` = s.`temp_id`
+WHERE v.`tab_id` IS NOT NULL
+  AND s.`is_sell` = 1
+  AND o.`option_id` IN (63, 64, 65);
+
+INSERT INTO `item_shop_option` (`item_shop_id`, `option_id`, `param`)
+SELECT s.`id`, 66, 0
+FROM `item_shop` s
+JOIN `tmp_bua_shop` v ON v.`tab_id` = s.`tab_id` AND v.`temp_id` = s.`temp_id`
+WHERE v.`tab_id` IS NOT NULL
+  AND s.`is_sell` = 1
+  AND NOT EXISTS (
+    SELECT 1 FROM `item_shop_option` o
+    WHERE o.`item_shop_id` = s.`id`
+      AND o.`option_id` = 66
+  );
+
+-- Kiểm tra: mỗi shop đúng 1 tab, đủ 10 môn không trùng lặp, giá và thứ tự đúng,
+-- mọi môn đều có option 66 để client hiện "Chưa có".
 SELECT s.`tag_name` AS shop, t.`id` AS tab_id, t.`name` AS tab_name,
        COUNT(i.`id`) AS so_mon,
+       GROUP_CONCAT(DISTINCT o.`option_id` ORDER BY o.`option_id`) AS options,
        GROUP_CONCAT(CONCAT(i.`temp_id`, ':', p.`name`, ' ', i.`cost`)
                     ORDER BY i.`sort_order` ASC, i.`id` ASC SEPARATOR ' | ') AS items
 FROM `shop` s
 JOIN `tab_shop` t ON t.`shop_id` = s.`id`
 JOIN `item_shop` i ON i.`tab_id` = t.`id` AND i.`is_sell` = 1
 JOIN `item_template` p ON p.`id` = i.`temp_id`
+LEFT JOIN `item_shop_option` o ON o.`item_shop_id` = i.`id`
 WHERE s.`tag_name` IN ('BUA_1H', 'BUA_8H', 'BUA_1M')
 GROUP BY s.`tag_name`, t.`id`, t.`name`
 ORDER BY s.`tag_name`, t.`id`;
