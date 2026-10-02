@@ -21,6 +21,7 @@ SOURCE_CHECK_FILE="$STATE_DIR/source-check-at"
 SOURCE_UPDATE_LOG="$STATE_DIR/source-update.log"
 SOURCE_COMMIT_URL="${NRO_SOURCE_COMMIT_URL:-https://api.github.com/repos/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main}"
 SOURCE_ARCHIVE_URL="${NRO_SOURCE_ARCHIVE_URL:-https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz}"
+SOURCE_FEED_URL="${NRO_SOURCE_FEED_URL:-https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main.atom}"
 PANEL_ROOT="$ROOT/panel"
 PANEL_API_ROOT="$PANEL_ROOT/api"
 PANEL_WEB_ROOT="$PANEL_ROOT/web"
@@ -209,7 +210,13 @@ auto_update_source() {
   : > "$SOURCE_UPDATE_LOG"
   remote_sha="$(curl -fsSL --http1.1 --connect-timeout 10 --max-time 30 \
     -H 'Accept: application/vnd.github+json' "$SOURCE_COMMIT_URL" 2>>"$SOURCE_UPDATE_LOG" \
-    | sed -n 's/.*"sha"[[:space:]]*:[[:space:]]*"\([0-9a-fA-F]\{40\}\)".*/\1/p' | head -n 1 || true)"
+    | sed -n 's/^{[^}]*"sha"[[:space:]]*:[[:space:]]*"\([0-9a-fA-F]\{40\}\)".*/\1/p' | head -n 1 || true)"
+  if ! [[ "$remote_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
+    printf '%s\n' "api.github.com không trả commit hợp lệ; thử lại bằng feed commits/main.atom" >>"$SOURCE_UPDATE_LOG"
+    remote_sha="$(curl -fsSL --http1.1 --connect-timeout 10 --max-time 30 \
+      "$SOURCE_FEED_URL" 2>>"$SOURCE_UPDATE_LOG" \
+      | sed -n 's/.*Grit::Commit\/\([0-9a-fA-F]\{40\}\).*/\1/p' | head -n 1 || true)"
+  fi
   if ! [[ "$remote_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
     warn "Không kiểm tra được commit GitHub; server vẫn tiếp tục với source hiện tại. Log: $SOURCE_UPDATE_LOG"
     return 0

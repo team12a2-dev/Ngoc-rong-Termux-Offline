@@ -216,6 +216,7 @@ Biến liên quan tới tự cập nhật source:
 ```bash
 NRO_AUTO_UPDATE=0                                  # tắt tự kiểm tra GitHub
 NRO_SOURCE_COMMIT_URL=https://api.github.com/repos/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main
+NRO_SOURCE_FEED_URL=https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main.atom
 NRO_SOURCE_ARCHIVE_URL=https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz
 ```
 
@@ -244,7 +245,7 @@ Android có thể trì hoãn job do tối ưu pin. Nên chép `.runtime/backups/
 |---|---|
 | Không tìm thấy Java | Chạy `pkg search openjdk`, `termux-change-repo`, rồi `./nro.sh setup`. |
 | `cd ~/ngocrong-termux` báo không tồn tại | Đây là lần cài mới; không chạy `cd` trước, hãy dùng lệnh bootstrap trong mục Cài đặt nhanh. |
-| Không thấy bản sửa mới trên GitHub | Chạy `./nro.sh check-update`; nếu in cảnh báo "Không kiểm tra được commit GitHub" thì xem `cat .runtime/source-update.log` (thường do mất mạng hoặc rate-limit API), thử lại sau vài phút. Commit đang dùng nằm ở `.runtime/source-commit`. |
+| Không thấy bản sửa mới trên GitHub | Chạy `./nro.sh check-update`. Nếu in cảnh báo "Không kiểm tra được commit GitHub" (api.github.com và feed `main.atom` đều không trả lời vì mạng chặn hoặc rate-limit) thì xem `cat .runtime/source-update.log`; commit đang dùng nằm ở `.runtime/source-commit` và hiển thị bằng `./nro.sh status`. |
 | `curl: (23) client returned ERROR on write` | Không ghi installer vào `/tmp`; dùng lại lệnh bootstrap mới để ghi vào `$HOME/.cache/ngocrong-termux`, đồng thời kiểm tra dung lượng bộ nhớ. |
 | Server chưa `READY` | Xem `tail -n 160 .runtime/server.log` hoặc chạy `./nro.sh console`. |
 | Không kết nối LAN | Kiểm tra cùng Wi‑Fi, IP, AP isolation và `ss -ltnp \| grep -E '14445\|3001'`. |
