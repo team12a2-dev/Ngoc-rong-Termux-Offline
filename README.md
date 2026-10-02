@@ -230,7 +230,7 @@ Thay đổi qua panel được lưu database, ghi audit log và reload runtime n
 
 ## Cơ chế boss
 
-Boss thường dùng scheduler chung với giới hạn theo population, tier, map density, fairness và cooldown.
+Boss thường dùng scheduler chung với trần số lượng cố định theo tier, map density, fairness và cooldown. Trần được điều khiển bởi các khóa `spawn.normal.max.concurrent`, `spawn.elite.max.concurrent`, `spawn.world.max.concurrent` và `spawn.broly.max.concurrent`; số người chơi online không làm boss ngừng spawn hoặc tự hạ trần.
 
 Broly và Super Broly chạy **24/7** theo mặc định, kể cả chiều tối và rạng sáng. Muốn giới hạn theo khung giờ thì đặt `spawn.broly.hours.weekday/weekend` và `spawn.superbroly.hours.weekday/weekend` (định dạng `9-12,14-17,19-23`, hoặc `all`). Một map có thể có nhiều boss ở các khu khác nhau; một khu chỉ có một boss.
 
@@ -242,7 +242,7 @@ Broly có nhóm lịch riêng, không dùng chung bộ đếm của tier NORMAL 
 - `spawn.broly.rest.sec` — cooldown mỗi Broly sau khi rời map (mặc định 180s).
 - `spawn.broly.max.per.map` — giới hạn theo map; mỗi khu vẫn chỉ có một boss thuộc nhóm Broly.
 
-Các khóa Broly population cũ (`spawn.population.broly.*`, `spawn.broly.min.concurrent`, `spawn.broly.max.adaptive.gap.sec`) không còn được dùng. Các boss tier khác vẫn có thể dùng `spawn.population.adaptive.enabled`.
+Các khóa population cũ (`spawn.population.*`, `spawn.broly.min.concurrent`, `spawn.broly.max.adaptive.gap.sec`) không còn được dùng; hãy điều chỉnh trần bằng các khóa `*.max.concurrent` tương ứng.
 
 Super Broly có hai nguồn spawn:
 

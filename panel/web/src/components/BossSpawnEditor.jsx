@@ -50,11 +50,11 @@ function rangeToString([a, b]) {
 }
 
 /**
- * Các key mà form trực quan không quản lý (Broly/Super Broly, population, fairness ELITE...).
+ * Các key mà form trực quan không quản lý (Broly/Super Broly, fairness ELITE...).
  * Serializer ghi lại file từ đầu nên phải giữ nguyên các key này, nếu không mỗi lần
  * bấm "Lưu" trên Panel sẽ xoá sạch cấu hình Broly và làm Broly không spawn.
  */
-const PRESERVED_PREFIXES = ['spawn.broly.', 'spawn.superbroly.', 'spawn.population.'];
+const PRESERVED_PREFIXES = ['spawn.broly.', 'spawn.superbroly.'];
 const PRESERVED_KEYS = new Set(['spawn.fairness.elite.enabled', 'spawn.debug.log.enabled']);
 
 function collectPreserved(p) {

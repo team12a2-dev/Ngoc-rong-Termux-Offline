@@ -343,16 +343,13 @@ public final class BossSpawnSchedule {
             };
             int effectiveLimit = BossSpawnConfig.effectiveConcurrentLimit(tier, configuredLimit);
             if (tier == BossSpawnTier.ELITE) {
-                return "giới hạn ELITE (" + countActiveElite() + "/" + effectiveLimit + ", online="
-                        + BossSpawnConfig.onlinePlayerCount() + ")";
+                return "giới hạn ELITE (" + countActiveElite() + "/" + effectiveLimit + ", trần cố định)";
             }
             if (tier == BossSpawnTier.WORLD) {
-                return "giới hạn WORLD (" + countActiveWorld() + "/" + effectiveLimit + ", online="
-                        + BossSpawnConfig.onlinePlayerCount() + ")";
+                return "giới hạn WORLD (" + countActiveWorld() + "/" + effectiveLimit + ", trần cố định)";
             }
             if (tier == BossSpawnTier.NORMAL) {
-                return "giới hạn NORMAL (" + countActiveNormal() + "/" + effectiveLimit + ", online="
-                        + BossSpawnConfig.onlinePlayerCount() + ")";
+                return "giới hạn NORMAL (" + countActiveNormal() + "/" + effectiveLimit + ", trần cố định)";
             }
         }
         if (!BossPanelConfigService.gI().passesActiveLimit(boss)) {
