@@ -206,7 +206,6 @@ auto_update_source() {
       && [ $((now - last_check)) -lt "$check_interval" ]; then
     return 0
   fi
-  printf '%s\n' "$now" > "$SOURCE_CHECK_FILE"
   : > "$SOURCE_UPDATE_LOG"
   remote_sha="$(curl -fsSL --http1.1 --connect-timeout 10 --max-time 30 \
     -H 'Accept: application/vnd.github+json' "$SOURCE_COMMIT_URL" 2>>"$SOURCE_UPDATE_LOG" \
@@ -215,6 +214,7 @@ auto_update_source() {
     warn "Không kiểm tra được commit GitHub; server vẫn tiếp tục với source hiện tại. Log: $SOURCE_UPDATE_LOG"
     return 0
   fi
+  printf '%s\n' "$now" > "$SOURCE_CHECK_FILE"
   if [ "$current_sha" = "$remote_sha" ]; then
     say "Source đã đồng bộ với GitHub commit ${remote_sha:0:12}; bỏ qua tải lại."
     return 0
@@ -933,7 +933,7 @@ main() {
       fi
       ;;
     lan)
-      auto_update_source
+      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
       if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
         exec bash "$ROOT/nro.sh" "$@"
       fi
@@ -993,7 +993,7 @@ main() {
       NRO_REBUILD=1 build_server
       ;;
     check-update)
-      auto_update_source
+      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
       ;;
     panel)
       ensure_layout
