@@ -477,6 +477,13 @@ apply_bua_single_tab_migration() {
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration"
 }
 
+apply_bua_1h_dedup_migration() {
+  local migration="$ROOT/sql/fix_bua_1h_duplicates.sql"
+  [ -f "$migration" ] || die "Thiếu migration $migration."
+  say "Dọn dòng bùa Trí Tuệ x3/x4 bị trùng trong shop bùa 1 giờ."
+  mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration"
+}
+
 backup_database() {
   [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh trong thư mục dự án."
   chmod 700 "$BACKUP_SCRIPT"
@@ -842,6 +849,7 @@ start_server() {
   apply_ve_tinh_shop_migration
   apply_bua_tri_tue_shop_migration
   apply_bua_single_tab_migration
+  apply_bua_1h_dedup_migration
   build_server
   rm -f "$STATE_DIR/server.ready"
   local jvm_opts cp jar build_time source_commit
@@ -918,6 +926,7 @@ setup() {
   apply_ve_tinh_shop_migration
   apply_bua_tri_tue_shop_migration
   apply_bua_single_tab_migration
+  apply_bua_1h_dedup_migration
   build_server
   setup_panel
   if panel_alive; then
