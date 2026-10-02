@@ -78,6 +78,24 @@ public class MobEffectSkill {
         }
     }
 
+    public void removeAura(int effectId) {
+        Message msg = null;
+        try {
+            msg = new Message(-124);
+            msg.writer().writeByte(0); // 0: kết thúc hiệu ứng
+            msg.writer().writeByte(1); // 1: phần mob
+            msg.writer().writeByte(effectId);
+            msg.writer().writeByte(mob.id);
+            Service.gI().sendMessAllPlayerInMap(mob.zone, msg);
+        } catch (Exception e) {
+            nro.models.utils.Logger.logException(MobEffectSkill.class, e);
+        } finally {
+            if (msg != null) {
+                msg.cleanup();
+            }
+        }
+    }
+
     public void startStun(long lastTimeStartBlind, int timeBlind) {
         this.lastTimeStun = lastTimeStartBlind;
         this.timeStun = timeBlind;

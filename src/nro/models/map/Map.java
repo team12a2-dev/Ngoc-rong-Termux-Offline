@@ -251,7 +251,6 @@ public class Map implements Runnable {
                     }
 
                     mobZone.zone = zone;
-                    mobZone.lvMob(); // roll siêu quái khi spawn ban đầu
                     zone.mobs.add(mobZone);
                 }
             }

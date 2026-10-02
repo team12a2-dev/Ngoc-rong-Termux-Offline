@@ -31,7 +31,8 @@ panel.agent.host=127.0.0.1
 panel.agent.port=14446
 panel.agent.key=change-me-in-production
 
-# SIÊU QUÁI - roll khi người chơi hạ quái thường, siêu quái xuất hiện khi quái hồi sinh
+# SIÊU QUÁI - chỉ roll khi người chơi hạ quái thường, siêu quái xuất hiện khi quái hồi sinh
+# Quái không tự xuất hiện siêu quái lúc load map, phải có người hạ quái trước đó
 # Mỗi khu vực chỉ có tối đa 1 siêu quái, nên sieuquai.rate là xác suất quái tiếp theo
 # sau khi hạ xong siêu quái sẽ thành siêu quái mới.
 # 1 trên sieuquai.rate: 10 = 10%  ·  5 = 20%  ·  20 = 5%  ·  100 = 1%

@@ -657,7 +657,7 @@ public class Zone {
                     msg.writer().writeByte(0); // sys
                     msg.writer().writeInt(mob.point.gethp());
                     msg.writer().writeByte(mob.level);
-                    msg.writer().writeInt((mob.point.getHpFull()));
+                    msg.writer().writeInt(mob.getHpMaxHienThi());
                     msg.writer().writeShort(mob.location.x);
                     msg.writer().writeShort(mob.location.y);
                     msg.writer().writeByte(mob.status);
