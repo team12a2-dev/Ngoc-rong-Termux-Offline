@@ -470,6 +470,13 @@ apply_bua_tri_tue_shop_migration() {
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration"
 }
 
+apply_bua_single_tab_migration() {
+  local migration="$ROOT/sql/fix_bua_shop_single_tab.sql"
+  [ -f "$migration" ] || die "Thiếu migration $migration."
+  say "Gộp shop bùa 1 giờ, 8 giờ và 1 tháng về đúng 1 tab."
+  mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration"
+}
+
 backup_database() {
   [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh trong thư mục dự án."
   chmod 700 "$BACKUP_SCRIPT"
@@ -834,6 +841,7 @@ start_server() {
   apply_yardart_mob_migration
   apply_ve_tinh_shop_migration
   apply_bua_tri_tue_shop_migration
+  apply_bua_single_tab_migration
   build_server
   rm -f "$STATE_DIR/server.ready"
   local jvm_opts cp jar build_time source_commit
@@ -909,6 +917,7 @@ setup() {
   apply_yardart_mob_migration
   apply_ve_tinh_shop_migration
   apply_bua_tri_tue_shop_migration
+  apply_bua_single_tab_migration
   build_server
   setup_panel
   if panel_alive; then
