@@ -10299,5 +10299,7 @@ INSERT INTO `task_sub_template` VALUES (29, 'bạn đã xong nhiệm vụ rồi'
 INSERT INTO `task_sub_template` VALUES (9, 'Đánh thắng Thần Mèo', 1, 'Con vẫn chưa đủ sức mạnh hạ Tàu Pảy Pảy đâu', -1, -9, 166);
 INSERT INTO `task_sub_template` VALUES (9, 'Đánh bại Tàu Pảy Pảy', 1, 'Hãy tới gặp %10, ông ấy đang đứng kia kìa', -5, -9, 167);
 INSERT INTO `task_sub_template` VALUES (17, 'Đạt 50tr sức mạnh', -1, 'Hay lắm hảo hán', -1, -1, 168);
+INSERT INTO `task_sub_template` VALUES (22, 'Đến gặp Jaco ở Trạm tàu vũ trụ', 1, 'Hãy tìm Jaco ở Trạm tàu vũ trụ', 63, 24, 169);
+INSERT INTO `task_sub_template` VALUES (22, 'Đến hành tình Potaufeu', 1, 'Hãy đến hành tình Potaufeu', -1, 139, 170);
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -9955,7 +9955,9 @@ INSERT INTO `task_sub_template` (`task_main_id`, `NAME`, `max_count`, `notify`, 
 (29, 'bạn đã xong nhiệm vụ rồi', -1, 'Mày giỏi đấy', -1, -1, 125),
 (9, 'Đánh thắng Thần Mèo', 1, 'Con vẫn chưa đủ sức mạnh hạ Tàu Pảy Pảy đâu', -1, -9, 166),
 (9, 'Đánh bại Tàu Pảy Pảy', 1, 'Hãy tới gặp %10, ông ấy đang đứng kia kìa', -5, -9, 167),
-(17, 'Đạt 50tr sức mạnh', -1, 'Hay lắm hảo hán', -1, -1, 168);
+(17, 'Đạt 50tr sức mạnh', -1, 'Hay lắm hảo hán', -1, -1, 168),
+(22, 'Đến gặp Jaco ở Trạm tàu vũ trụ', 1, 'Hãy tìm Jaco ở Trạm tàu vũ trụ', 63, 24, 169),
+(22, 'Đến hành tình Potaufeu', 1, 'Hãy đến hành tình Potaufeu', -1, 139, 170);
 
 --
 -- Chỉ mục cho các bảng đã đổ

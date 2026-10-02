@@ -1,6 +1,7 @@
 package nro.models.services;
 
 import nro.models.consts.ConstItem;
+import nro.models.consts.ConstMap;
 import nro.models.consts.ConstMob;
 import nro.models.consts.ConstNpc;
 import nro.models.consts.ConstPlayer;
@@ -106,22 +107,41 @@ public class TaskService {
 
     public void sendNextTaskMain(Player player) {
         rewardDoneTask(player);
+        int nextTaskMainId;
         switch (player.playerTask.taskMain.id) {
-            case 3:
-                player.playerTask.taskMain = TaskService.gI().getTaskMainById(player, player.gender + 4);
-                break;
+            case 3 ->
+                nextTaskMainId = player.gender + 4;
             case 4:
             case 5:
-            case 6:
-                player.playerTask.taskMain = TaskService.gI().getTaskMainById(player, 7);
-                break;
-            default:
-                player.playerTask.taskMain = TaskService.gI().getTaskMainById(player, player.playerTask.taskMain.id + 1);
-                break;
+            case 6 ->
+                nextTaskMainId = 7;
+            default ->
+                nextTaskMainId = player.playerTask.taskMain.id + 1;
         }
+        // Đã hết chuỗi nhiệm vụ chính: getTaskMainById trả lại nhiệm vụ hiện tại khi
+        // không tìm thấy id, nên phải kiểm tra trước. Nếu không, taskMain.index đã
+        // trỏ quá cuối danh sách và subTasks.get(index) ném IndexOutOfBoundsException.
+        if (!this.hasTaskMain(nextTaskMainId)) {
+            if (!player.playerTask.taskMain.subTasks.isEmpty()) {
+                player.playerTask.taskMain.index = player.playerTask.taskMain.subTasks.size() - 1;
+            }
+            Service.gI().hideWaitDialog(player);
+            Service.gI().sendThongBao(player, "Bạn đã hoàn thành tất cả nhiệm vụ");
+            return;
+        }
+        player.playerTask.taskMain = TaskService.gI().getTaskMainById(player, nextTaskMainId);
         sendTaskMain(player);
         Service.gI().sendThongBao(player, "Nhiệm vụ tiếp theo của bạn là "
                 + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).name);
+    }
+
+    private boolean hasTaskMain(int id) {
+        for (TaskMain tm : Manager.TASKS) {
+            if (tm.id == id) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void sendUpdateCountSubTask(Player player) {
@@ -253,11 +273,15 @@ public class TaskService {
             case ConstNpc.THAN_MEO_KARIN -> {
                 return doneTask(player, ConstTask.TASK_27_0);
             }
-            case ConstNpc.OSIN -> {
-                return doneTask(player, ConstTask.TASK_28_0)
-                        || doneTask(player, ConstTask.TASK_28_7);
-            }
+        case ConstNpc.OSIN -> {
+            return doneTask(player, ConstTask.TASK_28_0)
+                    || doneTask(player, ConstTask.TASK_28_7);
         }
+        case ConstNpc.JACO -> {
+            return doneTaskByStep(player, ConstTask.TASK_MAIN_22_CALICH,
+                    ConstTask.TASK_22_STEP_JACO, ConstTask.TASK_22_6);
+        }
+    }
         return false;
     }
 
@@ -360,6 +384,9 @@ public void checkDoneTaskUseItem(Player player, Item item) {
                     doneTask(player, ConstTask.TASK_26_0);
                 case 103 ->
                     doneTask(player, ConstTask.TASK_27_2);
+                case ConstMap.HANH_TINH_POTAUFEU ->
+                    doneTaskByStep(player, ConstTask.TASK_MAIN_22_CALICH,
+                            ConstTask.TASK_22_STEP_POTAUFEU, ConstTask.TASK_22_7);
             }
         }
     }
@@ -671,450 +698,482 @@ public void checkDoneTaskUseItem(Player player, Item item) {
     //xong nhiệm vụ nào đó
     private boolean doneTask(Player player, int idTaskCustom) {
         if (TaskService.gI().isCurrentTask(player, idTaskCustom)) {
-            this.addDoneSubTask(player, 1);
-            switch (idTaskCustom) {
-                case ConstTask.TASK_0_0:
-                    NpcService.gI().createTutorial(player, -1, transformName(player, "Làm tốt lắm..\n"
-                            + "Bây giờ bạn hãy vào nhà ông %2 bên phải để nhận nhiệm vụ mới nhé"));
-                    break;
-                case ConstTask.TASK_0_1:
-                    NpcService.gI().createTutorial(player, -1, transformName(player, "Ông %2 đang đứng đợi kìa\n"
-                            + "Hãy nhấn 2 lần vào để nói chuyện"));
-                    break;
-                case ConstTask.TASK_0_2:
-                    npcSay(player, ConstTask.NPC_NHA,
-                            "Con vừa đi đâu về đó?\n"
-                            + "Con hãy đến rương đồ để lấy rađa..\n"
-                            + "..sau đó thu hoạch hết đậu trên cây đậu thần đằng kia!");
-                    break;
-                case ConstTask.TASK_0_3:
-                    break;
-                case ConstTask.TASK_0_4:
-                    break;
-                case ConstTask.TASK_0_5:
-                    npcSay(player, ConstTask.NPC_NHA,
-                            "Tốt lắm, rađa sẽ giúp con thấy được lượng máu và thể lực ở bên góc trái\n"
-                            + "Bây giờ con hãy đi luyện tập\n"
-                            + "Con hãy ra %1, ở đó có những con mộc nhân cho con luyện tập dó\n"
-                            + "Hãy đốn ngã 5 con mộc nhân cho ông");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_1_0:
-                    if (isCurrentTask(player, idTaskCustom)) {
-                        Service.gI().sendThongBao(player, "Bạn đánh được "
-                                + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count + "/"
-                                + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).maxCount + " mộc nhân");
-                    }
-                    break;
-                case ConstTask.TASK_1_1:
-                    npcSay(player, ConstTask.NPC_NHA,
-                            "Thể lực của con cũng khá tốt\n"
-                            + "Con à, dạo gần đây dân làng của chúng ta gặp phải vài chuyện\n"
-                            + "Bên cạnh làng ta đột nhiên xuất hiện lũ quái vật\n"
-                            + "Nó tàn sát dân làng và phá hoại nông sản làng ta\n"
-                            + "Con hãy tìm đánh chúng và đem về đây 10 cái đùi gà, 2 ông cháu mình sẽ để dành ăn dần\n"
-                            + "Đây là tấm bản đồ của vùng này, con hãy xem để tìm đến %3\n"
-                            + "Con có thể sử dụng đậu thần khi hết HP hoặc KI, bằng cách nhấn vào nút có hình trái tim "
-                            + "bên góc phải dưới màn hình\n"
-                            + "Nhanh lên, ông đói lắm rồi");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_2_0:
-                    break;
-                case ConstTask.TASK_2_1:
-                    try {
-                    InventoryService.gI().subQuantityItemsBag(player, InventoryService.gI().findItemBag(player, 73), 10);
-                } catch (Exception ex) {
-                }
-                InventoryService.gI().sendItemBags(player);
-                Service.gI().dropItemMapForMe(player, player.zone.getItemMapByTempId(74));
-                npcSay(player, ConstTask.NPC_NHA,
-                        "Tốt lắm, đùi gà đây rồi, haha. Ông sẽ nướng tại đống lửa gần kia con có thể ăn bất cứ lúc nào nếu muốn\n"
-                        + "À cháu này, vừa nãy ông có nghe thấy 1 tiếng động lớn, hình như có 1 vật thể rơi tại %5, con hãy đến kiểm tra xem\n"
-                        + "Con cũng có thể dùng tiềm năng bản thân để nâng HP, KI hoặc sức đánh");
-                break;
-                case ConstTask.TASK_3_0:
-                    break;
-                case ConstTask.TASK_3_1:
-                    break;
-                case ConstTask.TASK_3_2:
-                    try {
-                    InventoryService.gI().subQuantityItemsBag(player, InventoryService.gI().findItemBag(player, 78), 1);
-                } catch (Exception ex) {
-                }
-                InventoryService.gI().sendItemBags(player);
-                Service.gI().sendFlagBag(player);
-                npcSay(player, ConstTask.NPC_NHA,
-                        "Có em bé trong phi thuyền rơi xuống à, ông cứ tưởng là sao băng chứ\n"
-                        + "Ông sẽ đặt tên cho em nó là Goku, từ giờ nó sẽ là thành viên trong gia đình ta\n"
-                        + "Nãy ông mới nhận được tin có bầy mãnh thú xuất hiện tại Trạm phi thuyền\n"
-                        + "Bọn chúng vừa đổ bộ xuống trái đất để trả thù việc con sát hại con chúng\n"
-                        + "Con hãy đi tiêu diệt chúng để giúp dân làng tại đó luôn nhé");
-                break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_4_0:
-                case ConstTask.TASK_5_1:
-                case ConstTask.TASK_6_1:
-                    if (isCurrentTask(player, idTaskCustom)) {
-                        Service.gI().sendThongBao(player, "Bạn đánh được "
-                                + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count + "/"
-                                + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).maxCount
-                                + " khủng long mẹ");
-                    }
-                    break;
-                case ConstTask.TASK_4_1:
-                case ConstTask.TASK_5_0:
-                case ConstTask.TASK_6_2:
-                    if (isCurrentTask(player, idTaskCustom)) {
-                        Service.gI().sendThongBao(player, "Bạn đánh được "
-                                + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count + "/"
-                                + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).maxCount
-                                + " lợn lòi mẹ");
-                    }
-                    break;
-                case ConstTask.TASK_4_2:
-                case ConstTask.TASK_5_2:
-                case ConstTask.TASK_6_0:
-                    if (isCurrentTask(player, idTaskCustom)) {
-                        Service.gI().sendThongBao(player, "Bạn đánh được "
-                                + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count + "/"
-                                + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).maxCount
-                                + " quỷ đất mẹ");
-                    }
-                    break;
-                case ConstTask.TASK_4_3:
-                case ConstTask.TASK_5_3:
-                case ConstTask.TASK_6_3:
-                    npcSay(player, ConstTask.NPC_NHA,
-                            "Ông rất tự hào về con\n"
-                            + "Ông cho con cuốn bí kíp này để nâng cao võ học\n"
-                            + "Hãy dùng sức mạnh của mình trừ gian diệt ác bảo vệ dân lành con nhé\n"
-                            + "Bây giờ con hãy đi tập luyện đi, khi nào mạnh hơn thì quay về đây ông giao cho nhiệm vụ mới\n"
-                            + "Đi đi..");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_7_0:
-                    break;
-                case ConstTask.TASK_7_1:
-                    break;
-                case ConstTask.TASK_7_2:
-                    Item capsule = ItemService.gI().createNewItem((short) 193, 75);
-                    InventoryService.gI().addItemBag(player, capsule);
-                    npcSay(player, ConstTask.NPC_SHOP_LANG,
-                            "Hiện tại em vẫn khỏe anh ạ, hơi bị trầy xước tí thôi nhưng không sao\n"
-                            + "Em thực sự cảm ơn anh đã cứu em, nếu không có anh thì giờ này cũng không biết em sẽ thế nào nữa\n"
-                            + "À em có cái món này, tuy nó không quá giá trị nhưng em mong anh nhận cho em vui");
-                    break;
-                case ConstTask.TASK_7_3:
-                    npcSay(player, ConstTask.NPC_NHA,
-                            "Ôi bạn ơi, sức đề kháng bạn yếu là do bạn chưa chơi đồ đấy bạn ạ");
-                //--------------------------------------------------------------
-                case ConstTask.TASK_8_0:
-                    break;
-                case ConstTask.TASK_8_1:
-                    break;
-                case ConstTask.TASK_8_2:
-                    npcSay(player, ConstTask.NPC_NHA,
-                            "Cháu trai của ông, con làm ông tự hào lắm. Con đã biết dùng sức mạnh của mình để giúp kẻ yếu\n"
-                            + "Bây giờ con đã trưởng thành thực sự rồi, ông sẽ bàn giao con lại cho %10 - người "
-                            + "bạn lâu ngày không gặp của ông\n"
-                            + "Con hãy tìm đường tới %11 và gửi lời chào của ông tới lão ấy nhé\n"
-                            + "Đi đi con...");
-                //--------------------------------------------------------------
-                // case ConstTask.TASK_9_2:
-                //     break;
-             case ConstTask.TASK_9_0:
-  npcSay(player, ConstNpc.BO_MONG,
-            "Chào cậu bé, cháu có phải cháu nội ông %2 phải không?\n"
-            + "Hồi nhỏ ta bế bé suốt mà, còn đỡ cho bé vài nhát dao\n"
-            + "Ta cần sự trợ giúp cho cháu bé\n"
-            + "Cháu bé hãy đi đánh bại Tàu Pảy Pảy nhé, thằng đấy không mạnh lắm đâu");
-    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_10_0:
-                    break;
-                case ConstTask.TASK_10_1:
-                    break;
-                case ConstTask.TASK_10_2:
-                    Item skill2 = ItemService.gI().createNewItem((short) (player.gender == 0 ? 94 : player.gender == 1 ? 101 : 108), 1);
-                    InventoryService.gI().addItemBag(player, skill2);
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "Tốt lắm, bây giờ con đã chính thức trở thành đệ tử của ta\n"
-                            + "Ta sẽ dạy con 1 tuyệt chiêu đặc biệt của ta\n"
-                            + "Bây giờ con hãy đi kết bạn với những người xung quanh đây đi, thêm 1 người bạn bớt 1 kẻ thù mà con\n"
-                            + "Mà lưu ý là tránh kết bạn với những người có bang hội nhé, họ không là kẻ thù cũng không nên là bạn");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_11_0:
-                    break;
-                case ConstTask.TASK_11_1:
-                    break;
-                case ConstTask.TASK_11_2:
-                    break;
-                case ConstTask.TASK_11_3:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "Giờ đây xã giao của con đã tiến bộ hơn rất nhiều rồi\n"
-                            + "Bây giờ con hãy về nhà xin ông %2 rằng con sẽ vào bang hội nhé\n"
-                            + "Ta sợ lão ấy không đồng ý lại quay sang trách móc cái thân già này..\n"
-                            + "Đi đi con, nói khéo lão ấy nhé.");
-                    break;
-                case ConstTask.TASK_12_0:
-                    break;
-                case ConstTask.TASK_12_1:
-                    npcSay(player, ConstTask.NPC_NHA,
-                            "Con muốn tham gia vào bang hội á? Haizz, cái lão già này lại dạy hư cháu ông rồi\n"
-                            + "Con muốn thì cũng được thôi, nhưng con phải biết lựa chọn được bang hội nào tốt đấy nhé..\n"
-                            + "..xã hội này có nhiều thành phần lắm, cũng chỉ vì an nguy của con nên ông chỉ biết dặn dò vậy\n"
-                            + "Chúc con may mắn trên con đường con chọn, mà luôn nhớ rằng con phải là 1 công dân tốt đấy nhé..");
-                    break;
-                case ConstTask.TASK_12_2:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "Cuối cùng lão ấy cũng đồng ý rồi à? Tốt lắm\n"
-                            + "Bây giờ con hãy cùng những người bạn con vừa kết bạn tạo thành 1 bang àội đi nhé\n"
-                            + "Khi nào đủ 5 thành viên bang hãy tới đây ta s   iao nhiệm vụ cho tất cả các con");
-                    break;
-                case ConstTask.TASK_13_0:
-                    break;
-                case ConstTask.TASK_13_1:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "Tốt lắm, con đã có những người đồng đội kề vai sát cánh rồi\n"
-                            + "Bây giờ con và 3 người họ hãy thể hiện tinh thần đoàn kết đi nào\n"
-                            + "Cách phối hợp nhau làm nhiệm vụ, cách cư xử với nhau đó là hiện thân của tâm tính mỗi người\n"
-                            + "Các con hãy đối nhân xử thế với nhau, hãy cùng hợp sức tiêu diệt lũ quái vật nhé");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_14_0:
-                    break;
-                case ConstTask.TASK_14_1:
-                    break;
-                case ConstTask.TASK_14_2: //heo rừng
-                    break;
-                case ConstTask.TASK_14_3:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "Giỏi lắm các con!\n"
-                            + "...Hiện tại có vài chủng quái vật mới đổ bộ lên hành tinh chúng ta\n"
-                            + "Con hãy cùng 3 người trong bang lên đường tiêu diệt chúng nhé\n"
-                            + "Dân chúng đặt niềm tin vào các con hết đấy..\n"
-                            + "Đi đi...");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_15_0:
-                    break;
-                case ConstTask.TASK_15_1: //bulon
-                    break;
-                case ConstTask.TASK_15_2:
-                    break;
-                case ConstTask.TASK_15_3:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "Giỏi lắm các con\n"
-                            + "Còn 1 vài con quái vật đầu sỏ nữa\n"
-                            + "Con hãy tiêu diệt nốt chúng đi nhé..");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_16_0:
-                    break;
-                case ConstTask.TASK_16_1:
-                    break;
-                case ConstTask.TASK_16_2:
-                    break;
-                case ConstTask.TASK_16_3:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "Con thực sự làm ta ngạc nhiên đấy, không uổng công ta truyền dạy võ công\n"
-                            + "Bên ngoài còn rất nhiều kẻ thù nguy hiểm, nên con phải không ngừng luyện tập nhé\n"
-                            + "Lại có chuyện xảy ra rồi, Cui - một người họ hàng xa của họ hàng ta - đang gặp chuyện\n"
-                            + "Con hãy tới thành phố Vegeta hỏi thăm tình hình cậu ta nhé! Đi đi con..");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_17_0:
-                    break;
-                case ConstTask.TASK_17_1:
-                    npcSay(player, ConstNpc.CUI,
-                            "Chào cậu, cậu là đệ tử của %10 phải không\n"
-                            + "Bọn người ngoài hành tinh cầm đầu bởi tên Fide đã và đang đổ bộ vào quê hương của tôi..\n"
-                            + "..chúng tàn sát hết dân lành và hủy hoại quê hương chúng tôi\n"
-                            + "Cậu hãy giúp tôi 1 tay tiêu diệt bọn chúng nhé"); //need retext
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_18_0:
-                    break;
-                case ConstTask.TASK_18_1:
-                    break;
-                case ConstTask.TASK_18_2:
-                    break;
-                case ConstTask.TASK_18_3:
-                    break;
-                case ConstTask.TASK_18_4:
-                    break;
-                case ConstTask.TASK_18_5:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "Cảm ơn cậu đã hỗ trợ tôi tiêu diệt bọn lính tay sai Fide\n"
-                            + "3 tên cầm đầu chúng đang tức giận lắm, tôi thì không đủ mạnh để chống lại bọn chúng\n"
-                            + "...");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_19_0:
-                    break;
-                case ConstTask.TASK_19_1:
-                    break;
-                case ConstTask.TASK_19_2:
-                    break;
-                case ConstTask.TASK_19_3:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "Cảm ơn cậu đã tiêu diệt giúp tôi lũ đệ tử của Fide\n"
-                            + "Dưới trướng Fide còn có 1 đội gồm 5 thành viên được chúng gọi là Tiều Đội Sát Thủ\n"
-                            + "Chúng rất mạnh và rất trung thành với tên Fide\n"
-                            + "Bọn chúng vừa được cử tới đi trả thù cho 3 tên đệ tử cậu vừa tiêu diệt\n"
-                            + "Hãy chống lại bọn chúng giúp tôi nhé....");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_20_0:
-                    break;
-                case ConstTask.TASK_20_1:
-                    break;
-                case ConstTask.TASK_20_2:
-                    break;
-                case ConstTask.TASK_20_3:
-                    break;
-                case ConstTask.TASK_20_4:
-                    break;
-                case ConstTask.TASK_20_5:
-                    break;
-                case ConstTask.TASK_20_6:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "NgocRongOnline");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_21_0:
-                    break;
-                case ConstTask.TASK_21_1:
-                    break;
-                case ConstTask.TASK_21_2:
-                    break;
-                case ConstTask.TASK_21_3:
-                    break;
-                case ConstTask.TASK_21_4:
-                    npcSay(player, ConstTask.NPC_QUY_LAO,
-                            "null\n"
-                            + "null\n"
-                            + "null");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_22_0:
-                    npcSay(player, ConstTask.NPC_NHA, "Ngon");
-                    break;
-                case ConstTask.TASK_22_1:
-                    npcSay(player, ConstNpc.CALICK, ConstNpc.CALICK_KE_CHUYEN);
-                    break;
-                case ConstTask.TASK_22_2:
-                    npcSay(player, ConstNpc.QUY_LAO_KAME, "I a cờ bú");
-                    break;
-                case ConstTask.TASK_22_3:
-                    npcSay(player, ConstNpc.BUNMA_TL, "Mau đi tiêu diệt 1000 xên cấp 1 đi em");
-                    break;
-                case ConstTask.TASK_22_4:
-                    break;
-                case ConstTask.TASK_22_5:
-                    npcSay(player, ConstNpc.BUNMA_TL, "Đến Thành Phố Phía Đông tiêu diệt Tokuda à nhầm Dr.Kore và đàn em của hắn.");
-                //--------------------------------------------------------------
-                case ConstTask.TASK_23_0:
-                    break;
-                case ConstTask.TASK_23_1:
-                    break;
-                case ConstTask.TASK_23_2:
-                    break;
-                case ConstTask.TASK_23_3:
-                    break;
-                case ConstTask.TASK_23_4:
-                    npcSay(player, ConstNpc.BUNMA_TL, "Bọn Android đã xuất hiện tại sân sau siêu thị mau đi trừ khử chúng");
-                    break;
-                //--------------------------------------------------------------
-                case ConstTask.TASK_24_0:
-                    break;
-                case ConstTask.TASK_24_1:
-                    break;
-                case ConstTask.TASK_24_2:
-                    break;
-                case ConstTask.TASK_24_3:
-                    break;
-                case ConstTask.TASK_24_4:
-                    npcSay(player, ConstNpc.BUNMA_TL,
-                            "Quá ghê gớm =))");
-                    break;
-                //---------------------------   
-                case ConstTask.TASK_25_0:
-                    break;
-                case ConstTask.TASK_25_1:
-                    break;
-                case ConstTask.TASK_25_2:
-                    break;
-                case ConstTask.TASK_25_3:
-                    break;
-                case ConstTask.TASK_25_4:
-                    break;
-                case ConstTask.TASK_25_5:
-                    npcSay(player, ConstNpc.BUNMA_TL,
-                            "Cũng ra gì đấy! Khét đấy nhề!");
-                    break;
-                //-----------------
-                case ConstTask.TASK_26_0:
-                    break;
-                case ConstTask.TASK_26_1:
-                    break;
-                case ConstTask.TASK_26_2:
-                    break;
-                case ConstTask.TASK_26_3:
-                    break;
-                case ConstTask.TASK_26_4:
-                    break;
-                case ConstTask.TASK_26_5:
-                    npcSay(player, ConstNpc.BUNMA_TL,
-                            "Hãy đến võ đài xên bọ hung và tiêu diệt 7 đứa con của nó");
-                    break;
-                //---------------------------------
-                case ConstTask.TASK_27_0:
-                    npcSay(player, ConstNpc.THAN_MEO_KARIN,
-                            "Tốt lắm! Bây giờ con hãy tìm cho ta 500 viên capsulue kì bí");
-                    break;
-                case ConstTask.TASK_27_1:
-                    break;
-                case ConstTask.TASK_27_2:
-                    break;
-                case ConstTask.TASK_27_3:
-                    break;
-                case ConstTask.TASK_27_4:
-                    break;
-                case ConstTask.TASK_27_5:
-                    npcSay(player, ConstNpc.BUNMA_TL,
-                            "Vào lúc 12h trưa các ngày, bạn đến gặp NPC Ô sin tại map Đại hội võ thuật. sau đó bạn đến các tầng của map để tiêu diệt các mục tiêu:\n"
-                            + "Hạ 25 Drabura\n"
-                            + "Hạ 25 Bui Bui\n"
-                            + "Hạ 25 Bui Bui lần 2\n"
-                            + "Hạ 25 Yacon\n"
-                            + "Hạ 25 Drabura lần 2\n"
-                            + "Hạ 50 Mabư");
-                    break;
-                //----
-                case ConstTask.TASK_28_0:
-                    break;
-                case ConstTask.TASK_28_1:
-                    break;
-                case ConstTask.TASK_28_2:
-                    break;
-                case ConstTask.TASK_28_3:
-                    break;
-                case ConstTask.TASK_28_4:
-                    break;
-                case ConstTask.TASK_28_5:
-                    break;
-                case ConstTask.TASK_28_6:
-                    break;
-                case ConstTask.TASK_28_7:
-                    break;
-            }
-            InventoryService.gI().sendItemBags(player);
-            return true;
+            return this.completeTaskStep(player, idTaskCustom);
         }
         return false;
+    }
+
+    /**
+     * Hoàn thành một bước nhiệm vụ khi biết trực tiếp taskMain.id và taskMain.index.
+     *
+     * Cần hàm này vì isCurrentTask dựng id bằng (taskMain.id << 10) + index << 1,
+     * trong khi ConstTask đánh số theo bước 2048 cho mỗi nhiệm vụ chính
+     * (TASK_1_0 = 2048, TASK_30_0 = 61440). Hai hệ số lệch nhau nên isCurrentTask
+     * chỉ khớp với nhiệm vụ chính có id 0. So sánh trực tiếp id/index không phụ thuộc
+     * vào cách đánh số nên luôn đúng.
+     */
+    private boolean doneTaskByStep(Player player, int taskMainId, int index, int idTaskCustom) {
+        if (this.isCurrentTaskStep(player, taskMainId, index)) {
+            return this.completeTaskStep(player, idTaskCustom);
+        }
+        return false;
+    }
+
+    private boolean isCurrentTaskStep(Player player, int taskMainId, int index) {
+        return player != null && player.playerTask != null && player.playerTask.taskMain != null
+                && player.playerTask.taskMain.id == taskMainId && player.playerTask.taskMain.index == index;
+    }
+
+    private boolean completeTaskStep(Player player, int idTaskCustom) {
+        this.addDoneSubTask(player, 1);
+        switch (idTaskCustom) {
+            case ConstTask.TASK_0_0:
+                NpcService.gI().createTutorial(player, -1, transformName(player, "Làm tốt lắm..\n"
+                        + "Bây giờ bạn hãy vào nhà ông %2 bên phải để nhận nhiệm vụ mới nhé"));
+                break;
+            case ConstTask.TASK_0_1:
+                NpcService.gI().createTutorial(player, -1, transformName(player, "Ông %2 đang đứng đợi kìa\n"
+                        + "Hãy nhấn 2 lần vào để nói chuyện"));
+                break;
+            case ConstTask.TASK_0_2:
+                npcSay(player, ConstTask.NPC_NHA,
+                        "Con vừa đi đâu về đó?\n"
+                        + "Con hãy đến rương đồ để lấy rađa..\n"
+                        + "..sau đó thu hoạch hết đậu trên cây đậu thần đằng kia!");
+                break;
+            case ConstTask.TASK_0_3:
+                break;
+            case ConstTask.TASK_0_4:
+                break;
+            case ConstTask.TASK_0_5:
+                npcSay(player, ConstTask.NPC_NHA,
+                        "Tốt lắm, rađa sẽ giúp con thấy được lượng máu và thể lực ở bên góc trái\n"
+                        + "Bây giờ con hãy đi luyện tập\n"
+                        + "Con hãy ra %1, ở đó có những con mộc nhân cho con luyện tập dó\n"
+                        + "Hãy đốn ngã 5 con mộc nhân cho ông");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_1_0:
+                if (isCurrentTask(player, idTaskCustom)) {
+                    Service.gI().sendThongBao(player, "Bạn đánh được "
+                            + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count + "/"
+                            + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).maxCount + " mộc nhân");
+                }
+                break;
+            case ConstTask.TASK_1_1:
+                npcSay(player, ConstTask.NPC_NHA,
+                        "Thể lực của con cũng khá tốt\n"
+                        + "Con à, dạo gần đây dân làng của chúng ta gặp phải vài chuyện\n"
+                        + "Bên cạnh làng ta đột nhiên xuất hiện lũ quái vật\n"
+                        + "Nó tàn sát dân làng và phá hoại nông sản làng ta\n"
+                        + "Con hãy tìm đánh chúng và đem về đây 10 cái đùi gà, 2 ông cháu mình sẽ để dành ăn dần\n"
+                        + "Đây là tấm bản đồ của vùng này, con hãy xem để tìm đến %3\n"
+                        + "Con có thể sử dụng đậu thần khi hết HP hoặc KI, bằng cách nhấn vào nút có hình trái tim "
+                        + "bên góc phải dưới màn hình\n"
+                        + "Nhanh lên, ông đói lắm rồi");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_2_0:
+                break;
+            case ConstTask.TASK_2_1:
+                try {
+                InventoryService.gI().subQuantityItemsBag(player, InventoryService.gI().findItemBag(player, 73), 10);
+            } catch (Exception ex) {
+            }
+            InventoryService.gI().sendItemBags(player);
+            Service.gI().dropItemMapForMe(player, player.zone.getItemMapByTempId(74));
+            npcSay(player, ConstTask.NPC_NHA,
+                    "Tốt lắm, đùi gà đây rồi, haha. Ông sẽ nướng tại đống lửa gần kia con có thể ăn bất cứ lúc nào nếu muốn\n"
+                    + "À cháu này, vừa nãy ông có nghe thấy 1 tiếng động lớn, hình như có 1 vật thể rơi tại %5, con hãy đến kiểm tra xem\n"
+                    + "Con cũng có thể dùng tiềm năng bản thân để nâng HP, KI hoặc sức đánh");
+            break;
+            case ConstTask.TASK_3_0:
+                break;
+            case ConstTask.TASK_3_1:
+                break;
+            case ConstTask.TASK_3_2:
+                try {
+                InventoryService.gI().subQuantityItemsBag(player, InventoryService.gI().findItemBag(player, 78), 1);
+            } catch (Exception ex) {
+            }
+            InventoryService.gI().sendItemBags(player);
+            Service.gI().sendFlagBag(player);
+            npcSay(player, ConstTask.NPC_NHA,
+                    "Có em bé trong phi thuyền rơi xuống à, ông cứ tưởng là sao băng chứ\n"
+                    + "Ông sẽ đặt tên cho em nó là Goku, từ giờ nó sẽ là thành viên trong gia đình ta\n"
+                    + "Nãy ông mới nhận được tin có bầy mãnh thú xuất hiện tại Trạm phi thuyền\n"
+                    + "Bọn chúng vừa đổ bộ xuống trái đất để trả thù việc con sát hại con chúng\n"
+                    + "Con hãy đi tiêu diệt chúng để giúp dân làng tại đó luôn nhé");
+            break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_4_0:
+            case ConstTask.TASK_5_1:
+            case ConstTask.TASK_6_1:
+                if (isCurrentTask(player, idTaskCustom)) {
+                    Service.gI().sendThongBao(player, "Bạn đánh được "
+                            + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count + "/"
+                            + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).maxCount
+                            + " khủng long mẹ");
+                }
+                break;
+            case ConstTask.TASK_4_1:
+            case ConstTask.TASK_5_0:
+            case ConstTask.TASK_6_2:
+                if (isCurrentTask(player, idTaskCustom)) {
+                    Service.gI().sendThongBao(player, "Bạn đánh được "
+                            + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count + "/"
+                            + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).maxCount
+                            + " lợn lòi mẹ");
+                }
+                break;
+            case ConstTask.TASK_4_2:
+            case ConstTask.TASK_5_2:
+            case ConstTask.TASK_6_0:
+                if (isCurrentTask(player, idTaskCustom)) {
+                    Service.gI().sendThongBao(player, "Bạn đánh được "
+                            + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count + "/"
+                            + player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).maxCount
+                            + " quỷ đất mẹ");
+                }
+                break;
+            case ConstTask.TASK_4_3:
+            case ConstTask.TASK_5_3:
+            case ConstTask.TASK_6_3:
+                npcSay(player, ConstTask.NPC_NHA,
+                        "Ông rất tự hào về con\n"
+                        + "Ông cho con cuốn bí kíp này để nâng cao võ học\n"
+                        + "Hãy dùng sức mạnh của mình trừ gian diệt ác bảo vệ dân lành con nhé\n"
+                        + "Bây giờ con hãy đi tập luyện đi, khi nào mạnh hơn thì quay về đây ông giao cho nhiệm vụ mới\n"
+                        + "Đi đi..");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_7_0:
+                break;
+            case ConstTask.TASK_7_1:
+                break;
+            case ConstTask.TASK_7_2:
+                Item capsule = ItemService.gI().createNewItem((short) 193, 75);
+                InventoryService.gI().addItemBag(player, capsule);
+                npcSay(player, ConstTask.NPC_SHOP_LANG,
+                        "Hiện tại em vẫn khỏe anh ạ, hơi bị trầy xước tí thôi nhưng không sao\n"
+                        + "Em thực sự cảm ơn anh đã cứu em, nếu không có anh thì giờ này cũng không biết em sẽ thế nào nữa\n"
+                        + "À em có cái món này, tuy nó không quá giá trị nhưng em mong anh nhận cho em vui");
+                break;
+            case ConstTask.TASK_7_3:
+                npcSay(player, ConstTask.NPC_NHA,
+                        "Ôi bạn ơi, sức đề kháng bạn yếu là do bạn chưa chơi đồ đấy bạn ạ");
+            //--------------------------------------------------------------
+            case ConstTask.TASK_8_0:
+                break;
+            case ConstTask.TASK_8_1:
+                break;
+            case ConstTask.TASK_8_2:
+                npcSay(player, ConstTask.NPC_NHA,
+                        "Cháu trai của ông, con làm ông tự hào lắm. Con đã biết dùng sức mạnh của mình để giúp kẻ yếu\n"
+                        + "Bây giờ con đã trưởng thành thực sự rồi, ông sẽ bàn giao con lại cho %10 - người "
+                        + "bạn lâu ngày không gặp của ông\n"
+                        + "Con hãy tìm đường tới %11 và gửi lời chào của ông tới lão ấy nhé\n"
+                        + "Đi đi con...");
+            //--------------------------------------------------------------
+            // case ConstTask.TASK_9_2:
+            //     break;
+         case ConstTask.TASK_9_0:
+  npcSay(player, ConstNpc.BO_MONG,
+        "Chào cậu bé, cháu có phải cháu nội ông %2 phải không?\n"
+        + "Hồi nhỏ ta bế bé suốt mà, còn đỡ cho bé vài nhát dao\n"
+        + "Ta cần sự trợ giúp cho cháu bé\n"
+        + "Cháu bé hãy đi đánh bại Tàu Pảy Pảy nhé, thằng đấy không mạnh lắm đâu");
+break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_10_0:
+                break;
+            case ConstTask.TASK_10_1:
+                break;
+            case ConstTask.TASK_10_2:
+                Item skill2 = ItemService.gI().createNewItem((short) (player.gender == 0 ? 94 : player.gender == 1 ? 101 : 108), 1);
+                InventoryService.gI().addItemBag(player, skill2);
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "Tốt lắm, bây giờ con đã chính thức trở thành đệ tử của ta\n"
+                        + "Ta sẽ dạy con 1 tuyệt chiêu đặc biệt của ta\n"
+                        + "Bây giờ con hãy đi kết bạn với những người xung quanh đây đi, thêm 1 người bạn bớt 1 kẻ thù mà con\n"
+                        + "Mà lưu ý là tránh kết bạn với những người có bang hội nhé, họ không là kẻ thù cũng không nên là bạn");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_11_0:
+                break;
+            case ConstTask.TASK_11_1:
+                break;
+            case ConstTask.TASK_11_2:
+                break;
+            case ConstTask.TASK_11_3:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "Giờ đây xã giao của con đã tiến bộ hơn rất nhiều rồi\n"
+                        + "Bây giờ con hãy về nhà xin ông %2 rằng con sẽ vào bang hội nhé\n"
+                        + "Ta sợ lão ấy không đồng ý lại quay sang trách móc cái thân già này..\n"
+                        + "Đi đi con, nói khéo lão ấy nhé.");
+                break;
+            case ConstTask.TASK_12_0:
+                break;
+            case ConstTask.TASK_12_1:
+                npcSay(player, ConstTask.NPC_NHA,
+                        "Con muốn tham gia vào bang hội á? Haizz, cái lão già này lại dạy hư cháu ông rồi\n"
+                        + "Con muốn thì cũng được thôi, nhưng con phải biết lựa chọn được bang hội nào tốt đấy nhé..\n"
+                        + "..xã hội này có nhiều thành phần lắm, cũng chỉ vì an nguy của con nên ông chỉ biết dặn dò vậy\n"
+                        + "Chúc con may mắn trên con đường con chọn, mà luôn nhớ rằng con phải là 1 công dân tốt đấy nhé..");
+                break;
+            case ConstTask.TASK_12_2:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "Cuối cùng lão ấy cũng đồng ý rồi à? Tốt lắm\n"
+                        + "Bây giờ con hãy cùng những người bạn con vừa kết bạn tạo thành 1 bang àội đi nhé\n"
+                        + "Khi nào đủ 5 thành viên bang hãy tới đây ta s   iao nhiệm vụ cho tất cả các con");
+                break;
+            case ConstTask.TASK_13_0:
+                break;
+            case ConstTask.TASK_13_1:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "Tốt lắm, con đã có những người đồng đội kề vai sát cánh rồi\n"
+                        + "Bây giờ con và 3 người họ hãy thể hiện tinh thần đoàn kết đi nào\n"
+                        + "Cách phối hợp nhau làm nhiệm vụ, cách cư xử với nhau đó là hiện thân của tâm tính mỗi người\n"
+                        + "Các con hãy đối nhân xử thế với nhau, hãy cùng hợp sức tiêu diệt lũ quái vật nhé");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_14_0:
+                break;
+            case ConstTask.TASK_14_1:
+                break;
+            case ConstTask.TASK_14_2: //heo rừng
+                break;
+            case ConstTask.TASK_14_3:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "Giỏi lắm các con!\n"
+                        + "...Hiện tại có vài chủng quái vật mới đổ bộ lên hành tinh chúng ta\n"
+                        + "Con hãy cùng 3 người trong bang lên đường tiêu diệt chúng nhé\n"
+                        + "Dân chúng đặt niềm tin vào các con hết đấy..\n"
+                        + "Đi đi...");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_15_0:
+                break;
+            case ConstTask.TASK_15_1: //bulon
+                break;
+            case ConstTask.TASK_15_2:
+                break;
+            case ConstTask.TASK_15_3:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "Giỏi lắm các con\n"
+                        + "Còn 1 vài con quái vật đầu sỏ nữa\n"
+                        + "Con hãy tiêu diệt nốt chúng đi nhé..");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_16_0:
+                break;
+            case ConstTask.TASK_16_1:
+                break;
+            case ConstTask.TASK_16_2:
+                break;
+            case ConstTask.TASK_16_3:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "Con thực sự làm ta ngạc nhiên đấy, không uổng công ta truyền dạy võ công\n"
+                        + "Bên ngoài còn rất nhiều kẻ thù nguy hiểm, nên con phải không ngừng luyện tập nhé\n"
+                        + "Lại có chuyện xảy ra rồi, Cui - một người họ hàng xa của họ hàng ta - đang gặp chuyện\n"
+                        + "Con hãy tới thành phố Vegeta hỏi thăm tình hình cậu ta nhé! Đi đi con..");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_17_0:
+                break;
+            case ConstTask.TASK_17_1:
+                npcSay(player, ConstNpc.CUI,
+                        "Chào cậu, cậu là đệ tử của %10 phải không\n"
+                        + "Bọn người ngoài hành tinh cầm đầu bởi tên Fide đã và đang đổ bộ vào quê hương của tôi..\n"
+                        + "..chúng tàn sát hết dân lành và hủy hoại quê hương chúng tôi\n"
+                        + "Cậu hãy giúp tôi 1 tay tiêu diệt bọn chúng nhé"); //need retext
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_18_0:
+                break;
+            case ConstTask.TASK_18_1:
+                break;
+            case ConstTask.TASK_18_2:
+                break;
+            case ConstTask.TASK_18_3:
+                break;
+            case ConstTask.TASK_18_4:
+                break;
+            case ConstTask.TASK_18_5:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "Cảm ơn cậu đã hỗ trợ tôi tiêu diệt bọn lính tay sai Fide\n"
+                        + "3 tên cầm đầu chúng đang tức giận lắm, tôi thì không đủ mạnh để chống lại bọn chúng\n"
+                        + "...");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_19_0:
+                break;
+            case ConstTask.TASK_19_1:
+                break;
+            case ConstTask.TASK_19_2:
+                break;
+            case ConstTask.TASK_19_3:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "Cảm ơn cậu đã tiêu diệt giúp tôi lũ đệ tử của Fide\n"
+                        + "Dưới trướng Fide còn có 1 đội gồm 5 thành viên được chúng gọi là Tiều Đội Sát Thủ\n"
+                        + "Chúng rất mạnh và rất trung thành với tên Fide\n"
+                        + "Bọn chúng vừa được cử tới đi trả thù cho 3 tên đệ tử cậu vừa tiêu diệt\n"
+                        + "Hãy chống lại bọn chúng giúp tôi nhé....");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_20_0:
+                break;
+            case ConstTask.TASK_20_1:
+                break;
+            case ConstTask.TASK_20_2:
+                break;
+            case ConstTask.TASK_20_3:
+                break;
+            case ConstTask.TASK_20_4:
+                break;
+            case ConstTask.TASK_20_5:
+                break;
+            case ConstTask.TASK_20_6:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "NgocRongOnline");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_21_0:
+                break;
+            case ConstTask.TASK_21_1:
+                break;
+            case ConstTask.TASK_21_2:
+                break;
+            case ConstTask.TASK_21_3:
+                break;
+            case ConstTask.TASK_21_4:
+                npcSay(player, ConstTask.NPC_QUY_LAO,
+                        "null\n"
+                        + "null\n"
+                        + "null");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_22_0:
+                npcSay(player, ConstTask.NPC_NHA, "Ngon");
+                break;
+            case ConstTask.TASK_22_1:
+                npcSay(player, ConstNpc.CALICK, ConstNpc.CALICK_KE_CHUYEN);
+                break;
+            case ConstTask.TASK_22_2:
+                npcSay(player, ConstNpc.QUY_LAO_KAME, "I a cờ bú");
+                break;
+            case ConstTask.TASK_22_3:
+                npcSay(player, ConstNpc.BUNMA_TL, "Mau đi tiêu diệt 1000 xên cấp 1 đi em");
+                break;
+            case ConstTask.TASK_22_4:
+                break;
+            case ConstTask.TASK_22_5:
+                npcSay(player, ConstNpc.BUNMA_TL, "Đến Thành Phố Phía Đông tiêu diệt Tokuda à nhầm Dr.Kore và đàn em của hắn.");
+            //--------------------------------------------------------------
+            case ConstTask.TASK_22_6:
+                npcSay(player, ConstNpc.JACO,
+                        "Gô Tên, Calích và Monaka đang gặp chuyện ở hành tình\nPotaufeu\nHãy đến đó ngay");
+                break;
+            case ConstTask.TASK_22_7:
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_23_0:
+                break;
+            case ConstTask.TASK_23_1:
+                break;
+            case ConstTask.TASK_23_2:
+                break;
+            case ConstTask.TASK_23_3:
+                break;
+            case ConstTask.TASK_23_4:
+                npcSay(player, ConstNpc.BUNMA_TL, "Bọn Android đã xuất hiện tại sân sau siêu thị mau đi trừ khử chúng");
+                break;
+            //--------------------------------------------------------------
+            case ConstTask.TASK_24_0:
+                break;
+            case ConstTask.TASK_24_1:
+                break;
+            case ConstTask.TASK_24_2:
+                break;
+            case ConstTask.TASK_24_3:
+                break;
+            case ConstTask.TASK_24_4:
+                npcSay(player, ConstNpc.BUNMA_TL,
+                        "Quá ghê gớm =))");
+                break;
+            //---------------------------   
+            case ConstTask.TASK_25_0:
+                break;
+            case ConstTask.TASK_25_1:
+                break;
+            case ConstTask.TASK_25_2:
+                break;
+            case ConstTask.TASK_25_3:
+                break;
+            case ConstTask.TASK_25_4:
+                break;
+            case ConstTask.TASK_25_5:
+                npcSay(player, ConstNpc.BUNMA_TL,
+                        "Cũng ra gì đấy! Khét đấy nhề!");
+                break;
+            //-----------------
+            case ConstTask.TASK_26_0:
+                break;
+            case ConstTask.TASK_26_1:
+                break;
+            case ConstTask.TASK_26_2:
+                break;
+            case ConstTask.TASK_26_3:
+                break;
+            case ConstTask.TASK_26_4:
+                break;
+            case ConstTask.TASK_26_5:
+                npcSay(player, ConstNpc.BUNMA_TL,
+                        "Hãy đến võ đài xên bọ hung và tiêu diệt 7 đứa con của nó");
+                break;
+            //---------------------------------
+            case ConstTask.TASK_27_0:
+                npcSay(player, ConstNpc.THAN_MEO_KARIN,
+                        "Tốt lắm! Bây giờ con hãy tìm cho ta 500 viên capsulue kì bí");
+                break;
+            case ConstTask.TASK_27_1:
+                break;
+            case ConstTask.TASK_27_2:
+                break;
+            case ConstTask.TASK_27_3:
+                break;
+            case ConstTask.TASK_27_4:
+                break;
+            case ConstTask.TASK_27_5:
+                npcSay(player, ConstNpc.BUNMA_TL,
+                        "Vào lúc 12h trưa các ngày, bạn đến gặp NPC Ô sin tại map Đại hội võ thuật. sau đó bạn đến các tầng của map để tiêu diệt các mục tiêu:\n"
+                        + "Hạ 25 Drabura\n"
+                        + "Hạ 25 Bui Bui\n"
+                        + "Hạ 25 Bui Bui lần 2\n"
+                        + "Hạ 25 Yacon\n"
+                        + "Hạ 25 Drabura lần 2\n"
+                        + "Hạ 50 Mabư");
+                break;
+            //----
+            case ConstTask.TASK_28_0:
+                break;
+            case ConstTask.TASK_28_1:
+                break;
+            case ConstTask.TASK_28_2:
+                break;
+            case ConstTask.TASK_28_3:
+                break;
+            case ConstTask.TASK_28_4:
+                break;
+            case ConstTask.TASK_28_5:
+                break;
+            case ConstTask.TASK_28_6:
+                break;
+            case ConstTask.TASK_28_7:
+                break;
+        }
+        InventoryService.gI().sendItemBags(player);
+        return true;
     }
 
     private void npcSay(Player player, int npcId, String text) {

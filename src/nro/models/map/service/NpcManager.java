@@ -3,6 +3,7 @@ package nro.models.map.service;
 import nro.models.consts.ConstNpc;
 import nro.models.consts.ConstTask;
 import nro.models.npc.Npc;
+import nro.models.npc_list.Jaco;
 import nro.models.player.Player;
 import nro.models.server.Manager;
 import nro.models.services.TaskService;
@@ -51,6 +52,10 @@ public class NpcManager {
             } 
             // Điều kiện loại trừ NPC QUOC_VUONG nếu sức mạnh của người chơi nhỏ hơn 17 tỷ
             else if (npc.tempId == ConstNpc.QUOC_VUONG && player.nPoint.power < 17000000000L) {
+                continue;
+            }
+            // Điều kiện loại trừ NPC Jaco ở Trạm tàu vũ trụ khi chưa tới nhiệm vụ mở khoá hành tinh Potaufeu
+            else if (npc instanceof Jaco jaco && !jaco.isUnlocked(player)) {
                 continue;
             }
             list.add(npc);
