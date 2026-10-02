@@ -4,10 +4,12 @@
 -- Các migration trước chạy lại ở mỗi lần start và tranh nhau sửa cùng bảng
 -- item_shop: một bản từng join bảng con chỉ bằng temp_id nên kéo dòng bán của
 -- shop 8 giờ và 1 tháng vào tab của shop 1 giờ (sinh clone), một bản khác đẩy
--- bùa Thu Hút (219) và Đệ Tử (522) sang tab phụ rồi xoá tab phụ, kéo theo xoá
--- luôn 219/522 vì item_shop_option có ON DELETE CASCADE. Bản này thay toàn bộ:
--- mỗi shop đúng 1 tab, đúng 10 môn, mỗi môn một dòng bán, giá và thứ tự cố
--- định, chạy lại nhiều lần không sinh thêm dòng.
+-- bùa Thu Hút (219) và Đệ Tử (522) sang tab phủ rồi xoá tab phủ. item_shop
+-- không có khoá ngoại trỏ về tab_shop nên dòng bán của hai bùa này còn nằm lại
+-- trong bảng nhưng trỏ vào tab đã bị xoá, client không hiển thị được và các
+-- migration sau cũng không tìm thấy để chuyển lại nên bùa mất hẳn khỏi shop.
+-- Bản này thay toàn bộ: mỗi shop đúng 1 tab, đúng 10 môn, mỗi môn một dòng bán,
+-- giá và thứ tự cố định, chạy lại nhiều lần không sinh thêm dòng.
 --
 -- GIÁ
 --   1 giờ  : theo dữ liệu gốc, đã được xác nhận giữ nguyên.
@@ -73,7 +75,13 @@ INSERT INTO `tmp_bua_shop` (`tag_name`, `tab_id`, `temp_id`, `cost`, `sort_order
   ('BUA_1M', @tab_bua_1m, 671, 1500, 9),
   ('BUA_1M', @tab_bua_1m, 672, 4500, 10);
 
--- 1. Trả dòng nằm trong tab phụ "Bùa<>Đặc biệt" (nếu còn) về tab chính kèm thứ tự.
+-- 1. Dọn dòng bán mồ côi của bùa: tab_id không còn tồn tại trong tab_shop thì
+--    client không vẽ ra được. Bản migration cũ để lại loại này khi xoá tab phụ.
+DELETE s FROM `item_shop` s
+WHERE s.`temp_id` IN (213, 214, 215, 216, 217, 218, 219, 522, 671, 672)
+  AND NOT EXISTS (SELECT 1 FROM `tab_shop` t WHERE t.`id` = s.`tab_id`);
+
+-- 2. Trả dòng nằm trong tab phụ "Bùa<>Đặc biệt" (nếu còn) về tab chính kèm thứ tự.
 UPDATE `item_shop` s
 JOIN `tab_shop` t ON t.`id` = s.`tab_id`
 JOIN `shop` sh ON sh.`id` = t.`shop_id`
@@ -84,7 +92,7 @@ SET s.`tab_id` = v.`tab_id`,
 WHERE t.`name` = 'Bùa<>Đặc biệt'
   AND v.`tab_id` IS NOT NULL;
 
--- 2. Ép giá chuẩn cho dòng đang bán trong tab chính.
+-- 3. Ép giá chuẩn cho dòng đang bán trong tab chính.
 UPDATE `item_shop` s
 JOIN `tmp_bua_shop` v ON v.`tab_id` = s.`tab_id` AND v.`temp_id` = s.`temp_id`
 SET s.`cost` = v.`cost`
@@ -92,8 +100,8 @@ WHERE v.`tab_id` IS NOT NULL
   AND v.`cost` IS NOT NULL
   AND s.`is_sell` = 1;
 
--- 3. Bảo đảm đủ môn: thêm dòng bán cho món còn thiếu, ví dụ bùa Thu Hút và
---    Đệ Tử bị xoá lúc migration cũ xoá tab phụ.
+-- 4. Bảo đảm đủ môn: thêm dòng bán cho món còn thiếu, ví dụ bùa Thu Hút và
+--    Đệ Tử bị mất trước đây.
 INSERT INTO `item_shop` (`tab_id`, `temp_id`, `is_new`, `is_sell`, `type_sell`, `cost`, `icon_spec`, `sort_order`)
 SELECT v.`tab_id`, v.`temp_id`, 1, 1, 1, v.`cost`, 0, v.`sort_order`
 FROM `tmp_bua_shop` v
@@ -106,7 +114,7 @@ WHERE v.`tab_id` IS NOT NULL
       AND s.`is_sell` = 1
   );
 
--- 4. Chuyển option của dòng trùng sang dòng sẽ được giữ lại, phải làm trước bước 5
+-- 5. Chuyển option của dòng trùng sang dòng sẽ được giữ lại, phải làm trước bước 6
 --    vì item_shop_option bị xoá theo item_shop (ON DELETE CASCADE).
 UPDATE `item_shop_option` o
 JOIN `item_shop` d ON d.`id` = o.`item_shop_id`
@@ -116,21 +124,21 @@ SET o.`item_shop_id` = k.`id`
 WHERE v.`tab_id` IS NOT NULL
   AND d.`is_sell` = 1;
 
--- 5. Xoá dòng trùng trong tab chính, giữ dòng có id nhỏ nhất cho mỗi môn.
+-- 6. Xoá dòng trùng trong tab chính, giữ dòng có id nhỏ nhất cho mỗi môn.
 DELETE d FROM `item_shop` d
 JOIN `tmp_bua_shop` v ON v.`tab_id` = d.`tab_id` AND v.`temp_id` = d.`temp_id`
 JOIN `item_shop` k ON k.`tab_id` = d.`tab_id` AND k.`temp_id` = d.`temp_id` AND k.`is_sell` = 1 AND k.`id` < d.`id`
 WHERE v.`tab_id` IS NOT NULL
   AND d.`is_sell` = 1;
 
--- 6. Sắp lại thứ tự hiển thị của 10 môn trong tab chính.
+-- 7. Sắp lại thứ tự hiển thị của 10 môn trong tab chính.
 UPDATE `item_shop` s
 JOIN `tmp_bua_shop` v ON v.`tab_id` = s.`tab_id` AND v.`temp_id` = s.`temp_id`
 SET s.`sort_order` = v.`sort_order`
 WHERE v.`tab_id` IS NOT NULL
   AND s.`is_sell` = 1;
 
--- 7. Xoá tab phụ sau khi đã chuyển hết item ra.
+-- 8. Xoá tab phụ sau khi đã chuyển hết item ra.
 DELETE t FROM `tab_shop` t
 JOIN `shop` s ON s.`id` = t.`shop_id`
 WHERE s.`tag_name` IN ('BUA_1H', 'BUA_8H', 'BUA_1M')
