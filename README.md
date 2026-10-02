@@ -17,7 +17,7 @@
 
 ## Mục lục
 
-[**Cài đặt**](#cài-đặt-nhanh) · [**Cập nhật**](#tự-đồng-bộ-source-từ-github) · [**Lệnh**](#lệnh-quản-lý) · [**LAN**](#kết-nối-lan) · [**Chạy nền**](#chạy-độc-lập-khi-đóng-termux) · [**Panel**](#web-panel) · [**Boss**](#cơ-chế-boss) · [**Backup**](#backup-database) · [**Xử lý lỗi**](#xử-lý-lỗi-nhanh)
+[**Cài đặt**](#cài-đặt-nhanh) · [**Cập nhật nhanh**](#cập-nhật-nhanh-1-dòng-gõ-tay-được) · [**Cập nhật**](#tự-đồng-bộ-source-từ-github) · [**Lệnh**](#lệnh-quản-lý) · [**LAN**](#kết-nối-lan) · [**Chạy nền**](#chạy-độc-lập-khi-đóng-termux) · [**Panel**](#web-panel) · [**Boss**](#cơ-chế-boss) · [**Backup**](#backup-database) · [**Xử lý lỗi**](#xử-lý-lỗi-nhanh)
 
 ## Tính năng chính
 
@@ -41,6 +41,24 @@ pkg update -y && pkg install -y curl tar && mkdir -p "$HOME/.cache/ngocrong-term
 Installer tải **archive source mới nhất từ nhánh GitHub `main`**; không dùng Git, không chia file, không tạo khóa SSH và không xuất hiện `Receiving objects`. File tạm được ghi trong `$HOME/.cache/ngocrong-termux`, không phụ thuộc `/tmp`; installer kiểm tra quyền ghi và dung lượng trước khi tải. Installer bảo toàn `Config.properties`, `.env`, database, `.runtime`, `node_modules` và dữ liệu người chơi.
 
 Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`. Khi cập nhật, không cần `cd` vào thư mục trước; chỉ chạy lại lệnh bootstrap ở trên.
+
+### Cập nhật nhanh (1 dòng, gõ tay được)
+
+Cài xong rồi mà máy báo không có bản sửa mới, hoặc `check-update` không phản hồi: dán đúng dòng ngắn này vào Termux, không cần `cd`, không cần gõ dài.
+
+```bash
+pkg install -y curl tar && bash <(curl -fsSL https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh)
+```
+
+Dòng này tải archive `main` mới nhất, ghi đè lên bản cũ nhưng giữ nguyên `Config.properties`, `panel/api/.env`, database và `.runtime`, rồi build lại. Máy Termux cũ không chạy được `<(...)` thì dùng: `curl -fsSL https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh | bash`
+
+Sau khi chạy xong, kiểm tra đã lên bản mới chưa:
+
+```bash
+grep -c NRO_FORCE_UPDATE_CHECK=1 ~/ngocrong-termux/nro.sh
+```
+
+Kết quả phải là `3`. Nếu vẫn là `0` hoặc `1` thì xem `~/.ngocrong-termux-install.log`, thường do mạng chặn GitHub.
 
 Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Xem [Tự đồng bộ source từ GitHub](#tự-đồng-bộ-source-từ-github) để biết chi tiết.
 
@@ -278,7 +296,7 @@ Android có thể trì hoãn job do tối ưu pin. Nên chép `.runtime/backups/
 | Không tìm thấy Java | Chạy `pkg search openjdk`, `termux-change-repo`, rồi `./nro.sh setup`. |
 | `cd ~/ngocrong-termux` báo không tồn tại | Đây là lần cài mới; không chạy `cd` trước, hãy dùng lệnh bootstrap trong mục Cài đặt nhanh. |
 | Không thấy bản sửa mới trên GitHub | Chạy `./nro.sh check-update`. Nếu in cảnh báo "Không kiểm tra được commit GitHub" (api.github.com và feed `main.atom` đều không trả lời vì mạng chặn hoặc rate-limit) thì xem `cat .runtime/source-update.log`; commit đang dùng nằm ở `.runtime/source-commit` và hiển thị bằng `./nro.sh status`. |
-| `check-update` không in gì cả | `nro.sh` trên máy còn là bản cũ nên bỏ qua kiểm tra. Chạy lại lệnh bootstrap ở mục Cài đặt nhanh để nạp `nro.sh` mới nhất; database, `Config.properties` và `.runtime` được giữ nguyên. |
+| `check-update` không in gì cả | `nro.sh` trên máy còn là bản cũ nên bỏ qua kiểm tra. Chạy lệnh 1 dòng ở mục [Cập nhật nhanh](#cập-nhật-nhanh-1-dòng-gõ-tay-được); database, `Config.properties` và `.runtime` được giữ nguyên. |
 | `curl: (23) client returned ERROR on write` | Không ghi installer vào `/tmp`; dùng lại lệnh bootstrap mới để ghi vào `$HOME/.cache/ngocrong-termux`, đồng thời kiểm tra dung lượng bộ nhớ. |
 | Server chưa `READY` | Xem `tail -n 160 .runtime/server.log` hoặc chạy `./nro.sh console`. |
 | Không kết nối LAN | Kiểm tra cùng Wi‑Fi, IP, AP isolation và `ss -ltnp \| grep -E '14445\|3001'`. |
