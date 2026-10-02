@@ -81,6 +81,10 @@ public class EffectSkill {
     public boolean isSocola;
     public long lastTimeSocola;
     public int timeSocola;
+    /** Thỏ Đại Ca biến người chơi thành cà rốt; sức đánh bị giảm 15%. */
+    public boolean isCarrot;
+    public long lastTimeCarrot;
+    public int timeCarrot;
     public int countPem1hp;
     //halloween
     public boolean isHalloween;
@@ -153,6 +157,9 @@ public class EffectSkill {
         if (isDameBuff) {
             EffectSkillService.gI().removeDameBuff(this.player);
         }
+        if (isCarrot) {
+            EffectSkillService.gI().removeCarrot(this.player);
+        }
     }
 
     public void update() {
@@ -179,6 +186,9 @@ public class EffectSkill {
         }
         if (isSocola && (Util.canDoWithTime(lastTimeSocola, timeSocola))) {
             EffectSkillService.gI().removeSocola(this.player);
+        }
+        if (isCarrot && Util.canDoWithTime(lastTimeCarrot, timeCarrot)) {
+            EffectSkillService.gI().removeCarrot(this.player);
         }
         if (tiLeHPHuytSao != 0 && Util.canDoWithTime(lastTimeHuytSao, 30000)) {
             EffectSkillService.gI().removeHuytSao(this.player);

@@ -242,7 +242,7 @@ Broly có nhóm lịch riêng, không dùng chung bộ đếm của tier NORMAL 
 - `spawn.broly.rest.sec` — cooldown mỗi Broly sau khi rời map (mặc định 180s).
 - `spawn.broly.max.per.map` — giới hạn theo map; mỗi khu vẫn chỉ có một boss thuộc nhóm Broly.
 
-Mini boss **Thỏ Đại Ca** được tạo một instance roaming trên các map trong `MINI_BOSS_MAPS`, dùng sprite cải trang Thỏ Đại Ca (403/404/405). Nó là boss thường của game, không phải boss đối thủ Võ Đài Sinh Tử.
+Mini boss **Thỏ Đại Ca** được tạo một instance roaming trên các map trong `MINI_BOSS_MAPS`, dùng sprite cải trang Thỏ Đại Ca (403/404/405). Khi người chơi chạm boss, họ bị biến cà rốt trong 5 phút và sức đánh giảm 15%; các cải trang Thỏ Đại Ca/Thỏ Bunma (item 463/464/584) miễn nhiễm. Đây là boss roaming, tách biệt với Thỏ Đầu Bạc ở Võ Đài Sinh Tử.
 
 Các khóa population cũ (`spawn.population.*`, `spawn.broly.min.concurrent`, `spawn.broly.max.adaptive.gap.sec`) không còn được dùng; hãy điều chỉnh trần bằng các khóa `*.max.concurrent` tương ứng.
 

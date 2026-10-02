@@ -1335,6 +1335,23 @@ public class NPoint {
         }
     }
 
+    private int applyCarrotAttackPenalty(long damage) {
+        boolean carrotDebuff = this.player != null && this.player.effectSkill != null
+                && this.player.effectSkill.isCarrot;
+        if (!carrotDebuff && this.player != null && this.player.isPet
+                && ((Pet) this.player).master != null
+                && ((Pet) this.player).master.effectSkill != null) {
+            carrotDebuff = ((Pet) this.player).master.effectSkill.isCarrot;
+        }
+        if (carrotDebuff) {
+            damage = damage * 85 / 100;
+        }
+        if (damage > Integer.MAX_VALUE) {
+            damage = Integer.MAX_VALUE;
+        }
+        return (int) Math.max(0L, damage);
+    }
+
     public int getDameAttack(boolean isAttackMob) {
         setIsCrit();
         long dameAttack = this.dame;
@@ -1429,7 +1446,7 @@ public class NPoint {
                 if (this.player.setClothes.picolo == 5) {
                     dameSkill *= 3 / 2;
                 }
-                return dameSkill;
+                return applyCarrotAttackPenalty(dameSkill);
             case Skill.QUA_CAU_KENH_KHI: 
                 isCrit = false;
                 isCritTele = false;
@@ -1453,7 +1470,7 @@ public class NPoint {
                 if (dameqckk > 2147483647) {
                     dameqckk = 2147483647;
                 }
-                return (int) dameqckk;
+                return applyCarrotAttackPenalty(dameqckk);
             case Skill.DE_TRUNG: 
                 if (player.setClothes.pikkoroDaimao == 5) {
                     dameAttack *= 4;
@@ -1461,7 +1478,7 @@ public class NPoint {
                 if (dameAttack > 2147483647) {
                     dameAttack = 2147483647;
                 }
-                return (int) dameAttack;
+                return applyCarrotAttackPenalty(dameAttack);
             }
         }
         if (intrinsic != null && intrinsic.id == 18 && this.player.effectSkill.isMonkey) {
@@ -1501,11 +1518,9 @@ public class NPoint {
             player.effectSkin.isXChuong = false;
             player.effectSkin.lastTimeXChuong = System.currentTimeMillis();
         }
-        if (dameAttack > 2147483647) {
-            dameAttack = 2147483647;
-        }
-        System.out.println("[DEBUG] getDameAttack end: player=" + (this.player != null ? this.player.name : "null") + ", final dameAttack=" + dameAttack);
-        return (int) dameAttack;
+        int finalDameAttack = applyCarrotAttackPenalty(dameAttack);
+        System.out.println("[DEBUG] getDameAttack end: player=" + (this.player != null ? this.player.name : "null") + ", final dameAttack=" + finalDameAttack);
+        return finalDameAttack;
     }
 
     public int getCurrPercentHP() {

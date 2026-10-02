@@ -16,6 +16,7 @@ import nro.models.boss.Boss_mini.AnTrom;
 import nro.models.boss.Boss_mini.Odo;
 import nro.models.boss.Boss_mini.RongNhi;
 import nro.models.boss.Boss_mini.SoiHecQuyn;
+import nro.models.boss.Boss_mini.ThoDaiCa;
 import nro.models.boss.Boss_mini.Virut;
 import nro.models.boss.Broly.Broly;
 import nro.models.boss.Cell.SieuBoHung;
@@ -353,7 +354,7 @@ public class BossManager implements Runnable {
                 case BossID.AN_TROM ->
                     new AnTrom();
                 case BossID.THO_DAI_CA ->
-                    new Boss(BossID.THO_DAI_CA, BossesData.THO_DAI_CA);
+                    new ThoDaiCa();
                 case BossID.RONG_NHI ->
                     new RongNhi();
                 case BossID.BABY ->
