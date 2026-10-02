@@ -1031,7 +1031,7 @@ NRO_BACKUP_DIR, NRO_BACKUP_LOG, NRO_BACKUP_KEEP_DAYS, NRO_BACKUP_JOB_ID,
 NRO_BACKUP_PERIOD_MS, NRO_AUTO_BACKUP=0 nếu cần bỏ qua backup tự động,
 NRO_AUTO_UPDATE=0 nếu cần tắt tự cập nhật, NRO_UPDATE_CHECK_INTERVAL_SEC,
 NRO_SOURCE_COMMIT_URL, NRO_SOURCE_ARCHIVE_URL, JWT_SECRET, NRO_JVM_OPTS, NRO_LAN_IP.
-Mỗi lệnh start/restart/background/lan đều kiểm tra source GitHub; chỉ khi tạo tiến trình mới mới build lại Java.
+Mỗi lệnh start/restart/background/lan/check-update đều ép kiểm tra source GitHub; chỉ khi tạo tiến trình mới mới build lại Java.
 USAGE
       exit 2
       ;;

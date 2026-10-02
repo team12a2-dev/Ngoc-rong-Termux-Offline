@@ -42,7 +42,7 @@ Installer tải **archive source mới nhất từ nhánh GitHub `main`**; khôn
 
 Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`. Khi cập nhật, không cần `cd` vào thư mục trước; chỉ chạy lại lệnh bootstrap ở trên.
 
-Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Mỗi lần `./nro.sh start`, `./nro.sh lan`, `./nro.sh restart` hoặc service nền khởi động, launcher sẽ kiểm tra commit `main` trên GitHub. Nếu chưa đổi, không tải gì. Nếu có commit mới, launcher chỉ tải archive cập nhật, giữ nguyên cấu hình và database, sau đó chạy migration SQL cần thiết, build lại Java/panel và khởi động bằng source mới. Chu kỳ kiểm tra mặc định là 5 phút để supervisor nền không gọi GitHub liên tục; có thể đổi bằng `NRO_UPDATE_CHECK_INTERVAL_SEC=60`.
+Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Mỗi lần chạy `./nro.sh start`, `./nro.sh lan`, `./nro.sh restart`, `./nro.sh background` hoặc `./nro.sh check-update`, launcher **luôn** hỏi commit `main` trên GitHub, không bị bỏ qua theo thời gian. Nếu chưa đổi, không tải gì. Nếu có commit mới, launcher chỉ tải archive cập nhật, giữ nguyên cấu hình và database, sau đó chạy migration SQL cần thiết, build lại Java/panel và khởi động bằng source mới. Mốc commit đã đồng bộ nằm ở `.runtime/source-commit`; khi API GitHub không trả lời (mất mạng, rate-limit) launcher giữ nguyên source cũ, in cảnh báo và thử lại ở lần chạy kế tiếp thay vì im lặng bỏ qua.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel. Mỗi lần tạo tiến trình game mới, Java được build sạch trước khi chạy; thời gian build được lưu tại `.runtime/build-info` và hiển thị bằng `./nro.sh status`. Khi source có thay đổi, panel chỉ cài lại dependency nếu thiếu hoặc lockfile thay đổi, rồi build React và restart Node để chức năng mới xuất hiện.
 
@@ -62,6 +62,7 @@ cd ~/ngocrong-termux
 | `./nro.sh setup` | Cài dependency, database và build project. |
 | `./nro.sh start` | Chạy server theo cấu hình hiện tại. |
 | `./nro.sh lan` | Chạy server cho mạng LAN và tự cập nhật IP client. |
+| `./nro.sh check-update` | Chỉ kiểm tra và tải source mới từ GitHub `main`, không khởi chạy server. |
 | `./nro.sh status` | Xem trạng thái server và panel. |
 | `./nro.sh stop` | Dừng game server và panel. |
 | `./nro.sh restart` | Restart game server và panel. |
@@ -210,6 +211,14 @@ NRO_PANEL_BIND=0.0.0.0
 NRO_JVM_OPTS='-Xms128m -Xmx1536m'
 ```
 
+Biến liên quan tới tự cập nhật source:
+
+```bash
+NRO_AUTO_UPDATE=0                                  # tắt tự kiểm tra GitHub
+NRO_SOURCE_COMMIT_URL=https://api.github.com/repos/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main
+NRO_SOURCE_ARCHIVE_URL=https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz
+```
+
 Không commit `Config.properties`, `.runtime/`, mật khẩu, token hoặc dữ liệu người chơi.
 
 ## Backup database
@@ -235,6 +244,7 @@ Android có thể trì hoãn job do tối ưu pin. Nên chép `.runtime/backups/
 |---|---|
 | Không tìm thấy Java | Chạy `pkg search openjdk`, `termux-change-repo`, rồi `./nro.sh setup`. |
 | `cd ~/ngocrong-termux` báo không tồn tại | Đây là lần cài mới; không chạy `cd` trước, hãy dùng lệnh bootstrap trong mục Cài đặt nhanh. |
+| Không thấy bản sửa mới trên GitHub | Chạy `./nro.sh check-update`; nếu in cảnh báo "Không kiểm tra được commit GitHub" thì xem `cat .runtime/source-update.log` (thường do mất mạng hoặc rate-limit API), thử lại sau vài phút. Commit đang dùng nằm ở `.runtime/source-commit`. |
 | `curl: (23) client returned ERROR on write` | Không ghi installer vào `/tmp`; dùng lại lệnh bootstrap mới để ghi vào `$HOME/.cache/ngocrong-termux`, đồng thời kiểm tra dung lượng bộ nhớ. |
 | Server chưa `READY` | Xem `tail -n 160 .runtime/server.log` hoặc chạy `./nro.sh console`. |
 | Không kết nối LAN | Kiểm tra cùng Wi‑Fi, IP, AP isolation và `ss -ltnp \| grep -E '14445\|3001'`. |
