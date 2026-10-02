@@ -1352,7 +1352,7 @@ public class BossesData {
             ConstPlayer.TRAI_DAT,
             new short[]{403, 404, 405, -1, -1, -1}, // Cải trang Thỏ Đại Ca (item 463)
             3000,
-            new int[]{25000},
+            new int[]{500000}, //hp
             MINI_BOSS_MAPS,
             new int[][]{
                 {Skill.GALICK, 7, 1000},

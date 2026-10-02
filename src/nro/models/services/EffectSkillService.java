@@ -30,8 +30,8 @@ public class EffectSkillService {
     public static final byte BLIND_EFFECT = 40;
     public static final byte SLEEP_EFFECT = 41;
     public static final byte STONE_EFFECT = 42;
-    /** Item option/client effect: Biến cà rốt. */
-    public static final byte CARROT_EFFECT = 115;
+    /** Item dùng làm biểu tượng đếm ngược cho trạng thái biến cà rốt. */
+    public static final int CARROT_ITEM_TIME_ID = 462;
 
     private static EffectSkillService instance;
 
@@ -179,7 +179,7 @@ public class EffectSkillService {
         Service.gI().Send_Caitrang(player);
     }
 
-    public boolean setCarrot(Player source, Player target, int durationMs) {
+    public boolean setCarrot(Player target, int durationMs) {
         if (target == null || target.effectSkill == null || target.effectSkill.isCarrot || durationMs <= 0) {
             return false;
         }
@@ -187,9 +187,7 @@ public class EffectSkillService {
         target.effectSkill.isCarrot = true;
         target.effectSkill.lastTimeCarrot = now;
         target.effectSkill.timeCarrot = durationMs;
-        Player effectSource = source != null ? source : target;
-        sendEffectPlayer(effectSource, target, TURN_ON_EFFECT, CARROT_EFFECT);
-        ItemTimeService.gI().sendItemTime(target, 462, Math.max(1, (durationMs + 999) / 1000));
+        ItemTimeService.gI().sendItemTime(target, CARROT_ITEM_TIME_ID, Math.max(1, (durationMs + 999) / 1000));
         Service.gI().sendThongBao(target,
                 "Bạn bị Thỏ Đại Ca biến thành cà rốt! Sức đánh giảm 15% trong 5 phút.");
         return true;
@@ -200,8 +198,7 @@ public class EffectSkillService {
             return;
         }
         player.effectSkill.isCarrot = false;
-        sendEffectPlayer(player, player, TURN_OFF_EFFECT, CARROT_EFFECT);
-        ItemTimeService.gI().removeItemTime(player, 462);
+        ItemTimeService.gI().removeItemTime(player, CARROT_ITEM_TIME_ID);
     }
 
     public void sendMobToSocola(Player player, Mob mob, int timeSocola) {

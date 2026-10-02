@@ -1355,7 +1355,6 @@ public class NPoint {
     public int getDameAttack(boolean isAttackMob) {
         setIsCrit();
         long dameAttack = this.dame;
-        System.out.println("[DEBUG] getDameAttack start: player=" + (this.player != null ? this.player.name : "null") + ", isAttackMob=" + isAttackMob + ", this.dame=" + this.dame + ", dameAttack=" + dameAttack);
         intrinsic = (this.player.playerIntrinsic != null) ? this.player.playerIntrinsic.intrinsic : null;
         percentDameIntrinsic = 0;
         int percentDameSkill = 0;
@@ -1519,9 +1518,9 @@ public class NPoint {
             player.effectSkin.lastTimeXChuong = System.currentTimeMillis();
         }
         int finalDameAttack = applyCarrotAttackPenalty(dameAttack);
-        System.out.println("[DEBUG] getDameAttack end: player=" + (this.player != null ? this.player.name : "null") + ", final dameAttack=" + finalDameAttack);
         return finalDameAttack;
     }
+
 
     public int getCurrPercentHP() {
         if (this.hpMax == 0) {
@@ -1540,11 +1539,8 @@ public class NPoint {
     }
 
     public void subHP(long sub) {
-        this.hp -= sub;
-        if (this.hp <= 0) {
-            this.hp = 0;
-            this.setHp(0);
-        }
+        long remaining = (long) this.hp - sub;
+        this.hp = remaining <= 0 ? 0 : (int) Math.min(remaining, Integer.MAX_VALUE);
     }
 
     public void subMP(long sub) {

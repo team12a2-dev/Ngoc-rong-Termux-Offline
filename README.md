@@ -244,6 +244,8 @@ Broly có nhóm lịch riêng, không dùng chung bộ đếm của tier NORMAL 
 
 Mini boss **Thỏ Đại Ca** được tạo một instance roaming trên các map trong `MINI_BOSS_MAPS`, dùng sprite cải trang Thỏ Đại Ca (403/404/405). Khi người chơi chạm boss, họ bị biến cà rốt trong 5 phút và sức đánh giảm 15%; các cải trang Thỏ Đại Ca/Thỏ Bunma (item 463/464/584) miễn nhiễm. Đây là boss roaming, tách biệt với Thỏ Đầu Bạc ở Võ Đài Sinh Tử.
 
+Boss có 500.000 HP và chịu giới hạn sát thương tối đa 10% HPMax mỗi đòn (`ThoDaiCa.MAX_DAMAGE_PERCENT`), nên tối thiểu cần 10 đòn mới hạ được. Biểu tượng trạng thái cà rốt lấy từ thanh item time với item 462 (`EffectSkillService.CARROT_ITEM_TIME_ID`); không có effect client riêng vì index effect 115 không tồn tại trong `data/effect`.
+
 Các khóa population cũ (`spawn.population.*`, `spawn.broly.min.concurrent`, `spawn.broly.max.adaptive.gap.sec`) không còn được dùng; hãy điều chỉnh trần bằng các khóa `*.max.concurrent` tương ứng.
 
 Super Broly có hai nguồn spawn:

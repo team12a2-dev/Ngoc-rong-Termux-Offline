@@ -291,6 +291,7 @@ public class ItemTimeService {
             player.sendMessage(msg);
             msg.cleanup();
         } catch (IOException e) {
+            Logger.logException(ItemTimeService.class, e, "[ItemTimeService] sendItemTime lỗi itemId=" + itemId);
         }
     }
 
