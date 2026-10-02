@@ -17,7 +17,7 @@
 
 ## Mục lục
 
-[**Cài đặt**](#cài-đặt-nhanh) · [**Lệnh**](#lệnh-quản-lý) · [**LAN**](#kết-nối-lan) · [**Chạy nền**](#chạy-độc-lập-khi-đóng-termux) · [**Panel**](#web-panel) · [**Boss**](#cơ-chế-boss) · [**Backup**](#backup-database) · [**Xử lý lỗi**](#xử-lý-lỗi-nhanh)
+[**Cài đặt**](#cài-đặt-nhanh) · [**Cập nhật**](#tự-đồng-bộ-source-từ-github) · [**Lệnh**](#lệnh-quản-lý) · [**LAN**](#kết-nối-lan) · [**Chạy nền**](#chạy-độc-lập-khi-đóng-termux) · [**Panel**](#web-panel) · [**Boss**](#cơ-chế-boss) · [**Backup**](#backup-database) · [**Xử lý lỗi**](#xử-lý-lỗi-nhanh)
 
 ## Tính năng chính
 
@@ -42,7 +42,7 @@ Installer tải **archive source mới nhất từ nhánh GitHub `main`**; khôn
 
 Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`. Khi cập nhật, không cần `cd` vào thư mục trước; chỉ chạy lại lệnh bootstrap ở trên.
 
-Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Mỗi lần chạy `./nro.sh start`, `./nro.sh lan`, `./nro.sh restart`, `./nro.sh background` hoặc `./nro.sh check-update`, launcher **luôn** hỏi commit `main` trên GitHub, không bị bỏ qua theo thời gian. Nếu chưa đổi, không tải gì. Nếu có commit mới, launcher chỉ tải archive cập nhật, giữ nguyên cấu hình và database, sau đó chạy migration SQL cần thiết, build lại Java/panel và khởi động bằng source mới. Mốc commit đã đồng bộ nằm ở `.runtime/source-commit`; khi API GitHub không trả lời (mất mạng, rate-limit) launcher giữ nguyên source cũ, in cảnh báo và thử lại ở lần chạy kế tiếp thay vì im lặng bỏ qua.
+Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Xem [Tự đồng bộ source từ GitHub](#tự-đồng-bộ-source-từ-github) để biết chi tiết.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel. Mỗi lần tạo tiến trình game mới, Java được build sạch trước khi chạy; thời gian build được lưu tại `.runtime/build-info` và hiển thị bằng `./nro.sh status`. Khi source có thay đổi, panel chỉ cài lại dependency nếu thiếu hoặc lockfile thay đổi, rồi build React và restart Node để chức năng mới xuất hiện.
 
@@ -52,6 +52,37 @@ Sau khi setup xong, chạy server:
 cd ~/ngocrong-termux
 ./nro.sh lan
 ```
+
+## Tự đồng bộ source từ GitHub
+
+Mỗi lần chạy `start`, `lan`, `restart`, `background` hoặc `check-update`, launcher làm đúng ba việc:
+
+1. Hỏi SHA của commit HEAD trên nhánh `main`: ưu tiên `api.github.com/repos/.../commits/main`, nếu endpoint này không trả lời (mạng Termux bị chặn, rate-limit) thì thử feed dự phòng `github.com/.../commits/main.atom`.
+2. So SHA đó với marker ở `.runtime/source-commit`. Khác nhau thì tải archive `main.tar.gz`, giữ nguyên `Config.properties`, `.env`, database và `.runtime`, rồi chạy migration, build lại Java/panel và khởi chạy bằng source mới.
+3. Ghi SHA mới vào `.runtime/source-commit`. Bằng chứng cũng nằm trong `.runtime/build-info` và khi chạy `./nro.sh status`.
+
+Kiểm tra tay không cần khởi chạy server:
+
+```bash
+cd ~/ngocrong-termux
+./nro.sh check-update
+```
+
+Kết quả in ra:
+
+| Dòng hiển thị | Ý nghĩa |
+|---|---|
+| `Phát hiện source mới ... → <sha>` | Đã tải bản cập nhật, build lại và chạy tiếp. |
+| `Source đã đồng bộ với GitHub commit <sha>` | Máy đã có bản mới nhất, không tải gì. |
+| `[NRO][WARN] Không kiểm tra được commit GitHub` | Cả API lẫn feed đều không trả lời; xem `.runtime/source-update.log`, thử lại sau vài phút hoặc đổi mạng. |
+
+Nếu máy vẫn chạy `nro.sh` bản cũ (chưa tự ép kiểm tra), ép một lần bằng biến môi trường:
+
+```bash
+NRO_FORCE_UPDATE_CHECK=1 NRO_UPDATE_CHECK_INTERVAL_SEC=0 ./nro.sh lan
+```
+
+Tắt hẳn cơ chế này bằng `NRO_AUTO_UPDATE=0`; đổi nguồn kiểm tra bằng `NRO_SOURCE_COMMIT_URL`, `NRO_SOURCE_FEED_URL` và `NRO_SOURCE_ARCHIVE_URL`.
 
 ## Lệnh quản lý
 
