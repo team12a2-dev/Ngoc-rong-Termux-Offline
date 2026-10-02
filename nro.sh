@@ -196,15 +196,17 @@ auto_update_source() {
   [ "${NRO_AUTO_UPDATE:-1}" != "0" ] || return 0
   command -v curl >/dev/null 2>&1 || { warn "Không có curl; bỏ qua kiểm tra cập nhật GitHub."; return 0; }
   ensure_layout
-  local current_sha remote_sha update_dir archive config_backup env_backup download_url now last_check check_interval
+  local current_sha remote_sha update_dir archive config_backup env_backup download_url now last_check check_interval since_check
   current_sha=""
   [ -f "$SOURCE_COMMIT_FILE" ] && current_sha="$(tr -d '[:space:]' < "$SOURCE_COMMIT_FILE")"
   now="$(date +%s)"
   last_check="$(cat "$SOURCE_CHECK_FILE" 2>/dev/null || printf '0')"
   check_interval="${NRO_UPDATE_CHECK_INTERVAL_SEC:-300}"
+  since_check=0
+  [[ "$last_check" =~ ^[0-9]+$ ]] && [ "$last_check" -gt 0 ] && since_check=$((now - last_check))
   if [ "${NRO_FORCE_UPDATE_CHECK:-0}" != "1" ] \
-      && [[ "$last_check" =~ ^[0-9]+$ ]] && [ "$last_check" -gt 0 ] \
-      && [ $((now - last_check)) -lt "$check_interval" ]; then
+      && [ "$since_check" -gt 0 ] && [ "$since_check" -lt "$check_interval" ]; then
+    say "Bỏ qua kiểm tra GitHub: lần gần nhất cách ${since_check}s, chu kỳ ${check_interval}s. Ép kiểm tra bằng NRO_FORCE_UPDATE_CHECK=1."
     return 0
   fi
   : > "$SOURCE_UPDATE_LOG"
@@ -1000,6 +1002,7 @@ main() {
       NRO_REBUILD=1 build_server
       ;;
     check-update)
+      [ "${NRO_AUTO_UPDATE:-1}" = "0" ] && warn "NRO_AUTO_UPDATE=0 đang tắt tự cập nhật; bỏ qua kiểm tra."
       NRO_FORCE_UPDATE_CHECK=1 auto_update_source
       ;;
     panel)

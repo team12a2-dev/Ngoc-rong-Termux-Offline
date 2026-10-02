@@ -75,6 +75,7 @@ Kết quả in ra:
 | `Phát hiện source mới ... → <sha>` | Đã tải bản cập nhật, build lại và chạy tiếp. |
 | `Source đã đồng bộ với GitHub commit <sha>` | Máy đã có bản mới nhất, không tải gì. |
 | `[NRO][WARN] Không kiểm tra được commit GitHub` | Cả API lẫn feed đều không trả lời; xem `.runtime/source-update.log`, thử lại sau vài phút hoặc đổi mạng. |
+| `Bỏ qua kiểm tra GitHub: lần gần nhất cách Ns...` | Chu kỳ kiểm tra chưa hết nên không gọi GitHub; chạy lại với `NRO_FORCE_UPDATE_CHECK=1` để kiểm tra ngay. |
 
 Nếu máy vẫn chạy `nro.sh` bản cũ (chưa tự ép kiểm tra), ép một lần bằng biến môi trường:
 
