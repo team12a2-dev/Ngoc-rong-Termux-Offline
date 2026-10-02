@@ -234,12 +234,15 @@ Boss thường dùng scheduler chung với giới hạn theo population, tier, m
 
 Broly và Super Broly chạy **24/7** theo mặc định, kể cả chiều tối và rạng sáng. Muốn giới hạn theo khung giờ thì đặt `spawn.broly.hours.weekday/weekend` và `spawn.superbroly.hours.weekday/weekend` (định dạng `9-12,14-17,19-23`, hoặc `all`). Một map có thể có nhiều boss ở các khu khác nhau; một khu chỉ có một boss.
 
-Broly có nhóm lịch riêng, không dùng chung bộ đếm của tier NORMAL:
+Broly có nhóm lịch riêng, không dùng chung bộ đếm của tier NORMAL và **không co giãn theo số người chơi online**. Server vắng vẫn chạy cùng logic 24/7:
 
-- `spawn.broly.min.gap.sec` — khoảng cách tối thiểu giữa hai lần Broly xuất hiện toàn server (mặc định 8s).
-- `spawn.broly.max.adaptive.gap.sec` — trần của khoảng cách đó khi nhiều Broly cùng chờ (mặc định 45s).
-- `spawn.broly.min.concurrent` — số Broly tối thiểu luôn được phép sống cùng lúc. Nhờ đây server vắng hoặc rạng sáng vẫn có Broly, thay vì giới hạn theo population rơi về 0.
-- `spawn.broly.max.concurrent` — trần cứng; số thực tế là `min(max.concurrent, max(min.concurrent, ceil(player / players.per.boss)))`.
+- `spawn.broly.max.concurrent` — trần số Broly hoạt động cố định, không phụ thuộc player (mặc định 75).
+- `spawn.broly.initial.stagger.min.sec/max.sec` — dải stagger riêng lúc mở server; Broly đầu tiên xuất hiện trong khoảng 1–10 giây mặc định.
+- `spawn.broly.min.gap.sec` — khoảng cách cố định tối thiểu giữa các lần spawn toàn server (mặc định 8s), không kéo dài khi có nhiều Broly đang chờ.
+- `spawn.broly.rest.sec` — cooldown mỗi Broly sau khi rời map (mặc định 180s).
+- `spawn.broly.max.per.map` — giới hạn theo map; mỗi khu vẫn chỉ có một boss thuộc nhóm Broly.
+
+Các khóa Broly population cũ (`spawn.population.broly.*`, `spawn.broly.min.concurrent`, `spawn.broly.max.adaptive.gap.sec`) không còn được dùng. Các boss tier khác vẫn có thể dùng `spawn.population.adaptive.enabled`.
 
 Super Broly có hai nguồn spawn:
 

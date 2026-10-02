@@ -73,8 +73,19 @@ public final class BossSpawnSchedule {
             return;
         }
         BossSpawnTier tier = resolveTier(boss);
-        long delayMs = tier.rollInitialStaggerMs(boss);
-                long scheduled = computeScheduledDelayMs(boss, tier, delayMs);
+        long delayMs;
+        long scheduled;
+        if ((int) boss.id == BossID.BROLY) {
+            int minSec = BossSpawnConfig.brolyInitialStaggerMinSec;
+            int maxSec = Math.max(minSec, BossSpawnConfig.brolyInitialStaggerMaxSec);
+            int span = maxSec - minSec + 1;
+            int staggerSec = minSec + Math.floorMod(System.identityHashCode(boss), span);
+            delayMs = staggerSec * 1000L;
+            scheduled = delayMs;
+        } else {
+            delayMs = tier.rollInitialStaggerMs(boss);
+            scheduled = computeScheduledDelayMs(boss, tier, delayMs);
+        }
         boss.setNextRestDelayMs(BossPanelConfigService.gI().overrideRestDelayMs(boss, scheduled));
 
         boss.setLastTimeRest(System.currentTimeMillis());
@@ -308,6 +319,10 @@ public final class BossSpawnSchedule {
             return "khoảng cách ELITE/WORLD (" + BossSpawnOrchestrator.secondsUntilCrossTierGap(boss) + "s)";
         }
         int spawnLevel = resolveRestSpawnLevel(boss);
+        if (BossPanelConfigService.gI().hasEnabledRule(boss)
+                && !BossPanelConfigService.gI().hasAvailableConfiguredZone(boss)) {
+            return "cấu hình panel không có map/khu trống hợp lệ";
+        }
         if (!BossSpawnOrchestrator.passesMapDensity(boss, spawnLevel)) {
             if ((int) boss.id == BossID.BROLY) {
                 return "map đầy (max " + BossSpawnConfig.brolyMaxPerMap + " Broly/map)";
@@ -318,8 +333,7 @@ public final class BossSpawnSchedule {
             BossSpawnTier tier = resolveTier(boss);
             if ((int) boss.id == BossID.BROLY) {
                 return "giới hạn BROLY (" + BrolySpawnGate.countActiveBroly() + "/"
-                        + BossSpawnConfig.effectiveBrolyLimit() + ", online="
-                        + BossSpawnConfig.onlinePlayerCount() + ")";
+                        + BossSpawnConfig.effectiveBrolyLimit() + ", trần cố định)";
             }
             int configuredLimit = switch (tier) {
                 case ELITE -> BossSpawnConfig.maxEliteConcurrent;
@@ -340,6 +354,12 @@ public final class BossSpawnSchedule {
                 return "giới hạn NORMAL (" + countActiveNormal() + "/" + effectiveLimit + ", online="
                         + BossSpawnConfig.onlinePlayerCount() + ")";
             }
+        }
+        if (!BossPanelConfigService.gI().passesActiveLimit(boss)) {
+            return "đạt giới hạn boss trong cấu hình panel";
+        }
+        if (boss.getPanelSpawnRetryAt() > System.currentTimeMillis()) {
+            return "đang chờ lượt theo xác suất spawn panel";
         }
         if (!BossSpawnOrchestrator.passesFairnessQueue(boss)) {
             if (resolveTier(boss) == BossSpawnTier.ELITE && BossSpawnConfig.fairnessEliteEnabled) {
@@ -493,4 +513,3 @@ public final class BossSpawnSchedule {
                 && boss.bossStatus != BossStatus.LEAVE_MAP;
     }
 }
-

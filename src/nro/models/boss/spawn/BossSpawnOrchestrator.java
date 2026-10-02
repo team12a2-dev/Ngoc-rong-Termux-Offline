@@ -165,39 +165,9 @@ public final class BossSpawnOrchestrator {
         return left <= 0 ? 0 : (int) ((left + 999) / 1000);
     }
 
-    /** Gap Broly co giãn theo số instance đang CHỜ và còn slot trống, nhưng bị chặn trần. */
+    /** Nhịp spawn Broly cố định: không phụ thuộc population hay số instance đang chờ. */
     private static long effectiveBrolyGapMs() {
-        long baseMs = Math.max(0, BossSpawnConfig.brolyMinGapSec) * 1000L;
-        if (!BossSpawnConfig.adaptiveGapEnabled) {
-            return baseMs;
-        }
-        int waiting = Math.max(0, countWaitingBroly() - 1);
-        if (waiting == 0) {
-            return baseMs;
-        }
-        long extra = (long) waiting * BossSpawnConfig.adaptiveGapPerReadySec * 1000L / 4;
-        long ceiling = Math.max(0, BossSpawnConfig.brolyMaxAdaptiveGapSec) * 1000L;
-        return Math.min(ceiling, baseMs + extra);
-    }
-
-    /** Số instance Broly đã hết cooldown nhưng bị chặn bởi giới hạn đồng thời. */
-    private static int countWaitingBroly() {
-        if (BossSpawnConfig.effectiveBrolyLimit() <= 0) {
-            return 0;
-        }
-        int waiting = 0;
-        for (Boss boss : BossManager.getAllBosses()) {
-            if ((int) boss.id != BossID.BROLY || boss.bossStatus != BossStatus.REST) {
-                continue;
-            }
-            if (boss.zone != null) {
-                continue;
-            }
-            if (Util.canDoWithTime(boss.getLastTimeRest(), boss.getNextRestDelayMs())) {
-                waiting++;
-            }
-        }
-        return waiting;
+        return Math.max(0, BossSpawnConfig.brolyMinGapSec) * 1000L;
     }
 
     public static int secondsUntilGlobalGap(Boss boss) {

@@ -17,6 +17,7 @@ import nro.models.boss.spawn.BossSpawnConfig;
 import nro.models.boss.spawn.BrolySpawnGate;
 import nro.models.utils.SkillUtil;
 import nro.models.utils.Util;
+import nro.models.utils.Logger;
 
 public class Broly extends Boss {
     private long lastTimeAttack;
@@ -110,6 +111,8 @@ public class Broly extends Boss {
                 ChangeMapService.gI().changeMap(this, this.zone, -1, -1);
                 this.changeStatus(BossStatus.CHAT_S);
             } catch (Exception e) {
+                Logger.error("[BROLY] joinMap2 thất bại (id=" + this.id + "): " + e.getMessage());
+                Logger.logException(Broly.class, e);
                 this.zone = null;
                 this.lastZone = null;
                 this.markRestAndSchedule();

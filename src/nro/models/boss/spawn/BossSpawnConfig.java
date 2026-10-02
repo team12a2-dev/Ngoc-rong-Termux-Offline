@@ -43,13 +43,11 @@ public final class BossSpawnConfig {
     public static int normalPlayersPerBoss = 6;
     public static int elitePlayersPerBoss = 12;
     public static int worldPlayersPerBoss = 25;
-    public static int brolyPlayersPerBoss = 5;
     public static int superBrolyPlayersPerBoss = 20;
     public static int superBrolyMinPlayers = 8;
     public static int normalMinPlayers = 1;
     public static int eliteMinPlayers = 3;
     public static int worldMinPlayers = 8;
-    public static int brolyMinPlayers = 1;
     private static volatile long onlinePlayersCacheAt;
     private static volatile int onlinePlayersCache;
 
@@ -104,21 +102,17 @@ public final class BossSpawnConfig {
 
     /** Số Broly spawn lúc mở server (Default event) — 15 map × 5 khu */
     public static int brolyInitialCount = 75;
+    /** Khởi động: thời gian tối đa để Broly đầu tiên xuất hiện, không dùng stagger NORMAL vài phút. */
+    public static int brolyInitialStaggerMinSec = 1;
+    public static int brolyInitialStaggerMaxSec = 10;
     /** Thời gian nghỉ cơ bản giữa các lần Broly xuất hiện (giây) */
     public static int brolyRestSec = 180;
     /** Tối đa Broly đang hoạt động cùng lúc */
     public static int brolyMaxConcurrent = 75;
-    /**
-     * Sàn Broly tối thiểu — trước đây giới hạn theo player về 0 nên server vắng
-     * (rạng sáng/đêm khuya) không bao giờ spawn được Broly nào.
-     */
-    public static int brolyMinConcurrent = 8;
     /** Tối đa Broly trên một map — mỗi khu một boss (khác khu) */
     public static int brolyMaxPerMap = 5;
     /** Broly có nhóm lịch riêng: khoảng cách spawn tối thiểu toàn server (giây) */
     public static int brolyMinGapSec = 8;
-    /** Trần của gap Broly khi nhiều boss cùng chờ (chống dồn cục) */
-    public static int brolyMaxAdaptiveGapSec = 45;
     /** Khung giờ Broly — mặc định all (24/7) */
     private static HourWindows brolyHoursWeekday = HourWindows.allDay();
     private static HourWindows brolyHoursWeekend = HourWindows.allDay();
@@ -217,13 +211,11 @@ public final class BossSpawnConfig {
         normalPlayersPerBoss = parseInt(p, "spawn.population.normal.players.per.boss", 6, 1, 1000);
         elitePlayersPerBoss = parseInt(p, "spawn.population.elite.players.per.boss", 12, 1, 1000);
         worldPlayersPerBoss = parseInt(p, "spawn.population.world.players.per.boss", 25, 1, 1000);
-        brolyPlayersPerBoss = parseInt(p, "spawn.population.broly.players.per.boss", 5, 1, 1000);
         superBrolyPlayersPerBoss = parseInt(p, "spawn.population.superbroly.players.per.boss", 20, 1, 1000);
         superBrolyMinPlayers = parseInt(p, "spawn.population.superbroly.min.players", 8, 0, 1000);
         normalMinPlayers = parseInt(p, "spawn.population.normal.min.players", 1, 0, 1000);
         eliteMinPlayers = parseInt(p, "spawn.population.elite.min.players", 3, 0, 1000);
         worldMinPlayers = parseInt(p, "spawn.population.world.min.players", 8, 0, 1000);
-        brolyMinPlayers = parseInt(p, "spawn.population.broly.min.players", 1, 0, 1000);
         onlinePlayersCacheAt = 0L;
 
         dailyBonusEnabled = parseBool(p, "spawn.daily.bonus.enabled", true);
@@ -271,18 +263,15 @@ public final class BossSpawnConfig {
         staggerWorldSec = parseRangeLong(p, "spawn.stagger.world.sec", 900, 3600);
 
         brolyInitialCount = parseInt(p, "spawn.broly.initial.count", 75, 1, 100);
+        brolyInitialStaggerMinSec = parseInt(p, "spawn.broly.initial.stagger.min.sec", 1, 0, 3600);
+        brolyInitialStaggerMaxSec = parseInt(p, "spawn.broly.initial.stagger.max.sec", 10, 0, 3600);
+        if (brolyInitialStaggerMaxSec < brolyInitialStaggerMinSec) {
+            brolyInitialStaggerMaxSec = brolyInitialStaggerMinSec;
+        }
         brolyRestSec = parseInt(p, "spawn.broly.rest.sec", 180, 60, 3600);
         brolyMaxConcurrent = parseInt(p, "spawn.broly.max.concurrent", 75, 1, 100);
         brolyMaxPerMap = parseInt(p, "spawn.broly.max.per.map", 5, 1, 10);
-        brolyMinConcurrent = parseInt(p, "spawn.broly.min.concurrent", 8, 0, 100);
-        if (brolyMinConcurrent > brolyMaxConcurrent) {
-            brolyMinConcurrent = brolyMaxConcurrent;
-        }
         brolyMinGapSec = parseInt(p, "spawn.broly.min.gap.sec", 8, 0, 3600);
-        brolyMaxAdaptiveGapSec = parseInt(p, "spawn.broly.max.adaptive.gap.sec", 45, 0, 3600);
-        if (brolyMaxAdaptiveGapSec < brolyMinGapSec) {
-            brolyMaxAdaptiveGapSec = brolyMinGapSec;
-        }
         String brolyWeekdaySpec = p.getProperty("spawn.broly.hours.weekday", "all");
         brolyHoursWeekday = "all".equalsIgnoreCase(brolyWeekdaySpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(brolyWeekdaySpec);
@@ -420,20 +409,8 @@ public final class BossSpawnConfig {
     }
 
     public static int effectiveBrolyLimit() {
-        if (brolyMaxConcurrent <= 0) {
-            return 0;
-        }
-        int floor = Math.max(0, Math.min(brolyMinConcurrent, brolyMaxConcurrent));
-        if (!populationAdaptiveEnabled) {
-            return brolyMaxConcurrent;
-        }
-        int players = onlinePlayerCount();
-        // Không còn trả về 0 khi server vắng: Broly phải xuất hiện 24/7, kể cả rạng sáng.
-        int dynamicLimit = floor;
-        if (players >= brolyMinPlayers) {
-            dynamicLimit = Math.max(floor, (players + brolyPlayersPerBoss - 1) / brolyPlayersPerBoss);
-        }
-        return Math.min(brolyMaxConcurrent, dynamicLimit);
+        // Broly có trần cố định theo cấu hình server; population chỉ áp dụng cho tier khác.
+        return Math.max(0, brolyMaxConcurrent);
     }
 
     public static int effectiveSuperBrolyLimit() {
@@ -548,13 +525,11 @@ public final class BossSpawnConfig {
         normalPlayersPerBoss = 6;
         elitePlayersPerBoss = 12;
         worldPlayersPerBoss = 25;
-        brolyPlayersPerBoss = 5;
         superBrolyPlayersPerBoss = 20;
         superBrolyMinPlayers = 8;
         normalMinPlayers = 1;
         eliteMinPlayers = 3;
         worldMinPlayers = 8;
-        brolyMinPlayers = 1;
         onlinePlayersCacheAt = 0L;
         onlinePlayersCache = 0;
         dailyBonusEnabled = true;
@@ -575,13 +550,13 @@ public final class BossSpawnConfig {
         waitBoostEnabled = true;
         waitBoostAfterSec = 240;
         waitBoostChance = 96;
-brolyInitialCount = 75;
+        brolyInitialCount = 75;
+        brolyInitialStaggerMinSec = 1;
+        brolyInitialStaggerMaxSec = 10;
         brolyRestSec = 180;
         brolyMaxConcurrent = 75;
-        brolyMinConcurrent = 8;
         brolyMaxPerMap = 5;
         brolyMinGapSec = 8;
-        brolyMaxAdaptiveGapSec = 45;
         brolyHoursWeekday = HourWindows.allDay();
         brolyHoursWeekend = HourWindows.allDay();
         superBrolyEnabled = true;
