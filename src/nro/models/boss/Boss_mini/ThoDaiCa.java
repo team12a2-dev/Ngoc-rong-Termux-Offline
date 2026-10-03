@@ -9,10 +9,16 @@ import nro.models.utils.Util;
 
 /** Mini boss Thỏ Đại Ca: biến người chơi chạm vào thành cà rốt. */
 public class ThoDaiCa extends Boss {
-    /** Đòn thường không được lấy quá 2% HP tối đa của boss trong một lần đánh. */
-    private static final int NORMAL_DAMAGE_CAP_PERCENT = 2;
-    /** Đòn xuyên giáp được ưu tiên hơn nhưng vẫn không được one-shot boss. */
-    private static final int PIERCING_DAMAGE_CAP_PERCENT = 3;
+    /** Ngưỡng bắt đầu giảm dần sát thương đòn thường. */
+    private static final int NORMAL_DAMAGE_SOFT_CAP_PERCENT = 2;
+    /** Ngưỡng bắt đầu giảm dần sát thương đòn xuyên giáp. */
+    private static final int PIERCING_DAMAGE_SOFT_CAP_PERCENT = 3;
+    /** Trần an toàn cuối cùng cho đòn thường sau khi đã giảm dần. */
+    private static final int NORMAL_DAMAGE_HARD_CAP_PERCENT = 5;
+    /** Trần an toàn cuối cùng cho đòn xuyên giáp sau khi đã giảm dần. */
+    private static final int PIERCING_DAMAGE_HARD_CAP_PERCENT = 7;
+    /** Hệ số nén phần sát thương vượt soft-cap; càng lớn càng giữ lại nhiều lực đánh. */
+    private static final double DAMAGE_COMPRESSION = 2.0D;
 
     public ThoDaiCa() throws Exception {
         super(BossID.THO_DAI_CA, BossesData.THO_DAI_CA);
@@ -52,15 +58,33 @@ public class ThoDaiCa extends Boss {
     @Override
     public synchronized int injured(Player plAtt, long damage, boolean piercing, boolean isMobAttack) {
         if (!this.isDie() && this.nPoint != null && this.nPoint.hpMax > 0) {
-            // Boss.injured() có thể nhận sát thương rất lớn từ các đòn nhiều hit hoặc kỹ năng
-            // xuyên giáp. Cap theo HP tối đa giúp Thỏ Đại Ca không bị hạ ngay bởi một packet,
-            // đồng thời vẫn cho phép đòn xuyên giáp gây nhiều hơn đòn thường một mức hợp lý.
-            int capPercent = piercing ? PIERCING_DAMAGE_CAP_PERCENT : NORMAL_DAMAGE_CAP_PERCENT;
-            long maxDamage = Math.max(1L, this.nPoint.hpMax * capPercent / 100L);
-            if (damage > maxDamage) {
-                damage = maxDamage;
-            }
+            damage = balanceDamage(damage, piercing);
         }
         return super.injured(plAtt, damage, piercing, isMobAttack);
+    }
+
+    /**
+     * Giữ nguyên đòn trong ngưỡng hợp lý; phần vượt ngưỡng bị nén theo log thay vì bị ép
+     * thành cùng một con số. Nhờ vậy đòn 2.1%, 3%, 5% và 20% HP vẫn cho kết quả khác nhau,
+     * nhưng đòn cực lớn không thể kết liễu boss trong một packet.
+     */
+    private long balanceDamage(long damage, boolean piercing) {
+        if (damage <= 0) {
+            return damage;
+        }
+        int softCapPercent = piercing
+                ? PIERCING_DAMAGE_SOFT_CAP_PERCENT : NORMAL_DAMAGE_SOFT_CAP_PERCENT;
+        int hardCapPercent = piercing
+                ? PIERCING_DAMAGE_HARD_CAP_PERCENT : NORMAL_DAMAGE_HARD_CAP_PERCENT;
+        long softCap = Math.max(1L, this.nPoint.hpMax * softCapPercent / 100L);
+        long hardCap = Math.max(softCap, this.nPoint.hpMax * hardCapPercent / 100L);
+        if (damage <= softCap) {
+            return damage;
+        }
+
+        double overflowRatio = (double) (damage - softCap) / softCap;
+        long compressedOverflow = Math.round(softCap
+                * Math.log1p(overflowRatio) / DAMAGE_COMPRESSION);
+        return Math.min(hardCap, softCap + Math.max(1L, compressedOverflow));
     }
 }
