@@ -9,8 +9,10 @@ import nro.models.utils.Util;
 
 /** Mini boss Thỏ Đại Ca: biến người chơi chạm vào thành cà rốt. */
 public class ThoDaiCa extends Boss {
-
-    private static final int MAX_DAMAGE_PERCENT = 10;
+    /** Đòn thường không được lấy quá 2% HP tối đa của boss trong một lần đánh. */
+    private static final int NORMAL_DAMAGE_CAP_PERCENT = 2;
+    /** Đòn xuyên giáp được ưu tiên hơn nhưng vẫn không được one-shot boss. */
+    private static final int PIERCING_DAMAGE_CAP_PERCENT = 3;
 
     public ThoDaiCa() throws Exception {
         super(BossID.THO_DAI_CA, BossesData.THO_DAI_CA);
@@ -50,7 +52,11 @@ public class ThoDaiCa extends Boss {
     @Override
     public synchronized int injured(Player plAtt, long damage, boolean piercing, boolean isMobAttack) {
         if (!this.isDie() && this.nPoint != null && this.nPoint.hpMax > 0) {
-            long maxDamage = Math.max(1L, this.nPoint.hpMax / (long) MAX_DAMAGE_PERCENT);
+            // Boss.injured() có thể nhận sát thương rất lớn từ các đòn nhiều hit hoặc kỹ năng
+            // xuyên giáp. Cap theo HP tối đa giúp Thỏ Đại Ca không bị hạ ngay bởi một packet,
+            // đồng thời vẫn cho phép đòn xuyên giáp gây nhiều hơn đòn thường một mức hợp lý.
+            int capPercent = piercing ? PIERCING_DAMAGE_CAP_PERCENT : NORMAL_DAMAGE_CAP_PERCENT;
+            long maxDamage = Math.max(1L, this.nPoint.hpMax * capPercent / 100L);
             if (damage > maxDamage) {
                 damage = maxDamage;
             }
