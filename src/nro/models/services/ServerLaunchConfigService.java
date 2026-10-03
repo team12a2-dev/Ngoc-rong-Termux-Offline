@@ -117,7 +117,47 @@ public final class ServerLaunchConfigService {
         return INSTANCE;
     }
 
+    /**
+     * Bản cài Termux cũ có thể đã import sql/ngocrong.sql trước khi bảng này được thêm.
+     * Tạo bổ sung theo kiểu idempotent để không cần reimport hoặc xóa dữ liệu người chơi.
+     */
+    private void ensureLaunchTable(Connection con) throws Exception {
+        String ddl = "CREATE TABLE IF NOT EXISTS panel_server_launches ("
+                + "id INT AUTO_INCREMENT PRIMARY KEY,"
+                + "server_id INT NOT NULL DEFAULT 1,"
+                + "server_name VARCHAR(120) NOT NULL DEFAULT 'VŨ TRỤ 15',"
+                + "title VARCHAR(255) NOT NULL DEFAULT 'KHAI MỞ VŨ TRỤ 15',"
+                + "description TEXT NULL,"
+                + "opens_at DATETIME NOT NULL DEFAULT '2026-08-28 10:00:00',"
+                + "top_race_ends_at DATETIME NOT NULL DEFAULT '2026-09-07 23:00:00',"
+                + "restrictions_end_at DATETIME NOT NULL DEFAULT '2026-10-31 23:59:59',"
+                + "status VARCHAR(20) NOT NULL DEFAULT 'active',"
+                + "is_active TINYINT(1) NOT NULL DEFAULT 1,"
+                + "npc_gift_enabled TINYINT(1) NOT NULL DEFAULT 1,"
+                + "npc_gift_config JSON NULL,"
+                + "first_recharge_enabled TINYINT(1) NOT NULL DEFAULT 1,"
+                + "first_recharge_config JSON NULL,"
+                + "race_enabled TINYINT(1) NOT NULL DEFAULT 1,"
+                + "race_config JSON NULL,"
+                + "restrictions_enabled TINYINT(1) NOT NULL DEFAULT 1,"
+                + "restrictions_config JSON NULL,"
+                + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                + "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
+                + "UNIQUE KEY uq_launch_server (server_id)"
+                + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        try (PreparedStatement schema = con.prepareStatement(ddl)) {
+            schema.executeUpdate();
+        }
+    }
+
     public synchronized boolean reload() {
+        try (Connection con = LocalManager.getConnection();
+             PreparedStatement ignored = con.prepareStatement("SELECT 1")) {
+            ensureLaunchTable(con);
+        } catch (Exception e) {
+            Logger.logException(ServerLaunchConfigService.class, e, "Lỗi tạo schema panel_server_launches");
+            return false;
+        }
         try (Connection con = LocalManager.getConnection();
              PreparedStatement ps = con.prepareStatement(
                      "SELECT * FROM panel_server_launches WHERE server_id = 1 LIMIT 1");

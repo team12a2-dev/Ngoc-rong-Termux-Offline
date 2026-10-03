@@ -12,7 +12,7 @@ DB_LOG="${NRO_DB_LOG:-$STATE_DIR/mariadb.log}"
 SERVER_PID="$STATE_DIR/server.pid"
 SERVER_LOG="$STATE_DIR/server.log"
 CONFIG="$ROOT/Config.properties"
-SQL_FILE="$ROOT/sql/ngocrong.sql"
+SQL_FILE="$ROOT/ngocrong.sql"
 CLASS_DIR="$STATE_DIR/classes"
 SOURCE_LIST="$STATE_DIR/sources.txt"
 BUILD_INFO="$STATE_DIR/build-info"
@@ -369,7 +369,7 @@ import_database() {
     sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
     return 0
   fi
-  say "Import schema và dữ liệu mẫu từ sql/ngocrong.sql"
+  say "Import schema và dữ liệu mẫu từ ngocrong.sql"
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$SQL_FILE"
   sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
 }
