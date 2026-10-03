@@ -121,6 +121,7 @@ public class TaiTaoCapsuleKichHoat {
         if (Util.isTrue(RATIO_TAI_TAO, 100)) {
             Item newItem = ItemService.gI().createNewItem((short) CAPSULE_KICH_HOAT_ID);
             newItem.quantity = 1;
+            newItem.itemOptions.add(new Item.ItemOption(30, 0)); // Không thể giao dịch
             InventoryService.gI().addItemBag(player, newItem);
 
             CombineService.gI().sendEffectSuccessCombine(player);

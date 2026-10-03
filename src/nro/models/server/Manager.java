@@ -337,6 +337,22 @@ public final class Manager {
         }
     }
 
+    private void syncEventItemDescriptions(Connection connection) {
+        String sql = "UPDATE item_template SET description = "
+                + "REPLACE(REPLACE(description, 'VPSK', 'Vật phẩm sự kiện'), "
+                + "'vpsk', 'Vật phẩm sự kiện') "
+                + "WHERE LOWER(description) LIKE '%vpsk%'";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int updated = statement.executeUpdate();
+            if (updated > 0) {
+                Logger.success(Logger.PURPLE + "Đã đồng bộ mô tả Vật phẩm sự kiện cho "
+                        + updated + " vật phẩm\n");
+            }
+        } catch (SQLException e) {
+            Logger.error("Không thể đồng bộ mô tả vật phẩm VPSK: " + e.getMessage());
+        }
+    }
+
     private void loadDatabase() {
         long st = System.currentTimeMillis();
         JSONArray dataArray;
@@ -621,6 +637,8 @@ public final class Manager {
                         rs.getInt("money"), rs.getLong("max_count")));
             }
             Logger.success(Logger.PURPLE + "Successfully loaded achievement (" + ACHIEVEMENT_TEMPLATE.size() + ")\n");
+
+            syncEventItemDescriptions(ConnectionDatabase);
 
             int batchSize = 750;
             int offset = 0;

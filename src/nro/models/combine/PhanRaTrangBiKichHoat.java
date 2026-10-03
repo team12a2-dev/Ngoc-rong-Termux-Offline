@@ -80,6 +80,7 @@ public class PhanRaTrangBiKichHoat {
             if (Util.isTrue(RATIO_PHAN_RA, 100)) {
                 Item newItem = ItemService.gI().createNewItem((short) ID_KHOANG_TAI_CHE);
                 newItem.quantity = 1;
+                newItem.itemOptions.add(new Item.ItemOption(30, 0)); // Không thể giao dịch
                 InventoryService.gI().addItemBag(player, newItem);
 
                 CombineService.gI().sendEffectSuccessCombine(player);
