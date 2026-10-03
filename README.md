@@ -42,7 +42,19 @@ Installer tải **archive source mới nhất từ nhánh GitHub `main`**; khôn
 
 Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`. Khi cập nhật, không cần `cd` vào thư mục trước; chỉ chạy lại lệnh bootstrap ở trên.
 
-Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Mỗi lần `./nro.sh start`, `./nro.sh lan`, `./nro.sh restart` hoặc service nền khởi động, launcher sẽ kiểm tra commit `main` trên GitHub. Nếu chưa đổi, không tải gì. Nếu có commit mới, launcher chỉ tải archive cập nhật, giữ nguyên cấu hình và database, sau đó chạy migration SQL cần thiết, build lại Java/panel và khởi động bằng source mới. Chu kỳ kiểm tra mặc định là 5 phút để supervisor nền không gọi GitHub liên tục; có thể đổi bằng `NRO_UPDATE_CHECK_INTERVAL_SEC=60`.
+Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Các lệnh `start`, `restart`, `lan` và `check-update` sẽ kiểm tra commit `main` trên GitHub; nếu có bản mới, launcher tải archive cập nhật, giữ nguyên cấu hình/database, chạy migration cần thiết và build lại source. Supervisor nền dùng chu kỳ kiểm tra mặc định 5 phút; có thể đổi bằng `NRO_UPDATE_CHECK_INTERVAL_SEC=60`.
+
+### Cập nhật source trên Termux
+
+Bản cài mặc định là **archive**, không phải Git clone, nên `git pull` không phải cơ chế cập nhật chính. Dùng:
+
+```bash
+cd ~/ngocrong-termux
+./nro.sh check-update   # kiểm tra và tải bản mới ngay
+./nro.sh lan            # kiểm tra bản mới rồi khởi động LAN
+```
+
+Nếu `git pull` báo thư mục không phải Git repository thì có thể bỏ qua; `nro.sh` đã tự cập nhật trực tiếp từ GitHub.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel. Mỗi lần tạo tiến trình game mới, Java được build sạch trước khi chạy; thời gian build được lưu tại `.runtime/build-info` và hiển thị bằng `./nro.sh status`. Khi source có thay đổi, panel chỉ cài lại dependency nếu thiếu hoặc lockfile thay đổi, rồi build React và restart Node để chức năng mới xuất hiện.
 
