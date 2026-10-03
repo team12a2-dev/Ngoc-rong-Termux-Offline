@@ -984,6 +984,11 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
             return;
         }
         for (Boss boss : this.bossAppearTogether[this.currentLevel]) {
+            // Một số boss con (ví dụ Death Beam của Fide Vàng) có thể bị tắt
+            // trong BossManager, vì vậy phần tử trong nhóm có thể là null.
+            if (boss == null) {
+                continue;
+            }
             int nextLevelBoss = boss.currentLevel + 1;
             if (nextLevelBoss >= boss.data.length) {
                 nextLevelBoss = 0;
