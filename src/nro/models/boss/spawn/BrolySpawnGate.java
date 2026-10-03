@@ -156,7 +156,7 @@ public final class BrolySpawnGate {
      * Roll tự nhiên theo chu kỳ: Super Broly có thể xuất hiện dù không vừa hạ Broly.
      * Mỗi lần roll đều qua lại toàn bộ hard gate để không vượt giới hạn map/khu/slot.
      * Tần suất do {@code spawn.superbroly.natural.*} điều khiển: mỗi chu kỳ roll
-     * mới có cơ hội trúng, nên không bị "một con xuất hiện ngay khi có slot trống".
+     * có xác suất ngẫu nhiên để Super Broly xuất hiện.
      * Nhánh biến hình khi hạ Broly KHÔNG đi qua roll này nên không bị chặn nhầm.
      */
     public static synchronized void tickNaturalSuperBrolySpawn() {
@@ -457,4 +457,3 @@ public final class BrolySpawnGate {
                 && boss.bossStatus != BossStatus.LEAVE_MAP;
     }
 }
-

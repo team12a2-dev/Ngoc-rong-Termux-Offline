@@ -211,7 +211,7 @@ public class TimeUtil {
     public static boolean is21H() {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        return (hour >= 22 && hour < 23);
+        return (hour >= 21 && hour < 22);
     }
 
     public static long getStartTimeBlackBallWar() {

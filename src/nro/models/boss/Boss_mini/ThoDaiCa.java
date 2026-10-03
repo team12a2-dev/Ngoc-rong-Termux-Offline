@@ -28,7 +28,8 @@ public class ThoDaiCa extends Boss {
     private static final int PIERCING_DAMAGE_MAX_PERCENT = 3;
 
     public ThoDaiCa() throws Exception {
-        super(BossID.THO_DAI_CA, BossesData.THO_DAI_CA);
+        // Mini boss này xuất hiện ngẫu nhiên theo map, không phát thông báo toàn server.
+        super(BossID.THO_DAI_CA, true, false, BossesData.THO_DAI_CA);
     }
 
     /**

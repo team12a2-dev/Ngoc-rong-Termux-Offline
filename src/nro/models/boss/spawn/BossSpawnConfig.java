@@ -137,7 +137,7 @@ public final class BossSpawnConfig {
     /** Cho phép Super Broly tự spawn, không cần hạ Broly. */
     public static boolean superBrolyNaturalEnabled = true;
     /** Xác suất mỗi lần roll tự spawn, sau khi đã qua các hard gate. */
-    public static int superBrolyNaturalChancePercent = 4;
+    public static int superBrolyNaturalChancePercent = 15;
     /** Khoảng giữa hai lần roll tự spawn (giây). */
     public static int superBrolyNaturalRollMinSec = 120;
     public static int superBrolyNaturalRollMaxSec = 300;
@@ -294,7 +294,7 @@ public final class BossSpawnConfig {
         }
         superBrolyMaxPerMap = superBrolyMapMax;
         superBrolyNaturalEnabled = parseBool(p, "spawn.superbroly.natural.enabled", true);
-        superBrolyNaturalChancePercent = parseInt(p, "spawn.superbroly.natural.chance.percent", 8, 1, 100);
+        superBrolyNaturalChancePercent = parseInt(p, "spawn.superbroly.natural.chance.percent", 15, 1, 100);
         superBrolyNaturalRollMinSec = parseInt(p, "spawn.superbroly.natural.roll.min.sec", 120, 30, 3600);
         superBrolyNaturalRollMaxSec = parseInt(p, "spawn.superbroly.natural.roll.max.sec", 300, 60, 7200);
         if (superBrolyNaturalRollMaxSec < superBrolyNaturalRollMinSec) {
@@ -488,7 +488,7 @@ public final class BossSpawnConfig {
         superBrolyMapMin = 1;
         superBrolyMapMax = 5;
         superBrolyNaturalEnabled = true;
-        superBrolyNaturalChancePercent = 8;
+        superBrolyNaturalChancePercent = 15;
         superBrolyNaturalRollMinSec = 120;
         superBrolyNaturalRollMaxSec = 300;
         superBrolySlotMin = 1;

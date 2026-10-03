@@ -31,6 +31,10 @@ public final class BossSpawnSchedule {
         if (!isEnabled() || boss == null) {
             return false;
         }
+        // Fide vàng có lịch riêng 21:00–21:59 và được tạo theo từng khu map 6.
+        if ((int) boss.id == BossID.GOLDEN_FRIEZA) {
+            return false;
+        }
         if (boss.getParentBoss() != null || boss.zoneFinal != null) {
             return false;
         }

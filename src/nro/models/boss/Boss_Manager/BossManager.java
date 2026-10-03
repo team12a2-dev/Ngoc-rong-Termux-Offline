@@ -98,6 +98,7 @@ import nro.models.utils.Functions;
 import nro.models.utils.Logger;
 import nro.models.boss.spawn.BossSpawnSchedule;
 import nro.models.boss.spawn.BrolySpawnGate;
+import nro.models.consts.ConstMap;
 
 public class BossManager implements Runnable {
 
@@ -160,7 +161,6 @@ public class BossManager implements Runnable {
         this.createBoss(BossID.CUMBER);
         this.createBoss(BossID.COOLER, 1);
         this.createBoss(BossID.BLACK_GOKU, 2);
-        // this.createBoss(BossID.GOLDEN_FRIEZA, 1);
         this.createBoss(BossID.SOI_HEC_QUYN1, 5);
         this.createBoss(BossID.AN_TROM, 5);
         this.createBoss(BossID.THO_DAI_CA);
@@ -168,7 +168,22 @@ public class BossManager implements Runnable {
         this.createBoss(BossID.BABY, 1);
              this.createBoss(BossID.B, 1);
         this.createBoss(BossID.MAT_TROI, 5);
+        loadGoldenFriezaByZone();
+    }
 
+    /** Fide vàng hoạt động đồng thời ở mọi khu map Đông Karin trong giờ 21h. */
+    private void loadGoldenFriezaByZone() {
+        nro.models.map.Map map = MapService.gI().getMapById(ConstMap.DONG_KARIN);
+        if (map == null || map.zones == null || map.zones.isEmpty()) {
+            createBoss(BossID.GOLDEN_FRIEZA);
+            return;
+        }
+        for (Zone zone : map.zones) {
+            Boss boss = createBoss(BossID.GOLDEN_FRIEZA);
+            if (boss != null) {
+                boss.setPanelSpawnZone(zone);
+            }
+        }
     }
 
     public void createBoss(int bossID, int total) {
@@ -313,8 +328,8 @@ public class BossManager implements Runnable {
                     new NguyetThan();
                 case BossID.NHATTHAN ->
                     new NhatThan();
-                // case BossID.GOLDEN_FRIEZA ->
-                //     new GoldenFrieza();
+                case BossID.GOLDEN_FRIEZA ->
+                    new GoldenFrieza();
                 // case BossID.DEATH_BEAM_1 ->
                 //     new DeathBeam1();
                 // case BossID.DEATH_BEAM_2 ->

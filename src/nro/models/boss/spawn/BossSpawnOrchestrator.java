@@ -224,6 +224,15 @@ public final class BossSpawnOrchestrator {
             }
             return false;
         }
+        // Mini boss rải ngẫu nhiên nhưng không chồng nhiều mini boss lên cùng map.
+        if (BossSpawnSchedule.resolveTier(boss) == BossSpawnTier.MINI) {
+            for (int mapId : maps) {
+                if (countActiveMiniOnMap(mapId) == 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
         if (!BossSpawnConfig.distributionEnabled || BossSpawnConfig.maxBossesPerMap <= 0) {
             return true;
         }
@@ -238,6 +247,20 @@ public final class BossSpawnOrchestrator {
         int n = 0;
         for (Boss boss : BossManager.getAllBosses()) {
             if (!isActiveWorldBoss(boss) || boss.zone == null) {
+                continue;
+            }
+            if (boss.zone.map.mapId == mapId) {
+                n++;
+            }
+        }
+        return n;
+    }
+
+    private static int countActiveMiniOnMap(int mapId) {
+        int n = 0;
+        for (Boss boss : BossManager.getAllBosses()) {
+            if (!isActiveWorldBoss(boss) || !BossSpawnSchedule.appliesTo(boss) || boss.zone == null
+                    || BossSpawnSchedule.resolveTier(boss) != BossSpawnTier.MINI) {
                 continue;
             }
             if (boss.zone.map.mapId == mapId) {
@@ -263,8 +286,9 @@ public final class BossSpawnOrchestrator {
         }
         int minCount = Integer.MAX_VALUE;
         List<Integer> candidates = new ArrayList<>();
+        boolean mini = BossSpawnSchedule.resolveTier(boss) == BossSpawnTier.MINI;
         for (int mapId : maps) {
-            int count = countActiveOnMap(mapId);
+            int count = mini ? countActiveMiniOnMap(mapId) : countActiveOnMap(mapId);
             if (count < minCount) {
                 minCount = count;
                 candidates.clear();
