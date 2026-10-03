@@ -649,13 +649,20 @@ namespace Game2
 					GetServerList(linkDefault);
 					return;
 				}
-				string text2 = ModFunc.DecodeByteArrayString(text, "69");
-				if (string.IsNullOrEmpty(text2))
-				{
-					GetServerList(linkDefault);
-					return;
-				}
-				lengthServer = new int[3];
+					string text2 = ModFunc.DecodeByteArrayString(text, "69");
+					if (string.IsNullOrEmpty(text2))
+					{
+						GetServerList(linkDefault);
+						return;
+					}
+					// Discard a server list cached by an older client build.
+					if (!text2.Contains("127.0.0.1:14445"))
+					{
+						GetServerList(linkDefault);
+						SaveIPNew(linkDefault);
+						return;
+					}
+					lengthServer = new int[3];
 				mResources.loadLanguague(0);
 				string[] array3 = text2.Split(":0");
 				if (array3.Length <= 1)

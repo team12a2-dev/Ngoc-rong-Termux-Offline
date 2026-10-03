@@ -4,7 +4,9 @@ public class Management
 {
     public static bool isLogo = true;
 
-    public static string IpServer = "NRO GOD MOBI:192.168.1.30:14445:0,0,0";
+    // Local server endpoint: must match Config.properties server.port=14445.
+    // 127.0.0.1 is correct when the client and Java server run on the same device.
+    public static string IpServer = "NRO LOCAL:127.0.0.1:14445:0,0,0";
 
     public static string LinkWeb = "@godmobi";
 

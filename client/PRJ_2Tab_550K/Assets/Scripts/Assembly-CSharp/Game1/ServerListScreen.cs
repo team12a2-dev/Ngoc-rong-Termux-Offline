@@ -667,6 +667,13 @@ namespace Game1
 						GetServerList(linkDefault);
 						return;
 					}
+					// Discard a server list cached by an older client build.
+					if (!text2.Contains("127.0.0.1:14445"))
+					{
+						GetServerList(linkDefault);
+						SaveIPNew(linkDefault);
+						return;
+					}
 					lengthServer = new int[3];
 					mResources.loadLanguague(0);
 					string[] array3 = text2.Split(":0");

@@ -16,4 +16,4 @@
 
 Thư mục `Library`, `Logs` và `UserSettings` không được đưa lên GitHub vì đây là cache/trạng thái máy phát triển; Unity sẽ tự tạo lại khi mở project.
 
-Client kết nối tới game server theo địa chỉ và cổng được cấu hình trong mã client. Khi chạy trong LAN, dùng địa chỉ LAN mà `./nro.sh lan` in ra trên Termux.
+Client đã được cấu hình mặc định tới `127.0.0.1:14445`, tương thích với `server.listen.host=0.0.0.0` và `server.port=14445` của server Java. Địa chỉ này chỉ đúng khi client và server chạy trên cùng thiết bị. Nếu chạy client trên thiết bị khác trong LAN, đổi `Management.IpServer` sang IP LAN của Termux rồi build lại client.
