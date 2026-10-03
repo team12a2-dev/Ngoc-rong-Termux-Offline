@@ -57,12 +57,14 @@ export function requirePermission(permission) {
 }
 
 export async function login(username, password) {
+  const normalizedUsername = String(username || '').trim().toLowerCase();
+  const configuredPassword = String(process.env.PANEL_ADMIN_PASSWORD || '');
   const rows = await query(
     `SELECT u.id, u.username, u.password_hash, r.name AS role, r.permissions
      FROM panel_users u
      JOIN panel_roles r ON r.id = u.role_id
      WHERE u.username = ? LIMIT 1`,
-    [username]
+    [normalizedUsername]
   );
   if (!rows.length) {
     return null;
@@ -71,7 +73,12 @@ export async function login(username, password) {
   const permissions = typeof user.permissions === 'string'
     ? JSON.parse(user.permissions)
     : user.permissions;
-  const ok = await bcrypt.compare(password, user.password_hash);
+  // The Termux launcher keeps the current admin password in the environment
+  // while syncing panel_users. Accept it as a recovery path when an older
+  // database still contains a stale bcrypt hash; the normal DB hash remains
+  // the first authentication path.
+  const ok = await bcrypt.compare(password, user.password_hash)
+    || (configuredPassword.length >= 6 && password === configuredPassword);
   if (!ok) {
     return null;
   }
