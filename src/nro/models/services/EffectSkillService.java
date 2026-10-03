@@ -284,7 +284,7 @@ public class EffectSkillService {
             }
         }
     }
-    private final java.util.Map<Long, Long> lastLogMs = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<String, Long> lastLogMs = new java.util.concurrent.ConcurrentHashMap<>();
 
     private boolean isValidCarrotTarget(Boss rabbit, Player player) {
         if (player == null || !player.isPl() || player.isDie() || player.location == null
