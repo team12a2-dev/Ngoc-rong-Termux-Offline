@@ -39,6 +39,22 @@ public class EffectSkillService {
     public static final byte STONE_EFFECT = 42;
     /** Item dùng làm biểu tượng đếm ngược cho trạng thái biến cà rốt. */
     public static final int CARROT_ITEM_TIME_ID = 462;
+    /** Thời gian bị biến cà rốt (5 phút). */
+    public static final int CARROT_DURATION = 5 * 60 * 1000;
+    /** Bán kính chạm theo trục ngang, khớp bán kính nhặt vật phẩm rơi trong Zone.pickItem. */
+    public static final int CARROT_TOUCH_X = 60;
+    /**
+     * Dung sai cao độ tối đa vẫn coi là chạm, tính bằng pixel (1 ô tile = 24).
+     *
+     * <p>Phải tách khỏi {@link Util#getDistance} vì hàm đó đo Euclid 2 chiều trên (x, y) nên chênh
+     * lệch cao độ ăn vào bán kính. Đo lại tile thật: {@code Boss.getMapSpawnY} gọi
+     * {@code yPhysicInTop(x, 100)} trả hàng sàn đầu tiên dò từ dưới lên, nên cao độ spawn trên các
+     * map của {@code MINI_BOSS_MAPS} trải từ y=100 tới y=792 và chênh nhau hàng trăm pixel giữa các
+     * bậc sàn. Dùng chung bán kính 60 cho cả hai trục thì người chơi đứng dưới một bậc cao hơn sẽ
+     * không bao giờ chạm được boss dù đang đứng sát bên cạnh.
+     */
+    public static final int CARROT_TOUCH_Y = 40;
+    private static final java.util.Map<Long, Long> lastCarrotChatMs = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static EffectSkillService instance;
 
@@ -186,15 +202,97 @@ public class EffectSkillService {
         Service.gI().Send_Caitrang(player);
     }
 
+    /**
+     * Quét cảm ứng biến cà rốt, chạy từ phía người chơi mỗi nhịp update của {@link Zone#update()}.
+     *
+     * <p>Cố tình không quét từ {@code Boss.update()}: nhịp đó chỉ chạy cho boss nằm trong danh sách
+     * của {@code BossManager}, mọi ngoại lệ đều bị {@code catch (Exception ignored)} nuốt và làm hỏng
+     * luôn vòng update của các boss còn lại. Còn {@code Zone.update()} do
+     * {@code Manager.initMap} hẹn giờ 1 giây một lần cho từng khu nên luôn chắc chắn chạy.
+     */
+    public void scanCarrotTouch(Zone zone) {
+        if (zone == null || zone.map == null) {
+            return;
+        }
+        Boss rabbit = null;
+        try {
+            for (Player p : new java.util.ArrayList<>(zone.getBosses())) {
+                if (p.id == BossID.THO_DAI_CA) {
+                    rabbit = (Boss) p;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            Logger.logException(EffectSkillService.class, e);
+            return;
+        }
+        if (rabbit == null || rabbit.isDie() || rabbit.location == null
+                || rabbit.bossStatus != BossStatus.ACTIVE) {
+            return;
+        }
+        List<Player> targets;
+        try {
+            targets = new java.util.ArrayList<>(zone.getNotBosses());
+        } catch (Exception e) {
+            Logger.logException(EffectSkillService.class, e);
+            return;
+        }
+        for (Player player : targets) {
+            if (!isValidCarrotTarget(rabbit, player)) {
+                continue;
+            }
+            if (setCarrot(player, CARROT_DURATION)) {
+                Logger.warningln("[CaRot] bien " + player.name + " thanh ca rot - map="
+                        + zone.map.mapId + " zone=" + zone.zoneId
+                        + " dx=" + (rabbit.location.x - player.location.x)
+                        + " dy=" + (rabbit.location.y - player.location.y));
+                long now = System.currentTimeMillis();
+                Long last = lastCarrotChatMs.get(rabbit.id);
+                if (last == null || now - last > 5000) {
+                    lastCarrotChatMs.put(rabbit.id, now);
+                    rabbit.chat("Biến thành cà rốt nào!");
+                }
+            }
+        }
+    }
+
+    private boolean isValidCarrotTarget(Boss rabbit, Player player) {
+        if (player == null || !player.isPl() || player.isDie() || player.location == null
+                || player.effectSkill == null || player.effectSkill.isCarrot) {
+            return false;
+        }
+        int dx = Math.abs(rabbit.location.x - player.location.x);
+        int dy = Math.abs(rabbit.location.y - player.location.y);
+        if (dx > CARROT_TOUCH_X || dy > CARROT_TOUCH_Y) {
+            return false;
+        }
+        return !isWearingRabbitDisguise(player);
+    }
+
+    private boolean isWearingRabbitDisguise(Player player) {
+        if (player.inventory == null || player.inventory.itemsBody == null
+                || player.inventory.itemsBody.size() <= 5) {
+            return false;
+        }
+        Item costume = player.inventory.itemsBody.get(5);
+        if (costume == null || !costume.isNotNullItem() || costume.template == null) {
+            return false;
+        }
+        int itemId = costume.template.id;
+        return itemId == ConstItem.CAI_TRANG_THO_DAI_CA
+                || itemId == ConstItem.CAI_TRANG_THO_BUNMA
+                || itemId == ConstItem.CAI_TRANG_THO_BUNMA_2;
+    }
+
     public boolean setCarrot(Player target, int durationMs) {
         if (target == null || target.effectSkill == null || target.effectSkill.isCarrot || durationMs <= 0) {
             return false;
         }
-        long now = System.currentTimeMillis();
         target.effectSkill.isCarrot = true;
-        target.effectSkill.lastTimeCarrot = now;
+        target.effectSkill.lastTimeCarrot = System.currentTimeMillis();
         target.effectSkill.timeCarrot = durationMs;
         ItemTimeService.gI().sendItemTime(target, CARROT_ITEM_TIME_ID, Math.max(1, (durationMs + 999) / 1000));
+        Service.gI().Send_Caitrang(target);
         Service.gI().sendThongBao(target,
                 "Bạn bị Thỏ Đại Ca biến thành cà rốt! Sức đánh giảm 15% trong 5 phút.");
         return true;
@@ -206,6 +304,7 @@ public class EffectSkillService {
         }
         player.effectSkill.isCarrot = false;
         ItemTimeService.gI().removeItemTime(player, CARROT_ITEM_TIME_ID);
+        Service.gI().Send_Caitrang(player);
     }
 
     public void sendMobToSocola(Player player, Mob mob, int timeSocola) {
