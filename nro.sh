@@ -458,6 +458,7 @@ panel_api_dependencies_ready() {
 panel_web_dependencies_ready() {
   [ -x "$PANEL_WEB_ROOT/node_modules/.bin/vite" ] \
     && [ -d "$PANEL_WEB_ROOT/node_modules/react" ] \
+    && [ -d "$PANEL_WEB_ROOT/node_modules/jszip" ] \
     && [ -d "$PANEL_WEB_ROOT/node_modules/esbuild" ]
 }
 panel_esbuild_ready() {
