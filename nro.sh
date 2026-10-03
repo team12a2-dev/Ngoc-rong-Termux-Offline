@@ -902,6 +902,13 @@ main() {
       setup_panel
       start_panel
       ;;
+    panel-password)
+      ensure_layout
+      [ -f "$PANEL_ADMIN_PASSWORD_FILE" ] || die "Chưa có mật khẩu panel; hãy chạy ./nro.sh panel trước."
+      say "Tài khoản panel: admin"
+      printf '%s\n' "Mật khẩu panel:"
+      cat "$PANEL_ADMIN_PASSWORD_FILE"
+      ;;
     backup)
       backup_database
       ;;
@@ -916,12 +923,12 @@ main() {
       ;;
     *)
       cat <<'USAGE'
-Sử dụng: ./nro.sh [setup|start|lan|background|background-stop|background-restart|background-status|background-log|restart|stop|status|console|rebuild|panel|check-update|backup|backup-schedule|backup-cancel|backup-status]
+Sử dụng: ./nro.sh [setup|start|lan|background|background-stop|background-restart|background-status|background-log|restart|stop|status|console|rebuild|panel|panel-password|check-update|backup|backup-schedule|backup-cancel|backup-status]
 
 Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel.
 LAN Android: `./nro.sh lan` sẽ tự nhận IP Wi-Fi, bind game server trên 0.0.0.0 và cập nhật địa chỉ client; có thể chỉ định `NRO_LAN_IP=192.168.x.x`.
 Chạy độc lập: `./nro.sh background`; dừng bằng `background-stop`, xem trạng thái bằng `background-status`, xem log bằng `background-log`.
-Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT).
+Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT). Xem mật khẩu bằng `./nro.sh panel-password`; đổi mật khẩu bằng `PANEL_ADMIN_PASSWORD='mật_khẩu_mới' ./nro.sh panel`.
 Backup database: `backup` xuất online, `backup-schedule` lập lịch, `backup-cancel` hủy lịch, `backup-status` xem lịch/file/log. `setup` và `start` tự backup trước khi tiếp tục; backup lỗi sẽ dừng thao tác.
 Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
 NRO_GAME_LISTEN_HOST, NRO_PANEL_PORT, NRO_PANEL_BIND, PANEL_ADMIN_PASSWORD,

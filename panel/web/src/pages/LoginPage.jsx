@@ -52,7 +52,7 @@ function ServerIcon() {
 
 export default function LoginPage() {
   const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -162,7 +162,7 @@ export default function LoginPage() {
             )}
           </button>
 
-          <p className="login-footer">Chỉ dành cho quản trị viên được ủy quyền</p>
+          <p className="login-footer">Mật khẩu admin: chạy <code>./nro.sh panel-password</code> trong Termux. Chỉ dành cho quản trị viên được ủy quyền.</p>
         </form>
       </div>
     </div>

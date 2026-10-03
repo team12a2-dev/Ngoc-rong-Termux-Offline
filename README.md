@@ -175,7 +175,14 @@ http://IP_ANDROID:3001
 Mật khẩu admin:
 
 ```bash
-cat .runtime/panel-admin-password
+./nro.sh panel-password
+# Hoặc: cat .runtime/panel-admin-password
+```
+
+Nếu panel báo `Invalid credentials`, đăng nhập bằng username `admin` và mật khẩu do lệnh trên hiển thị. Để đặt lại mật khẩu, chạy:
+
+```bash
+PANEL_ADMIN_PASSWORD='mat_khau_moi_tu_6_ky_tu' ./nro.sh panel
 ```
 
 | Module | Chức năng |
