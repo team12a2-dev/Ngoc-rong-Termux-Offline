@@ -56,6 +56,19 @@ public class GoldenFrieza extends Boss {
         super.active();
     }
 
+    /** Spawn ở vùng giữa map, tránh bị dồn sát mép trái của Đông Karin. */
+    @Override
+    protected int getMapSpawnX() {
+        if (this.zone == null || this.zone.map == null) {
+            return 0;
+        }
+        int width = this.zone.map.mapWidth;
+        if (width <= 400) {
+            return Math.max(0, width / 2);
+        }
+        return Util.nextInt(200, width - 200);
+    }
+
     @Override
     public synchronized int injured(Player plAtt, long damage, boolean piercing, boolean isMobAttack) {
         if (this.isDie()) return 0;
@@ -128,8 +141,20 @@ public class GoldenFrieza extends Boss {
                         break;
 
                     case 1:
+                        // Death Beam hiện không được tạo trong BossManager (các case
+                        // tương ứng đang tắt). Nếu không có boss con, phải quay về đánh
+                        // trực tiếp thay vì truy cập phần tử null rồi lặp lỗi mỗi tick.
+                        Boss[] deathBeams = this.bossAppearTogether != null
+                                && this.currentLevel >= 0
+                                && this.currentLevel < this.bossAppearTogether.length
+                                ? this.bossAppearTogether[this.currentLevel] : null;
+                        if (deathBeams == null || Arrays.stream(deathBeams).noneMatch(Objects::nonNull)) {
+                            status = 2;
+                            break;
+                        }
                         if (callDeathBeam) {
-                            boolean allResting = Arrays.stream(this.bossAppearTogether[this.currentLevel])
+                            boolean allResting = Arrays.stream(deathBeams)
+                                                       .filter(Objects::nonNull)
                                                        .allMatch(b -> b.bossStatus == BossStatus.REST);
                             if (allResting) {
                                 status = 2;
@@ -139,8 +164,8 @@ public class GoldenFrieza extends Boss {
                             return;
                         }
                         callDeathBeam = true;
-                        for (Boss boss : this.bossAppearTogether[this.currentLevel]) {
-                            if (boss.bossStatus == BossStatus.REST) {
+                        for (Boss boss : deathBeams) {
+                            if (boss != null && boss.bossStatus == BossStatus.REST) {
                                 boss.changeStatus(BossStatus.RESPAWN);
                             }
                         }
@@ -152,7 +177,10 @@ public class GoldenFrieza extends Boss {
                         Player pl = getPlayerAttack();
                         if (pl == null || pl.isDie()) return;
 
-                        this.playerSkill.skillSelect = this.playerSkill.skills.get(Util.nextInt(0, this.playerSkill.skills.size() - 1));
+                        // Skill đầu tiên là Tái Tạo Năng Lượng, không dùng để tấn công.
+                        int firstAttackSkill = this.playerSkill.skills.size() > 1 ? 1 : 0;
+                        this.playerSkill.skillSelect = this.playerSkill.skills.get(
+                                Util.nextInt(firstAttackSkill, this.playerSkill.skills.size() - 1));
 
                         if (Util.getDistance(this, pl) <= this.getRangeCanAttackWithSkillSelect()) {
                             if (Util.isTrue(5, 20)) {
