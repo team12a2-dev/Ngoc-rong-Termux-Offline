@@ -23,8 +23,8 @@ Client đã được cấu hình mặc định tới `127.0.0.1:14445`, tương 
 Workflow nằm tại `.github/workflows/build-unity-android.yml` và dùng Unity `2022.3.62f2`. Trên GitHub bằng điện thoại:
 
 1. Vào repository → **Settings → Secrets and variables → Actions**.
-2. Tạo ba **Repository secrets**: `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`.
+2. Tạo **Repository secrets**: `UNITY_EMAIL`, `UNITY_PASSWORD` và một trong hai lựa chọn `UNITY_LICENSE` (khuyến nghị cho Unity Personal) hoặc `UNITY_SERIAL` (serial hợp lệ của Unity).
 3. Vào tab **Actions** → chọn **Build Unity Android APK** → **Run workflow**.
 4. Chờ workflow hoàn tất, mở run thành công và tải artifact `NgocRongLocal-APK`.
 
-Workflow chỉ sử dụng secrets trong GitHub Actions; không ghi thông tin Unity vào source code. Nếu Unity chưa được kích hoạt hoặc secrets chưa đúng, run sẽ dừng ở bước Unity activation.
+Workflow chỉ sử dụng secrets trong GitHub Actions; không ghi thông tin Unity vào source code. Nếu thiếu cả `UNITY_LICENSE` và `UNITY_SERIAL`, run sẽ dừng với lỗi `Missing Unity License File and no Serial was found` ở bước Unity activation.
