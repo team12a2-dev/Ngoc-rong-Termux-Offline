@@ -179,7 +179,7 @@ ensure_layout() {
     [ -f "$ROOT/Config.properties.example" ] || die "Thiếu Config.properties.example trong thư mục dự án."
     cp "$ROOT/Config.properties.example" "$CONFIG"
   fi
-  [ -f "$SQL_FILE" ] || die "Thiếu sql/ngocrong.sql trong thư mục dự án."
+  [ -f "$SQL_FILE" ] || die "Thiếu ngocrong.sql trong thư mục dự án."
   [ -f "$ROOT/data/map/tile_set_info" ] || die "Thiếu data/map/tile_set_info; hãy cập nhật lại mã nguồn để sửa lỗi phân biệt hoa/thường trên Android."
   [ -f "$PANEL_API_ROOT/package.json" ] || die "Thiếu panel/api/package.json."
   [ -f "$PANEL_WEB_ROOT/package.json" ] || die "Thiếu panel/web/package.json."
@@ -831,7 +831,7 @@ main() {
       fi
       ;;
     lan)
-      auto_update_source
+      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
       if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
         exec bash "$ROOT/nro.sh" "$@"
       fi
@@ -891,7 +891,7 @@ main() {
       NRO_REBUILD=1 build_server
       ;;
     check-update)
-      auto_update_source
+      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
       ;;
     panel)
       ensure_layout
