@@ -19,6 +19,9 @@ import nro.models.server.ServerNotify;
 import nro.models.services.ItemTimeService;
 import nro.models.services.SkillService;
 import nro.models.services.TaskService;
+import nro.models.services.ItemService;
+import nro.models.item.Item;
+import nro.models.map.ItemMap;
 import nro.models.map.service.ChangeMapService;
 import nro.models.map.service.MapService;
 import nro.models.map.Zone;
@@ -170,6 +173,18 @@ public class Mabu2H extends Boss {
 
     @Override
     public void reward(Player plKill) {
+        int x = this.location.x;
+        int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
+        if (Util.isTrue(35, 100)) {
+            ItemMap item = ItemService.gI().randDoTLBoss(this.zone, 1, x, y, plKill.id);
+            if (item != null) {
+                item.options.add(new Item.ItemOption(107, Util.nextInt(1, 3)));
+                if (item.options.stream().noneMatch(option -> option.optionTemplate.id == 86 || option.optionTemplate.id == 87)) {
+                    item.options.add(new Item.ItemOption(Util.isTrue(50, 100) ? 86 : 87, 0));
+                }
+                Service.gI().dropItemMap(this.zone, item);
+            }
+        }
         int diem = 5;
         plKill.event.addEventPoint(diem);
         Service.gI().sendThongBao(plKill, "+5 Point");
