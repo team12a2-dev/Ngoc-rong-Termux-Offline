@@ -576,7 +576,11 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         if (this.zone == null) {
             if (this.parentBoss != null) {
                 this.zone = parentBoss.zone;
-            } else if (this.lastZone == null) {
+            } else if (this.lastZone == null
+                    || BossSpawnSchedule.resolveTier(this) == nro.models.boss.spawn.BossSpawnTier.MINI) {
+                // Mini boss phải roll lại map sau mỗi lần hồi sinh. Trước đây lastZone
+                // được tái sử dụng vô thời hạn, khiến Thỏ Đại Ca/Ở Dơ chỉ xuất hiện ở
+                // đúng map của lần spawn đầu tiên dù BossData có nhiều map hợp lệ.
                 this.zone = getMapJoin();
             } else {
                 this.zone = this.lastZone;
