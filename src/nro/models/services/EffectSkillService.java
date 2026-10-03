@@ -37,8 +37,8 @@ public class EffectSkillService {
     public static final byte BLIND_EFFECT = 40;
     public static final byte SLEEP_EFFECT = 41;
     public static final byte STONE_EFFECT = 42;
-    /** Item dùng làm biểu tượng đếm ngược cho trạng thái biến cà rốt. */
-    public static final int CARROT_ITEM_TIME_ID = 462;
+    /** Icon dùng làm biểu tượng đếm ngược cho trạng thái biến cà rốt (icon_id của item Củ cà rốt). */
+    public static final int CARROT_ITEM_TIME_ID = 4083;
     /** Thời gian bị biến cà rốt (5 phút). */
     public static final int CARROT_DURATION = 5 * 60 * 1000;
     /** Bán kính chạm theo trục ngang, khớp bán kính nhặt vật phẩm rơi trong Zone.pickItem. */

@@ -753,6 +753,9 @@ public class Player implements Runnable {
    }
 
    public short getHead() {
+      if (effectSkill != null && effectSkill.isCarrot) {
+         return ConstPlayer.CARROT_PART[0];
+      }
       if (this.isPl() && this.pet != null && this.fusion.typeFusion == ConstPlayer.HOP_THE_GOGETA || this.fusion.typeFusion == ConstPlayer.LUONG_LONG_NHAT_THE || this.fusion.typeFusion == ConstPlayer.HOP_THE_PORATA || this.fusion.typeFusion == ConstPlayer.HOP_THE_PORATA2 || this.fusion.typeFusion == ConstPlayer.HOP_THE_PORATA3) {
          Item item = inventory.itemsBody.get(5);
          Item petItem = pet.inventory.itemsBody.get(5);
@@ -807,6 +810,9 @@ public class Player implements Runnable {
    }
 
    public short getBody() {
+      if (effectSkill != null && effectSkill.isCarrot) {
+         return ConstPlayer.CARROT_PART[1];
+      }
       if (this.isPl() && this.pet != null && this.fusion.typeFusion == ConstPlayer.HOP_THE_GOGETA || this.fusion.typeFusion == ConstPlayer.LUONG_LONG_NHAT_THE || this.fusion.typeFusion == ConstPlayer.HOP_THE_PORATA || this.fusion.typeFusion == ConstPlayer.HOP_THE_PORATA2 || this.fusion.typeFusion == ConstPlayer.HOP_THE_PORATA3) {
          Item item = inventory.itemsBody.get(5);
          Item petItem = pet.inventory.itemsBody.get(5);
@@ -866,6 +872,9 @@ public class Player implements Runnable {
    }
 
    public short getLeg() {
+      if (effectSkill != null && effectSkill.isCarrot) {
+         return ConstPlayer.CARROT_PART[2];
+      }
       if (this.isPl() && this.pet != null && this.fusion.typeFusion == ConstPlayer.HOP_THE_GOGETA || this.fusion.typeFusion == ConstPlayer.LUONG_LONG_NHAT_THE || this.fusion.typeFusion == ConstPlayer.HOP_THE_PORATA || this.fusion.typeFusion == ConstPlayer.HOP_THE_PORATA2 || this.fusion.typeFusion == ConstPlayer.HOP_THE_PORATA3) {
          Item item = inventory.itemsBody.get(5);
          Item petItem = pet.inventory.itemsBody.get(5);
