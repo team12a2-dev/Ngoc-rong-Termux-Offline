@@ -163,8 +163,11 @@ public class BossManager implements Runnable {
         this.createBoss(BossID.BLACK_GOKU, 2);
         this.createBoss(BossID.SOI_HEC_QUYN1, 5);
         this.createBoss(BossID.AN_TROM, 5);
-        this.createBoss(BossID.THO_DAI_CA);
-        this.createBoss(BossID.O_DO1, 1);
+        // Một instance chỉ có thể đứng ở một map; tạo nhiều instance để mini boss
+        // cùng lúc được phân bổ trên các map khác nhau như các mini boss còn lại.
+        this.createBoss(BossID.THO_DAI_CA, 5);
+        this.createBoss(BossID.O_DO1, 5);
+        this.createBoss(BossID.Virut, 5);
         this.createBoss(BossID.BABY, 1);
              this.createBoss(BossID.B, 1);
         this.createBoss(BossID.MAT_TROI, 5);
