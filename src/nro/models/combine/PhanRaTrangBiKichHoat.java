@@ -3,7 +3,6 @@ package nro.models.combine;
 import nro.models.consts.ConstNpc;
 import nro.models.item.Item;
 import nro.models.item.Item.ItemOption;
-import nro.models.map.ItemMap;
 import nro.models.player.Player;
 import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
@@ -19,8 +18,9 @@ public class PhanRaTrangBiKichHoat {
 
     public static class PhanRaTrangBi {
 
-        private static final int GOLD_PHAN_RA = 2_000_000_000;  // Lượng vàng cần thiết
-        private static final int RATIO_PHAN_RA = 100;  // Tỉ lệ thành công
+        private static final int GOLD_PHAN_RA = 0;
+        private static final int RATIO_PHAN_RA = 100;
+        private static final int ID_KHOANG_TAI_CHE = 1656;
         private static final int[][] optionIds = {
             {128, 129, 127, 233, 245, 130, 131, 132, 233, 237, 133, 135, 134, 233, 241}};
 
@@ -41,14 +41,15 @@ public class PhanRaTrangBiKichHoat {
             player.combineNew.ratioCombine = RATIO_PHAN_RA;
 
             String npcSay = "|2|Tỉ lệ thành công: " + RATIO_PHAN_RA + "%\n"
-                    + "|2|Cần: " + Util.numberToMoney(GOLD_PHAN_RA) + " vàng\n";
+                    + "|2|Phân rã 1 set kích hoạt\n"
+                    + "|2|Nhận: 1 " + ItemService.gI().getTemplate(ID_KHOANG_TAI_CHE).name + "\n";
 
             if (player.inventory.gold < GOLD_PHAN_RA) {
                 npcSay += "|7|Còn thiếu " + Util.powerToString(GOLD_PHAN_RA - player.inventory.gold) + " vàng\n";
                 CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.IGNORE_MENU, npcSay, "Đóng");
             } else {
                 CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.MENU_START_COMBINE, npcSay,
-                        "Phân rã\n" + Util.numberToMoney(GOLD_PHAN_RA) + " vàng", "Từ chối");
+                        "Phân rã", "Từ chối");
             }
         }
 
@@ -77,31 +78,12 @@ public class PhanRaTrangBiKichHoat {
             player.inventory.gold -= GOLD_PHAN_RA;
             InventoryService.gI().subQuantityItemsBag(player, item1, 1);
             if (Util.isTrue(RATIO_PHAN_RA, 100)) {
-         ItemMap it = ItemService.gI().randDoTLBoss(
-        player.zone,
-        1,
-        player.location.x,
-        player.location.y,
-        player.id
-);
-
-if (it != null) {
-    Item newItem = new Item();
-    newItem.template = ItemService.gI().getTemplate(it.itemTemplate.id);
-    newItem.quantity = 1;
-
-    // copy option từ ItemMap sang Item
-    if (it.options != null && !it.options.isEmpty()) {
-        for (ItemOption op : it.options) {
-            newItem.itemOptions.add(new ItemOption(op.optionTemplate.id, op.param));
-        }
-    }
-
-    InventoryService.gI().addItemBag(player, newItem);
-}
+                Item newItem = ItemService.gI().createNewItem((short) ID_KHOANG_TAI_CHE);
+                newItem.quantity = 1;
+                InventoryService.gI().addItemBag(player, newItem);
 
                 CombineService.gI().sendEffectSuccessCombine(player);
-                Service.gI().sendThongBao(player, "Phân rã thành công!");
+                Service.gI().sendThongBao(player, "Phân rã thành công! Nhận 1 Khoáng tái chế");
             } else {
                 CombineService.gI().sendEffectFailCombine(player);
                 Service.gI().sendThongBao(player, "Phân rã thất bại!");

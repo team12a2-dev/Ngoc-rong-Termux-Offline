@@ -1725,6 +1725,7 @@ CREATE TABLE `history_transaction`  (
   `bag_1_after_tran` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `bag_2_after_tran` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `time_tran` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` tinyint NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1059 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 

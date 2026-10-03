@@ -1752,7 +1752,8 @@ CREATE TABLE `history_transaction` (
   `bag_2_before_tran` text NOT NULL,
   `bag_1_after_tran` text NOT NULL,
   `bag_2_after_tran` text NOT NULL,
-  `time_tran` timestamp NOT NULL DEFAULT current_timestamp()
+  `time_tran` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` tinyint NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 
 -- --------------------------------------------------------

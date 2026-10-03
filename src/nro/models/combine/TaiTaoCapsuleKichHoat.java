@@ -16,24 +16,20 @@ import nro.models.utils.Util;
  */
 public class TaiTaoCapsuleKichHoat {
 
-    private static final int GOLD_TAI_TAO = 2_000_000_000;
+    private static final int GEM_TAI_TAO = 500;
     private static final int RATIO_TAI_TAO = 100;
 
-    // Khoáng tái chế: 555 -> 567
-    private static final int KHOANG_TAI_CHE_MIN = 555;
-    private static final int KHOANG_TAI_CHE_MAX = 567;
+    private static final int KHOANG_TAI_CHE_ID = 1656;
+    private static final int CAPSULE_VO_ID = 1634;
+    private static final int CAPSULE_KICH_HOAT_ID = 1655;
 
-    private static final int CAPSULE_ID = 1634;
+    private static final int REQUIRED_KHOANG = 3;
+    private static final int REQUIRED_CAPSULE_VO = 1;
 
-    private static final int REQUIRED_KHOANG = 2;
-    private static final int REQUIRED_CAPSULE = 1;
-
-    // ================== CHECK KHOÁNG ==================
     private static boolean isKhoangTaiChe(int itemId) {
-        return itemId >= KHOANG_TAI_CHE_MIN && itemId <= KHOANG_TAI_CHE_MAX;
+        return itemId == KHOANG_TAI_CHE_ID;
     }
 
-    // ================== SHOW INFO ==================
     public static void showInfoCombine(Player player) {
         if (player.combineNew.itemsCombine.isEmpty()) {
             CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.IGNORE_MENU,
@@ -42,51 +38,50 @@ public class TaiTaoCapsuleKichHoat {
         }
 
         int countKhoang = 0;
-        int countVatLieu2 = 0;
+        int countCapsuleVo = 0;
 
         for (Item item : player.combineNew.itemsCombine) {
             if (item != null && item.template != null) {
                 if (isKhoangTaiChe(item.template.id)) {
                     countKhoang += item.quantity;
-                } else if (item.template.id == CAPSULE_ID) {
-                    countVatLieu2 += item.quantity;
+                } else if (item.template.id == CAPSULE_VO_ID) {
+                    countCapsuleVo += item.quantity;
                 }
             }
         }
 
-        if (countKhoang < REQUIRED_KHOANG || countVatLieu2 < REQUIRED_CAPSULE) {
+        if (countKhoang < REQUIRED_KHOANG || countCapsuleVo < REQUIRED_CAPSULE_VO) {
             CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.IGNORE_MENU,
                     "Thiếu vật phẩm cần thiết!\n"
-                    + "- Cần: " + REQUIRED_KHOANG + " Đồ thần linh\n"
-                    + "- Cần: " + REQUIRED_CAPSULE + " Capsule Vỡ",
+                    + "- Cần: " + REQUIRED_KHOANG + " Khoáng tái chế\n"
+                    + "- Cần: " + REQUIRED_CAPSULE_VO + " Capsule Vỡ\n"
+                    + "- Cần: " + GEM_TAI_TAO + " ngọc xanh",
                     "Đóng");
             return;
         }
 
-        player.combineNew.goldCombine = GOLD_TAI_TAO;
+        player.combineNew.gemCombine = GEM_TAI_TAO;
         player.combineNew.ratioCombine = RATIO_TAI_TAO;
 
-        String npcSay = "|2|Tỉ lệ thành công: " + RATIO_TAI_TAO + "%\n"
-                + "|2|Cần: " + REQUIRED_KHOANG + " Đồ thần linh\n"
-                + "|2|Cần: " + REQUIRED_CAPSULE + " Capsule Vỡ\n"
-                + "|2|Cần: " + Util.numberToMoney(GOLD_TAI_TAO) + " vàng\n";
+        String npcSay = "|2|Tái chế Set Kích Hoạt\n\n"
+                + "|2|Tỉ lệ thành công: " + RATIO_TAI_TAO + "%\n"
+                + "|2|Cần: " + REQUIRED_KHOANG + " Khoáng tái chế\n"
+                + "|2|Cần: " + REQUIRED_CAPSULE_VO + " Capsule Vỡ\n"
+                + "|2|Cần: " + GEM_TAI_TAO + " ngọc xanh\n"
+                + "|2|Nhận: 1 Capsule tự chọn Set Kích Hoạt\n";
 
-        if (player.inventory.gold < GOLD_TAI_TAO) {
-            npcSay += "|7|Còn thiếu "
-                    + Util.powerToString(GOLD_TAI_TAO - player.inventory.gold)
-                    + " vàng\n";
+        if (player.inventory.gem < GEM_TAI_TAO) {
+            npcSay += "|7|Còn thiếu " + (GEM_TAI_TAO - player.inventory.gem) + " ngọc xanh\n";
             CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.IGNORE_MENU,
                     npcSay, "Đóng");
         } else {
             CombineService.gI().baHatMit.createOtherMenu(player,
                     ConstNpc.MENU_START_COMBINE,
                     npcSay,
-                    "Nâng cấp\n" + Util.numberToMoney(GOLD_TAI_TAO) + " vàng",
-                    "Từ chối");
+                    "Nâng cấp\n" + GEM_TAI_TAO + " ngọc", "Từ chối");
         }
     }
 
-    // ================== THỰC HIỆN ==================
     public static void thucHienTaiTao(Player player) {
         if (player.combineNew.itemsCombine.isEmpty()) {
             Service.gI().sendThongBao(player, "Cần đặt đủ vật phẩm!");
@@ -94,49 +89,47 @@ public class TaiTaoCapsuleKichHoat {
         }
 
         int countKhoang = 0;
-        int countCapsule = 0;
+        int countCapsuleVo = 0;
 
         for (Item item : player.combineNew.itemsCombine) {
             if (item != null && item.template != null) {
                 if (isKhoangTaiChe(item.template.id)) {
                     countKhoang += item.quantity;
-                } else if (item.template.id == CAPSULE_ID) {
-                    countCapsule += item.quantity;
+                } else if (item.template.id == CAPSULE_VO_ID) {
+                    countCapsuleVo += item.quantity;
                 }
             }
         }
 
-        if (countKhoang < REQUIRED_KHOANG || countCapsule < REQUIRED_CAPSULE) {
+        if (countKhoang < REQUIRED_KHOANG || countCapsuleVo < REQUIRED_CAPSULE_VO) {
             Service.gI().sendThongBao(player,
                     "Không đủ vật phẩm cần thiết để Nâng cấp!");
             return;
         }
 
-        if (player.inventory.gold < GOLD_TAI_TAO) {
+        if (player.inventory.gem < GEM_TAI_TAO) {
             Service.gI().sendThongBao(player,
-                    "Không đủ vàng để thực hiện!");
+                    "Không đủ ngọc xanh để thực hiện! Còn thiếu " + (GEM_TAI_TAO - player.inventory.gem) + " ngọc");
             return;
         }
 
-        player.inventory.gold -= GOLD_TAI_TAO;
+        player.inventory.subGem(GEM_TAI_TAO);
 
         removeKhoangTaiChe(player, REQUIRED_KHOANG);
-        removeItem(player, CAPSULE_ID, REQUIRED_CAPSULE);
+        removeItem(player, CAPSULE_VO_ID, REQUIRED_CAPSULE_VO);
 
         if (Util.isTrue(RATIO_TAI_TAO, 100)) {
-            int itemId = 1655;
-            Item newItem = new Item();
-            newItem.template = ItemService.gI().getTemplate(itemId);
+            Item newItem = ItemService.gI().createNewItem((short) CAPSULE_KICH_HOAT_ID);
             newItem.quantity = 1;
             InventoryService.gI().addItemBag(player, newItem);
 
             CombineService.gI().sendEffectSuccessCombine(player);
             Service.gI().sendThongBao(player,
-                    "Nâng cấp thành công!");
+                    "Tái chế thành công! Nhận 1 Capsule tự chọn Set Kích Hoạt");
         } else {
             CombineService.gI().sendEffectFailCombine(player);
             Service.gI().sendThongBao(player,
-                    "Nâng cấp thất bại!");
+                    "Tái chế thất bại!");
         }
 
         InventoryService.gI().sendItemBags(player);
@@ -144,7 +137,6 @@ public class TaiTaoCapsuleKichHoat {
         CombineService.gI().reOpenItemCombine(player);
     }
 
-    // ================== REMOVE KHOÁNG ==================
     private static void removeKhoangTaiChe(Player player, int quantityToRemove) {
         List<Item> items = new ArrayList<>(player.combineNew.itemsCombine);
         for (Item item : items) {
@@ -158,7 +150,6 @@ public class TaiTaoCapsuleKichHoat {
         }
     }
 
-    // ================== REMOVE ITEM FIXED ==================
     private static void removeItem(Player player, int itemId, int quantityToRemove) {
         List<Item> items = new ArrayList<>(player.combineNew.itemsCombine);
         for (Item item : items) {

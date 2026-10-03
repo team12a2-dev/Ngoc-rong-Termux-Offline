@@ -14,6 +14,7 @@ import nro.models.map.service.ChangeMapService;
 import nro.models.combine.CombineService;
 import nro.models.combine.CheTaoCuonSachCu;
 import nro.models.combine.DoiSachTuyetKy;
+import nro.models.combine.KiemTraGiaoDich;
 import nro.models.combine.NangCapVatPham;
 import nro.models.consts.ConstDailyGift;
 import nro.models.daily_Giftcode.DailyGiftService;
@@ -43,6 +44,9 @@ public class BaHatMit extends Npc {
                             "Ngươi tìm ta có việc gì?",
                             "Chức năng\npha lê",
                             "Chuyển hóa\nTrang bị",
+                            "Phân rã\nSet Kích Hoạt",
+                            "Tái chế\nSet Kích Hoạt",
+                            "Kiểm tra\nGiao dịch",
                             "Võ đài\nSinh tử");
 
                 case 112 -> {
@@ -139,13 +143,19 @@ public class BaHatMit extends Npc {
                                         "Ta có thể giúp gì cho ngươi ?",
                                         "Chuyển hóa\nVàng",
                                         "Chuyển hóa\nNgọc");
-                            case 2 -> {
-                                if (!DeathOrAliveArenaService.gI().canJoinVoDaiSinhTu(player)) {
-                                    Service.gI().sendThongBao(player, DeathOrAliveArenaService.MSG_POWER_LIMIT);
-                                    return;
-                                }
-                                ChangeMapService.gI().changeMapNonSpaceship(player, 112, 200 + Util.nextInt(-100, 100), 408);
-                            }
+            case 2 ->
+                CombineService.gI().openTabCombine(player, CombineService.PHAN_RA_TRANG_BI_KH);
+            case 3 ->
+                CombineService.gI().openTabCombine(player, CombineService.TAI_TAO_CAPSULE_KH);
+            case 4 ->
+                KiemTraGiaoDich.gI().showTradeHistory(player);
+            case 5 -> {
+                if (!DeathOrAliveArenaService.gI().canJoinVoDaiSinhTu(player)) {
+                    Service.gI().sendThongBao(player, DeathOrAliveArenaService.MSG_POWER_LIMIT);
+                    return;
+                }
+                ChangeMapService.gI().changeMapNonSpaceship(player, 112, 200 + Util.nextInt(-100, 100), 408);
+            }
                         }
                     } else if (player.idMark.getIndexMenu() == 3) {
                         switch (select) {

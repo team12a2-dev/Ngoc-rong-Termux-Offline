@@ -12,6 +12,26 @@ import java.util.List;
 
 public class HistoryTransactionDAO {
 
+    public static final byte STATUS_SUCCESS = 1;
+    public static final byte STATUS_FAIL = 0;
+
+    static {
+        ensureStatusColumn();
+    }
+
+    /**
+     * Đảm bảo cột status tồn tại (1=thành công, 0=thất bại).
+     * Chạy idempotent, an toàn khi cột đã có hoặc chưa có.
+     */
+    public static void ensureStatusColumn() {
+        try {
+            LocalManager.executeUpdate(
+                    "ALTER TABLE history_transaction ADD COLUMN status TINYINT NOT NULL DEFAULT 1");
+        } catch (Exception ex) {
+            // Cột đã tồn tại hoặc không có quyền ALTER - bỏ qua
+        }
+    }
+
     public static void insert(Player pl1, Player pl2,
             int goldP1, int goldP2, List<Item> itemP1, List<Item> itemP2,
             List<Item> bag1Before, List<Item> bag2Before,
@@ -78,6 +98,37 @@ public class HistoryTransactionDAO {
         }
         try {
             LocalManager.executeUpdate("INSERT INTO history_transaction (player_1, player_2, item_player_1, item_player_2, bag_1_before_tran, bag_2_before_tran, bag_1_after_tran, bag_2_after_tran, time_tran) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", player1, player2, itemPlayer1, itemPlayer2, beforeTran1, beforeTran2, afterTran1, afterTran2, new Timestamp(System.currentTimeMillis()));
+        } catch (Exception ex) {
+        }
+    }
+
+    /**
+     * Ghi nhận giao dịch thất bại (status=0).
+     */
+    public static void insertFailed(Player pl1, Player pl2,
+            int goldP1, int goldP2, List<Item> itemP1, List<Item> itemP2,
+            String reason) {
+        ensureStatusColumn();
+        String player1 = pl1.name + " (" + pl1.id + ")";
+        String player2 = pl2.name + " (" + pl2.id + ")";
+        String itemPlayer1 = "Gold: " + goldP1 + ", ";
+        String itemPlayer2 = "Gold: " + goldP2 + ", ";
+        for (Item item : itemP1) {
+            if (item.isNotNullItem()) {
+                itemPlayer1 += item.template.name + " (x" + item.quantityGD + "),";
+            }
+        }
+        for (Item item : itemP2) {
+            if (item.isNotNullItem()) {
+                itemPlayer2 += item.template.name + " (x" + item.quantityGD + "),";
+            }
+        }
+        if (reason != null && !reason.isEmpty()) {
+            itemPlayer1 += " [" + reason + "]";
+        }
+        try {
+            LocalManager.executeUpdate("INSERT INTO history_transaction (player_1, player_2, item_player_1, item_player_2, bag_1_before_tran, bag_2_before_tran, bag_1_after_tran, bag_2_after_tran, time_tran, status) VALUES (?, ?, ?, ?, '', '', '', '', ?, ?)",
+                    player1, player2, itemPlayer1, itemPlayer2, new Timestamp(System.currentTimeMillis()), STATUS_FAIL);
         } catch (Exception ex) {
         }
     }

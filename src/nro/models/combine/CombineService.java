@@ -618,9 +618,9 @@ public class CombineService {
             case CHUYEN_HOA_TRANG_BI_VANG:
                 return "Lưu ý trang bị mới\nphải hơn trang bị gốc\n1 bậc";
             case PHAN_RA_TRANG_BI_KH:
-                return "Ta sẽ phù phép\nphân rã thành\nkhoáng tái chế cho ngươi";
+                return "Ta sẽ phù phép\nphân rã thành\n1 Khoáng tái chế cho ngươi";
             case TAI_TAO_CAPSULE_KH:
-                return "Ta sẽ phù phép\nNâng cấp thành 1 viên\nCapsule kích hoạt tự chọn";
+                return "Ta sẽ phù phép\nTái chế thành 1 viên\nCapsule tự chọn Set Kích Hoạt";
             case NHAP_NGOC_RONG:
                 return "Ta sẽ phù phép\ncho 7 viên Ngọc Rồng\nthành 1 viên Ngọc Rồng cấp cao";
             case NANG_CAP_VAT_PHAM:
@@ -676,9 +676,9 @@ public class CombineService {
             case PHA_LE_HOA_TRANG_BI:
                 return "Chọn trang bị\n(Áo, quần, găng, giày hoặc rađa)\nSau đó chọn 'Nâng cấp'";
             case PHAN_RA_TRANG_BI_KH:
-                return "Vào hành trang\nChọn Trang bị kích hoạt cần rã\nSau đó chọn 'Phân rã'\nNhận được 1 đồ thần linh bất kỳ";
+                return "Vào hành trang\nChọn 1 Set Kích Hoạt cần rã\nSau đó chọn 'Phân rã'\nNhận 1 Khoáng tái chế";
             case TAI_TAO_CAPSULE_KH:
-                return "Vào hành trang\nChọn 2 đồ thần linh #\nCần thêm 1 Capsule vỡ\nSau đó chọn 'Nâng cấp'\nNhận 1 Capsule Kích Hoạt\n(Mở ra đồ Kích Hoạt Vip)";
+                return "Vào hành trang\nChọn 3 Khoáng tái chế\nCần thêm 1 Capsule vỡ\nvà 500 ngọc xanh\nSau đó chọn 'Nâng cấp'\nNhận 1 Capsule tự chọn\nSet Kích Hoạt (Áo/Quần/Găng/Giày/Rada)";
             case CHUYEN_HOA_TRANG_BI_NGOC:
             case CHUYEN_HOA_TRANG_BI_VANG:
                 return "Vào hành trang\nChọn trang bị gốc\n(Áo,quần,găng,giày hoặc rada)\ntừ cấp[+4] trở lên\nChọn tiếp trang bị mới\nchưa nâng cấp cần nhập thể\nsau đó chọn 'Nâng cấp'";

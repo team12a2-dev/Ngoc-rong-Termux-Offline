@@ -405,7 +405,20 @@ public class Trade {
                 }
             }
         }
+        if (tradeStatus != SUCCESS) {
+            HistoryTransactionDAO.insertFailed(player1, player2, goldTrade1, goldTrade2, itemsTrade1, itemsTrade2, getFailReason(tradeStatus));
+        }
         sendNotifyTrade(tradeStatus);
+    }
+
+    private String getFailReason(byte status) {
+        return switch (status) {
+            case FAIL_NOT_ENOUGH_GOLD -> "Không đủ vàng";
+            case FAIL_INVALID_ASSET -> "Vật phẩm đã thay đổi hoặc không còn đủ số lượng";
+            case FAIL_MAX_GOLD_PLAYER1 -> "Vàng sau giao dịch của người chơi 1 vượt tối đa";
+            case FAIL_MAX_GOLD_PLAYER2 -> "Vàng sau giao dịch của người chơi 2 vượt tối đa";
+            default -> "Giao dịch thất bại";
+        };
     }
 
     private List<Item> prepareTradeBag(Player owner, List<Item> outgoing, List<Item> incoming) {
