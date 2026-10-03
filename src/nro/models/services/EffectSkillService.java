@@ -215,18 +215,33 @@ public class EffectSkillService {
             return;
         }
         Boss rabbit = null;
+        List<Player> bosses;
         try {
-            for (Player p : new java.util.ArrayList<>(zone.getBosses())) {
-                if (p.id == BossID.THO_DAI_CA) {
-                    rabbit = (Boss) p;
-                    break;
-                }
-            }
+            bosses = new java.util.ArrayList<>(zone.getBosses());
         } catch (Exception e) {
             Logger.logException(EffectSkillService.class, e);
             return;
         }
-        if (rabbit == null || rabbit.isDie() || rabbit.location == null
+        for (Player p : bosses) {
+            if (p.id == BossID.THO_DAI_CA) {
+                rabbit = (Boss) p;
+                break;
+            }
+        }
+        long now = System.currentTimeMillis();
+        if (rabbit == null) {
+            if (now - lastLogMs.getOrDefault(zone.map.mapId + "_noboss", 0L) > 10000) {
+                lastLogMs.put(zone.map.mapId + "_noboss", now);
+                Logger.warningln("[CaRot] map=" + zone.map.mapId + " zone=" + zone.zoneId + " bosses=" + bosses.size() + " - khong thay tho dai ca");
+            }
+            return;
+        }
+        String bossKey = zone.map.mapId + "_" + zone.zoneId + "_boss";
+        if (now - lastLogMs.getOrDefault(bossKey, 0L) > 5000) {
+            lastLogMs.put(bossKey, now);
+            Logger.warningln("[CaRot] boss status=" + rabbit.bossStatus + " die=" + rabbit.isDie() + " loc=" + (rabbit.location != null ? rabbit.location.x + "," + rabbit.location.y : "null") + " bossesInZone=" + bosses.size());
+        }
+        if (rabbit.isDie() || rabbit.location == null
                 || rabbit.bossStatus != BossStatus.ACTIVE) {
             return;
         }
@@ -237,24 +252,39 @@ public class EffectSkillService {
             Logger.logException(EffectSkillService.class, e);
             return;
         }
+        if (targets.isEmpty()) {
+            return;
+        }
         for (Player player : targets) {
-            if (!isValidCarrotTarget(rabbit, player)) {
+            StringBuilder skip = new StringBuilder();
+            if (player == null) skip.append("null;");
+            if (!player.isPl()) skip.append("!isPl;");
+            if (player.isDie()) skip.append("die;");
+            if (player.location == null) skip.append("noLoc;");
+            if (player.effectSkill == null) skip.append("noEff;");
+            if (player.effectSkill != null && player.effectSkill.isCarrot) skip.append("alreadyCarrot;");
+            int dx = player.location != null ? Math.abs(rabbit.location.x - player.location.x) : 999;
+            int dy = player.location != null ? Math.abs(rabbit.location.y - player.location.y) : 999;
+            if (dx > CARROT_TOUCH_X) skip.append("dx=").append(dx).append(">60;");
+            if (dy > CARROT_TOUCH_Y) skip.append("dy=").append(dy).append(">40;");
+            if (isWearingRabbitDisguise(player)) skip.append("disguise;");
+            if (skip.length() > 0) {
                 continue;
             }
             if (setCarrot(player, CARROT_DURATION)) {
                 Logger.warningln("[CaRot] bien " + player.name + " thanh ca rot - map="
                         + zone.map.mapId + " zone=" + zone.zoneId
-                        + " dx=" + (rabbit.location.x - player.location.x)
-                        + " dy=" + (rabbit.location.y - player.location.y));
-                long now = System.currentTimeMillis();
+                        + " dx=" + dx + " dy=" + dy);
+                long now2 = System.currentTimeMillis();
                 Long last = lastCarrotChatMs.get(rabbit.id);
-                if (last == null || now - last > 5000) {
-                    lastCarrotChatMs.put(rabbit.id, now);
+                if (last == null || now2 - last > 5000) {
+                    lastCarrotChatMs.put(rabbit.id, now2);
                     rabbit.chat("Biến thành cà rốt nào!");
                 }
             }
         }
     }
+    private final java.util.Map<Long, Long> lastLogMs = new java.util.concurrent.ConcurrentHashMap<>();
 
     private boolean isValidCarrotTarget(Boss rabbit, Player player) {
         if (player == null || !player.isPl() || player.isDie() || player.location == null
