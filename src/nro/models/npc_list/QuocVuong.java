@@ -11,7 +11,7 @@ import nro.models.utils.Util;
 
 public class QuocVuong extends Npc {
 
-    private static final byte MAX_LIMIT_CUSTOM = 9;
+    private static final byte MAX_LIMIT_CUSTOM = NPoint.MAX_LIMIT;
 
     public QuocVuong(int mapId, int status, int cx, int cy, int tempId, int avartar) {
         super(mapId, status, cx, cy, tempId, avartar);

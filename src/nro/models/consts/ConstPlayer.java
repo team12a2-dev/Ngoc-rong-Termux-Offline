@@ -4,15 +4,6 @@ public class ConstPlayer {
 
     public static final int[] HEADMONKEY = {192, 195, 196, 199, 197, 200, 198};
 
-    /**
-     * Part head/body/leg hiển thị khi bị Thỏ Đại Ca biến thành cà rốt.
-     *
-     * <p>Bộ part 406/407/408 trong bảng {@code part} là hình củ cà rốt: part thân 407 chứa
-     * toàn bộ sprite củ cà rốt, còn part đầu/chân để rỗng. Không dùng bộ 403/404/405 vì đó
-     * là ngoại hình của NPC69 Thỏ Đại Ca.
-     */
-    public static final short[] CARROT_PART = {406, 407, 408};
-
     public static final byte TRAI_DAT = 0;
     public static final byte NAMEC = 1;
     public static final byte XAYDA = 2;

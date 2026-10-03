@@ -3,6 +3,7 @@ package nro.models.combine;
 import nro.models.consts.ConstNpc;
 import nro.models.item.Item;
 import nro.models.player.Player;
+import nro.models.server.ServerNotify;
 import nro.models.services.InventoryService;
 import nro.models.services.Service;
 import nro.models.utils.Util;
@@ -186,7 +187,9 @@ public class PhaLeHoaTrangBi {
                     } else {
                         optionStar.param = star;
                     }
-                    //  ChatGlobalService.gI().ThongBaoDapDo(player, "Chúc mừng " + player.name + " vừa pha lê hóa thành công " + item.template.name + " lên " + star + " sao pha lê");
+                    if (star >= 6) {
+                        ServerNotify.gI().notify("Chúc mừng " + player.name + " vừa pha lê hóa thành công " + item.template.name + " lên " + star + " sao pha lê");
+                    }
                 }
                 CombineService.gI().sendEffectSuccessCombine(player);
                 CombineService.gI().baHatMit.npcChat(player, "Chúc mừng con nhé");

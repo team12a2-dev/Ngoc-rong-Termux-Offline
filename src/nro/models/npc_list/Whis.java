@@ -94,7 +94,7 @@ public class Whis extends Npc {
     private void handleCheTaoTrangBiThienSu(Player player, int select) {
         switch (select) {
             case 0 ->
-                ShopService.gI().opendShop(player, "THIEN_SU", false);
+                ShopService.gI().opendShop(player, "THIEN_SU", true);
             case 1 -> {
                 if (!player.setClothes.checkSetDes()) {
                     createOtherMenu(player, ConstNpc.IGNORE_MENU,

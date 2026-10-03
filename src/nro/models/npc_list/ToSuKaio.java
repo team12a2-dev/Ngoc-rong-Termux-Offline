@@ -73,7 +73,7 @@ public class ToSuKaio extends Npc {
 
     private void showLimitPowerMyself(Player player) {
         if (player.nPoint.limitPower < NPoint.MAX_LIMIT) {
-            if (player.nPoint.limitPower >= 5 && player.nPoint.limitPower < 9) {
+            if (player.nPoint.limitPower >= 5 && player.nPoint.limitPower < NPoint.MAX_LIMIT) {
                 this.createOtherMenu(player, ConstNpc.OPEN_POWER_MYSEFT,
                         "Ta sẽ truyền năng lượng giúp con mở giới hạn sức mạnh của bản thân lên "
                         + Util.numberToMoney(player.nPoint.getPowerNextLimit()),
@@ -92,7 +92,7 @@ public class ToSuKaio extends Npc {
     }
 
     private void handleLimitPowerMyselfOptions(Player player, int select) {
-        if (player.nPoint.limitPower < 5 || player.nPoint.limitPower >= 9) {
+        if (player.nPoint.limitPower < 5 || player.nPoint.limitPower >= NPoint.MAX_LIMIT) {
             Service.gI().sendThongBao(player, "Sức mạnh của ngươi không đủ 50 tỷ!");
             return;
         }
@@ -124,7 +124,7 @@ public class ToSuKaio extends Npc {
             return;
         }
 
-        if (player.pet.nPoint.limitPower < 5 || player.pet.nPoint.limitPower >= 9) {
+        if (player.pet.nPoint.limitPower < 5 || player.pet.nPoint.limitPower >= NPoint.MAX_LIMIT) {
             this.createOtherMenu(player, ConstNpc.IGNORE_MENU,
                     "Đệ tử của bạn cần đạt 50 tỷ sức mạnh!", "Đóng");
             return;

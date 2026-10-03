@@ -7,27 +7,33 @@ import PageFeedback, { useFeedback } from '../components/PageFeedback';
 const TABS = [
   {
     id: 'transactions',
-    label: 'Giao dịch player',
-    desc: 'Lịch sử trade P2P — ghi khi 2 người chơi hoàn tất giao dịch trong game.',
-    help: 'Dữ liệu từ bảng history_transaction. Game tự xóa log cũ theo chu kỳ — nếu trống là chưa có trade hoặc đã bị dọn.',
+    label: '🤝 Giao Dịch Player (Trade P2P)',
+    desc: 'Lịch sử giao dịch trực tiếp giữa 2 người chơi trong game.',
+    help: 'Dữ liệu từ bảng history_transaction. Tự động ghi lại các cuộc trao đổi vàng, ngọc và vật phẩm.',
   },
   {
     id: 'napthe',
-    label: 'Nạp thẻ',
-    desc: 'Lịch sử nạp thẻ cào qua API/card.',
-    help: 'Bảng napthe — status 1 thường là thành công. Chỉnh VND tài khoản tại trang Accounts.',
+    label: '💳 Nạp Thẻ Cào',
+    desc: 'Lịch sử nạp thẻ cào viễn thông (Viettel, Vina, Mobi, Zing...).',
+    help: 'Bảng napthe — Trạng thái Thành Công (status=1) ghi nhận số tiền đã nạp vào tài khoản.',
   },
   {
     id: 'payments',
-    label: 'Thanh toán',
-    desc: 'Giao dịch payment gateway (thẻ/API tích hợp).',
-    help: 'Bảng payments — cột is_credited = 1 nghĩa đã cộng tiền vào game.',
+    label: '🌐 Cổng Thanh Toán (Gateway)',
+    desc: 'Giao dịch qua cổng thanh toán API tích hợp tự động.',
+    help: 'Bảng payments — is_credited = 1 tức là đã cộng tiền vào ví game của người chơi.',
   },
   {
     id: 'bank',
-    label: 'Chuyển khoản',
-    desc: 'Lịch sử chuyển khoản ngân hàng.',
-    help: 'Bảng bank_transfers — đối chiếu mã giao dịch với username nạp.',
+    label: '🏦 Chuyển Khoản Ngân Hàng',
+    desc: 'Lịch sử chuyển khoản ngân hàng / ví điện tử Momo, ZaloPay.',
+    help: 'Bảng bank_transfers — Tra cứu mã giao dịch, số tiền và tài khoản nhận.',
+  },
+  {
+    id: 'consign',
+    label: '🏪 Chợ Ký Gửi (Toàn Server)',
+    desc: 'Quản lý toàn bộ vật phẩm đang treo bán trên Siêu Thị Ký Gửi.',
+    help: 'Dữ liệu từ bảng shop_ky_gui. Cho phép Admin tra cứu giá bán, người ký gửi và thu hồi/xóa an toàn.',
   },
 ];
 
@@ -51,12 +57,6 @@ function formatTime(v) {
   return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleString('vi-VN');
 }
 
-function truncate(text, max = 80) {
-  const s = String(text ?? '').trim();
-  if (!s) return '—';
-  return s.length > max ? `${s.slice(0, max)}…` : s;
-}
-
 function downloadCsv(filename, headers, rows) {
   const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const lines = [headers.map(escape).join(',')];
@@ -73,7 +73,6 @@ function downloadCsv(filename, headers, rows) {
 export default function EconomyPage() {
   const [tab, setTab] = useState('transactions');
   const [rows, setRows] = useState([]);
-  const [meta, setMeta] = useState(null);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [limit, setLimit] = useState(50);
@@ -84,337 +83,438 @@ export default function EconomyPage() {
   const [expandedId, setExpandedId] = useState(null);
   const fb = useFeedback();
 
-  const tabInfo = TABS.find((t) => t.id === tab);
+  async function deleteConsignItem(id) {
+    if (!window.confirm(`Xóa món đồ ký gửi #${id} khỏi chợ toàn server?`)) return;
+    try {
+      await api(`/economy/consign/${id}`, { method: 'DELETE' });
+      fb.success(`Đã xóa đồ ký gửi #${id} thành công!`);
+      load();
+    } catch (err) {
+      fb.error(err.message);
+    }
+  }
 
-  useEffect(() => {
-    api('/economy/summary')
-      .then((res) => setSummary(res.data || null))
-      .catch(() => {});
-  }, [tab]);
+  async function loadSummary() {
+    try {
+      const res = await api('/economy/summary');
+      setSummary(res.data);
+    } catch {
+      // Bỏ qua lỗi summary
+    }
+  }
 
-  useEffect(() => {
-    let cancelled = false;
+  async function load() {
     setLoading(true);
-    fb.clear();
+    setExpandedId(null);
+    try {
+      const params = new URLSearchParams();
+      params.set('limit', String(limit));
+      if (search) params.set('q', search);
+      if (statusFilter !== '') params.set('status', statusFilter);
+      if (creditedFilter !== '') params.set('credited', creditedFilter);
 
-    const params = new URLSearchParams({ limit: String(limit) });
-    if (search) params.set('q', search);
-    if (tab === 'napthe' && statusFilter !== '') params.set('status', statusFilter);
-    if ((tab === 'payments' || tab === 'bank') && creditedFilter !== '') params.set('credited', creditedFilter);
+      const res = await api(`/economy/${tab}?${params.toString()}`);
+      setRows(res.data || []);
+    } catch (err) {
+      fb.error(err.message);
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    api(`/economy/${tab}?${params}`)
-      .then((res) => {
-        if (cancelled) return;
-        setRows(res.data || []);
-        setMeta(res.meta || null);
-        if (res.meta?.unavailable) fb.show('Bảng bank_transfers chưa có trên database này.', 'info');
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setRows([]);
-        setMeta(null);
-        const msg = /404/.test(e.message)
-          ? 'Panel API chưa có route mới. Chạy panel\\stop-panel.bat rồi panel\\start-panel.bat.'
-          : e.message;
-        fb.error(msg);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+  useEffect(() => {
+    loadSummary();
+  }, []);
 
-    return () => { cancelled = true; };
+  useEffect(() => {
+    load();
   }, [tab, limit, search, statusFilter, creditedFilter]);
 
-  function reload() {
+  function handleSearchSubmit(e) {
+    e.preventDefault();
     setSearch(searchInput.trim());
   }
 
-  function applySearch(e) {
-    e?.preventDefault();
-    reload();
-  }
+  const currentTabInfo = useMemo(() => TABS.find((t) => t.id === tab), [tab]);
 
-  const csvData = useMemo(() => {
-    if (tab === 'transactions') {
-      return {
-        headers: ['ID', 'Người gửi', 'Người nhận', 'Item gửi', 'Item nhận', 'Thời gian'],
-        rows: rows.map((r) => [r.id, r.player_1, r.player_2, r.item_player_1, r.item_player_2, r.time_tran]),
-      };
-    }
-    if (tab === 'napthe') {
-      return {
-        headers: ['ID', 'Username', 'Telco', 'Mệnh giá', 'Status', 'Thời gian'],
-        rows: rows.map((r) => [r.id, r.user_nap, r.telco, r.amount, r.status, r.created_at]),
-      };
-    }
-    if (tab === 'payments') {
-      return {
-        headers: ['ID', 'Tên/Mã', 'Ref', 'Khai báo', 'Cộng thực tế', 'Trạng thái', 'Đã cộng', 'Ngày'],
-        rows: rows.map((r) => [r.id, r.name, r.refNo, r.declared_amount, r.final_credited_amount, r.status_text, r.is_credited, r.date]),
-      };
-    }
-    return {
-      headers: ['ID', 'Mã GD', 'Username', 'Số tiền', 'Trạng thái', 'Ngân hàng', 'Đã cộng', 'Thời gian'],
-      rows: rows.map((r) => [r.id, r.transaction_id, r.username, r.amount, r.status, r.sender_bank_name, r.is_credited, r.created_at]),
-    };
-  }, [tab, rows]);
-
-  function exportCsv() {
+  // Handle Export CSV
+  function handleExportCsv() {
     if (!rows.length) {
-      fb.show('Không có dữ liệu để xuất.', 'info');
+      fb.error('Không có dữ liệu để xuất CSV.');
       return;
     }
-    downloadCsv(`economy-${tab}-${new Date().toISOString().slice(0, 10)}.csv`, csvData.headers, csvData.rows);
-    fb.success('Đã xuất CSV.');
+    let headers = [];
+    let mappedRows = [];
+    if (tab === 'transactions') {
+      headers = ['ID', 'Player 1', 'Player 2', 'Nội dung', 'Thời gian'];
+      mappedRows = rows.map((r) => [r.id, r.player_1, r.player_2, r.detail, r.time]);
+    } else if (tab === 'napthe') {
+      headers = ['ID', 'Tài khoản', 'Nhà mạng', 'Mã thẻ', 'Seri', 'Mệnh giá', 'Trạng thái', 'Thời gian'];
+      mappedRows = rows.map((r) => [r.id, r.user_nap, r.nha_mang, r.ma_the, r.seri, r.amount, r.status, r.time]);
+    } else if (tab === 'bank') {
+      headers = ['ID', 'Username', 'Mã GD', 'Số tiền', 'Đã cộng ví', 'Thời gian'];
+      mappedRows = rows.map((r) => [r.id, r.username, r.transaction_id, r.amount, r.is_credited, r.created_at]);
+    } else if (tab === 'payments') {
+      headers = ['ID', 'Tên', 'Mã GD', 'Số tiền', 'Thực nhận', 'Đã cộng', 'Thời gian'];
+      mappedRows = rows.map((r) => [r.id, r.name, r.order_id, r.amount, r.final_credited_amount, r.is_credited, r.created_at]);
+    } else if (tab === 'consign') {
+      headers = ['ID', 'Player ID', 'Tab', 'Item ID', 'Giá vàng', 'Giá ngọc', 'Số lượng'];
+      mappedRows = rows.map((r) => [r.id, r.player_id, r.tab, r.item_id, r.gold_sell, r.gem_sell, r.quantity]);
+    }
+    downloadCsv(`economy_${tab}_${Date.now()}.csv`, headers, mappedRows);
+    fb.success(`Đã xuất ${rows.length} dòng dữ liệu ra file CSV!`);
   }
 
-  const summaryLine = useMemo(() => {
-    if (!summary) return null;
-    if (tab === 'transactions' && summary.transactions) {
-      return `Tổng ${Number(summary.transactions.total || 0).toLocaleString('vi-VN')} giao dịch trong DB`;
-    }
-    if (tab === 'napthe' && summary.napthe) {
-      const s = summary.napthe;
-      return `Tổng ${formatNum(s.total)} thẻ · ${formatNum(s.success_count)} thành công · ${formatNum(s.success_amount)} VND thẻ OK`;
-    }
-    if (tab === 'payments' && summary.payments) {
-      const s = summary.payments;
-      return `Tổng ${formatNum(s.total)} GD · ${formatNum(s.credited_count)} đã cộng · ${formatNum(s.credited_amount)} VND`;
-    }
-    if (tab === 'bank' && summary.bank) {
-      const s = summary.bank;
-      return `Tổng ${formatNum(s.total)} CK · ${formatNum(s.credited_count)} đã cộng · ${formatNum(s.credited_amount)} VND`;
-    }
-    return null;
-  }, [tab, summary]);
-
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <PageHeader
-        title="Kinh tế & Giao dịch"
-        description="Theo dõi trade, nạp thẻ, payment và chuyển khoản — đọc trực tiếp từ database game, không cần SQL thủ công."
+        title="Quản Lý Kinh Tế & Giao Dịch (Economy Studio)"
+        description="Theo dõi toàn cảnh dòng tiền server: nạp thẻ cào, chuyển khoản ngân hàng, gateway, giao dịch P2P và chợ ký gửi."
         actions={
-          <>
-            <button type="button" className="btn" onClick={reload} disabled={loading}>
-              {loading ? 'Đang tải...' : 'Làm mới'}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="button" className="btn secondary" onClick={handleExportCsv} title="Xuất toàn bộ bảng ra file CSV">
+              📥 Xuất CSV
             </button>
-            <button type="button" className="btn" onClick={exportCsv} disabled={!rows.length}>
-              Xuất CSV
+            <button type="button" className="btn primary" onClick={() => { loadSummary(); load(); }}>
+              🔄 Tải Lại Dữ Liệu
             </button>
-          </>
+          </div>
         }
       />
 
-      <div className="help-box">
-        <h4>Cách vận hành</h4>
-        <ul>
-          <li>Mỗi tab đọc từ <strong>bảng DB khác nhau</strong> — chọn đúng loại giao dịch cần tra cứu.</li>
-          <li>Dùng <strong>Tìm kiếm</strong> theo tên player hoặc username; lọc trạng thái trên tab Nạp thẻ / Thanh toán.</li>
-          <li>Bảng trống có thể do chưa phát sinh giao dịch, hoặc game đã dọn log cũ (đặc biệt tab Giao dịch player).</li>
-          <li>Chỉnh số dư tài khoản tại <Link to="/accounts">Accounts</Link> — trang này chỉ xem lịch sử.</li>
-        </ul>
-        {tabInfo?.help && <p className="muted" style={{ margin: '8px 0 0' }}>{tabInfo.help}</p>}
-      </div>
-
       <PageFeedback msg={fb.msg} type={fb.type} onDismiss={fb.clear} />
 
-      {summaryLine && <p className="muted" style={{ marginBottom: 12 }}>{summaryLine}</p>}
+      {/* 4 THẺ THỐNG KÊ TỔNG QUAN */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+        <div className="card-inner" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '14px', padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="muted" style={{ fontSize: '0.85rem' }}>💳 Nạp Thẻ Cào (Napthe)</span>
+            <span style={{ fontSize: '1.4rem' }}>💳</span>
+          </div>
+          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#60a5fa', marginTop: '6px' }}>
+            {formatNum(summary?.napthe?.success_amount || 0)} đ
+          </div>
+          <div className="muted" style={{ fontSize: '0.8rem', marginTop: '4px' }}>
+            {summary?.napthe?.success_count || 0} / {summary?.napthe?.total || 0} thẻ nạp thành công
+          </div>
+        </div>
 
-      <div className="editor-tabs">
-        {TABS.map((t) => (
-          <button key={t.id} type="button" className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
-            {t.label}
-          </button>
-        ))}
+        <div className="card-inner" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '14px', padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="muted" style={{ fontSize: '0.85rem' }}>🏦 Chuyển Khoản Ngân Hàng</span>
+            <span style={{ fontSize: '1.4rem' }}>🏦</span>
+          </div>
+          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#34d399', marginTop: '6px' }}>
+            {formatNum(summary?.bank?.credited_amount || 0)} đ
+          </div>
+          <div className="muted" style={{ fontSize: '0.8rem', marginTop: '4px' }}>
+            {summary?.bank?.credited_count || 0} / {summary?.bank?.total || 0} giao dịch xác nhận
+          </div>
+        </div>
+
+        <div className="card-inner" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '14px', padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="muted" style={{ fontSize: '0.85rem' }}>🌐 Gateway Thanh Toán</span>
+            <span style={{ fontSize: '1.4rem' }}>🌐</span>
+          </div>
+          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#facc15', marginTop: '6px' }}>
+            {formatNum(summary?.payments?.credited_amount || 0)} đ
+          </div>
+          <div className="muted" style={{ fontSize: '0.8rem', marginTop: '4px' }}>
+            {summary?.payments?.credited_count || 0} / {summary?.payments?.total || 0} GD đã cộng ví
+          </div>
+        </div>
+
+        <div className="card-inner" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '14px', padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="muted" style={{ fontSize: '0.85rem' }}>🤝 Giao Dịch P2P Trong Game</span>
+            <span style={{ fontSize: '1.4rem' }}>🤝</span>
+          </div>
+          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#c084fc', marginTop: '6px' }}>
+            {formatNum(summary?.transactions?.total || 0)}
+          </div>
+          <div className="muted" style={{ fontSize: '0.8rem', marginTop: '4px' }}>Lượt trao đổi hoàn tất giữa player</div>
+        </div>
       </div>
-      <p className="muted">{tabInfo?.desc}</p>
 
-      <form className="row filters" onSubmit={applySearch}>
-        <label>
-          Số dòng
-          <select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
-            {LIMIT_OPTIONS.map((n) => (
-              <option key={n} value={n}>{n} dòng</option>
-            ))}
-          </select>
-        </label>
+      {/* THANH CHỌN TAB HIỆN ĐẠI */}
+      <div className="card" style={{ padding: '14px 18px', borderRadius: '14px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`btn sm ${tab === t.id ? 'primary' : 'ghost'}`}
+              style={{
+                fontWeight: tab === t.id ? 700 : 500,
+                borderRadius: '8px',
+                padding: '8px 16px',
+              }}
+              onClick={() => {
+                setTab(t.id);
+                setSearch('');
+                setSearchInput('');
+                setStatusFilter('');
+                setCreditedFilter('');
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-        {tab === 'napthe' && (
-          <label>
-            Trạng thái
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="">Tất cả</option>
-              {Object.entries(NAPTHE_STATUS).map(([k, v]) => (
-                <option key={k} value={k}>{v.label}</option>
+        {currentTabInfo && (
+          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+            <div>
+              <strong style={{ color: '#93c5fd', fontSize: '0.95rem' }}>{currentTabInfo.desc}</strong>
+              <div className="muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>{currentTabInfo.help}</div>
+            </div>
+
+            {/* BỘ LỌC TÌM KIẾM */}
+            <form onSubmit={handleSearchSubmit} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <input
+                className="input sm"
+                style={{ width: '220px' }}
+                placeholder="🔍 Tìm username, mã GD..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+              <button type="submit" className="btn sm">Tìm</button>
+              {search && (
+                <button
+                  type="button"
+                  className="btn sm ghost"
+                  onClick={() => {
+                    setSearch('');
+                    setSearchInput('');
+                  }}
+                >
+                  ✕ Xóa lọc
+                </button>
+              )}
+
+              {/* Lọc theo status nếu là napthe */}
+              {tab === 'napthe' && (
+                <select className="input sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="1">🟢 Thành công</option>
+                  <option value="0">🟡 Chờ xử lý</option>
+                  <option value="2">🔴 Thất bại</option>
+                </select>
+              )}
+
+              {/* Lọc theo credited nếu là payments/bank */}
+              {(tab === 'payments' || tab === 'bank') && (
+                <select className="input sm" value={creditedFilter} onChange={(e) => setCreditedFilter(e.target.value)}>
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="1">🟢 Đã cộng ví</option>
+                  <option value="0">🟡 Chưa cộng</option>
+                </select>
+              )}
+
+              <select className="input sm" value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+                {LIMIT_OPTIONS.map((l) => (
+                  <option key={l} value={l}>{l} dòng</option>
+                ))}
+              </select>
+            </form>
+          </div>
+        )}
+      </div>
+
+      {/* BẢNG DỮ LIỆU CHÍNH */}
+      <div className="table-wrap card" style={{ padding: 0, borderRadius: '14px', overflow: 'hidden' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)' }}>
+            ⏳ Đang tải dữ liệu lịch sử từ Database MySQL...
+          </div>
+        ) : rows.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)' }}>
+            Không có dữ liệu giao dịch nào khớp với điều kiện tìm kiếm.
+          </div>
+        ) : (
+          <table className="compact" style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: 'rgba(15, 23, 42, 0.85)', borderBottom: '1px solid var(--border)' }}>
+                {tab === 'transactions' && (
+                  <>
+                    <th style={{ width: '80px' }}>ID</th>
+                    <th>Người Giao Dịch 1</th>
+                    <th>Người Giao Dịch 2</th>
+                    <th>Chi Tiết Vật Phẩm / Tiền</th>
+                    <th style={{ width: '160px' }}>Thời Gian</th>
+                  </>
+                )}
+                {tab === 'napthe' && (
+                  <>
+                    <th style={{ width: '80px' }}>ID</th>
+                    <th>Tài Khoản</th>
+                    <th>Nhà Mạng</th>
+                    <th>Mã Thẻ / Seri</th>
+                    <th>Mệnh Giá</th>
+                    <th>Trạng Thái</th>
+                    <th style={{ width: '160px' }}>Thời Gian</th>
+                  </>
+                )}
+                {tab === 'bank' && (
+                  <>
+                    <th style={{ width: '80px' }}>ID</th>
+                    <th>Tài Khoản</th>
+                    <th>Mã Giao Dịch</th>
+                    <th>Số Tiền</th>
+                    <th>Cộng Ví</th>
+                    <th style={{ width: '160px' }}>Thời Gian</th>
+                  </>
+                )}
+                {tab === 'payments' && (
+                  <>
+                    <th style={{ width: '80px' }}>ID</th>
+                    <th>Tài Khoản</th>
+                    <th>Mã Giao Dịch</th>
+                    <th>Số Tiền Gốc</th>
+                    <th>Thực Nhận</th>
+                    <th>Trạng Thái</th>
+                    <th style={{ width: '160px' }}>Thời Gian</th>
+                  </>
+                )}
+                {tab === 'consign' && (
+                  <>
+                    <th style={{ width: '80px' }}>ID</th>
+                    <th>Người Bán (Player ID)</th>
+                    <th>Tab Chợ</th>
+                    <th>ID Vật Phẩm</th>
+                    <th>Giá Vàng</th>
+                    <th>Giá Ngọc</th>
+                    <th>Số Lượng</th>
+                    <th style={{ width: '100px', textAlign: 'center' }}>Thao Tác</th>
+                  </>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, idx) => (
+                <tr
+                  key={row.id || idx}
+                  style={{
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    background: idx % 2 === 1 ? 'rgba(255, 255, 255, 0.015)' : 'transparent',
+                  }}
+                >
+                  {tab === 'transactions' && (
+                    <>
+                      <td>#{row.id}</td>
+                      <td>
+                        <strong>{row.player_1}</strong>
+                        {row.id_player_1 && <div className="muted" style={{ fontSize: '0.75rem' }}>ID: {row.id_player_1}</div>}
+                      </td>
+                      <td>
+                        <strong>{row.player_2}</strong>
+                        {row.id_player_2 && <div className="muted" style={{ fontSize: '0.75rem' }}>ID: {row.id_player_2}</div>}
+                      </td>
+                      <td>
+                        <div
+                          style={{
+                            maxWidth: '480px',
+                            whiteSpace: expandedId === row.id ? 'pre-wrap' : 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            fontSize: '0.85rem',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => setExpandedId(expandedId === row.id ? null : row.id)}
+                          title="Bấm để xem đầy đủ / thu gọn"
+                        >
+                          {row.detail || '—'}
+                        </div>
+                      </td>
+                      <td className="muted" style={{ fontSize: '0.82rem' }}>{formatTime(row.time)}</td>
+                    </>
+                  )}
+
+                  {tab === 'napthe' && (
+                    <>
+                      <td>#{row.id}</td>
+                      <td>
+                        <strong>{row.user_nap || '—'}</strong>
+                      </td>
+                      <td><span className="badge sm secondary">{row.nha_mang}</span></td>
+                      <td>
+                        <div><code>{row.ma_the}</code></div>
+                        <div className="muted" style={{ fontSize: '0.75rem' }}>Seri: {row.seri}</div>
+                      </td>
+                      <td><strong style={{ color: '#facc15' }}>{formatNum(row.amount)} đ</strong></td>
+                      <td>
+                        <span className={`badge sm ${NAPTHE_STATUS[row.status]?.cls || ''}`}>
+                          {NAPTHE_STATUS[row.status]?.label || `Code ${row.status}`}
+                        </span>
+                      </td>
+                      <td className="muted" style={{ fontSize: '0.82rem' }}>{formatTime(row.time)}</td>
+                    </>
+                  )}
+
+                  {tab === 'bank' && (
+                    <>
+                      <td>#{row.id}</td>
+                      <td><strong>{row.username || '—'}</strong></td>
+                      <td><code>{row.transaction_id || '—'}</code></td>
+                      <td><strong style={{ color: '#34d399' }}>{formatNum(row.amount)} đ</strong></td>
+                      <td>
+                        <span className={`badge sm ${row.is_credited ? 'ok' : 'warn'}`}>
+                          {row.is_credited ? 'Đã cộng' : 'Chưa'}
+                        </span>
+                      </td>
+                      <td className="muted" style={{ fontSize: '0.82rem' }}>{formatTime(row.created_at)}</td>
+                    </>
+                  )}
+
+                  {tab === 'payments' && (
+                    <>
+                      <td>#{row.id}</td>
+                      <td><strong>{row.name || '—'}</strong></td>
+                      <td><code>{row.order_id || '—'}</code></td>
+                      <td><strong style={{ color: '#93c5fd' }}>{formatNum(row.amount)} đ</strong></td>
+                      <td><strong style={{ color: '#34d399' }}>{formatNum(row.final_credited_amount || row.amount)} đ</strong></td>
+                      <td>
+                        <span className={`badge sm ${row.is_credited ? 'ok' : 'warn'}`}>
+                          {row.is_credited ? 'Thành công' : 'Chờ duyệt'}
+                        </span>
+                      </td>
+                      <td className="muted" style={{ fontSize: '0.82rem' }}>{formatTime(row.created_at)}</td>
+                    </>
+                  )}
+
+                  {tab === 'consign' && (
+                    <>
+                      <td>#{row.id}</td>
+                      <td>
+                        <Link to={`/players-db?open=${row.player_id}`} style={{ fontWeight: 600, color: '#60a5fa' }}>
+                          Player #{row.player_id}
+                        </Link>
+                      </td>
+                      <td><span className="badge sm">Tab {row.tab}</span></td>
+                      <td><strong>Item #{row.item_id}</strong></td>
+                      <td><span style={{ color: '#facc15', fontWeight: 600 }}>{formatNum(row.gold_sell)} vàng</span></td>
+                      <td><span style={{ color: '#34d399', fontWeight: 600 }}>{formatNum(row.gem_sell)} ngọc</span></td>
+                      <td>{formatNum(row.quantity || 1)}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          className="btn sm danger"
+                          onClick={() => deleteConsignItem(row.id)}
+                          title="Hủy/Thu hồi vật phẩm ký gửi khỏi chợ"
+                        >
+                          Thu hồi
+                        </button>
+                      </td>
+                    </>
+                  )}
+                </tr>
               ))}
-            </select>
-          </label>
+            </tbody>
+          </table>
         )}
-
-        {(tab === 'payments' || tab === 'bank') && (
-          <label>
-            Đã cộng tiền
-            <select value={creditedFilter} onChange={(e) => setCreditedFilter(e.target.value)}>
-              <option value="">Tất cả</option>
-              <option value="1">Đã cộng</option>
-              <option value="0">Chưa cộng</option>
-            </select>
-          </label>
-        )}
-
-        <input
-          placeholder={
-            tab === 'transactions' ? 'Tìm tên player...'
-              : tab === 'bank' ? 'Username / mã GD...'
-                : 'Username / mã ref...'
-          }
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
-        <button className="btn primary" type="submit" disabled={loading}>Áp dụng</button>
-        {search && (
-          <button type="button" className="btn sm" onClick={() => { setSearch(''); setSearchInput(''); }}>
-            Xóa lọc
-          </button>
-        )}
-      </form>
-
-      {meta && (
-        <p className="muted" style={{ marginBottom: 12 }}>
-          Hiển thị {meta.count ?? rows.length} bản ghi
-          {search ? ` · lọc "${search}"` : ''}
-          {' · '}
-          Cập nhật {new Date(meta.updatedAt).toLocaleTimeString('vi-VN')}
-        </p>
-      )}
-
-      {loading && rows.length === 0 ? (
-        <p className="muted">Đang tải...</p>
-      ) : rows.length === 0 ? (
-        <div className="empty-state">
-          Không có dữ liệu {tabInfo?.label.toLowerCase()}{search ? ` cho "${search}"` : ''}.
-          {tab === 'transactions' && (
-            <p className="muted" style={{ marginTop: 8 }}>
-              Giao dịch chỉ xuất hiện khi player trade thành công trong game. Thử tab Nạp thẻ / Thanh toán nếu cần tra nạp tiền.
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="table-wrap">
-          {tab === 'transactions' && (
-            <table>
-              <thead>
-                <tr><th>#</th><th>Người gửi</th><th>Người nhận</th><th>Item / vàng gửi</th><th>Thời gian</th><th></th></tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <tr key={r.id}>
-                    <td>{i + 1}</td>
-                    <td>{r.player_1}</td>
-                    <td>{r.player_2}</td>
-                    <td title={r.item_player_1}>{truncate(r.item_player_1, 60)}</td>
-                    <td>{formatTime(r.time_tran)}</td>
-                    <td>
-                      <button type="button" className="btn sm" onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
-                        {expandedId === r.id ? 'Thu gọn' : 'Chi tiết'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-
-          {tab === 'napthe' && (
-            <table>
-              <thead>
-                <tr><th>#</th><th>Username</th><th>Telco</th><th>Mệnh giá</th><th>Trạng thái</th><th>Thời gian</th><th></th></tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => {
-                  const st = NAPTHE_STATUS[r.status] || { label: `Status ${r.status}`, cls: '' };
-                  return (
-                    <tr key={r.id}>
-                      <td>{i + 1}</td>
-                      <td>{r.user_nap}</td>
-                      <td>{r.telco || '—'}</td>
-                      <td>{formatNum(r.amount)}</td>
-                      <td><span className={`badge ${st.cls}`}>{st.label}</span></td>
-                      <td>{formatTime(r.created_at)}</td>
-                      <td><Link className="btn sm" to="/accounts" state={{ search: r.user_nap }}>Account</Link></td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-
-          {tab === 'payments' && (
-            <table>
-              <thead>
-                <tr><th>#</th><th>Tên/Mã</th><th>Ref</th><th>Khai báo</th><th>Cộng thực tế</th><th>Trạng thái</th><th>Đã cộng</th><th>Ngày</th></tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <tr key={r.id}>
-                    <td>{i + 1}</td>
-                    <td>{r.name}</td>
-                    <td>{truncate(r.refNo, 20)}</td>
-                    <td>{formatNum(r.declared_amount)}</td>
-                    <td>{formatNum(r.final_credited_amount)}</td>
-                    <td>{r.status_text || r.api_status_code || '—'}</td>
-                    <td><span className={`badge ${r.is_credited ? 'ok' : 'warn'}`}>{r.is_credited ? 'Đã cộng' : 'Chưa'}</span></td>
-                    <td>{formatTime(r.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-
-          {tab === 'bank' && (
-            <table>
-              <thead>
-                <tr><th>#</th><th>Mã GD</th><th>Username</th><th>Số tiền</th><th>Trạng thái</th><th>Ngân hàng</th><th>Đã cộng</th><th>Thời gian</th></tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <tr key={r.id}>
-                    <td>{i + 1}</td>
-                    <td>{truncate(r.transaction_id, 24)}</td>
-                    <td>{r.username}</td>
-                    <td>{formatNum(r.amount)}</td>
-                    <td>{r.status || '—'}</td>
-                    <td>{r.sender_bank_name || '—'}</td>
-                    <td><span className={`badge ${r.is_credited ? 'ok' : 'warn'}`}>{r.is_credited ? 'Đã cộng' : 'Chưa'}</span></td>
-                    <td>{formatTime(r.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-
-      {expandedId != null && tab === 'transactions' && (
-        <div className="control-card section" style={{ marginTop: 16 }}>
-          <h3>Chi tiết giao dịch #{expandedId}</h3>
-          {(() => {
-            const r = rows.find((x) => x.id === expandedId);
-            if (!r) return null;
-            return (
-              <>
-                <p><strong>Gửi:</strong> {r.player_1}</p>
-                <p><strong>Nhận:</strong> {r.player_2}</p>
-                <p><strong>Item player 1:</strong></p>
-                <pre>{r.item_player_1 || '—'}</pre>
-                <p><strong>Item player 2:</strong></p>
-                <pre>{r.item_player_2 || '—'}</pre>
-                <p className="muted">Thời gian: {formatTime(r.time_tran)}</p>
-              </>
-            );
-          })()}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

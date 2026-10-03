@@ -44,7 +44,8 @@ import static nro.models.consts.BossType.TRUNGTHU_EVENT;
 import static nro.models.consts.BossType.YARDART;
 import nro.models.network.Message;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import nro.models.map.Zone;
 import nro.models.mob.Mob;
 import nro.models.player.Pet;
@@ -140,6 +141,50 @@ public class Boss extends Player implements IBoss {
     protected long lastTimeTargetPlayer;
     protected int timeTargetPlayer;
     protected Player playerTarger;
+    protected final Map<Long, ThreatEntry> threatMap = new ConcurrentHashMap<>();
+
+    public static class ThreatEntry {
+        public final Player player;
+        public long totalDamage;
+        public long lastAttackTime;
+
+        public ThreatEntry(Player player, long damage) {
+            this.player = player;
+            this.totalDamage = damage;
+            this.lastAttackTime = System.currentTimeMillis();
+        }
+
+        public void addDamage(long damage) {
+            this.totalDamage += damage;
+            this.lastAttackTime = System.currentTimeMillis();
+        }
+    }
+
+    public void addThreat(Player attacker, long damage) {
+        if (attacker == null || attacker.equals(this) || attacker.isDie()) {
+            return;
+        }
+        Player realAttacker = attacker;
+        if (realAttacker.isPet && ((Pet) realAttacker).master != null) {
+            realAttacker = ((Pet) realAttacker).master;
+        }
+        if (realAttacker.isDie() || realAttacker.equals(this)) {
+            return;
+        }
+        ThreatEntry entry = threatMap.get(realAttacker.id);
+        if (entry == null) {
+            threatMap.put(realAttacker.id, new ThreatEntry(realAttacker, damage));
+        } else {
+            entry.addDamage(damage);
+        }
+        // Phản đòn: Nếu chưa có mục tiêu hoặc mục tiêu cũ đã chết/ra map khác -> Đổi sang kẻ vừa đánh mình ngay
+        if (this.playerTarger == null || this.playerTarger.isDie() || !this.zone.equals(this.playerTarger.zone)) {
+            this.playerTarger = realAttacker;
+        } else if (!this.playerTarger.equals(realAttacker) && Util.isTrue(35, 100)) {
+            // Xác suất 35% chuyển sang kẻ tấn công mới gây khó chịu
+            this.playerTarger = realAttacker;
+        }
+    }
 
     protected Boss parentBoss;
     public Boss[][] bossAppearTogether;
@@ -155,6 +200,7 @@ public class Boss extends Player implements IBoss {
     public boolean prepareBom;
 public long lastBomTime; // ← thêm dòng này
 public Player bomAttacker; // thêm dòng này
+    public BossType bossType;
     public boolean isNotifyDisabled;
     public boolean isZone01SpawnDisabled;
 
@@ -199,6 +245,7 @@ public Player bomAttacker; // thêm dòng này
     }
 
     public Boss(BossType bossType, int id, BossData... data) throws Exception {
+        this.bossType = bossType;
         this.id = id;
         this.isBoss = true;
         if (data == null || data.length == 0) {
@@ -275,17 +322,28 @@ public Player bomAttacker; // thêm dòng này
 
     protected void initSkill() {
         for (Skill skill : this.playerSkill.skills) {
-            skill.dispose();
+            if (skill != null) {
+                skill.dispose();
+            }
         }
         this.playerSkill.skills.clear();
         this.playerSkill.skillSelect = null;
-        int[][] skillTemps = data[this.currentLevel].getSkillTemp();
-        for (int[] skillTemp : skillTemps) {
-            Skill skill = SkillUtil.createSkill(skillTemp[0], skillTemp[1]);
-            if (skillTemp.length == 3) {
-                skill.coolDown = skillTemp[2];
+        if (data != null && this.currentLevel >= 0 && this.currentLevel < data.length && data[this.currentLevel] != null) {
+            int[][] skillTemps = data[this.currentLevel].getSkillTemp();
+            if (skillTemps != null) {
+                for (int[] skillTemp : skillTemps) {
+                    if (skillTemp == null || skillTemp.length < 2) {
+                        continue;
+                    }
+                    Skill skill = SkillUtil.createSkill(skillTemp[0], skillTemp[1]);
+                    if (skill != null) {
+                        if (skillTemp.length >= 3) {
+                            skill.coolDown = skillTemp[2];
+                        }
+                        this.playerSkill.skills.add(skill);
+                    }
+                }
             }
-            this.playerSkill.skills.add(skill);
         }
     }
 
@@ -296,6 +354,8 @@ public Player bomAttacker; // thêm dòng này
         this.timeChatE = 0;
         this.indexChatS = 0;
         this.indexChatE = 0;
+        this.threatMap.clear();
+        this.playerTarger = null;
     }
 
     //.outfit.
@@ -303,6 +363,12 @@ public Player bomAttacker; // thêm dòng này
     public short getHead() {
         if (effectSkill != null && effectSkill.isBinh) {
             return idOutfitMafuba[effectSkill.typeBinh][0];
+        }
+        if (effectSkill != null && effectSkill.isStone) {
+            return 454;
+        }
+        if (effectSkill != null && effectSkill.isSocola) {
+            return (short) (effectSkill.typeSocola == 1 ? 406 : 412);
         }
         if (effectSkill != null && effectSkill.isMonkey) {
             return (short) ConstPlayer.HEADMONKEY[effectSkill.levelMonkey - 1];
@@ -315,6 +381,12 @@ public Player bomAttacker; // thêm dòng này
         if (effectSkill != null && effectSkill.isBinh) {
             return idOutfitMafuba[effectSkill.typeBinh][1];
         }
+        if (effectSkill != null && effectSkill.isStone) {
+            return 455;
+        }
+        if (effectSkill != null && effectSkill.isSocola) {
+            return (short) (effectSkill.typeSocola == 1 ? 407 : 413);
+        }
         if (effectSkill != null && effectSkill.isMonkey) {
             return 193;
         }
@@ -325,6 +397,12 @@ public Player bomAttacker; // thêm dòng này
     public short getLeg() {
         if (effectSkill != null && effectSkill.isBinh) {
             return idOutfitMafuba[effectSkill.typeBinh][2];
+        }
+        if (effectSkill != null && effectSkill.isStone) {
+            return 456;
+        }
+        if (effectSkill != null && effectSkill.isSocola) {
+            return (short) (effectSkill.typeSocola == 1 ? 408 : 414);
         }
         if (effectSkill != null && effectSkill.isMonkey) {
             return 194;
@@ -365,42 +443,6 @@ public Player bomAttacker; // thêm dòng này
         return map;
     }
 
-    /**
-     * Chọn vị trí spawn mới cho mini boss: không tái sử dụng lastZone,
-     * ưu tiên map ít boss đang hoạt động và khu chưa có boss.
-     */
-    protected Zone getRandomMiniSpawnZone() {
-        Zone selectedMapZone = getMapJoin();
-        if (selectedMapZone == null || selectedMapZone.map == null
-                || selectedMapZone.map.zones == null || selectedMapZone.map.zones.isEmpty()) {
-            return selectedMapZone;
-        }
-
-        List<Zone> freeZones = new ArrayList<>();
-        int minBosses = Integer.MAX_VALUE;
-        List<Zone> leastBusyZones = new ArrayList<>();
-        for (Zone candidate : selectedMapZone.map.zones) {
-            if (candidate == null) {
-                continue;
-            }
-            int bossCount = candidate.getBosses().size();
-            if (bossCount == 0) {
-                freeZones.add(candidate);
-            }
-            if (bossCount < minBosses) {
-                minBosses = bossCount;
-                leastBusyZones.clear();
-                leastBusyZones.add(candidate);
-            } else if (bossCount == minBosses) {
-                leastBusyZones.add(candidate);
-            }
-        }
-        List<Zone> candidates = freeZones.isEmpty() ? leastBusyZones : freeZones;
-        return candidates.isEmpty()
-                ? selectedMapZone
-                : candidates.get(Util.nextInt(0, candidates.size() - 1));
-    }
-
     @Override
     public void changeStatus(BossStatus status) {
         if (status == BossStatus.DIE && this.bossStatus != BossStatus.DIE && !panelDropRewarded && playerReward != null) {
@@ -424,13 +466,64 @@ public Player bomAttacker; // thêm dòng này
         if (this.playerTarger != null && (this.playerTarger.isDie() || !this.zone.equals(this.playerTarger.zone))) {
             this.playerTarger = null;
         }
-        if (this.playerTarger == null || Util.canDoWithTime(this.lastTimeTargetPlayer, this.timeTargetPlayer)) {
-            this.playerTarger = this.zone.getRandomPlayerInMap();
-            this.lastTimeTargetPlayer = System.currentTimeMillis();
-            this.timeTargetPlayer = Util.nextInt(5000, 7000);
-        }
         if (this.playerTarger != null && this.playerTarger.isPet && ((Pet) this.playerTarger).master != null && ((Pet) this.playerTarger).master.equals(this)) {
             this.playerTarger = null;
+        }
+
+        long now = System.currentTimeMillis();
+        // Dọn dẹp bảng thù hận cũ (> 15 giây không gây sát thương hoặc đã rời map / chết)
+        threatMap.entrySet().removeIf(e -> {
+            Player pl = e.getValue().player;
+            return pl == null || pl.isDie() || !this.zone.equals(pl.zone) || (now - e.getValue().lastAttackTime > 15_000L);
+        });
+
+        if (this.playerTarger == null || Util.canDoWithTime(this.lastTimeTargetPlayer, this.timeTargetPlayer)) {
+            Player bestTarget = null;
+            long highestThreat = -1;
+
+            // 1. Ưu tiên cao nhất: Tìm kẻ gây sát thương lớn nhất / vừa đánh Boss trong threatMap
+            for (ThreatEntry entry : threatMap.values()) {
+                Player pl = entry.player;
+                if (pl != null && !pl.isDie() && this.zone.equals(pl.zone)) {
+                    if ((pl.effectSkin != null && pl.effectSkin.isVoHinh) || (pl.effectSkill != null && pl.effectSkill.isTanHinh)) {
+                        continue;
+                    }
+                    if (entry.totalDamage > highestThreat) {
+                        highestThreat = entry.totalDamage;
+                        bestTarget = pl;
+                    }
+                }
+            }
+
+            // 2. Nếu không có ai trong threatMap: Tìm người chơi gần nhất trong map
+            if (bestTarget == null) {
+                List<Player> players = this.zone.getNotBosses();
+                int minDistance = Integer.MAX_VALUE;
+                for (Player pl : players) {
+                    if (pl != null && !pl.isDie() && !pl.isNewPet && this.zone.equals(pl.zone)) {
+                        if (pl.isPet && ((Pet) pl).master != null && ((Pet) pl).master.equals(this)) {
+                            continue;
+                        }
+                        if ((pl.effectSkin != null && pl.effectSkin.isVoHinh) || (pl.effectSkill != null && pl.effectSkill.isTanHinh)) {
+                            continue;
+                        }
+                        int dist = Util.getDistance(this, pl);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            bestTarget = pl;
+                        }
+                    }
+                }
+            }
+
+            // 3. Fallback: random nếu vẫn chưa chọn được
+            if (bestTarget == null) {
+                bestTarget = this.zone.getRandomPlayerInMap();
+            }
+
+            this.playerTarger = bestTarget;
+            this.lastTimeTargetPlayer = now;
+            this.timeTargetPlayer = Util.nextInt(4000, 6000);
         }
         return this.playerTarger;
     }
@@ -571,15 +664,12 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         }
         if (this.zone == null && this.panelSpawnZone != null) {
             this.zone = this.panelSpawnZone;
+            this.panelSpawnZone = null;
         }
         if (this.zone == null) {
             if (this.parentBoss != null) {
                 this.zone = parentBoss.zone;
-            } else if (this.lastZone == null
-                    || BossSpawnSchedule.resolveTier(this) == nro.models.boss.spawn.BossSpawnTier.MINI) {
-                // Mini boss phải roll lại map sau mỗi lần hồi sinh. Trước đây lastZone
-                // được tái sử dụng vô thời hạn, khiến Thỏ Đại Ca/Ở Dơ chỉ xuất hiện ở
-                // đúng map của lần spawn đầu tiên dù BossData có nhiều map hợp lệ.
+            } else if (this.lastZone == null) {
                 this.zone = getMapJoin();
             } else {
                 this.zone = this.lastZone;
@@ -591,52 +681,54 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         if (this.zone != null) {
             try {
                                     if (this.currentLevel == 0) {
-                    if (this.parentBoss == null && (!this.panelZoneLocked || this.panelSpawnZone != null)) {
-                        int zoneid = 0;
-                        // Boss được panel gán khu cụ thể (Fide Vàng theo từng khu Đông Karin)
-                        // phải giữ nguyên khu đó; chỉ boss thường mới chạy logic chọn khu.
-                        if (this.panelSpawnZone == null) {
-                            //this.zone.map.mapId == 80 || this.zone.map.mapId == 103 || this.zone.map.mapId == 97 || this.zone.map.mapId == 102
-                            // Chỉ cho boss xuất hiện từ khu 2 trở lên ở map thường
-                            if (this.isZone01SpawnDisabled && this.zone.map.zones.size() > 2) {
-                                zoneid = Util.nextInt(2, this.zone.map.zones.size() - 1);
-                                while (zoneid < this.zone.map.zones.size() && !this.zone.map.zones.get(zoneid).getBosses().isEmpty()) {
-                                    zoneid++;
-                                }
+                    if (this.parentBoss == null && !this.panelZoneLocked) {
+                        Zone targetZone = null;
+                        int startZone = (this.isZone01SpawnDisabled && this.zone.map.zones.size() > 2) ? 2 : 0;
 
-                                if (zoneid < this.zone.map.zones.size()) {
-                                    this.zone = this.zone.map.zones.get(zoneid);
-                                } else {
-                                    this.changeStatus(BossStatus.REST);
-                                    this.zone = null;
-                                    this.lastZone = null;
-                                    return;
-                                }
-                            } else {
-                                // Check trong khu lớn hơn 10 người chuyển sang khu n + 1
-                                while (zoneid < this.zone.map.zones.size() && this.zone.map.zones.get(zoneid).getNumOfPlayers() > 10) {
-                                    zoneid++;
-                                }
-                                // Check trong khu có boss sẽ chuyển sang khu n + 1
-                                while (zoneid < this.zone.map.zones.size() && !this.zone.map.zones.get(zoneid).getBosses().isEmpty()) {
-                                    zoneid++;
-                                }
-                                if (zoneid < this.zone.map.zones.size()) {
-                                    this.zone = this.zone.map.zones.get(zoneid);
-                                } else {
-                                    this.zone = this.zone.map.zones.get(0);
-                                }
+                        // Ưu tiên 1: Gom tất cả các zone chưa có boss và số người <= 10 -> chọn ngẫu nhiên
+                        java.util.List<Zone> candidates = new java.util.ArrayList<>();
+                        for (int i = startZone; i < this.zone.map.zones.size(); i++) {
+                            Zone z = this.zone.map.zones.get(i);
+                            if (z != null && z.getBosses().isEmpty() && z.getNumOfPlayers() <= 10) {
+                                candidates.add(z);
                             }
                         }
-                        int x = getMapSpawnX();
-                        int y = getMapSpawnY(x);
+                        if (!candidates.isEmpty()) {
+                            targetZone = candidates.get(Util.nextInt(0, candidates.size() - 1));
+                        }
+                        // Ưu tiên 2: Tìm các zone bất kỳ chưa có boss -> chọn ngẫu nhiên
+                        if (targetZone == null) {
+                            for (int i = startZone; i < this.zone.map.zones.size(); i++) {
+                                Zone z = this.zone.map.zones.get(i);
+                                if (z != null && z.getBosses().isEmpty()) {
+                                    candidates.add(z);
+                                }
+                            }
+                            if (!candidates.isEmpty()) {
+                                targetZone = candidates.get(Util.nextInt(0, candidates.size() - 1));
+                            }
+                        }
+                        // Ưu tiên 3: Fallback nếu toàn bộ các zone đều có boss -> chọn ngẫu nhiên
+                        if (targetZone == null && !this.zone.map.zones.isEmpty()) {
+                            int minZ = (this.isZone01SpawnDisabled && this.zone.map.zones.size() > 2) ? 2 : 0;
+                            int maxZ = this.zone.map.zones.size() - 1;
+                            targetZone = this.zone.map.zones.get(Util.nextInt(minZ, maxZ));
+                        }
+                        if (targetZone != null) {
+                            this.zone = targetZone;
+                        } else {
+                            this.changeStatus(BossStatus.REST);
+                            this.zone = null;
+                            this.lastZone = null;
+                            return;
+                        }
+                        int x = this.zone.map.mapWidth > 100 ? Util.nextInt(100, this.zone.map.mapWidth - 100) : Util.nextInt(100);
+                        int y = this.zone.map.yPhysicInTop(x, 100);
                         ChangeMapService.gI().changeMap(this, this.zone, x, y);
-                        logSpawnPosition("root");
                     } else {
-                        int x = getGroupMemberSpawnX();
-                        int y = getMapSpawnY(x);
+                        int x = this.parentBoss.location.x - (this.lv + 1) * 30;
+                        int y = this.zone.map.yPhysicInTop(x, 100);
                         ChangeMapService.gI().changeMap(this, this.zone, x, y);
-                        logSpawnPosition("child");
                     }
                     if (this.parentBoss == null) {
                         this.panelZoneLocked = false;
@@ -661,48 +753,12 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         }
     }
 
-    protected int getMapSpawnX() {
-        return this.zone.map.mapWidth > 100
-                ? Util.nextInt(100, this.zone.map.mapWidth - 100)
-                : Util.nextInt(100);
-    }
-
-    protected int getGroupMemberSpawnX() {
-        return this.parentBoss.location.x - (this.lv + 1) * 30;
-    }
-
-    protected int getMapSpawnY(int x) {
-        return this.zone.map.yPhysicInTop(x, 100);
-    }
-
-    /**
-     * Log chẩn đoán mỗi lần boss vào map: in map/khu/x/y thực tế để kiểm tra boss có bị dồn cụm.
-     * Bật bằng {@code spawn.debug.log.enabled=true} trong boss_spawn.properties.
-     */
-    protected void logSpawnPosition(String role) {
-        if (!BossSpawnConfig.spawnDebugLog) {
-            return;
-        }
-        Logger.warningln(String.format(
-                "[SPAWN] role=%s id=%d name=%s map=%d zone=%d x=%d y=%d parentLv=%d zoneFinal=%s",
-                role,
-                (int) this.id,
-                this.name,
-                this.zone != null && this.zone.map != null ? this.zone.map.mapId : -1,
-                this.zone != null ? this.zone.zoneId : -1,
-                this.location != null ? this.location.x : -1,
-                this.location != null ? this.location.y : -1,
-                this.lv,
-                this.zoneFinal != null));
-    }
-
     public void joinMapByZone(Zone zone) {
         if (zone != null) {
             this.zone = zone;
-            int x = getMapSpawnX();
-            int y = getMapSpawnY(x);
+            int x = this.zone.map.mapWidth > 100 ? Util.nextInt(100, this.zone.map.mapWidth - 100) : Util.nextInt(100);
+            int y = this.zone.map.yPhysicInTop(x, 100);
             ChangeMapService.gI().changeMap(this, this.zone, x, y);
-            logSpawnPosition("zoneFinal");
         }
     }
 
@@ -788,8 +844,7 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
                     return;
                 }
                 this.playerSkill.skillSelect = this.playerSkill.skills.get(Util.nextInt(0, this.playerSkill.skills.size() - 1));
-                boolean targetAtAttackHeight = canAttackTargetAtCurrentHeight(pl);
-                if (targetAtAttackHeight && Util.getDistance(this, pl) <= this.getRangeCanAttackWithSkillSelect()) {
+                if (Util.getDistance(this, pl) <= this.getRangeCanAttackWithSkillSelect()) {
                     if (Util.isTrue(5, 20)) {
                         if (SkillUtil.isUseSkillChuong(this)) {
                             this.moveTo(pl.location.x + (Util.getOne(-1, 1) * Util.nextInt(20, 200)),
@@ -801,7 +856,7 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
                     }
                     SkillService.gI().useSkill(this, pl, null, -1, null);
                     checkPlayerDie(pl);
-                } else if (targetAtAttackHeight) {
+                } else {
                     if (Util.isTrue(1, 2)) {
                         this.moveToPlayer(pl);
                     }
@@ -819,10 +874,6 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         }
     }
 
-    protected boolean canAttackTargetAtCurrentHeight(Player target) {
-        return true;
-    }
-
     protected int getRangeCanAttackWithSkillSelect() {
         int skillId = this.playerSkill.skillSelect.template.id;
         if (skillId == Skill.KAMEJOKO || skillId == Skill.MASENKO || skillId == Skill.ANTOMIC) {
@@ -835,22 +886,14 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
 
     @Override
     public void die(Player plKill) {
-
-        if (plKill != null
-                && (this.zone.map.mapId != 140 || !MapService.gI().isMapMaBu(this.zone.map.mapId)
-                || !MapService.gI().isMapDoanhTrai(this.zone.map.mapId)
-                || !MapService.gI().isMapBanDoKhoBau(this.zone.map.mapId))) {
-            if (!plKill.isBot) {
-                reward(plKill);
-            }
+        if (plKill != null && !plKill.isBot) {
+            reward(plKill);
+        }
+        if (plKill != null && canSendNotify()) {
             ServerNotify.gI().notify(plKill.name + ": Đã tiêu diệt được " + this.name + " mọi người đều ngưỡng mộ.");
-            this.changeStatus(BossStatus.DIE);
-            EventProgressService.gI().onBossKilled(this, plKill);
-        } else {
-            if (plKill != null && !plKill.isBot) {
-                reward(plKill);
-            }
-            this.changeStatus(BossStatus.DIE);
+        }
+        this.changeStatus(BossStatus.DIE);
+        if (plKill != null) {
             EventProgressService.gI().onBossKilled(this, plKill);
         }
     }
@@ -889,6 +932,8 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
 
     @Override
     public void leaveMap() {
+        this.threatMap.clear();
+        this.playerTarger = null;
         if (this.currentLevel < this.data.length - 1) {
             this.lastZone = this.zone;
             this.changeStatus(BossStatus.RESPAWN);
@@ -913,6 +958,10 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
                 return 1;
             }
             this.nPoint.subHP(damage);
+
+            if (plAtt != null) {
+                addThreat(plAtt, damage);
+            }
 
             if (isDie()) {
                 this.setDie(plAtt);
@@ -984,11 +1033,6 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
             return;
         }
         for (Boss boss : this.bossAppearTogether[this.currentLevel]) {
-            // Một số boss con (ví dụ Death Beam của Fide Vàng) có thể bị tắt
-            // trong BossManager, vì vậy phần tử trong nhóm có thể là null.
-            if (boss == null) {
-                continue;
-            }
             int nextLevelBoss = boss.currentLevel + 1;
             if (nextLevelBoss >= boss.data.length) {
                 nextLevelBoss = 0;

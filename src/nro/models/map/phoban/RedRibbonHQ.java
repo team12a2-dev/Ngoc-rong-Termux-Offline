@@ -23,9 +23,9 @@ import nro.models.services.Service;
 import nro.models.utils.Util;
 
 public class RedRibbonHQ implements Runnable {
-  //bang há»™i Ä‘á»§ sá»‘ ngÆ°á»i má»›i Ä‘c má»Ÿ
+  //bang hội đủ số người mới được mở
   public static final int N_PLAYER_CLAN = 3;
-  //sá»‘ ngÆ°á»i Ä‘á»©ng cÃ¹ng khu
+  //số người đứng cùng khu
   public static final int N_PLAYER_MAP = 1;
   public static final int AVAILABLE = 5;
   public static final int TIME_DOANH_TRAI = 1800000;
@@ -72,17 +72,17 @@ public class RedRibbonHQ implements Runnable {
   }
 
   public void openDoanhTrai(Player player) {
-    // âŒ KhÃ´ng cÃ³ bang
+    // Không có bang
     if (player == null || player.clan == null) {
       return;
     }
     long now = System.currentTimeMillis();
-    // âŒ ÄÃƒ ÄI DOANH TRáº I Rá»’I (cháº·n Ä‘á»•i PT)
+    // ĐÃ ĐI DOANH TRẠI RỒI (chặn đổi PT)
     if (player.lastTimeDoanhTrai > 0 && Util.canDoWithTime(player.lastTimeDoanhTrai, TIME_DOANH_TRAI)) {
       Service.gI().sendThongBao(player, "Hôm nay bạn đã đi Doanh Trại rồi");
       return;
     }
-    // âŒ Bang Ä‘Ã£ má»Ÿ / Ä‘ang tá»“n táº¡i DT
+    // Bang đã mở / đang tồn tại DT
     if (player.clan.doanhTrai != null) {
       String name = "một thành viên";
       if (player.clan.playerOpenDoanhTrai != null) {
@@ -91,12 +91,12 @@ public class RedRibbonHQ implements Runnable {
       Service.gI().sendThongBao(player, "Doanh trại đã được mở bởi " + name);
       return;
     }
-    // âŒ Bang vá»«a Ä‘i DT xong
+    // Bang vừa đi DT xong
     if (player.clan.haveGoneDoanhTrai) {
       Service.gI().sendThongBao(player, "Doanh trại đã kết thúc, hãy chờ lần sau");
       return;
     }
-    // âœ… GHI NHáº¬N THá»œI ÄIá»‚M ÄI DT (CHá»ˆ GHI 1 Láº¦N)
+    // GHI NHẬN THỜI ĐIỂM ĐI DT (CHỈ GHI 1 LẦN)
     try {
       this.lastTimeOpen = System.currentTimeMillis();
       this.clan = player.clan;
@@ -105,7 +105,7 @@ public class RedRibbonHQ implements Runnable {
       player.clan.lastTimeOpenDoanhTrai = this.lastTimeOpen;
       player.clan.haveGoneDoanhTrai = false;
       sendTextDoanhTrai();
-      //Khá»Ÿi táº¡o quÃ¡i, boss
+      // Khởi tạo quái, boss
       this.isOpened = true;
       this.init();
     } catch (Exception e) {
@@ -116,7 +116,7 @@ public class RedRibbonHQ implements Runnable {
       return;
     }
     List<Player> plJoinDT = new ArrayList();
-    //ÄÆ°a thÃ nh viÃªn vÃ o doanh tráº¡i
+    // Đưa thành viên vào doanh trại
     for (Player pl : player.zone.getPlayers()) {
       if (pl != null && !pl.equals(player) && pl.clan != null && pl.clan.equals(player.clan) && pl.location.x >= 1285 && pl.location.x <= 1645) {
         plJoinDT.add(pl);
@@ -126,7 +126,7 @@ public class RedRibbonHQ implements Runnable {
       if (pl.isDie()) {
         continue;
       }
-      // âœ… CHá»ˆ LÃšC NÃ€Y Má»šI TÃNH LÃ€ ÄÃƒ ÄI DOANH TRáº I
+      // CHỈ LÚC NÀY MỚI TÍNH LÀ ĐÃ ĐI DOANH TRẠI
       pl.lastTimeDoanhTrai = System.currentTimeMillis();
       pl.lastTimeJoinDT = System.currentTimeMillis();
       ChangeMapService.gI().changeMapInYard(pl, 53, -1, 60);
@@ -145,14 +145,17 @@ public class RedRibbonHQ implements Runnable {
         totalHp += player.nPoint.hpMax;
       }
     }
-    // Há»“i sinh quÃ¡i
+    // Hồi sinh quái
     for (Zone zone : this.zones) {
       for (Mob mob : zone.mobs) {
         long mobTempId = mob.tempId;
-        mob.point.dame = (int) ((mobTempId != 0) ? Math.min(totalHp / mobTempId, 2147483647L) : 0);
-        mob.point.maxHp = (int) ((mobTempId != 0) ? Math.min(totalDamage * mobTempId, 2147483647) : 0);
+        int mobDame = (int) ((mobTempId != 0) ? Math.min(totalHp / mobTempId, 2147483647L) : 0);
+        int mobHp = (int) ((mobTempId != 0) ? Math.min(totalDamage * mobTempId, 2147483647L) : 0);
+        mob.point.dame = mobDame;
+        mob.point.setHpFull(mobHp);
+        mob.point.hp = mobHp;
+        mob.status = 5;
         mob.lvMob = 0;
-        mob.hoiSinh();
         mob.hoiSinhMobPhoBan();
       }
       long dame = totalHp / 20;
@@ -204,11 +207,11 @@ public class RedRibbonHQ implements Runnable {
   }
 
   public void update() {
-    // 1ï¸âƒ£ Náº¿u Ä‘ang má»Ÿ vÃ  CHÆ¯A vÃ o giai Ä‘oáº¡n nháº·t
+    // 1. Nếu đang mở và CHƯA vào giai đoạn nhặt
     if (isOpened && !isTimePicking) {
-      // Háº¿t thá»i gian Ä‘Ã¡nh
+      // Hết thời gian đánh
       if (Util.canDoWithTime(lastTimeOpen, TIME_DOANH_TRAI)) {
-        // \ud83d\udd12 ÄÃ“NG DOANH TRáº I TRÆ¯á»šC
+        // ĐÓNG DOANH TRẠI TRƯỚC
         isOpened = false;
         isTimePicking = false;
         winDT = false;
@@ -216,7 +219,7 @@ public class RedRibbonHQ implements Runnable {
         dispose();
         return;
       }
-      // Check boss + quÃ¡i cháº¿t
+      // Check boss + quái chết
       boolean allDead = true;
       for (Zone zone : zones) {
         for (Mob mob : zone.mobs) {
@@ -237,7 +240,7 @@ public class RedRibbonHQ implements Runnable {
           break;
         }
       }
-      // Boss cháº¿t â†’ chá» NPC
+      // Boss chết -> chờ NPC
       if (allDead && !winDT) {
         winDT = true;
         for (Zone zone : zones) {
@@ -248,10 +251,10 @@ public class RedRibbonHQ implements Runnable {
       }
       return;
     }
-    // 2ï¸âƒ£ Äang trong 5 phÃºt nháº·t ngá»c
+    // 2. Đang trong 5 phút nhặt ngọc
     if (isOpened && isTimePicking) {
       if (Util.canDoWithTime(lastTimePick, TIME_PICK_DOANH_TRAI)) {
-        // \ud83d\udd12 ÄÃ“NG DOANH TRáº I TRÆ¯á»šC
+        // ĐÓNG DOANH TRẠI TRƯỚC
         isOpened = false;
         isTimePicking = false;
         winDT = false;
@@ -264,7 +267,7 @@ public class RedRibbonHQ implements Runnable {
   public ItemMap NR(Zone zone) {
     int x = Util.nextInt(100, zone.map.mapWidth - 100);
     int y = zone.map.yPhysicInTop(x, 100);
-    int nr = Util.isTrue(1, 500) ? Util.nextInt(14, 18) : Util.nextInt(18, 20);
+    int nr = Util.nextInt(18, 20);
     ItemMap it = new ItemMap(zone, nr, 1, x, y, -1);
     return it;
   }
@@ -334,15 +337,19 @@ public class RedRibbonHQ implements Runnable {
         totalHp += pl.nPoint.hpMax;
       }
     }
-    //update hp dame quÃ¡i
+    //update hp dame quái
     for (Zone zone : this.zones) {
       for (Mob mob : zone.mobs) {
         if (mob.isDie()) {
           continue;
         }
-        mob.point.dame = (int) (totalHp / mob.tempId < 2147483647 ? totalHp / mob.tempId : 2147483647);
-        mob.point.maxHp = (int) (totalDame / 3 * mob.tempId < 2147483647 ? totalDame * mob.tempId : 2147483647);
-        mob.point.hp = mob.point.maxHp;
+        long mobTempId = mob.tempId;
+        int mobDame = (int) ((mobTempId != 0) ? Math.min(totalHp / mobTempId, 2147483647L) : 0);
+        int mobHp = (int) ((mobTempId != 0) ? Math.min(totalDame / 3 * mobTempId, 2147483647L) : 0);
+        mob.point.dame = mobDame;
+        mob.point.setHpFull(mobHp);
+        mob.point.hp = mobHp;
+        mob.status = 5;
         mob.setTiemNang();
       }
     }

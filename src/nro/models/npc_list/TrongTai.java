@@ -38,7 +38,7 @@ public class TrongTai extends Npc {
         if (mapId == 113) {
             if (SuperRankManager.gI().awaiting(player)) {
                 if (select == 1) {
-                    ChangeMapService.gI().changeMapNonSpaceship(player, 5, player.location.x, 288);
+                    ChangeMapService.gI().changeMapNonSpaceship(player, 52, player.location.x, 336);
                 }
                 return;
             }
@@ -48,7 +48,7 @@ public class TrongTai extends Npc {
                 case 1 -> NpcService.gI().createTutorial(player, tempId, avartar, ConstNpc.THONG_TIN_SIEU_HANG);
                 case 2 -> SuperRankService.gI().topList(player, 1);
                 case 3 -> SuperRankService.gI().topList(player, 2);
-                case 4 -> ChangeMapService.gI().changeMapNonSpaceship(player, 5, player.location.x, 288);
+                case 4 -> ChangeMapService.gI().changeMapNonSpaceship(player, 52, player.location.x, 336);
             }
         }
     }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import PageHeader from '../components/PageHeader';
 import { api, getServerId } from '../api';
+import { fixMojibake } from '../utils/text';
 
 const SOURCES = [
   { id: 'game', label: 'Game server', description: 'Log Java và quá trình load dữ liệu' },
@@ -131,7 +132,7 @@ export default function RuntimePage() {
 
       <div className="split" style={{ marginTop: 16 }}>
         <div className="card">
-          <div className="section-head"><h3>Runtime game</h3><span className="muted">{diagnostics?.serverName || '—'}</span></div>
+          <div className="section-head"><h3>Runtime game</h3><span className="muted">{fixMojibake(diagnostics?.serverName) || '—'}</span></div>
           <ul className="info-list">
             <li><span>Java Agent</span><strong>{diagnostics?.agentOnline ? 'Online' : 'Offline'}</strong></li>
             <li><span>Agent health</span><strong>{diagnostics?.agentHealth?.status || '—'}</strong></li>

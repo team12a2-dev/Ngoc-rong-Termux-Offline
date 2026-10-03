@@ -121,6 +121,12 @@ public class Bot extends Player {
 
     @Override
     public short getHead() {
+        if (effectSkill != null && effectSkill.isStone) {
+            return 454;
+        }
+        if (effectSkill != null && effectSkill.isSocola) {
+            return (short) (effectSkill.typeSocola == 1 ? 406 : 412);
+        }
         if (effectSkill.isMonkey) {
             return (short) ConstPlayer.HEADMONKEY[effectSkill.levelMonkey - 1];
         } else {
@@ -130,6 +136,12 @@ public class Bot extends Player {
 
     @Override
     public short getBody() {
+        if (effectSkill != null && effectSkill.isStone) {
+            return 455;
+        }
+        if (effectSkill != null && effectSkill.isSocola) {
+            return (short) (effectSkill.typeSocola == 1 ? 407 : 413);
+        }
         if (effectSkill.isMonkey) {
             return 193;
         } else {
@@ -139,6 +151,12 @@ public class Bot extends Player {
 
     @Override
     public short getLeg() {
+        if (effectSkill != null && effectSkill.isStone) {
+            return 456;
+        }
+        if (effectSkill != null && effectSkill.isSocola) {
+            return (short) (effectSkill.typeSocola == 1 ? 408 : 414);
+        }
         if (effectSkill.isMonkey) {
             return 194;
         } else {

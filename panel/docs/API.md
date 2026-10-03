@@ -139,51 +139,6 @@ POST   /usable-items/reload                          → yêu cầu Java Agent r
 
 `options` là danh sách option chỉ số gắn cho item, ví dụ `[{ "id": 47, "param": 5 }, { "id": 77, "param": 20 }]`. API xác thực item có `type = 29`, option tồn tại trong `item_option_template`, option thuộc nhóm stat mà `NPoint.addOption` đang xử lý, không trùng option trong cùng item và giới hạn tối đa 12 option. `durationSeconds` mặc định 600 giây, tối đa 30 ngày. Khi lưu, API thay toàn bộ danh sách option cũ trong `panel_usable_item_options`, sau đó gọi Java Agent reload cache. Bổ huyết chỉ là item mẫu của source, không còn là behavior key trong API.
 
-## Tạo item hoàn chỉnh
-
-`POST /items` và `PUT /items/:id` (JWT, quyền `giftcode.manage`) hỗ trợ ghi đồng bộ `item_template`, `part` và `head_avatar`:
-
-```json
-{
-  "name": "Cải trang chú hề Picolo",
-  "type": 5, "gender": 3, "level": 1, "icon_id": 17121,
-  "part": 2006, "head": 2006, "body": 2007, "leg": 2008,
-  "head_avatar": 17122,
-  "parts": [
-    { "id": 2006, "type": 0, "data": "[[17094,3,2],[17095,3,3],[2955,0,0]]" },
-    { "id": 2007, "type": 1, "data": "[[17096,0,0],[17097,0,-1]]" },
-    { "id": 2008, "type": 2, "data": "[[17108,9,7],[17109,-1,-1]]" }
-  ]
-}
-```
-
-Panel ghi dữ liệu trong cùng transaction. Nếu ID part hoặc `head_id` đã tồn tại với nội dung khác, request bị từ chối để không ghi đè item đang dùng; dữ liệu giống nhau được tái sử dụng.
-
-Trên giao diện `/items`, khu vực **Nhập nhanh dữ liệu SQL** nhận trực tiếp một dòng `item_template` gồm 15 cột, nhiều dòng `part` gồm 3 cột và một dòng `head_avatar` gồm 2 cột, phân cách bằng Tab. Nút **Phân tích và tự điền biểu mẫu** sẽ tách dữ liệu, điền các trường item và gửi cả ba nhóm dữ liệu vào đúng bảng riêng khi lưu.
-
-Các danh sách dữ liệu trên panel dùng `GET /items?limit=&offset=`, `GET /items/parts?limit=&offset=` và `GET /items/head-avatars?limit=&offset=`; cả ba danh sách đều phân trang 50 bản ghi/trang. Khi chuyển trang, panel chỉ tải lại phần dữ liệu của bảng tương ứng.
-
-## Data Assets: icon và img_by_name
-
-Trang `/data-assets` quản lý trực tiếp các file trong repository. API yêu cầu JWT và quyền `giftcode.manage`:
-
-```text
-GET    /data-assets/icons?zoom=4&limit=50&offset=0
-POST   /data-assets/icons              { id, imageBase64 }
-DELETE /data-assets/icons/:id
-GET    /data-assets/images-by-name?limit=50&offset=0
-POST   /data-assets/images-by-name     { name, n_frame, imageBase64 }
-DELETE /data-assets/images-by-name/:name
-```
-
-Ảnh PNG khi ghi sẽ được resize theo `sourceZoom` rồi ghi vào đủ `data/icon/x4`, `x3`, `x2`, `x1` hoặc `data/img_by_name/x4`, `x3`, `x2`, `x1`. Ví dụ chọn ảnh nguồn x4 sẽ tạo đúng kích thước x3 bằng 3/4, x2 bằng 1/2 và x1 bằng 1/4. Panel hỗ trợ tìm kiếm theo ID/tên và nhập trực tiếp số trang. `img_by_name` đồng thời được upsert vào bảng SQL với `n_frame`. Endpoint preview công khai chỉ đọc file x4; các thao tác thay đổi vẫn yêu cầu đăng nhập và quyền panel.
-
-Panel cũng có thể chọn cả thư mục bằng `webkitdirectory`. Với thư mục icon, mỗi file phải có tên là ID, ví dụ `16981.png`; với `img_by_name`, tên file không có đuôi `.png` sẽ trở thành cột `NAME`, ví dụ `mount_1_0.png` thành `mount_1_0`. Các file trong thư mục được upload tuần tự để tránh vượt giới hạn request và mỗi file đều được resize đồng bộ đủ bốn zoom.
-
-## Flag bag
-
-`POST /items/flag-bags` nhận 6 cột theo thứ tự `id`, `icon_data`, `NAME`, `gold`, `gem`, `icon_id`. Panel hỗ trợ dán trực tiếp dòng Tab-separated, ví dụ `179<Tab>16982,16983,16984,16985,16986,16987<Tab>Cờ đeo lưng sao may mắn<Tab>-1<Tab>-1<Tab>16981`. Danh sách hiện có dùng `GET /items/flag-bags?limit=&offset=` và được phân trang 50 bản ghi/trang.
-
 ## Audit
 
 ```

@@ -10,6 +10,7 @@ import nro.models.map.ItemMap;
 import nro.models.player.Player;
 import nro.models.services.ItemService;
 import nro.models.services.Service;
+import nro.models.services.TaskService;
 import nro.models.utils.Util;
 
 public class SO4_NM extends Boss {
@@ -27,60 +28,31 @@ public class SO4_NM extends Boss {
         }
         super.moveTo(x, y);
     }
-@Override
-public void reward(Player plKill) {
 
-    short itemId = 77;
+    @Override
+    public void reward(Player plKill) {
 
-    for (int i = 0; i < 20; i++) {
+        short itemId = 77;
 
-        int x = this.location.x + Util.nextInt(-60, 60);
-        int y = this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24);
+        for (int i = 0; i < 20; i++) {
 
-        ItemMap item = new ItemMap(
-                this.zone,
-                itemId,
-                1,
-                x,
-                y,
-                -1 // ai cũng nhặt được
-        );
+            int x = this.location.x + Util.nextInt(-60, 60);
+            int y = this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24);
 
-        Service.gI().dropItemMap(this.zone, item);
+            ItemMap item = new ItemMap(
+                    this.zone,
+                    itemId,
+                    1,
+                    x,
+                    y,
+                    -1 // ai cũng nhặt được
+            );
+
+            Service.gI().dropItemMap(this.zone, item);
+        }
+
+        TaskService.gI().checkDoneTaskKillBoss(plKill, this);
     }
-
-}
-    // @Override
-    // public void reward(Player plKill) {
-    //     Service.gI().dropItemMap(this.zone, new ItemMap(zone, 77, Util.nextInt(1, 2), this.location.x + Util.nextInt(-50, 50), this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id));
-    //     for (int i = 0; i < Util.nextInt(2); i++) {
-    //         Service.gI().dropItemMap(this.zone, new ItemMap(zone, 77, Util.nextInt(1, 3), this.location.x + i * Util.nextInt(-50, 50), this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id));
-    //     }
-    //     for (int i = 0; i < Util.nextInt(3, 4); i++) {
-    //         Service.gI().dropItemMap(this.zone, new ItemMap(zone, 77, Util.nextInt(1, 4), this.location.x + i * 10, this.zone.map.yPhysicInTop(this.location.x,
-    //                 this.location.y - 24), plKill.id));
-    //     }
-    //     for (int i = 1; i < Util.nextInt(3, 3) + 1; i++) {
-    //         Service.gI().dropItemMap(this.zone, new ItemMap(zone, 77, Util.nextInt(1, 5), this.location.x - i * 10, this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id));
-    //     }
-    //     short itTemp = 429;
-    //     short nr6s = 19;
-    //     short nr7s = 20;
-    //     ItemMap it = new ItemMap(zone, itTemp, 1, this.location.x + Util.nextInt(-50, 50), this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id);
-    //     ItemMap it1 = new ItemMap(zone, nr6s, 1, this.location.x + Util.nextInt(-50, 50), this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id);
-    //     ItemMap it2 = new ItemMap(zone, nr7s, 1, this.location.x + Util.nextInt(-50, 50), this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id);
-
-    //     List<Item.ItemOption> ops = ItemService.gI().getListOptionItemShop(itTemp);
-    //     if (!ops.isEmpty()) {
-    //         it.options = ops;
-    //     }
-    //     Service.gI().dropItemMap(this.zone, it);
-    //     Service.gI().dropItemMap(this.zone, it1);
-    //     Service.gI().dropItemMap(this.zone, it2);
-    //         int diem = 1;
-    // plKill.event.addEventPoint(diem);
-    // Service.gI().sendThongBao(plKill, "+1 Point");
-    // }
 
     @Override
     protected void notifyJoinMap() {
@@ -98,8 +70,16 @@ public void reward(Player plKill) {
 
     @Override
     public void autoLeaveMap() {
-        if (Util.canDoWithTime(st, 900000)) {
+        if (this.parentBoss != null && (this.parentBoss.zone == null || this.parentBoss.bossStatus == BossStatus.REST)) {
             this.leaveMapNew();
+            return;
+        }
+        if (Util.canDoWithTime(st, 900000)) {
+            if (this.parentBoss != null) {
+                this.parentBoss.leaveMapNew();
+            } else {
+                this.leaveMapNew();
+            }
         }
         if (this.zone != null && this.zone.getNumOfPlayers() > 0) {
             st = System.currentTimeMillis();

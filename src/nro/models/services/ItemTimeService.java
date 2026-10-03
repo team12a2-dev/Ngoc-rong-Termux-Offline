@@ -96,13 +96,16 @@ public class ItemTimeService {
         if (player.itemTime.isUseCoBonLa) {
             sendItemTime(player, 13618, (int) ((TIME_CO_BON_LA - (System.currentTimeMillis() - player.itemTime.lastTimeUseCoBonLa)) / 1000));
         }
+        if (player.itemTime.isUseKhauTrang) {
+            sendItemTime(player, 7149, (int) ((TIME_KHAU_TRANG - (System.currentTimeMillis() - player.itemTime.lastTimeKhauTrang)) / 1000));
+        }
         if (player.itemTime.isUseNuocMia1) {
             sendItemTime(player, 13462, (int) ((TIME_NUOC_MIA1 - (System.currentTimeMillis() - player.itemTime.lastTimeUseNuocMia1)) / 1000));
         }
         if (player.itemTime.isUseNuocMia2) {
             sendItemTime(player, 13463, (int) ((TIME_NUOC_MIA2 - (System.currentTimeMillis() - player.itemTime.lastTimeUseNuocMia2)) / 1000));
         }
-        if (player.itemTime.isUseNuocMia2) {
+        if (player.itemTime.isUseNuocMia3) {
             sendItemTime(player, 13464, (int) ((TIME_NUOC_MIA3 - (System.currentTimeMillis() - player.itemTime.lastTimeUseNuocMia3)) / 1000));
         }
         if (player.itemTime.isUseKilis) {
@@ -128,6 +131,12 @@ public class ItemTimeService {
         }
         if (player.itemTime.isUseRX) {
             sendItemTime(player, 8579, player.itemTime.timeRX / 1000);
+        }
+        if (player.itemTime.isUsePhieuSaoVang) {
+            long remaining = player.itemTime.getPhieuSaoVangTimeLeft();
+            if (remaining > 0) {
+                sendItemTime(player, player.itemTime.iconPhieuSaoVang, (int) (remaining / 1000));
+            }
         }
     }
 
@@ -287,11 +296,10 @@ public class ItemTimeService {
         try {
             msg = new Message(-106);
             msg.writer().writeShort(itemId);
-            msg.writer().writeShort(time);
+            msg.writer().writeShort(Math.min(30000, Math.max(0, time)));
             player.sendMessage(msg);
             msg.cleanup();
         } catch (IOException e) {
-            Logger.logException(ItemTimeService.class, e, "[ItemTimeService] sendItemTime lỗi itemId=" + itemId);
         }
     }
 

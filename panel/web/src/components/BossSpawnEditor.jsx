@@ -49,28 +49,32 @@ function rangeToString([a, b]) {
   return `${a},${b}`;
 }
 
-/**
- * Các key mà form trực quan không quản lý (Broly/Super Broly, fairness ELITE...).
- * Serializer ghi lại file từ đầu nên phải giữ nguyên các key này, nếu không mỗi lần
- * bấm "Lưu" trên Panel sẽ xoá sạch cấu hình Broly và làm Broly không spawn.
- */
-const PRESERVED_PREFIXES = ['spawn.broly.', 'spawn.superbroly.'];
-const PRESERVED_KEYS = new Set(['spawn.fairness.elite.enabled', 'spawn.debug.log.enabled']);
-
-function collectPreserved(p) {
-  const out = [];
-  for (const key of Object.keys(p)) {
-    if (PRESERVED_PREFIXES.some((prefix) => key.startsWith(prefix)) || PRESERVED_KEYS.has(key)) {
-      out.push(key + '=' + p[key]);
-    }
-  }
-  return out;
-}
-
 export function parseBossSpawnConfig(text) {
   const p = parsePropLines(text);
+  const knownKeys = new Set([
+    'spawn.enabled', 'spawn.elite.warn.enabled', 'spawn.elite.warn.minutes',
+    'spawn.elite.max.concurrent', 'spawn.world.max.concurrent', 'spawn.normal.max.concurrent',
+    'spawn.distribution.enabled', 'spawn.map.max.per.map',
+    'spawn.elite.min.gap.sec', 'spawn.world.min.gap.sec', 'spawn.normal.min.gap.sec',
+    'spawn.fairness.enabled',
+    'spawn.daily.bonus.enabled', 'spawn.daily.bonus.hours', 'spawn.daily.bonus.normal', 'spawn.daily.bonus.elite',
+    'spawn.soft.window.enabled', 'spawn.soft.window.spawn.chance', 'spawn.soft.window.defer.min.sec', 'spawn.soft.window.defer.max.sec',
+    'spawn.window.align.enabled', 'spawn.intra.window.spread.min.sec', 'spawn.intra.window.spread.max.sec',
+    'spawn.daily.bonus.prefer.gap', 'spawn.cross.tier.gap.sec', 'spawn.adaptive.gap.enabled', 'spawn.adaptive.gap.per.ready.sec',
+    'spawn.wait.boost.enabled', 'spawn.wait.boost.after.sec', 'spawn.wait.boost.chance',
+    'spawn.mini.hours', 'spawn.normal.hours.weekday', 'spawn.normal.hours.weekend',
+    'spawn.elite.hours.weekday', 'spawn.elite.hours.weekend',
+    'spawn.world.hours.weekday', 'spawn.world.hours.weekend',
+    'spawn.jitter.mini', 'spawn.jitter.normal', 'spawn.jitter.elite', 'spawn.jitter.world',
+    'spawn.stagger.mini.sec', 'spawn.stagger.normal.sec', 'spawn.stagger.elite.sec', 'spawn.stagger.world.sec',
+  ]);
+
+  const extraProps = {};
+  for (const [k, v] of Object.entries(p)) {
+    if (!knownKeys.has(k)) extraProps[k] = v;
+  }
+
   return {
-    preserved: collectPreserved(p),
     enabled: p['spawn.enabled'] !== 'false',
     maxEliteConcurrent: Number(p['spawn.elite.max.concurrent']) || 5,
     maxWorldConcurrent: Number(p['spawn.world.max.concurrent']) || 1,
@@ -116,6 +120,7 @@ export function parseBossSpawnConfig(text) {
     staggerNormal: parseRange(p['spawn.stagger.normal.sec'], 60, 600),
     staggerElite: parseRange(p['spawn.stagger.elite.sec'], 300, 1800),
     staggerWorld: parseRange(p['spawn.stagger.world.sec'], 900, 3600),
+    extraProps,
   };
 }
 
@@ -180,13 +185,15 @@ export function serializeBossSpawnConfig(cfg) {
     'spawn.stagger.world.sec=' + rangeToString(cfg.staggerWorld),
     '',
   ];
-  // Giữ lại các key không do form này quản lý (xem PRESERVED_PREFIXES).
-  const preserved = (cfg.preserved || []).filter((line) => line && line.includes('='));
-  if (preserved.length) {
-    lines.push('# --- Giữ nguyên từ file gốc: Broly/Super Broly, population, fairness ELITE ---');
-    lines.push(...preserved);
+
+  if (cfg.extraProps && Object.keys(cfg.extraProps).length > 0) {
+    lines.push('# --- Cấu hình bổ sung (TDST, Broly, Dân số, v.v.) ---');
+    for (const [k, v] of Object.entries(cfg.extraProps)) {
+      lines.push(`${k}=${v}`);
+    }
     lines.push('');
   }
+
   return lines.join('\n');
 }
 

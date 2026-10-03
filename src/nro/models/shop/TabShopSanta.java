@@ -27,6 +27,15 @@ public class TabShopSanta extends TabShop {
 
         for (ItemShop itemShop : tabShop.itemShops) {
             if (TabShop.isItemForPlayer(itemShop, player.gender)) {
+                // Kiểm tra giới hạn máy chủ mới từ Panel
+                if (nro.models.services.ServerLaunchConfigService.gI().isSantaNoGoldBars() && itemShop.temp.id == 457) {
+                    continue;
+                }
+                if (nro.models.services.ServerLaunchConfigService.gI().isSantaNoLuckyStarTickets() 
+                        && (itemShop.temp.id == 1959 || itemShop.temp.id == 532)) {
+                    continue;
+                }
+
                 boolean isInListDauThan = false;
                 for (int id : listDauThan) {
                     if (itemShop.temp.id == id) {

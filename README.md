@@ -17,7 +17,7 @@
 
 ## Mục lục
 
-[**Cài đặt**](#cài-đặt-nhanh) · [**Cập nhật nhanh**](#cập-nhật-nhanh-1-dòng-gõ-tay-được) · [**Cập nhật**](#tự-đồng-bộ-source-từ-github) · [**Lệnh**](#lệnh-quản-lý) · [**LAN**](#kết-nối-lan) · [**Chạy nền**](#chạy-độc-lập-khi-đóng-termux) · [**Panel**](#web-panel) · [**Boss**](#cơ-chế-boss) · [**Backup**](#backup-database) · [**Xử lý lỗi**](#xử-lý-lỗi-nhanh)
+[**Cài đặt**](#cài-đặt-nhanh) · [**Lệnh**](#lệnh-quản-lý) · [**LAN**](#kết-nối-lan) · [**Chạy nền**](#chạy-độc-lập-khi-đóng-termux) · [**Panel**](#web-panel) · [**Boss**](#cơ-chế-boss) · [**Backup**](#backup-database) · [**Xử lý lỗi**](#xử-lý-lỗi-nhanh)
 
 ## Tính năng chính
 
@@ -42,25 +42,7 @@ Installer tải **archive source mới nhất từ nhánh GitHub `main`**; khôn
 
 Project được cài vào `~/ngocrong-termux`. Repository có nhiều tài nguyên game nên vẫn cần Wi‑Fi/4G ổn định; sau khi tải đủ, installer tự giải nén và chạy `./nro.sh setup`. Khi cập nhật, không cần `cd` vào thư mục trước; chỉ chạy lại lệnh bootstrap ở trên.
 
-### Cập nhật nhanh (1 dòng, gõ tay được)
-
-Cài xong rồi mà máy báo không có bản sửa mới, hoặc `check-update` không phản hồi: dán đúng dòng ngắn này vào Termux, không cần `cd`, không cần gõ dài.
-
-```bash
-pkg install -y curl tar && bash <(curl -fsSL https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh)
-```
-
-Dòng này tải archive `main` mới nhất, ghi đè lên bản cũ nhưng giữ nguyên `Config.properties`, `panel/api/.env`, database và `.runtime`, rồi build lại. Máy Termux cũ không chạy được `<(...)` thì dùng: `curl -fsSL https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/raw/refs/heads/main/install-termux.sh | bash`
-
-Sau khi chạy xong, kiểm tra đã lên bản mới chưa:
-
-```bash
-grep -c NRO_FORCE_UPDATE_CHECK=1 ~/ngocrong-termux/nro.sh
-```
-
-Kết quả phải là `3`. Nếu vẫn là `0` hoặc `1` thì xem `~/.ngocrong-termux-install.log`, thường do mạng chặn GitHub.
-
-Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Xem [Tự đồng bộ source từ GitHub](#tự-đồng-bộ-source-từ-github) để biết chi tiết.
+Sau lần cài đầu, không cần chạy installer mỗi khi GitHub có commit mới. Mỗi lần `./nro.sh start`, `./nro.sh lan`, `./nro.sh restart` hoặc service nền khởi động, launcher sẽ kiểm tra commit `main` trên GitHub. Nếu chưa đổi, không tải gì. Nếu có commit mới, launcher chỉ tải archive cập nhật, giữ nguyên cấu hình và database, sau đó chạy migration SQL cần thiết, build lại Java/panel và khởi động bằng source mới. Chu kỳ kiểm tra mặc định là 5 phút để supervisor nền không gọi GitHub liên tục; có thể đổi bằng `NRO_UPDATE_CHECK_INTERVAL_SEC=60`.
 
 Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel. Mỗi lần tạo tiến trình game mới, Java được build sạch trước khi chạy; thời gian build được lưu tại `.runtime/build-info` và hiển thị bằng `./nro.sh status`. Khi source có thay đổi, panel chỉ cài lại dependency nếu thiếu hoặc lockfile thay đổi, rồi build React và restart Node để chức năng mới xuất hiện.
 
@@ -71,38 +53,6 @@ cd ~/ngocrong-termux
 ./nro.sh lan
 ```
 
-## Tự đồng bộ source từ GitHub
-
-Mỗi lần chạy `start`, `lan`, `restart`, `background` hoặc `check-update`, launcher làm đúng ba việc:
-
-1. Hỏi SHA của commit HEAD trên nhánh `main`: ưu tiên `api.github.com/repos/.../commits/main`, nếu endpoint này không trả lời (mạng Termux bị chặn, rate-limit) thì thử feed dự phòng `github.com/.../commits/main.atom`.
-2. So SHA đó với marker ở `.runtime/source-commit`. Khác nhau thì tải archive `main.tar.gz`, giữ nguyên `Config.properties`, `.env`, database và `.runtime`, rồi chạy migration, build lại Java/panel và khởi chạy bằng source mới.
-3. Ghi SHA mới vào `.runtime/source-commit`. Bằng chứng cũng nằm trong `.runtime/build-info` và khi chạy `./nro.sh status`.
-
-Kiểm tra tay không cần khởi chạy server:
-
-```bash
-cd ~/ngocrong-termux
-./nro.sh check-update
-```
-
-Kết quả in ra:
-
-| Dòng hiển thị | Ý nghĩa |
-|---|---|
-| `Phát hiện source mới ... → <sha>` | Đã tải bản cập nhật, build lại và chạy tiếp. |
-| `Source đã đồng bộ với GitHub commit <sha>` | Máy đã có bản mới nhất, không tải gì. |
-| `[NRO][WARN] Không kiểm tra được commit GitHub` | Cả API lẫn feed đều không trả lời; xem `.runtime/source-update.log`, thử lại sau vài phút hoặc đổi mạng. |
-| `Bỏ qua kiểm tra GitHub: lần gần nhất cách Ns...` | Chu kỳ kiểm tra chưa hết nên không gọi GitHub; chạy lại với `NRO_FORCE_UPDATE_CHECK=1` để kiểm tra ngay. |
-
-Nếu máy vẫn chạy `nro.sh` bản cũ (chưa tự ép kiểm tra), ép một lần bằng biến môi trường:
-
-```bash
-NRO_FORCE_UPDATE_CHECK=1 NRO_UPDATE_CHECK_INTERVAL_SEC=0 ./nro.sh lan
-```
-
-Tắt hẳn cơ chế này bằng `NRO_AUTO_UPDATE=0`; đổi nguồn kiểm tra bằng `NRO_SOURCE_COMMIT_URL`, `NRO_SOURCE_FEED_URL` và `NRO_SOURCE_ARCHIVE_URL`.
-
 ## Lệnh quản lý
 
 ### Server và LAN
@@ -112,7 +62,6 @@ Tắt hẳn cơ chế này bằng `NRO_AUTO_UPDATE=0`; đổi nguồn kiểm tra
 | `./nro.sh setup` | Cài dependency, database và build project. |
 | `./nro.sh start` | Chạy server theo cấu hình hiện tại. |
 | `./nro.sh lan` | Chạy server cho mạng LAN và tự cập nhật IP client. |
-| `./nro.sh check-update` | Chỉ kiểm tra và tải source mới từ GitHub `main`, không khởi chạy server. |
 | `./nro.sh status` | Xem trạng thái server và panel. |
 | `./nro.sh stop` | Dừng game server và panel. |
 | `./nro.sh restart` | Restart game server và panel. |
@@ -230,28 +179,14 @@ Thay đổi qua panel được lưu database, ghi audit log và reload runtime n
 
 ## Cơ chế boss
 
-Boss thường dùng scheduler chung với trần số lượng cố định theo tier, map density, fairness và cooldown. Trần được điều khiển bởi các khóa `spawn.normal.max.concurrent`, `spawn.elite.max.concurrent`, `spawn.world.max.concurrent` và `spawn.broly.max.concurrent`; số người chơi online không làm boss ngừng spawn hoặc tự hạ trần.
+Boss thường dùng scheduler chung với giới hạn theo population, tier, map density, fairness và cooldown.
 
-Broly và Super Broly chạy **24/7** theo mặc định, kể cả chiều tối và rạng sáng. Muốn giới hạn theo khung giờ thì đặt `spawn.broly.hours.weekday/weekend` và `spawn.superbroly.hours.weekday/weekend` (định dạng `9-12,14-17,19-23`, hoặc `all`). Một map có thể có nhiều boss ở các khu khác nhau; một khu chỉ có một boss.
-
-Broly có nhóm lịch riêng, không dùng chung bộ đếm của tier NORMAL và **không co giãn theo số người chơi online**. Server vắng vẫn chạy cùng logic 24/7:
-
-- `spawn.broly.max.concurrent` — trần số Broly hoạt động cố định, không phụ thuộc player (mặc định 75).
-- `spawn.broly.initial.stagger.min.sec/max.sec` — dải stagger riêng lúc mở server; Broly đầu tiên xuất hiện trong khoảng 1–10 giây mặc định.
-- `spawn.broly.min.gap.sec` — khoảng cách cố định tối thiểu giữa các lần spawn toàn server (mặc định 8s), không kéo dài khi có nhiều Broly đang chờ.
-- `spawn.broly.rest.sec` — cooldown mỗi Broly sau khi rời map (mặc định 180s).
-- `spawn.broly.max.per.map` — giới hạn theo map; mỗi khu vẫn chỉ có một boss thuộc nhóm Broly.
-
-Mini boss **Thỏ Đại Ca** được tạo một instance roaming trên các map trong `MINI_BOSS_MAPS`, dùng sprite cải trang Thỏ Đại Ca (403/404/405). Khi người chơi chạm boss, họ bị biến cà rốt trong 5 phút và sức đánh giảm 15%; các cải trang Thỏ Đại Ca/Thỏ Bunma (item 463/464/584) miễn nhiễm. Đây là boss roaming, tách biệt với Thỏ Đầu Bạc ở Võ Đài Sinh Tử.
-
-Boss có 500.000 HP và chịu giới hạn sát thương tối đa 10% HPMax mỗi đòn (`ThoDaiCa.MAX_DAMAGE_PERCENT`), nên tối thiểu cần 10 đòn mới hạ được. Biểu tượng trạng thái cà rốt lấy từ thanh item time với item 462 (`EffectSkillService.CARROT_ITEM_TIME_ID`); không có effect client riêng vì index effect 115 không tồn tại trong `data/effect`.
-
-Các khóa population cũ (`spawn.population.*`, `spawn.broly.min.concurrent`, `spawn.broly.max.adaptive.gap.sec`) không còn được dùng; hãy điều chỉnh trần bằng các khóa `*.max.concurrent` tương ứng.
+Broly và Super Broly chỉ spawn trong khoảng **10:00–05:00 hôm sau** theo giờ Việt Nam. Một map có thể có nhiều boss ở các khu khác nhau; một khu chỉ có một boss.
 
 Super Broly có hai nguồn spawn:
 
-1. Kích hoạt khi Broly đạt ngưỡng HP và bị tiêu diệt (không bị roll tự nhiên chặn).
-2. Tự roll ngẫu nhiên theo chu kỳ `spawn.superbroly.natural.roll.*` với xác suất `spawn.superbroly.natural.chance.percent`, khi vẫn dưới giới hạn đồng thời.
+1. Kích hoạt khi Broly đạt ngưỡng HP và bị tiêu diệt.
+2. Tự roll ngẫu nhiên theo chu kỳ, tỷ lệ và profile động trong cấu hình.
 
 Khoảng min/max Super Broly nằm trong `boss_spawn.properties`; không cần sửa Java khi tinh chỉnh.
 
@@ -273,15 +208,6 @@ NRO_LAN_IP=192.168.1.37
 NRO_GAME_LISTEN_HOST=0.0.0.0
 NRO_PANEL_BIND=0.0.0.0
 NRO_JVM_OPTS='-Xms128m -Xmx1536m'
-```
-
-Biến liên quan tới tự cập nhật source:
-
-```bash
-NRO_AUTO_UPDATE=0                                  # tắt tự kiểm tra GitHub
-NRO_SOURCE_COMMIT_URL=https://api.github.com/repos/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main
-NRO_SOURCE_FEED_URL=https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main.atom
-NRO_SOURCE_ARCHIVE_URL=https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz
 ```
 
 Không commit `Config.properties`, `.runtime/`, mật khẩu, token hoặc dữ liệu người chơi.
@@ -309,8 +235,6 @@ Android có thể trì hoãn job do tối ưu pin. Nên chép `.runtime/backups/
 |---|---|
 | Không tìm thấy Java | Chạy `pkg search openjdk`, `termux-change-repo`, rồi `./nro.sh setup`. |
 | `cd ~/ngocrong-termux` báo không tồn tại | Đây là lần cài mới; không chạy `cd` trước, hãy dùng lệnh bootstrap trong mục Cài đặt nhanh. |
-| Không thấy bản sửa mới trên GitHub | Chạy `./nro.sh check-update`. Nếu in cảnh báo "Không kiểm tra được commit GitHub" (api.github.com và feed `main.atom` đều không trả lời vì mạng chặn hoặc rate-limit) thì xem `cat .runtime/source-update.log`; commit đang dùng nằm ở `.runtime/source-commit` và hiển thị bằng `./nro.sh status`. |
-| `check-update` không in gì cả | `nro.sh` trên máy còn là bản cũ nên bỏ qua kiểm tra. Chạy lệnh 1 dòng ở mục [Cập nhật nhanh](#cập-nhật-nhanh-1-dòng-gõ-tay-được); database, `Config.properties` và `.runtime` được giữ nguyên. |
 | `curl: (23) client returned ERROR on write` | Không ghi installer vào `/tmp`; dùng lại lệnh bootstrap mới để ghi vào `$HOME/.cache/ngocrong-termux`, đồng thời kiểm tra dung lượng bộ nhớ. |
 | Server chưa `READY` | Xem `tail -n 160 .runtime/server.log` hoặc chạy `./nro.sh console`. |
 | Không kết nối LAN | Kiểm tra cùng Wi‑Fi, IP, AP isolation và `ss -ltnp \| grep -E '14445\|3001'`. |

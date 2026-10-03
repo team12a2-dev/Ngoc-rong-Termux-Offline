@@ -1,7 +1,6 @@
 package nro.models.map;
 
 import nro.models.consts.ConstTask;
-import nro.models.consts.ConstItem;
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
 import nro.models.boss.luyen_tap_tu_dong.TrainingBoss;
@@ -229,7 +228,6 @@ public class Zone {
                 this.notBosses.get(i).update();
             }
         }
-        nro.models.services.EffectSkillService.gI().scanCarrotTouch(this);
     }
 
     public void removePlayer(Player player) {
@@ -272,9 +270,9 @@ public class Zone {
                     continue;
                 }
             }
-            // if (item.itemTemplate.id == 726 && item.playerId != player.id) {
-            //     continue;
-            // }
+            if (item.itemTemplate.id == 726 && item.playerId != player.id) {
+                continue;
+            }
             list.add(item);
         }
         return list;
@@ -307,42 +305,8 @@ public class Zone {
                         if (itemMap.itemTemplate.type == 22) {
                             return;
                         }
-                        if (itemMap.itemTemplate.id == ConstItem.BI_KIEP
-                                && (player.location == null
-                                || Util.getDistance(player.location.x, player.location.y, itemMap.x, itemMap.y) > 60)) {
-                            return;
-                        }
                         int playerId = Math.abs(itemMap.playerId > 100000000 ? 1000000000 - (int) itemMap.playerId : (int) itemMap.playerId);
                         if (playerId == player.id || itemMap.playerId == player.id || itemMap.playerId == -1) {
-                            if (itemMap.currencyType != 0 && itemMap.currencyAmount > 0) {
-                                if (itemMap.currencyType == 1) {
-                                    player.inventory.gem += itemMap.currencyAmount;
-                                } else if (itemMap.currencyType == 2) {
-                                    player.inventory.ruby += itemMap.currencyAmount;
-                                } else {
-                                    return;
-                                }
-                                itemMap.isPickedUp = true;
-                                Message msg = null;
-                                try {
-                                    msg = new Message(-20);
-                                    msg.writer().writeShort(itemMapId);
-                                    msg.writer().writeUTF("Bạn nhận được " + itemMap.currencyAmount
-                                            + (itemMap.currencyType == 1 ? " ngọc." : " hồng ngọc."));
-                                    msg.writer().writeShort(itemMap.currencyAmount);
-                                    player.sendMessage(msg);
-                                    Service.gI().sendToAntherMePickItem(player, itemMapId);
-                                    PlayerService.gI().sendInfoHpMpMoney(player);
-                                } catch (Exception e) {
-                                    Logger.logException(Zone.class, e);
-                                } finally {
-                                    if (msg != null) {
-                                        msg.cleanup();
-                                    }
-                                }
-                                removeItemMap(itemMap);
-                                return;
-                            }
                             Item item = ItemService.gI().createItemFromItemMap(itemMap);
                             boolean picked = false; // Variable to track if the item was successfully picked
                             if (item.template.id == 648) {
@@ -365,7 +329,7 @@ public class Zone {
                                         default -> {
                                             switch (item.template.id) {
                                                 case 73 -> msg.writer().writeUTF("");
-                                                case 74 -> msg.writer().writeUTF("Bạn mới vừa ăn " + item.template.name);
+                                                case 74, 191, 192 -> msg.writer().writeUTF("Bạn mới vừa ăn " + item.template.name);
                                                 case 78 -> msg.writer().writeUTF("Wow, một cậu bé dễ thương!");
                                                 default -> {
                                                     if (item.template.type >= 0 && item.template.type < 5) {
@@ -384,6 +348,9 @@ public class Zone {
                                     msg.cleanup();
                                     Service.gI().sendToAntherMePickItem(player, itemMapId);
                                     EventProgressService.gI().onItemPicked(player, itemMap, item.quantity);
+                                    if (itemMap != null && !itemMap.isNotifiedSKH && Service.isSetKichHoat(itemMap.options)) {
+                                        Service.gI().sendThongBaoSKH(player, itemMap);
+                                    }
                                     // Mark item as picked up unless the item ID is 74
                                     if (picked) {
                                         if (itemMap.itemTemplate.id != 74) {
@@ -431,7 +398,7 @@ public class Zone {
 
     public Player getRandomPlayerInMap() {
         List<Player> plNotVoHinh = new ArrayList();
-        //Lá»—i
+        //Lỗi
         for (Player pl : this.notBosses) {
             if (pl != null && (pl.effectSkin == null || !pl.effectSkin.isVoHinh) && pl.maBuHold == null && !pl.isMabuHold) {
                 plNotVoHinh.add(pl);
@@ -581,6 +548,7 @@ public class Zone {
             msg.writer().writeShort(plInfo.getAura()); //idauraeff
             msg.writer().writeByte(plInfo.getEffFront()); //seteff
             msg.writer().writeShort(plInfo.getHat()); //id hat
+            msg.writer().writeByte(plInfo.isNewMember ? 1 : 0);
             plReceive.sendMessage(msg);
             msg.cleanup();
         } catch (Exception e) {
@@ -658,12 +626,12 @@ public class Zone {
                     msg.writer().writeByte(0); // sys
                     msg.writer().writeInt(mob.point.gethp());
                     msg.writer().writeByte(mob.level);
-                    msg.writer().writeInt(mob.getHpMaxHienThi());
+                    msg.writer().writeInt((mob.point.getHpFull()));
                     msg.writer().writeShort(mob.location.x);
                     msg.writer().writeShort(mob.location.y);
                     msg.writer().writeByte(mob.status);
                     msg.writer().writeByte(mob.lvMob);
-                    msg.writer().writeBoolean(mob.tempId == ConstMob.GAU_TUONG_CUOP || mob.tempId >= ConstMob.VOI_CHIN_NGA && mob.tempId <= ConstMob.PIANO); //is bigboss
+                    msg.writer().writeBoolean(mob.tempId == ConstMob.ROBOT_BAO_VE || mob.tempId == ConstMob.GAU_TUONG_CUOP || (mob.tempId >= ConstMob.VOI_CHIN_NGA && mob.tempId <= ConstMob.PIANO)); //is bigboss
                 }
             } catch (Exception e) {
                 msg.writer().writeByte(0);
@@ -692,7 +660,12 @@ public class Zone {
                     msg.writer().writeShort(it.itemTemplate.id);
                     msg.writer().writeShort(it.x);
                     msg.writer().writeShort(it.y);
-                    msg.writer().writeInt((int) it.playerId);
+                    if (it.itemTemplate != null && it.itemTemplate.type == 22) {
+                        msg.writer().writeInt(-2);
+                        msg.writer().writeShort(200);
+                    } else {
+                        msg.writer().writeInt((int) it.playerId);
+                    }
                 }
             } catch (Exception e) {
                 msg.writer().writeByte(0);

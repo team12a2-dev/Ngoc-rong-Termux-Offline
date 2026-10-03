@@ -1,6 +1,7 @@
 package nro.models.services_func;
 
 import nro.models.database.HistoryTransactionDAO;
+import nro.models.database.PlayerDAO;
 import nro.models.item.Item;
 import nro.models.player.Inventory;
 import nro.models.player.Player;
@@ -45,6 +46,10 @@ public class Trade {
     private int goldTrade2;
 
     public byte accept;
+    public boolean locked1;
+    public boolean locked2;
+    public boolean accept1;
+    public boolean accept2;
 
     private long lastTimeStart;
     private boolean start;
@@ -89,8 +94,17 @@ public class Trade {
     }
 
     public void addItemTrade(Player pl, byte index, int quantity) {
+        if ((pl.equals(this.player1) && locked1) || (pl.equals(this.player2) && locked2)) {
+            Service.gI().sendThongBao(pl, "Bạn đã khóa giao dịch, không thể thay đổi vật phẩm!");
+            return;
+        }
         if (pl.getSession().actived) {
             if (index == -1) { // Giao dịch vàng
+                if (nro.models.services.ServerLaunchConfigService.gI().isRestrictGoldTrading()) {
+                    Service.gI().sendThongBao(pl, "Giao dịch vàng đang tạm khóa trong thời gian khai mở máy chủ!");
+                    sendUpdateGoldTrade(pl);
+                    return;
+                }
                 if (quantity > MAX_GOLD_TRADE_PER_TIME || quantity < 0) {
                     Service.gI().sendThongBao(pl, "Số vàng giao dịch không được vượt quá " + MAX_GOLD_TRADE_PER_TIME + " vàng.");
                     sendUpdateGoldTrade(pl); // Cập nhật lại số vàng hiển thị về 0 hoặc giá trị hợp lệ
@@ -127,11 +141,12 @@ public class Trade {
                 if (isItemCannotTran(item)) {
                     removeItemTrade(pl, index);
                 } else {
+                    Item itemSnapshot = ItemService.gI().copyItem(item);
                     if (quantity > 99) {
                         int n = quantity / 99;
                         int left = quantity % 99;
                         for (int i = 0; i < n; i++) {
-                            Item itemTrade = ItemService.gI().copyItem(item);
+                            Item itemTrade = ItemService.gI().copyItem(itemSnapshot);
                             itemTrade.quantity = 99;
                             itemTrade.quantityGD = itemTrade.quantity;
                             if (pl.equals(this.player1)) {
@@ -143,7 +158,7 @@ public class Trade {
                             }
                         }
                         if (left > 0) {
-                            Item itemTrade = ItemService.gI().copyItem(item);
+                            Item itemTrade = ItemService.gI().copyItem(itemSnapshot);
                             itemTrade.quantity = left;
                             itemTrade.quantityGD = itemTrade.quantity;
                             if (pl.equals(this.player1)) {
@@ -155,7 +170,7 @@ public class Trade {
                             }
                         }
                     } else {
-                        Item itemTrade = ItemService.gI().copyItem(item);
+                        Item itemTrade = ItemService.gI().copyItem(itemSnapshot);
                         itemTrade.quantity = quantity != 0 ? quantity : 1;
                         itemTrade.quantityGD = itemTrade.quantity;
                         if (pl.equals(this.player1)) {
@@ -228,6 +243,9 @@ public class Trade {
     }
 
     private boolean isItemCannotTran(Item item) {
+        if (nro.models.services.ServerLaunchConfigService.gI().isRestrictGoldTrading() && item.template.id == 457) {
+            return true;
+        }
         for (Item.ItemOption io : item.itemOptions) {
             if (io.optionTemplate.id == 30) {
                 return true;
@@ -239,6 +257,7 @@ public class Trade {
                 return true;
         }
         switch (item.template.type) {
+            case 18:
             case 27: //
                 if (item.template.id == 590) {
                     return true;
@@ -265,19 +284,27 @@ public class Trade {
 
     public void cancelTrade() {
         String notifiText = "Giao dịch bị hủy bỏ";
-        Service.gI().sendThongBao(player1, notifiText);
-        Service.gI().sendThongBao(player2, notifiText);
+        if (player1 != null) {
+            Service.gI().sendThongBao(player1, notifiText);
+        }
+        if (player2 != null && !player2.isBot) {
+            Service.gI().sendThongBao(player2, notifiText);
+        }
         closeTab();
         dispose();
     }
 
-    private void closeTab() {
+    public void closeTab() {
         Message msg = null;
         try {
             msg = new Message(-86);
             msg.writer().writeByte(7);
-            player1.sendMessage(msg);
-            player2.sendMessage(msg);
+            if (player1 != null) {
+                player1.sendMessage(msg);
+            }
+            if (player2 != null && !player2.isBot) {
+                player2.sendMessage(msg);
+            }
         } catch (Exception e) {
         } finally {
             if (msg != null) {
@@ -286,11 +313,15 @@ public class Trade {
         }
     }
 
-    public void dispose() {
-        player1.idMark.setPlayerTradeId(-1);
-        player2.idMark.setPlayerTradeId(-1);
-        TransactionService.PLAYER_TRADE.remove(player1);
-        TransactionService.PLAYER_TRADE.remove(player2);
+    public synchronized void dispose() {
+        if (player1 != null) {
+            player1.idMark.setPlayerTradeId(-1);
+            TransactionService.PLAYER_TRADE.remove(player1);
+        }
+        if (player2 != null) {
+            player2.idMark.setPlayerTradeId(-1);
+            TransactionService.PLAYER_TRADE.remove(player2);
+        }
         this.player1 = null;
         this.player2 = null;
         this.itemsBag1 = null;
@@ -300,6 +331,19 @@ public class Trade {
     }
 
     public void lockTran(Player pl) {
+        if (pl.equals(player1)) {
+            if (locked1) {
+                return;
+            }
+            locked1 = true;
+        } else if (pl.equals(player2)) {
+            if (locked2) {
+                return;
+            }
+            locked2 = true;
+        } else {
+            return;
+        }
         Message msg = null;
         try {
             msg = new Message(-86);
@@ -316,7 +360,7 @@ public class Trade {
                     }
                     msg.writer().writeByte(item.itemOptions.size());
                     for (Item.ItemOption io : item.itemOptions) {
-                        msg.writer().writeByte(io.optionTemplate.id);
+                        msg.writer().writeShort(io.optionTemplate.id);
                         msg.writer().writeShort(io.param);
                     }
                 }
@@ -333,7 +377,7 @@ public class Trade {
                     }
                     msg.writer().writeByte(item.itemOptions.size());
                     for (Item.ItemOption io : item.itemOptions) {
-                        msg.writer().writeByte(io.optionTemplate.id);
+                        msg.writer().writeShort(io.optionTemplate.id);
                         msg.writer().writeShort(io.param);
                     }
                 }
@@ -345,7 +389,7 @@ public class Trade {
             if (msg != null) {
                 msg.cleanup();
             }
-            if (player2.isBot) {
+            if (player2 != null && player2.isBot) {
                 if (pl.equals(player1)) {
                     ((Bot) player2).shop.CheckTraDe(itemsTrade1);
                 }
@@ -354,12 +398,39 @@ public class Trade {
     }
 
     public synchronized void acceptTrade() {
-        if (player1 == null || player2 == null || this.accept >= 2) {
+        if (player2 != null && player2.isBot) {
+            acceptTrade(player2);
+        }
+    }
+
+    public synchronized void acceptTrade(Player pl) {
+        if (player1 == null || player2 == null) {
             return;
         }
-        this.accept++;
-        if (this.accept == 2) {
+        // Bắt buộc cả 2 bên đều phải KHÓA giao dịch trước mới được chấp nhận!
+        if (!locked1 || !locked2) {
+            Service.gI().sendThongBao(pl, "Cả hai bên phải khóa giao dịch trước khi đồng ý!");
+            return;
+        }
+
+        if (pl.equals(player1)) {
+            accept1 = true;
+        } else if (pl.equals(player2)) {
+            accept2 = true;
+        } else {
+            return;
+        }
+
+        if (accept1 && accept2) {
+            this.accept = 2;
             this.startTrade();
+        } else {
+            this.accept = 1;
+            Service.gI().sendThongBao(pl, "Đã đồng ý, vui lòng chờ đối phương xác nhận...");
+            Player other = pl.equals(player1) ? player2 : player1;
+            if (other != null && !other.isBot) {
+                Service.gI().sendThongBao(other, pl.name + " đã đồng ý giao dịch.");
+            }
         }
     }
 
@@ -401,24 +472,21 @@ public class Trade {
                         HistoryTransactionDAO.insert(player1, player2, goldTrade1, goldTrade2, itemsTrade1, itemsTrade2,
                                 bag1Before, bag2Before, player1.inventory.itemsBag, player2.inventory.itemsBag,
                                 gold1Before, gold2Before, player1.inventory.gold, player2.inventory.gold);
+                        try {
+                            PlayerDAO.updatePlayer(player1);
+                            if (!player2.isBot) {
+                                PlayerDAO.updatePlayer(player2);
+                            }
+                        } catch (Exception e) {
+                            Logger.logException(Trade.class, e);
+                        }
                     }
                 }
             }
         }
-        if (tradeStatus != SUCCESS) {
-            HistoryTransactionDAO.insertFailed(player1, player2, goldTrade1, goldTrade2, itemsTrade1, itemsTrade2, getFailReason(tradeStatus));
-        }
         sendNotifyTrade(tradeStatus);
-    }
-
-    private String getFailReason(byte status) {
-        return switch (status) {
-            case FAIL_NOT_ENOUGH_GOLD -> "Không đủ vàng";
-            case FAIL_INVALID_ASSET -> "Vật phẩm đã thay đổi hoặc không còn đủ số lượng";
-            case FAIL_MAX_GOLD_PLAYER1 -> "Vàng sau giao dịch của người chơi 1 vượt tối đa";
-            case FAIL_MAX_GOLD_PLAYER2 -> "Vàng sau giao dịch của người chơi 2 vượt tối đa";
-            default -> "Giao dịch thất bại";
-        };
+        closeTab();
+        dispose();
     }
 
     private List<Item> prepareTradeBag(Player owner, List<Item> outgoing, List<Item> incoming) {

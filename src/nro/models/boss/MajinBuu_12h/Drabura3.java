@@ -126,17 +126,7 @@ public class Drabura3 extends Boss {
         }
     }
 
-   @Override
-public void reward(Player plKill) {
 
-
-
-    // Điểm Mabu (nếu có dùng)
-    plKill.fightMabu.changePoint((byte) 10, this.name);
-
-    // Chỉ check hoàn thành nhiệm vụ boss
-    TaskService.gI().checkDoneTaskKillBoss(plKill, this);
-}
     @Override
     public void autoLeaveMap() {
         if (Util.canDoWithTime(this.lastTimeJoin, 60000)) {
@@ -169,6 +159,55 @@ public void reward(Player plKill) {
         } else {
             return 0;
         }
+    }
+
+    @Override
+    public void reward(Player plKill) {
+        int x = this.location.x;
+        int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
+
+        // 22% rơi Đồ Thần Linh (1 - 4 sao)
+        if (Util.isTrue(22, 100)) {
+            int[] dropItems = {241, 253, 265, 277, 233, 245, 257, 269, 237, 249, 261, 273, 281};
+            int itemId = dropItems[Util.nextInt(dropItems.length)];
+            ItemMap it = new ItemMap(zone, itemId, 1, x, y, plKill.id);
+            it.options.add(new Item.ItemOption(107, Util.nextInt(1, 4)));
+            switch (itemId) {
+                case 241, 233, 237 -> it.options.add(new Item.ItemOption(47, Util.nextInt(400, 550)));
+                case 253, 245, 249 -> {
+                    it.options.add(new Item.ItemOption(6, Util.nextInt(22000, 27000)));
+                    it.options.add(new Item.ItemOption(27, Util.nextInt(3000, 5000)));
+                }
+                case 265, 257, 261 -> it.options.add(new Item.ItemOption(0, Util.nextInt(2100, 2400)));
+                case 277, 269, 273 -> {
+                    it.options.add(new Item.ItemOption(7, Util.nextInt(22000, 26000)));
+                    it.options.add(new Item.ItemOption(28, Util.nextInt(4000, 6000)));
+                }
+                case 281 -> it.options.add(new Item.ItemOption(14, Util.nextInt(11, 13)));
+            }
+            Service.gI().dropItemMap(zone, it);
+        }
+
+        // 40% rơi Ngọc Rồng 1 - 3 sao
+        if (Util.isTrue(40, 100)) {
+            int nrId = Util.nextInt(14, 16); // 14: 1 sao, 15: 2 sao, 16: 3 sao
+            ItemMap it = new ItemMap(zone, nrId, 1, x + 10, y, plKill.id);
+            Service.gI().dropItemMap(zone, it);
+        }
+
+        // 25% rơi Sao Pha Lê (3 - 5 sao)
+        if (Util.isTrue(25, 100)) {
+            int splId = Util.nextInt(443, 445);
+            ItemMap it = new ItemMap(zone, splId, 1, x - 10, y, plKill.id);
+            Service.gI().dropItemMap(zone, it);
+        }
+
+        // Vàng rơi tự do trên sàn đấu
+        ItemMap gold = new ItemMap(zone, 190, Util.nextInt(200000, 500000), x + 20, y, -1);
+        Service.gI().dropItemMap(zone, gold);
+
+        plKill.fightMabu.changePoint((byte) 10, this.name);
+        TaskService.gI().checkDoneTaskKillBoss(plKill, this);
     }
 
     @Override

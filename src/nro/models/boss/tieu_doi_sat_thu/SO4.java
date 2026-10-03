@@ -1,4 +1,5 @@
 package nro.models.boss.tieu_doi_sat_thu;
+
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
 import nro.models.consts.BossStatus;
@@ -28,75 +29,42 @@ public class SO4 extends Boss {
         super.moveTo(x, y);
     }
 
-// @Override
-//     public void reward(Player plKill) {
-//         int diem = 5;
-//         plKill.event.addEventPoint(diem);
-//         Service.gI().sendThongBao(plKill, "+5 Point");
-//         TaskService.gI().checkDoneTaskKillBoss(plKill, this);
-//         Service.gI().dropItemMap(this.zone, new ItemMap(this.zone, 190, Util.nextInt(20000, 30001),
-//           this.location.x, this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id));
-//         if (Util.isTrue(80, 100)) {
-//             int[] items = Util.isTrue(50, 100) ? new int[]{18, 19, 20} : new int[]{18,19,20};
-//             int randomItem = items[new Random().nextInt(items.length)];
-//             Service.gI().dropItemMap(this.zone, new ItemMap(this.zone, randomItem, 1,
-//           this.location.x, this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id));
-//         }
-//     }
-@Override
-public void reward(Player plKill) {
+    @Override
+    public void reward(Player plKill) {
 
-    short itemId = 1507;
+        short itemId = 1507;
 
-    int totalDrop = Util.nextInt(1, 3); // random số lượng rơi
+        int totalDrop = Util.nextInt(1, 3); // random số lượng rơi
 
-    for (int i = 0; i < totalDrop; i++) {
+        for (int i = 0; i < totalDrop; i++) {
 
-        int x = this.location.x + Util.nextInt(-60, 60);
-        int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
+            int x = this.location.x + Util.nextInt(-60, 60);
+            int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
 
-        ItemMap item = new ItemMap(
-                this.zone,
-                itemId,
-                1,
-                x,
-                y,
-                -1 // ai cũng nhặt được
-        );
+            ItemMap item = new ItemMap(
+                    this.zone,
+                    itemId,
+                    1,
+                    x,
+                    y,
+                    -1 // ai cũng nhặt được
+            );
 
-        Service.gI().dropItemMap(this.zone, item);
-    }
-      TaskService.gI().checkDoneTaskKillBoss(plKill, this);
-}
-@Override
-public synchronized int injured(Player plAtt, long damage, boolean piercing, boolean isMobAttack) {
-
-    // Check khung giờ giới hạn
-    LocalTime now = LocalTime.now();
-    int hour = now.getHour();
-
-    boolean isLimitTime =
-            (hour >= 1 && hour < 2) ||   // 01:00 - 01:59
-            (hour >= 14 && hour < 15);   // 14:00 - 14:59
-
-    // Nếu trong giờ giới hạn và KHÔNG làm nhiệm vụ 20 -> không gây sát thương
-    if (isLimitTime) {
-        // Kiểm tra nhiệm vụ 20 (TASK_20_x)
-        if (plAtt == null
-                || plAtt.playerTask == null
-                || plAtt.playerTask.taskMain == null
-                || plAtt.playerTask.taskMain.id != 20) {
-
-            // Có thể gửi thông báo 1 lần (tuỳ bạn)
-            // Service.gI().sendThongBao(plAtt, "Chỉ người đang làm nhiệm vụ 20 mới đánh được boss trong khung giờ này");
-
-            return 0;
+            Service.gI().dropItemMap(this.zone, item);
         }
+        TaskService.gI().checkDoneTaskKillBoss(plKill, this);
     }
 
-    // Xử lý sát thương bình thường
-    return super.injured(plAtt, damage, piercing, isMobAttack);
-}
+    @Override
+    public synchronized int injured(Player plAtt, long damage, boolean piercing, boolean isMobAttack) {
+        if (TieuDoiSatThuHelper.isLimitSupportHour()) {
+            if (!TieuDoiSatThuHelper.isDoingTaskTDST(plAtt)) {
+                return 0;
+            }
+        }
+        return super.injured(plAtt, damage, piercing, isMobAttack);
+    }
+
     @Override
     protected void notifyJoinMap() {
         if (this.currentLevel == 1) {
@@ -109,12 +77,21 @@ public synchronized int injured(Player plAtt, long damage, boolean piercing, boo
     public void joinMap() {
         super.joinMap();
         st = System.currentTimeMillis();
+        TieuDoiSatThuHelper.checkEvictFinishedPlayers(this);
     }
 
     @Override
     public void autoLeaveMap() {
-        if (Util.canDoWithTime(st, 900000)) {
+        if (this.parentBoss != null && (this.parentBoss.zone == null || this.parentBoss.bossStatus == BossStatus.REST)) {
             this.leaveMapNew();
+            return;
+        }
+        if (Util.canDoWithTime(st, 900000)) {
+            if (this.parentBoss != null) {
+                this.parentBoss.leaveMapNew();
+            } else {
+                this.leaveMapNew();
+            }
         }
         if (this.zone != null && this.zone.getNumOfPlayers() > 0) {
             st = System.currentTimeMillis();

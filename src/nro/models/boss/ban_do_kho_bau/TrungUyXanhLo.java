@@ -46,10 +46,34 @@ public class TrungUyXanhLo extends Boss {
         plKill.event.addEventPoint(diem);
         Service.gI().sendThongBao(plKill, "+5 Point");
         if (Util.isTrue(100, 100)) {
-            ItemMap it = new ItemMap(this.zone, 705, 1, this.location.x, this.zone.map.yPhysicInTop(this.location.x,
-                    this.location.y - 24), plKill.id);
-            Service.gI().dropItemMap(this.zone, it);         
-    }    }
+            int yEnd = this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24);
+            if (yEnd <= 0) {
+                yEnd = this.location.y;
+            }
+            ItemMap it = new ItemMap(this.zone, 705, 1, this.location.x, yEnd, plKill.id);
+            Service.gI().dropItemMap(this.zone, it);
+
+            int dungeonLevel = 1;
+            if (plKill.clan != null && plKill.clan.BanDoKhoBau != null) {
+                dungeonLevel = Math.max(1, plKill.clan.BanDoKhoBau.level);
+            }
+            int totalGold = Util.nextInt(25000 + dungeonLevel * 8000, 60000 + dungeonLevel * 18000);
+            int piles = Math.min(8, 4 + dungeonLevel / 25);
+            int remainingGold = totalGold;
+            for (int i = 0; i < piles; i++) {
+                int pilesLeft = piles - i;
+                int pileGold = (remainingGold + pilesLeft - 1) / pilesLeft;
+                remainingGold -= pileGold;
+                int pileX = this.location.x + (i - piles / 2) * 25;
+                int pileY = this.zone.map.yPhysicInTop(pileX, yEnd - 24);
+                if (pileY <= 0) {
+                    pileY = yEnd;
+                }
+                ItemMap goldItem = new ItemMap(this.zone, 190, pileGold, pileX, pileY, plKill.id);
+                Service.gI().dropItemMap(this.zone, goldItem);
+            }
+        }
+    }
 
     @Override
     public void joinMap() {

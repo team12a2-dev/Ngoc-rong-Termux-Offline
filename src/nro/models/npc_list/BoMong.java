@@ -1,12 +1,19 @@
 package nro.models.npc_list;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import nro.models.consts.ConstNpc;
 import nro.models.consts.ConstTask;
-import nro.models.map.service.NpcService;
+import nro.models.item.Item;
+import nro.models.services.AchievementService;
 import nro.models.npc.Npc;
 import nro.models.player.Player;
-import nro.models.services.AchievementService;
+import nro.models.services.InventoryService;
+import nro.models.services.ItemService;
+import nro.models.services.PlayerService;
+import nro.models.services.Service;
 import nro.models.services.TaskService;
+import nro.models.services.TrainingService;
 import nro.models.services_func.Input;
 
 /**
@@ -22,55 +29,54 @@ public class BoMong extends Npc {
 
     @Override
     public void openBaseMenu(Player player) {
-       boolean doneTalkNpcTask = TaskService.gI().checkDoneTaskTalkNpc(player, this);
-       boolean showFastMainTask = TaskService.gI().isFastMainTaskQuest(player);
+        if (TaskService.gI().checkDoneTaskTalkNpc(player, this)) {
+            return;
+        }
 
-            if (canOpenNpc(player)) {
-                if (this.mapId == 47 || this.mapId == 84 ||this.mapId == 21||this.mapId == 22||this.mapId == 23) {
-                    if (doneTalkNpcTask) {
-                        if (showFastMainTask) {
-                            this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
-                                    TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
-                        }
+        if (canOpenNpc(player)) {
+            if (this.mapId == 47 || this.mapId == 84) {
+                if (TaskService.gI().isCurrentTaskTauPayPayQuest(player)) {
+                    if (TrainingService.gI().isTauPayPayQuestBossAlive(player)) {
+                        this.npcChat(player, "Tên sát thủ Tàu Pảy Pảy đang ở đằng kia kìa! Con hãy mau cẩn thận tiêu diệt hắn và đoạt lại Ngọc Rồng 6 Sao!");
+                        return;
+                    } else {
+                        this.createOtherMenu(player, ConstNpc.MENU_BO_MONG_SPAWN_TAU_77,
+                                "Nguy hiểm quá! Tên sát thủ Tàu Pảy Pảy khét tiếng vừa xuất hiện để cướp Ngọc Rồng!\n"
+                                + "Hắn đang chuẩn bị đáp phi thuyền xuống đây, con hãy mau cẩn thận!",
+                                "Ta sẽ tiêu diệt hắn!");
                         return;
                     }
-                    String[] menuSelect = {"Nạp Ngọc", "Nhận ngọc\nMiễn phí", "Nhiệm vụ\nhàng ngày",
-                        "Hoàn thành nhanh\nnhiệm vụ chính"};
-                    this.createOtherMenu(player, ConstNpc.BASE_MENU,
-                            "Ngươi muốn có thêm ngọc thì chịu khó làm vài nhiệm vụ sẽ được ngọc thưởng", menuSelect);
+                }
+                this.createOtherMenu(player, ConstNpc.BASE_MENU,
+                        "Ngươi muốn có thêm ngọc thì chịu khó làm vài nhiệm vụ sẽ được ngọc thưởng",
+                        "Nạp Ngọc",
+                        "Nhận ngọc\nMiễn phí",
+                        "Nhiệm vụ\nhàng ngày");
             }
         }
     }
 
-    private void openRechargeMenu(Player player) {
-        this.createOtherMenu(player, ConstNpc.MENU_OPTION_RECHARGE_GEM,
-                "Ngươi muốn nạp ngọc bằng cách nào?",
-                "Hướng dẫn nạp thẻ", "Nhập Gift Code", "Quy đổi ngọc");
-    }
-
-    private void openRechargeGuide(Player player) {
-        NpcService.gI().createTutorial(player, tempId, avartar,
-                "CÁCH NẠP NGỌC\n"
-                + "Bạn có thể có ngọc từ 2 nguồn:\n"
-                + "1. Ví điện tử, gift code (thẻ cào rốt)\n"
-                + "2. Quy đổi từ số dư VNĐ\n\n"
-                + "Sau khi nạp thẻ ở kênh nạp của máy chủ, tiền sẽ được cộng vào\n"
-                + "số dư VNĐ của tài khoản. Chọn \"Quy đổi ngọc\" để đổi sang Ngọc Xanh.\n"
-                + "Tỉ lệ: 10.000 VNĐ = 120 ngọc.\n"
-                + "Mỗi lần đổi tối thiểu 10.000 VNĐ, tối đa 5.000.000 VNĐ.\n"
-                + "Mỗi 10.000 VNĐ quy đổi được thêm 50 điểm sự kiện.");
-    }
-
-
     @Override
     public void confirmMenu(Player player, int select) {
         if (canOpenNpc(player)) {
-            if (this.mapId == 47 || this.mapId == 84||this.mapId == 21||this.mapId == 22||this.mapId == 23) {
+            if (this.mapId == 47 || this.mapId == 84) {
+                if (player.idMark.getIndexMenu() == ConstNpc.MENU_BO_MONG_SPAWN_TAU_77) {
+                    TrainingService.gI().trySpawnTauPayPayQuestBoss(player);
+                    return;
+                }
                 if (player.idMark.isBaseMenu()) {
                     switch (select) {
-                        case 0 -> openRechargeMenu(player);
-                        case 1 -> AchievementService.gI().openAchievementUI(player);
-                        case 2 -> {
+                        case 0 -> { // Nạp Ngọc
+                            this.createOtherMenu(player, ConstNpc.MENU_NAP_NGOC,
+                                    "Chọn chức năng nạp",
+                                    "Quy Đổi Ngọc",
+                                    "Nhập Gift Code",
+                                    "Từ chối");
+                        }
+                        case 1 -> { // Nhận ngọc Miễn phí
+                            AchievementService.gI().openAchievementUI(player);
+                        }
+                        case 2 -> { // Nhiệm vụ hàng ngày
                             if (player.playerTask.sideTask.template != null) {
                                 String npcSay = "Nhiệm vụ hiện tại: " + player.playerTask.sideTask.getName() + " ("
                                         + player.playerTask.sideTask.getLevel() + ")"
@@ -87,15 +93,11 @@ public class BoMong extends Npc {
                                         "Dễ", "Bình thường", "Khó", "Từ chối");
                             }
                         }
-                        case 3 -> this.createOtherMenu(player, ConstNpc.MENU_OPTION_FAST_MAIN_TASK,
-                                TaskService.gI().getFastMainTaskSay(player), "Đồng ý", "Từ chối");
-
                     }
-                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_RECHARGE_GEM) {
+                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_NAP_NGOC) {
                     switch (select) {
-                        case 0 -> openRechargeGuide(player);
+                        case 0 -> Input.gI().createFormTradeGem(player);
                         case 1 -> Input.gI().createFormGiftCode(player);
-                        case 2 -> Input.gI().createFormTradeGem(player);
                     }
                 } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_LEVEL_SIDE_TASK) {
                     switch (select) {
@@ -108,13 +110,6 @@ public class BoMong extends Npc {
                             TaskService.gI().paySideTask(player);
                         case 1 ->
                             TaskService.gI().removeSideTask(player);
-                    }
-                } else if (player.idMark.getIndexMenu() == ConstNpc.MENU_OPTION_FAST_MAIN_TASK) {
-                    switch (select) {
-                        case 0 -> {
-                            TaskService.gI().fastMainTask(player);
-                            this.openBaseMenu(player);
-                        }
                     }
                 }
             }

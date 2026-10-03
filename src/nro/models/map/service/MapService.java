@@ -30,12 +30,28 @@ public class MapService {
     }
 
     public WayPoint getWaypointPlayerIn(Player player) {
+        if (player == null || player.zone == null || player.zone.map == null || player.zone.map.wayPoints == null) {
+            return null;
+        }
         for (WayPoint wp : player.zone.map.wayPoints) {
             if (player.location.x >= wp.minX && player.location.x <= wp.maxX && player.location.y >= wp.minY && player.location.y <= wp.maxY) {
                 return wp;
             }
         }
         return null;
+    }
+
+    public boolean isNearWaypoint(Player player, int margin) {
+        if (player == null || player.zone == null || player.zone.map == null || player.zone.map.wayPoints == null) {
+            return false;
+        }
+        for (WayPoint wp : player.zone.map.wayPoints) {
+            if (player.location.x >= (wp.minX - margin) && player.location.x <= (wp.maxX + margin)
+                    && player.location.y >= (wp.minY - margin) && player.location.y <= (wp.maxY + margin)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -75,7 +91,6 @@ public class MapService {
         int[][] tileMap = null;
         try {
             DataInputStream dis = new DataInputStream(new FileInputStream("data/map/tile_map_data/" + mapId));
-            dis.readByte();
             int w = dis.readByte();
             int h = dis.readByte();
             tileMap = new int[h][w];
@@ -463,6 +478,9 @@ public class MapService {
     }
 
     public boolean isMapOffline(int mapId) {
+        if (mapId == ConstMap.RUNG_KARIN) {
+            return true;
+        }
         for (Map map : Manager.MAPS) {
             if (map.mapId == mapId) {
                 return map.type == ConstMap.MAP_OFFLINE;
@@ -476,7 +494,7 @@ public class MapService {
     }
 
     public boolean isMapMaBu(int mapId) {
-        return mapId == 114 || mapId == 115 || (mapId >= 117 && mapId <= 120);
+        return mapId >= 114 && mapId <= 120;
     }
 
     /**
@@ -487,6 +505,22 @@ public class MapService {
         return mapId == ConstMap.NHA_GOHAN
                 || mapId == ConstMap.NHA_MOORI
                 || mapId == ConstMap.NHA_BROLY;
+    }
+
+    /**
+     * Kiểm tra map an toàn, map nhà, map offline hoặc map đặc biệt không cho phép boss tự do spawn
+     */
+    public boolean isMapSafeOrHome(int mapId) {
+        return isHome(mapId)
+                || isMapOffline(mapId)
+                || isMapLuyenTap(mapId)
+                || isMapPhoBan(mapId)
+                || isMapMaBu(mapId)
+                || isMapBlackBallWar(mapId)
+                || isMapMabu2H(mapId)
+                || mapId == 51 || mapId == 52 || mapId == 113 || mapId == 129
+                || mapId == ConstMap.NHA_GOHAN || mapId == ConstMap.NHA_MOORI || mapId == ConstMap.NHA_BROLY
+                || mapId == ConstMap.RUNG_KARIN;
     }
 
     public boolean isMapYardart(int mapId) {
@@ -570,8 +604,9 @@ public class MapService {
     }
 
     public boolean AllMap(int mapId) {
-        return mapId >= 0 && mapId <= 163;
+        return (mapId >= 0 && mapId <= 164) || isMapRiengTu(mapId);
     }
+
 
     public boolean shouldChangeMap(int currentMapId, int newMapId) {
         return MapService.gI().isMapKhiGasHuyDiet(currentMapId)
@@ -583,9 +618,8 @@ public class MapService {
         return isMapBanDoKhoBau(mapId) || isMapDoanhTrai(mapId) || isMapConDuongRanDoc(mapId) || isMapKhiGasHuyDiet(mapId);
     }
 
-    /** Lãnh địa Bang Hội: map sự kiện, không lưu vị trí khi người chơi thoát game. */
-    public boolean isMapLanhDiaBangHoi(int mapId) {
-        return mapId == ConstMap.LANH_DIA_BANG_HOI;
+    public boolean isMapUpVang(int mapId) {
+        return mapId == ConstMap.MAP_UP_VANG_134 || mapId == ConstMap.MAP_UP_VANG_186;
     }
 
     public boolean isskh(int mapId) {
@@ -653,7 +687,13 @@ public class MapService {
      * Map đầu rơi dày; map cao rơi thưa hơn nhưng vẫn đủ farm (≈ 4%–12%).
      */
     public int getGoldDropRate(int mapId) {
-        if (isMapPhoBan(mapId) || isMapLuyenTap(mapId)) {
+        if (isMapLuyenTap(mapId)) {
+            return 0;
+        }
+        if (isMapDoanhTrai(mapId)) {
+            return 12;
+        }
+        if (isMapPhoBan(mapId)) {
             return 0;
         }
         // Map đầu: ~10%
@@ -685,6 +725,9 @@ public class MapService {
         // Thánh địa: ~5%
         if (isMapUpPorata(mapId)) {
             return 20;
+        }
+        if (isMapRiengTu(mapId)) {
+            return 10;
         }
         if (mapId >= 0 && mapId <= 163) {
             return 10;

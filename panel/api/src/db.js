@@ -31,8 +31,11 @@ export async function getPool() {
     const cfg = resolveDbConfig();
     pool = mysql.createPool({
       ...cfg,
+      charset: 'utf8mb4',
       waitForConnections: true,
       connectionLimit: 10,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10000,
     });
   }
   return pool;
@@ -68,7 +71,7 @@ export async function withTransaction(work) {
 
 export async function verifyGameDb() {
   const cfg = resolveDbConfig();
-  const conn = await mysql.createConnection(cfg);
+  const conn = await mysql.createConnection({ ...cfg, charset: 'utf8mb4' });
   const [rows] = await conn.query('SELECT DATABASE() AS db');
   await conn.end();
   return { ok: true, database: rows[0].db, config: cfg };

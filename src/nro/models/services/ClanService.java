@@ -615,6 +615,13 @@ public class ClanService {
                     msg = new Message(-50);
                     msg.writer().writeByte(clan.getCurrMembers());
                     for (ClanMember cm : clan.getMembers()) {
+                        Player pl = Client.gI().getPlayer(cm.id);
+                        if (pl != null) {
+                            cm.powerPoint = pl.nPoint.power;
+                            cm.head = pl.getHead();
+                            cm.body = pl.getBody();
+                            cm.leg = pl.getLeg();
+                        }
                         msg.writer().writeInt((int) cm.id);
                         msg.writer().writeShort(cm.head);
                         msg.writer().writeShort(-1);
@@ -746,6 +753,9 @@ public class ClanService {
                     Player pl = Client.gI().getPlayer(cm.id);
                     if (pl != null) {
                         cm.powerPoint = pl.nPoint.power;
+                        cm.head = pl.getHead();
+                        cm.body = pl.getBody();
+                        cm.leg = pl.getLeg();
                     }
                     msg.writer().writeInt(cm.id);
                     msg.writer().writeShort(cm.head);
@@ -1070,6 +1080,7 @@ public class ClanService {
         try (Connection con = LocalManager.getConnection();) {
             ps = con.prepareStatement("update clan set slogan = ?, img_id = ?, power_point = ?, max_member = ?, clan_point = ?, level = ?, members = ?, name_2 = ?, tops = ? where id = ? limit 1");
             for (Clan clan : Manager.CLANS) {
+                clan.reloadClanMember();
                 JSONArray dataArray = new JSONArray();
                 JSONObject dataObject = new JSONObject();
                 for (ClanMember cm : clan.members) {

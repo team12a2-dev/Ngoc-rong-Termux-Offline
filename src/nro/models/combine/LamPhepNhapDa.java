@@ -83,9 +83,10 @@ public class LamPhepNhapDa {
             Item newItem = new Item();
             newItem.template = ItemService.gI().getTemplate(randomId);
             newItem.quantity = 1;
+            newItem.itemOptions.add(new Item.ItemOption(71 - (randomId - 220), 0));
             InventoryService.gI().addItemBag(player, newItem);
             CombineService.gI().sendEffectSuccessCombine(player);
-            Service.gI().sendThongBao(player, "Chúc mừng! Bạn đã chế tạo thành công.");
+            Service.gI().sendThongBao(player, "Chúc mừng! Bạn đã chế tạo thành công " + newItem.template.name);
         } else {
             CombineService.gI().sendEffectFailCombine(player);
             Service.gI().sendThongBao(player, "Thất bại! Nguyên liệu đã bị mất.");

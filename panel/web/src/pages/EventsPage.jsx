@@ -42,7 +42,14 @@ function cleanForm(event) {
     configJson: event.configJson || event.config_json || {},
     objectives: (event.objectives || []).map((item) => ({ ...emptyObjective, ...item, objectiveType: item.objective_type || item.objectiveType || 'collect', targetId: item.target_id ?? item.targetId ?? '', targetValue: item.target_value ?? item.targetValue ?? 0, requiredCount: item.required_count ?? item.requiredCount ?? 1, mapIds: item.mapIds || [] })),
     rewards: (event.rewards || []).map((item) => ({ ...emptyReward, ...item, rewardType: item.reward_type || item.rewardType || 'item', tempId: item.temp_id ?? item.tempId ?? '', quantityMin: item.quantity_min ?? item.quantityMin ?? 1, quantityMax: item.quantity_max ?? item.quantityMax ?? 1, chancePercent: item.chance_percent ?? item.chancePercent ?? 100, durationDays: item.duration_days ?? item.durationDays ?? '', rankMin: item.rank_min ?? item.rankMin ?? '', rankMax: item.rank_max ?? item.rankMax ?? '', optionsJson: item.optionsJson || {} })),
-    shops: (event.shops || []).map((shop) => ({ ...emptyShop, ...shop, items: shop.items || [] })),
+    shops: (event.shops || []).map((shop) => ({
+      ...emptyShop,
+      ...shop,
+      items: (Array.isArray(shop.items)
+        ? shop.items
+        : (typeof shop.items === 'string' ? (() => { try { const p = JSON.parse(shop.items); return Array.isArray(p) ? p : []; } catch { return []; } })() : [])
+      ),
+    })),
   };
 }
 

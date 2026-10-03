@@ -5,6 +5,7 @@ const ROUTE_ICONS = {
   '/players-db': 'players',
   '/accounts': 'accounts',
   '/server': 'control',
+  '/server-launch': 'servers',
   '/boss': 'boss',
   '/giftcodes': 'giftcode',
   '/shops': 'shop',
@@ -16,6 +17,8 @@ const ROUTE_ICONS = {
   '/alerts': 'alert',
   '/backups': 'backup',
   '/logs': 'logs',
+  '/tool-part': 'part',
+  '/icon-resizer': 'resizer',
 };
 
 export function getPageIcon(pathname) {

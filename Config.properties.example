@@ -4,13 +4,13 @@ server.daoautoupdater=false
 server.sv=1
 server.name=NGOC RONG
 # IP quảng bá cho client; chạy `./nro.sh lan` để tự cập nhật thành IP Wi-Fi Android
-server.ip=127.0.0.1
+server.ip=103.69.96.139
 # Địa chỉ bind socket: 0.0.0.0 = nghe trên mọi interface LAN
 server.listen.host=0.0.0.0
 server.port=14445
-server.sv1=NRO LOCAL:127.0.0.1:14445:0,0,0
+server.sv1=NRO Làng Xì Mi:103.69.96.139:14445:0,0,0
 server.waitlogin=0
-server.maxperip=3
+server.maxperip=20
 server.maxplayer=1000
 server.expserver=3
 
@@ -23,19 +23,10 @@ database.user=ngocrong
 database.pass=
 database.min=5
 database.max=20
-database.lifetime=180000
+database.lifetime=1800000
 
 # PANEL AGENT
 panel.agent.enabled=true
 panel.agent.host=127.0.0.1
 panel.agent.port=14446
 panel.agent.key=change-me-in-production
-
-# SIÊU QUÁI - chỉ roll khi người chơi hạ quái thường, siêu quái xuất hiện khi quái hồi sinh
-# Quái không tự xuất hiện siêu quái lúc load map, phải có người hạ quái trước đó
-# Mỗi khu vực chỉ có tối đa 1 siêu quái, nên sieuquai.rate là xác suất quái tiếp theo
-# sau khi hạ xong siêu quái sẽ thành siêu quái mới.
-# 1 trên sieuquai.rate: 10 = 10%  ·  5 = 20%  ·  20 = 5%  ·  100 = 1%
-sieuquai.rate=10
-# HP tối đa tối thiểu để quái được roll thành siêu quái
-sieuquai.minhp=3000

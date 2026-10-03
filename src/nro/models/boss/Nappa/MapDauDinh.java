@@ -15,7 +15,7 @@ public class MapDauDinh extends Boss {
     private long st;
 
     public MapDauDinh() throws Exception {
-        super(BossID.MAP_DAU_DINH, true, true, BossesData.MAP_DAU_DINH);
+        super(BossID.MAP_DAU_DINH, true, false, BossesData.MAP_DAU_DINH);
     }
 
     @Override
@@ -23,11 +23,10 @@ public class MapDauDinh extends Boss {
         super.joinMap();
         st = System.currentTimeMillis();
     }
-@Override
-public void reward(Player plKill) {
-    // Chỉ check hoàn thành nhiệm vụ, không reward gì thêm
-    TaskService.gI().checkDoneTaskKillBoss(plKill, this);
-}
+    @Override
+    public void reward(Player plKill) {
+        NappaRewardHelper.dropReward(this, plKill, -1);
+    }
     // @Override
     // public void reward(Player plKill) {
     //     int diem = 5;

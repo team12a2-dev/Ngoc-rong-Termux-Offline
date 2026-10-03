@@ -14,6 +14,7 @@ import nro.models.item.Item;
 import nro.models.map.ItemMap;
 import nro.models.map.Zone;
 import nro.models.player.Player;
+import nro.models.player.Inventory;
 import nro.models.utils.Util;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -73,7 +74,7 @@ public final class MapDropConfigService {
 
     private void loadItems(Connection con, DropRule rule) throws Exception {
         try (PreparedStatement itemStmt = con.prepareStatement(
-                "SELECT temp_id, mob_temp_id, player_level_min, player_level_max, time_start_min, time_end_min, enabled, chance_percent, quantity_min, quantity_max, options_json "
+                "SELECT temp_id, mob_temp_id, player_level_min, player_level_max, time_start_min, time_end_min, enabled, chance_percent, quantity_min, quantity_max, spread_count_min, spread_count_max, spread_distance, options_json "
                         + "FROM panel_map_drop_items WHERE config_id = ? ORDER BY id")) {
             itemStmt.setInt(1, rule.id);
             try (ResultSet rs = itemStmt.executeQuery()) {
@@ -89,6 +90,9 @@ public final class MapDropConfigService {
                             rs.getDouble("chance_percent"),
                             rs.getInt("quantity_min"),
                             rs.getInt("quantity_max"),
+                            rs.getInt("spread_count_min"),
+                            rs.getInt("spread_count_max"),
+                            rs.getInt("spread_distance"),
                             parseOptions(rs.getString("options_json"))
                     ));
                 }
@@ -133,35 +137,54 @@ public final class MapDropConfigService {
                     || playerLevel < drop.playerLevelMin || playerLevel > drop.playerLevelMax
                     || !isWithinTimeWindow(drop.timeStartMin, drop.timeEndMin)
                     || !roll(drop.chancePercent)) continue;
-            int quantity = randomQuantity(drop.quantityMin, drop.quantityMax);
-            try {
-                ItemMap item = new ItemMap(zone, drop.tempId, quantity, x, yEnd, player.id);
-                if (item.itemTemplate == null) continue;
-                for (Item.ItemOption option : drop.options) {
-                    item.options.add(new Item.ItemOption(option.optionTemplate.id, option.param));
+
+            int pileCount = randomQuantity(drop.spreadCountMin, drop.spreadCountMax);
+            pileCount = Math.max(1, pileCount);
+            int step = drop.spreadDistance > 0 ? drop.spreadDistance : 25;
+            int startX = pileCount > 1 ? x - ((pileCount - 1) * step) / 2 : x;
+
+            for (int p = 0; p < pileCount; p++) {
+                int pileX = pileCount > 1 ? startX + p * step : x;
+                int pileY = pileCount > 1 ? zone.map.yPhysicInTop(pileX, yEnd) : yEnd;
+                int quantity = randomQuantity(drop.quantityMin, drop.quantityMax);
+                try {
+                    ItemMap item = new ItemMap(zone, drop.tempId, quantity, pileX, pileY, player.id);
+                    if (item.itemTemplate == null) continue;
+                    for (Item.ItemOption option : drop.options) {
+                        item.options.add(new Item.ItemOption(option.optionTemplate.id, option.param));
+                    }
+                    drops.add(item);
+                } catch (Exception e) {
+                    System.err.println("[NRO][DROP] Skip invalid item " + drop.tempId + ": " + e.getMessage());
                 }
-                drops.add(item);
-            } catch (Exception e) {
-                System.err.println("[NRO][DROP] Skip invalid item " + drop.tempId + ": " + e.getMessage());
             }
         }
         return drops;
     }
 
     public ItemMap rollGold(DropRule rule, Zone zone, Player player, int x, int yEnd) {
-        if (rule == null || !rule.enabled || !rule.goldEnabled || !roll(rule.goldChancePercent)) return null;
+        if (rule == null || !rule.enabled || !rule.goldEnabled
+                || player == null || (player.inventory != null && player.inventory.gold >= Inventory.LIMIT_GOLD)
+                || !roll(rule.goldChancePercent)) return null;
         int min = Math.max(0, rule.goldMin);
         int max = Math.max(min, rule.goldMax);
         int quantity = randomQuantity(min, max);
         if (quantity <= 0) return null;
+        if (player.itemTime != null && player.itemTime.isUseCoBonLa) {
+            quantity += quantity * 50 / 100;
+        }
         int itemId = quantity < 10000 ? 188 : quantity < 100000 ? 189 : 190;
         return new ItemMap(zone, itemId, quantity, x, yEnd, player.id);
     }
 
     public ItemMap rollActivation(DropRule rule, Zone zone, Player player, int x, int yEnd) {
         if (rule == null || !rule.enabled || !rule.activationEnabled
-                || player == null || !player.isNewMember
-                || !roll(rule.activationChancePercent)) return null;
+                || player == null || !player.isNewMember) return null;
+        double chance = rule.activationChancePercent;
+        if (player.itemTime != null && player.itemTime.isUseCoBonLa) {
+            chance *= 2;
+        }
+        if (!roll(chance)) return null;
         short tempId = (short) ItemService.gI().randTempItemKichHoat(player.gender);
         ItemMap item = new ItemMap(zone, tempId, 1, x, yEnd, player.id);
         if (item.itemTemplate == null) return null;
@@ -234,11 +257,15 @@ public final class MapDropConfigService {
         public final double chancePercent;
         public final int quantityMin;
         public final int quantityMax;
+        public final int spreadCountMin;
+        public final int spreadCountMax;
+        public final int spreadDistance;
         public final List<Item.ItemOption> options;
 
         private ItemDrop(int tempId, int mobTempId, int playerLevelMin, int playerLevelMax,
                          int timeStartMin, int timeEndMin, boolean enabled, double chancePercent,
-                         int quantityMin, int quantityMax, List<Item.ItemOption> options) {
+                         int quantityMin, int quantityMax, int spreadCountMin, int spreadCountMax,
+                         int spreadDistance, List<Item.ItemOption> options) {
             this.tempId = tempId;
             this.mobTempId = mobTempId;
             this.playerLevelMin = Math.max(0, Math.min(19, playerLevelMin));
@@ -249,6 +276,9 @@ public final class MapDropConfigService {
             this.chancePercent = chancePercent;
             this.quantityMin = Math.max(1, quantityMin);
             this.quantityMax = Math.max(this.quantityMin, quantityMax);
+            this.spreadCountMin = Math.max(1, spreadCountMin);
+            this.spreadCountMax = Math.max(this.spreadCountMin, spreadCountMax);
+            this.spreadDistance = spreadDistance > 0 ? spreadDistance : 25;
             this.options = options;
         }
     }

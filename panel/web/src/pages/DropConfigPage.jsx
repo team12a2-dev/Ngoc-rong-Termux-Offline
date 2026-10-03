@@ -36,6 +36,9 @@ function newItem(template = {}) {
     chancePercent: Number(template.chancePercent ?? template.chance_percent ?? 1),
     quantityMin: Number(template.quantityMin ?? template.quantity_min ?? 1),
     quantityMax: Number(template.quantityMax ?? template.quantity_max ?? 1),
+    spreadCountMin: Number(template.spreadCountMin ?? template.spread_count_min ?? 1),
+    spreadCountMax: Number(template.spreadCountMax ?? template.spread_count_max ?? 1),
+    spreadDistance: Number(template.spreadDistance ?? template.spread_distance ?? 25),
     options: Array.isArray(template.options) ? template.options : [],
   };
 }
@@ -65,7 +68,10 @@ function normalizeRule(row, fallbackMapId) {
     goldMax: Number(row.goldMax ?? 0),
     activationEnabled: boolValue(row.activationEnabled),
     activationChancePercent: Number(row.activationChancePercent ?? 0),
-    items: (row.items || []).map((item) => ({
+    items: (Array.isArray(row.items)
+      ? row.items
+      : (typeof row.items === 'string' ? (() => { try { const p = JSON.parse(row.items); return Array.isArray(p) ? p : []; } catch { return []; } })() : [])
+    ).map((item) => ({
       ...newItem(item),
       id: item.id,
       tempId: Number(item.tempId ?? item.temp_id ?? 0),
@@ -78,6 +84,9 @@ function normalizeRule(row, fallbackMapId) {
       chancePercent: Number(item.chancePercent ?? item.chance_percent ?? 0),
       quantityMin: Number(item.quantityMin ?? item.quantity_min ?? 1),
       quantityMax: Number(item.quantityMax ?? item.quantity_max ?? item.quantityMin ?? 1),
+      spreadCountMin: Number(item.spreadCountMin ?? item.spread_count_min ?? 1),
+      spreadCountMax: Number(item.spreadCountMax ?? item.spread_count_max ?? item.spreadCountMin ?? 1),
+      spreadDistance: Number(item.spreadDistance ?? item.spread_distance ?? 25),
       options: Array.isArray(item.options) ? item.options : [],
     })),
   };
@@ -348,7 +357,7 @@ export default function DropConfigPage() {
                 <div className="section-head"><div><h4>Sét kích hoạt</h4><p className="muted">Chỉ bật khi map cần tỷ lệ sét riêng; mặc định đang tắt.</p></div><label className="toggle-empty"><input type="checkbox" checked={form.activationEnabled} onChange={(e) => patch('activationEnabled', e.target.checked)} /> Bật sét</label></div>
                 {form.activationEnabled && <label className="field">Tỷ lệ sét (%)<input type="number" min="0" max="100" step="0.01" value={form.activationChancePercent} onChange={(e) => patch('activationChancePercent', numberValue(e.target.value))} /></label>}
               </div>
-              <div className="drop-section-card"><h4>Điều kiện từng item</h4><p className="muted">Chỉnh trực tiếp khi cần: Mob `-1` = mọi quái, level `0–19`, giờ tính theo phút từ đầu ngày, `00:00–24:00` = cả ngày.</p><div className="table-wrap drop-advanced-items-table"><table className="compact"><thead><tr><th>Item</th><th>Mob ID</th><th>Level từ</th><th>Level đến</th><th>Giờ từ (phút)</th><th>Giờ đến (phút)</th><th>Options</th></tr></thead><tbody>{form.items.map((item, index) => <tr key={`advanced-${item.tempId}-${index}`}><td>{itemLabel(item)}</td><td><input className="input-xs" type="number" value={item.mobTempId} onChange={(e) => patchItem(index, 'mobTempId', numberValue(e.target.value, -1))} /></td><td><input className="input-xs" type="number" min="0" max="19" value={item.playerLevelMin} onChange={(e) => patchItem(index, 'playerLevelMin', numberValue(e.target.value, 0))} /></td><td><input className="input-xs" type="number" min="0" max="19" value={item.playerLevelMax} onChange={(e) => patchItem(index, 'playerLevelMax', numberValue(e.target.value, 19))} /></td><td><input className="input-xs" type="number" min="0" max="1439" value={item.timeStartMin} onChange={(e) => patchItem(index, 'timeStartMin', numberValue(e.target.value, 0))} /></td><td><input className="input-xs" type="number" min="0" max="1440" value={item.timeEndMin} onChange={(e) => patchItem(index, 'timeEndMin', numberValue(e.target.value, 1440))} /></td><td><input className="input-options" placeholder="id:param" value={optionText(item.options)} onChange={(e) => patchItem(index, 'options', parseOptions(e.target.value))} /></td></tr>)}</tbody></table></div></div>
+              <div className="drop-section-card"><h4>Điều kiện & Hiệu ứng từng item</h4><p className="muted">Chỉnh trực tiếp khi cần: Mob `-1` = mọi quái, level `0–19`, giờ tính theo phút từ đầu ngày (`00:00–24:00` = cả ngày), Rải hàng dài = số bọc rải ra và khoảng cách bước (px).</p><div className="table-wrap drop-advanced-items-table"><table className="compact"><thead><tr><th>Item</th><th>Mob ID</th><th>Level từ</th><th>Level đến</th><th>Giờ từ</th><th>Giờ đến</th><th>Rải bọc từ</th><th>Rải bọc đến</th><th>Cách (px)</th><th>Options</th></tr></thead><tbody>{form.items.map((item, index) => <tr key={`advanced-${item.tempId}-${index}`}><td>{itemLabel(item)}</td><td><input className="input-xs" type="number" value={item.mobTempId} onChange={(e) => patchItem(index, 'mobTempId', numberValue(e.target.value, -1))} /></td><td><input className="input-xs" type="number" min="0" max="19" value={item.playerLevelMin} onChange={(e) => patchItem(index, 'playerLevelMin', numberValue(e.target.value, 0))} /></td><td><input className="input-xs" type="number" min="0" max="19" value={item.playerLevelMax} onChange={(e) => patchItem(index, 'playerLevelMax', numberValue(e.target.value, 19))} /></td><td><input className="input-xs" type="number" min="0" max="1439" value={item.timeStartMin} onChange={(e) => patchItem(index, 'timeStartMin', numberValue(e.target.value, 0))} /></td><td><input className="input-xs" type="number" min="0" max="1440" value={item.timeEndMin} onChange={(e) => patchItem(index, 'timeEndMin', numberValue(e.target.value, 1440))} /></td><td><input className="input-xs" type="number" min="1" value={item.spreadCountMin ?? 1} onChange={(e) => patchItem(index, 'spreadCountMin', numberValue(e.target.value, 1))} /></td><td><input className="input-xs" type="number" min="1" value={item.spreadCountMax ?? 1} onChange={(e) => patchItem(index, 'spreadCountMax', numberValue(e.target.value, 1))} /></td><td><input className="input-xs" type="number" min="5" value={item.spreadDistance ?? 25} onChange={(e) => patchItem(index, 'spreadDistance', numberValue(e.target.value, 25))} /></td><td><input className="input-options" placeholder="id:param" value={optionText(item.options)} onChange={(e) => patchItem(index, 'options', parseOptions(e.target.value))} /></td></tr>)}</tbody></table></div></div>
             </details>
           </form>
 

@@ -8,6 +8,8 @@ import nro.models.services.Service;
 import nro.models.map.service.NpcService;
 import nro.models.task.BadgesTaskService;
 
+import nro.models.utils.Util;
+
 /**
  *
  * @author By AmodsubVN
@@ -46,10 +48,13 @@ public class SuperRank {
             BadgesTaskService.updateCountBagesTask(player, ConstTaskBadges.CAO_THU_SIEU_HANG, 1);
         }
 
-        int rw = SuperRankService.gI().reward(rank);
-        if (rw != -1) {
-            Service.gI().sendThongBao(player, "Bạn đang ở TOP " + rank + " Siêu Hạng, nhận được " + rw + " ngọc");
-            player.inventory.gem += rw;
+        int rwGem = SuperRankService.gI().reward(rank);
+        long rwGold = SuperRankService.gI().rewardGold(rank);
+        if (rwGem > 0 || rwGold > 0) {
+            player.inventory.gem += rwGem;
+            player.inventory.addGold(rwGold);
+            Service.gI().sendMoney(player);
+            Service.gI().sendThongBao(player, "Bạn đang ở TOP " + rank + " Siêu Hạng, nhận được " + rwGem + " ngọc & " + Util.formatNumber(rwGold) + " vàng thưởng mỗi ngày!");
         }
 
         lastRewardTime = System.currentTimeMillis();

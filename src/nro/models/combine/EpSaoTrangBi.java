@@ -37,13 +37,26 @@ public class EpSaoTrangBi {
                     }
                 }
 
-                if (starEmpty <= 10) {
-                    if (star >= 10 && starEmpty >= 10 && !CombineService.gI().CheckSlot(trangBi, starEmpty)) {
-                        CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.IGNORE_MENU,
-                                "Cần cường hóa lỗ sao pha lê này trước", "Đóng");
-                        return;
-                    }
+                if (starEmpty == 0) {
+                    CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.IGNORE_MENU,
+                            "Trang bị chưa có lỗ sao pha lê, hãy pha lê hóa trước", "Đóng");
+                    return;
+                }
 
+                if (star >= starEmpty) {
+                    CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.IGNORE_MENU,
+                            "Trang bị đã ép kín số lỗ sao pha lê", "Đóng");
+                    return;
+                }
+
+                int currentSlot = star + 1;
+                if (currentSlot >= 8 && !CombineService.gI().CheckSlot(trangBi, currentSlot)) {
+                    CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.IGNORE_MENU,
+                            "Cần cường hóa lỗ sao pha lê này trước", "Đóng");
+                    return;
+                }
+
+                if (starEmpty <= 10) {
                     player.combineNew.gemCombine = CombineSystem.getGemEpSao(star);
                     String npcSay = trangBi.template.name + "\n|2|";
                     for (ItemOption io : trangBi.itemOptions) {
@@ -52,13 +65,9 @@ public class EpSaoTrangBi {
                         }
                     }
 
-                    if (daPhaLe.template.type == 30) {
-                        for (ItemOption io : daPhaLe.itemOptions) {
-                            npcSay += "|7|" + io.getOptionString() + "\n";
-                        }
-                    } else {
-                        npcSay += "|7|" + ItemService.gI().getItemOptionTemplate(CombineSystem.getOptionDaPhaLe(daPhaLe)).name
-                                .replaceAll("#", CombineSystem.getParamDaPhaLe(daPhaLe) + "") + "\n";
+                    ItemOption ioDaPhaLe = daPhaLe.getOptionDaPhaLe();
+                    if (ioDaPhaLe != null && ioDaPhaLe.optionTemplate != null) {
+                        npcSay += "|7|" + ioDaPhaLe.getOptionString() + "\n";
                     }
                     npcSay += "|1|Cần " + Util.numberToMoney(player.combineNew.gemCombine) + " ngọc";
                     CombineService.gI().baHatMit.createOtherMenu(player, ConstNpc.MENU_START_COMBINE, npcSay,
@@ -100,6 +109,16 @@ public class EpSaoTrangBi {
                 return;
             }
 
+            if (!player.inventory.itemsBag.contains(trangBi) || !player.inventory.itemsBag.contains(daPhaLe)) {
+                Service.gI().sendThongBao(player, "Vật phẩm không còn trong hành trang!");
+                return;
+            }
+
+            if (daPhaLe.quantity < 1) {
+                Service.gI().sendThongBao(player, "Không đủ đá pha lê!");
+                return;
+            }
+
             int star = 0;
             int starEmpty = 0;
             ItemOption optionStar = null;
@@ -113,23 +132,36 @@ public class EpSaoTrangBi {
                 }
             }
 
+            if (starEmpty == 0) {
+                Service.gI().sendThongBao(player, "Trang bị chưa có lỗ sao pha lê");
+                return;
+            }
+
             if (star >= starEmpty) {
                 Service.gI().sendThongBao(player, "Không thể ép sao cao hơn lỗ");
                 return;
             }
 
-            if (star >= 10 && starEmpty >= 10 && !CombineService.gI().CheckSlot(trangBi, starEmpty)) {
+            int currentSlot = star + 1;
+            if (currentSlot >= 8 && !CombineService.gI().CheckSlot(trangBi, currentSlot)) {
                 Service.gI().sendThongBao(player, "Cần cường hóa lỗ sao pha lê này trước");
                 return;
             }
 
-            player.inventory.subGem(gem);
-
+            // Lấy thông tin option đá TRƯỚC KHI TRỪ VẬT PHẨM (tránh trường hợp viên đá cuối bị dispose gây NPE)
             int optionId = CombineSystem.getOptionDaPhaLe(daPhaLe);
             int param = CombineSystem.getParamDaPhaLe(daPhaLe);
-            int currentSlot = star + 1;
-            boolean shouldSplitOption;
 
+            if (optionId <= 0 || param <= 0) {
+                Service.gI().sendThongBao(player, "Loại đá pha lê không hợp lệ!");
+                return;
+            }
+
+            // Trừ chi phí và nguyên liệu
+            player.inventory.subGem(gem);
+            InventoryService.gI().subQuantityItemsBag(player, daPhaLe, 1);
+
+            boolean shouldSplitOption;
             if (currentSlot == 8 || currentSlot == 9) {
                 shouldSplitOption = true;
             } else {
@@ -158,7 +190,11 @@ public class EpSaoTrangBi {
                 trangBi.itemOptions.add(new ItemOption(102, 1));
             }
 
-            InventoryService.gI().subQuantityItemsBag(player, daPhaLe, 1);
+            // Nếu đá đã hết, xóa khỏi itemsCombine
+            if (daPhaLe.quantity <= 0) {
+                player.combineNew.itemsCombine.remove(daPhaLe);
+            }
+
             CombineService.gI().sendEffectSuccessCombine(player);
             InventoryService.gI().sendItemBags(player);
             Service.gI().sendMoney(player);

@@ -1,8 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { api } from '../api';
 
-export function formatOptionLabel(id, param, templateMap = {}) {
+export function formatOptionLabel(id, param, templateMap = {}, min = undefined, max = undefined) {
   const template = templateMap[id];
+  if (min != null && max != null) {
+    const rangeText = min === max ? `${min}` : `${min} ~ ${max}`;
+    if (!template) return `Chỉ số #${id} (Random ${rangeText})`;
+    if (!String(template).includes('#')) return `${String(template)} (Random ${rangeText})`;
+    return String(template).replace(/#/g, `[${rangeText}]`);
+  }
   if (!template) return `Chỉ số #${id}: ${param}`;
   if (!String(template).includes('#')) return String(template);
   return String(template).replace(/#/g, String(param ?? 0));
@@ -26,10 +32,14 @@ export async function loadOptionCatalog(force = false) {
 }
 
 function ParamDialog({ option, onConfirm, onCancel }) {
+  const [mode, setMode] = useState('fixed'); // 'fixed' | 'random'
   const [param, setParam] = useState(option.suggestParam ?? 1);
-  const preview = String(option.name).includes('#')
-    ? String(option.name).replace(/#/g, String(param))
-    : option.name;
+  const [min, setMin] = useState(option.suggestParam ?? 5);
+  const [max, setMax] = useState(Math.max(10, (option.suggestParam ?? 5) * 2));
+
+  const isTemplateParameterized = String(option.name).includes('#');
+  const previewFixed = isTemplateParameterized ? String(option.name).replace(/#/g, String(param)) : option.name;
+  const previewRandom = isTemplateParameterized ? String(option.name).replace(/#/g, `[${min} ~ ${max}]`) : `${option.name} [Random ${min} ~ ${max}]`;
 
   return (
     <div className="option-param-dialog">
@@ -39,19 +49,60 @@ function ParamDialog({ option, onConfirm, onCancel }) {
       </div>
       <p className="option-param-hint">{option.paramHint}</p>
       <p className="muted option-param-desc">{option.categoryDesc}</p>
-      {String(option.name).includes('#') && (
+
+      <div className="category-tabs" style={{ marginBottom: '10px' }}>
+        <button type="button" className={`tab ${mode === 'fixed' ? 'active' : ''}`} onClick={() => setMode('fixed')}>
+          📌 Giá trị cố định
+        </button>
+        <button type="button" className={`tab ${mode === 'random' ? 'active' : ''}`} onClick={() => setMode('random')}>
+          🎲 Khoảng ngẫu nhiên (Min ~ Max)
+        </button>
+      </div>
+
+      {isTemplateParameterized && mode === 'fixed' && (
         <>
           <label className="field">
             <span>Nhập số thay cho #</span>
             <input type="number" value={param} onChange={(e) => setParam(Number(e.target.value))} />
           </label>
           <div className="option-preview-box">
-            Trong game: <strong>{preview}</strong>
+            Trong game: <strong>{previewFixed}</strong>
           </div>
         </>
       )}
+
+      {isTemplateParameterized && mode === 'random' && (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <label className="field">
+              <span>Giá trị tối thiểu (Min)</span>
+              <input type="number" value={min} onChange={(e) => setMin(Number(e.target.value))} />
+            </label>
+            <label className="field">
+              <span>Giá trị tối đa (Max)</span>
+              <input type="number" value={max} onChange={(e) => setMax(Number(e.target.value))} />
+            </label>
+          </div>
+          <div className="option-preview-box">
+            Trong game (Random mỗi lần quay): <strong>{previewRandom}</strong>
+          </div>
+        </>
+      )}
+
       <div className="row">
-        <button type="button" className="btn sm primary" onClick={() => onConfirm(param)}>Thêm vào item</button>
+        <button
+          type="button"
+          className="btn sm primary"
+          onClick={() => {
+            if (mode === 'random') {
+              onConfirm({ min: Number(min), max: Number(max), param: Number(min) });
+            } else {
+              onConfirm({ param: Number(param) });
+            }
+          }}
+        >
+          {mode === 'random' ? '🎲 Thêm Option Random' : 'Thêm vào item'}
+        </button>
         <button type="button" className="btn sm" onClick={onCancel}>Hủy</button>
       </div>
     </div>
@@ -103,14 +154,19 @@ export function OptionEditor({ options, onChange, hideIds = [], allowedOptionIds
     onChange((options || []).filter((o) => o.id !== target.id));
   }
 
-  function addOption(option, param) {
-    const p = String(option.name).includes('#') ? param : (param || 0);
+  function addOption(option, config) {
     const full = options || [];
     const exists = full.findIndex((o) => o.id === option.id);
+    const newEntry = {
+      id: option.id,
+      param: config.param ?? 0,
+      ...(config.min != null && config.max != null ? { min: config.min, max: config.max } : {}),
+    };
+
     if (exists >= 0) {
-      onChange(full.map((o, i) => (i === exists ? { ...o, param: p } : o)));
+      onChange(full.map((o, i) => (i === exists ? { ...o, ...newEntry } : o)));
     } else {
-      onChange([...full, { id: option.id, param: p }]);
+      onChange([...full, newEntry]);
     }
     setPickOption(null);
   }
@@ -136,12 +192,12 @@ export function OptionEditor({ options, onChange, hideIds = [], allowedOptionIds
         <div className="option-help-box">
           <p>
             Mỗi item gắn các dòng từ bảng <strong>item_option_template</strong> (DB game).
-            Chọn dòng bên dưới → nhập số → lưu slot.
+            Hỗ trợ cả <strong>giá trị cố định</strong> hoặc <strong>khoảng ngẫu nhiên (Min ~ Max)</strong> khi quay trúng.
           </p>
           <ul className="option-help-list">
             <li><code>Giáp+#</code> + số 5 → <em>Giáp+5</em></li>
+            <li><code>Sức đánh+#%</code> + [10 ~ 30] → <em>Sức đánh+[10 ~ 30]% (ngẫu nhiên khi trúng)</em></li>
             <li><code>HP+#</code> + 1000 → <em>HP+1000</em></li>
-            <li><code>Sức đánh+#%</code> + 5 → <em>Sức đánh+5%</em></li>
           </ul>
         </div>
       </details>
@@ -152,21 +208,71 @@ export function OptionEditor({ options, onChange, hideIds = [], allowedOptionIds
           <ul className="option-list-readable">
             {list.map((o, idx) => {
               const meta = catalog.all.find((x) => x.id === o.id);
+              const isRandom = o.min != null && o.max != null;
+              const isParameterized = String(catalog.map[o.id] || '').includes('#');
+
               return (
-                <li key={`cur-${o.id}-${idx}`} className="option-list-item">
-                  <div className="option-preview">
-                    <span className="muted">#{o.id}</span> {formatOptionLabel(o.id, o.param, catalog.map)}
+                <li key={`cur-${o.id}-${idx}`} className="option-list-item" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div className="option-preview">
+                      <span className="muted">#{o.id}</span>{' '}
+                      <strong>{formatOptionLabel(o.id, o.param, catalog.map, o.min, o.max)}</strong>
+                      {isRandom && <span className="chip sm" style={{ marginLeft: '6px', background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b' }}>🎲 Random [{o.min} ~ {o.max}]</span>}
+                    </div>
+                    <div className="option-edit-row">
+                      {isParameterized && (
+                        <button
+                          type="button"
+                          className="btn sm"
+                          style={{ fontSize: '11px', padding: '2px 6px' }}
+                          onClick={() => {
+                            if (isRandom) {
+                              setOpt(idx, { param: o.min ?? o.param ?? 0, min: undefined, max: undefined });
+                            } else {
+                              setOpt(idx, { min: o.param ?? 5, max: Math.max(10, (o.param ?? 5) * 2) });
+                            }
+                          }}
+                        >
+                          {isRandom ? 'Chuyển sang Cố định' : 'Chuyển sang Random'}
+                        </button>
+                      )}
+                      <button type="button" className="btn sm ghost" onClick={() => removeOpt(idx)}>Gỡ</button>
+                    </div>
                   </div>
                   {meta && <div className="muted option-meta-line">{meta.name} · {meta.paramHint}</div>}
-                  <div className="option-edit-row">
-                    {String(catalog.map[o.id] || '').includes('#') && (
-                      <label className="field mini">
-                        <span>Số</span>
-                        <input type="number" value={o.param ?? 0} onChange={(e) => setOpt(idx, { param: Number(e.target.value) })} />
-                      </label>
-                    )}
-                    <button type="button" className="btn sm ghost" onClick={() => removeOpt(idx)}>Gỡ</button>
-                  </div>
+                  {isParameterized && (
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                      {isRandom ? (
+                        <>
+                          <label className="field mini" style={{ margin: 0 }}>
+                            <span>Min</span>
+                            <input
+                              type="number"
+                              value={o.min ?? 0}
+                              onChange={(e) => setOpt(idx, { min: Number(e.target.value) })}
+                            />
+                          </label>
+                          <label className="field mini" style={{ margin: 0 }}>
+                            <span>Max</span>
+                            <input
+                              type="number"
+                              value={o.max ?? 0}
+                              onChange={(e) => setOpt(idx, { max: Number(e.target.value) })}
+                            />
+                          </label>
+                        </>
+                      ) : (
+                        <label className="field mini" style={{ margin: 0 }}>
+                          <span>Giá trị</span>
+                          <input
+                            type="number"
+                            value={o.param ?? 0}
+                            onChange={(e) => setOpt(idx, { param: Number(e.target.value) })}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -269,7 +375,7 @@ export function OptionEditor({ options, onChange, hideIds = [], allowedOptionIds
       {pickOption && (
         <ParamDialog
           option={pickOption}
-          onConfirm={(param) => addOption(pickOption, param)}
+          onConfirm={(config) => addOption(pickOption, config)}
           onCancel={() => setPickOption(null)}
         />
       )}
@@ -283,7 +389,7 @@ export function OptionChips({ options, optionMap }) {
     <div className="option-chips">
       {options.map((o, i) => (
         <span key={i} className="chip" title={`#${o.id}`}>
-          {formatOptionLabel(o.id, o.param, optionMap)}
+          {formatOptionLabel(o.id, o.param, optionMap, o.min, o.max)}
         </span>
       ))}
     </div>

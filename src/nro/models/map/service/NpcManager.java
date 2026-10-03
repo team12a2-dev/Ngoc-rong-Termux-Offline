@@ -1,9 +1,9 @@
 package nro.models.map.service;
 
+import nro.models.consts.ConstMap;
 import nro.models.consts.ConstNpc;
 import nro.models.consts.ConstTask;
 import nro.models.npc.Npc;
-import nro.models.npc_list.Jaco;
 import nro.models.player.Player;
 import nro.models.server.Manager;
 import nro.models.services.TaskService;
@@ -38,6 +38,12 @@ public class NpcManager {
     List<Npc> list = new ArrayList<>();
     if (player.zone != null) {
         for (Npc npc : player.zone.map.npcs) {
+            // Điều kiện loại trừ NPC BÒ MỘNG ở nhà Gohan, nhà Moori, nhà Broly
+            if (npc.tempId == ConstNpc.BO_MONG && (player.zone.map.mapId == ConstMap.NHA_GOHAN
+                    || player.zone.map.mapId == ConstMap.NHA_MOORI
+                    || player.zone.map.mapId == ConstMap.NHA_BROLY)) {
+                continue;
+            }
             // Điều kiện loại trừ NPC QUẢ TRỨNG
             if (npc.tempId == ConstNpc.QUA_TRUNG && player.mabuEgg == null && player.zone.map.mapId == (21 + player.gender)) {
                 continue;
@@ -46,16 +52,19 @@ public class NpcManager {
             if (npc.tempId == ConstNpc.DUA_HAU && player.DuaHauEgg == null && player.zone.map.mapId == (21 + player.gender)) {
                 continue;
             } 
+            // Điều kiện loại trừ NPC JACO ở trạm tàu vũ trụ nếu chưa đủ 1.5 tỷ sức mạnh hoặc chưa đạt Nhiệm vụ 21 (Chạm trán Fide đại ca)
+            else if (npc.tempId == ConstNpc.JACO && (player.zone.map.mapId == ConstMap.TRAM_TAU_VU_TRU
+                    || player.zone.map.mapId == ConstMap.TRAM_TAU_VU_TRU_25
+                    || player.zone.map.mapId == ConstMap.TRAM_TAU_VU_TRU_26)
+                    && (player.nPoint.power < 1_500_000_000L || TaskService.gI().getIdTask(player) < ConstTask.TASK_21_0)) {
+                continue;
+            }
             // Điều kiện loại trừ NPC CALICK dựa vào nhiệm vụ
             else if (npc.tempId == ConstNpc.CALICK && TaskService.gI().getIdTask(player) < ConstTask.TASK_21_0) {
                 continue;
             } 
             // Điều kiện loại trừ NPC QUOC_VUONG nếu sức mạnh của người chơi nhỏ hơn 17 tỷ
             else if (npc.tempId == ConstNpc.QUOC_VUONG && player.nPoint.power < 17000000000L) {
-                continue;
-            }
-            // Điều kiện loại trừ NPC Jaco ở Trạm tàu vũ trụ khi chưa tới nhiệm vụ mở khoá hành tinh Potaufeu
-            else if (npc instanceof Jaco jaco && !jaco.isUnlocked(player)) {
                 continue;
             }
             list.add(npc);

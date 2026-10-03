@@ -17,7 +17,7 @@ public class Rambo extends Boss {
     private long st;
 
     public Rambo() throws Exception {
-        super(BossID.RAMBO, true, true, BossesData.RAMBO);
+        super(BossID.RAMBO, true, false, BossesData.RAMBO);
     }
 
     @Override
@@ -42,10 +42,9 @@ public class Rambo extends Boss {
     //     }
     // }    
     @Override
-public void reward(Player plKill) {
-    // Chỉ check hoàn thành nhiệm vụ, không reward gì thêm
-    TaskService.gI().checkDoneTaskKillBoss(plKill, this);
-}
+    public void reward(Player plKill) {
+        NappaRewardHelper.dropReward(this, plKill, nro.models.consts.ConstItem.CAI_TRANG_RAMBO);
+    }
     @Override
     public void autoLeaveMap() {
         if (Util.canDoWithTime(st, 900000)) {

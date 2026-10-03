@@ -20,8 +20,10 @@ import nro.models.player_system.AntiLogin;
 import nro.models.services.Service;
 import nro.models.utils.Logger;
 import nro.models.utils.TimeUtil;
+import nro.models.utils.Util;
 import nro.models.interfaces.ISession;
 import nro.models.network.SessionManager;
+import nro.models.map.service.MapService;
 
 public class MySession extends Session {
 
@@ -171,6 +173,19 @@ public class MySession extends Session {
                             Service.gI().clearMabuWait(this);
 
                             if (pl.zone == null) {
+                                int homeMapId = pl.gender + 21;
+                                pl.location.x = 300;
+                                pl.location.y = 336;
+                                pl.zone = MapService.gI().getMapCanJoin(pl, homeMapId, -1);
+                                if (pl.zone == null) {
+                                    pl.zone = MapService.gI().getMapCanJoin(pl, 0, -1);
+                                }
+                                if (pl.zone != null) {
+                                    pl.notify = "Bản đồ trước đó không còn tồn tại. Bạn đã được tự động đưa về Nhà an toàn!";
+                                }
+                            }
+
+                            if (pl.zone == null) {
                                 Service.gI().sendThongBaoOK(this, "Không thể vào map. Vui lòng thử lại sau.");
                                 pl.dispose();
                                 return;
@@ -217,6 +232,15 @@ public class MySession extends Session {
                                     && !this.player.notify.isEmpty()) {
                                 Service.gI().sendThongBao(this.player, this.player.notify);
                                 this.player.notify = null;
+                            }
+
+                            if (this.player.excessGoldRecovered > 0) {
+                                Service.gI().sendThongBaoFromAdmin(this.player,
+                                        "|7|THÔNG BÁO HỆ THỐNG\n"
+                                        + "|2|Giới hạn vàng hành trang tối đa đã điều chỉnh về 2 Tỷ vàng.\n"
+                                        + "|1|Hệ thống đã tự động thu hồi " + Util.formatNumber(this.player.excessGoldRecovered) + " vàng vượt mốc của bạn.");
+                                Service.gI().sendMoney(this.player);
+                                this.player.excessGoldRecovered = 0;
                             }
                         }
 

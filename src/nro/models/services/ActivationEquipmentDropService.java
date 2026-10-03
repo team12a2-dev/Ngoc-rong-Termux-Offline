@@ -34,8 +34,15 @@ public final class ActivationEquipmentDropService {
         }
 
         int mapId = mob.zone.map.mapId;
+        if (!MapService.gI().isMapUpSKH(mapId)) {
+            return null;
+        }
         int tier = StarEquipmentDropService.gI().getTier(mapId, mob.point.getHpFull());
-        if (!Util.isTrue(DROP_CHANCE_BP[tier - 1], DENOMINATOR)) {
+        int chance = DROP_CHANCE_BP[tier - 1];
+        if (player.itemTime != null && player.itemTime.isUseCoBonLa) {
+            chance *= 2;
+        }
+        if (!Util.isTrue(chance, DENOMINATOR)) {
             return null;
         }
 

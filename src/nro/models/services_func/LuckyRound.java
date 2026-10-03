@@ -27,8 +27,8 @@ public class LuckyRound {
     public static final byte USING_GOLD = 0;
     public static final byte USING_TICKET = 1;
 
-    private static final byte PRICE_GEM = 50;
-    private static final int PRICE_GOLD = 2500000;
+    private static final byte PRICE_GEM = 4;
+    private static final int PRICE_GOLD = 5000000;
     private static final int PRICE_TICKET = 1;
     private static final int TICKET = 821;
 
@@ -48,9 +48,30 @@ public class LuckyRound {
             msg = new Message(-127);
             msg.writer().writeByte(0);
             msg.writer().writeByte(7);
-            List<Integer> configuredIcons = GodSpinConfigService.gI().previewIconIds();
-            for (int i = 0; i < 7; i++) {
-                msg.writer().writeShort(configuredIcons.size() > i ? configuredIcons.get(i) : 419 + i);
+            if (type == USING_GOLD) {
+                List<Integer> configuredIcons = GodSpinConfigService.gI().previewIconIds((byte) USING_GOLD);
+                if (!configuredIcons.isEmpty()) {
+                    for (int i = 0; i < 7; i++) {
+                        msg.writer().writeShort(configuredIcons.size() > i ? configuredIcons.get(i) : 426 + i);
+                    }
+                } else {
+                    for (int i = 0; i < 7; i++) {
+                        short iconId = (short) (426 + i);
+                        try {
+                            nro.models.player_system.Template.ItemTemplate temp = ItemService.gI().getTemplate(372 + i);
+                            if (temp != null && temp.iconID > 0) {
+                                iconId = temp.iconID;
+                            }
+                        } catch (Exception ignored) {
+                        }
+                        msg.writer().writeShort(iconId);
+                    }
+                }
+            } else {
+                List<Integer> configuredIcons = GodSpinConfigService.gI().previewIconIds((byte) type);
+                for (int i = 0; i < 7; i++) {
+                    msg.writer().writeShort(configuredIcons.size() > i ? configuredIcons.get(i) : 419 + i);
+                }
             }
             msg.writer().writeByte(type);
             Integer configuredCost = GodSpinConfigService.gI().configuredCost(type);
@@ -72,7 +93,7 @@ public class LuckyRound {
             msg = new Message(-127);
             msg.writer().writeByte(0);
             msg.writer().writeByte(7);
-            List<Integer> configuredIcons = GodSpinConfigService.gI().previewIconIds();
+            List<Integer> configuredIcons = GodSpinConfigService.gI().previewIconIds((byte) type);
             for (int i = 0; i < 7; i++) {
                 msg.writer().writeShort(configuredIcons.size() > i ? configuredIcons.get(i) : 419);
             }

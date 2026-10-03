@@ -55,7 +55,6 @@ public final class PanelAgent {
         server.createContext("/players", exchange -> handle(exchange, this::players));
         server.createContext("/runtime-config", exchange -> handle(exchange, this::runtimeConfig));
         server.createContext("/boss/list", exchange -> handle(exchange, this::bossList));
-        server.createContext("/boss/spread", exchange -> handle(exchange, this::bossSpread));
         server.createContext("/broadcast", exchange -> handle(exchange, this::broadcast));
         server.createContext("/clan/dissolve", exchange -> handle(exchange, this::dissolveClan));
         server.createContext("/maintenance", exchange -> handle(exchange, this::maintenance));
@@ -65,14 +64,17 @@ public final class PanelAgent {
         server.createContext("/reload/shop", exchange -> handle(exchange, this::reloadShop));
         server.createContext("/reload/giftcode", exchange -> handle(exchange, this::reloadGiftcode));
         server.createContext("/reload/clan", exchange -> handle(exchange, this::reloadClan));
-                server.createContext("/reload/boss-spawn", exchange -> handle(exchange, this::reloadBossSpawn));
+        server.createContext("/reload/boss-spawn", exchange -> handle(exchange, this::reloadBossSpawn));
         server.createContext("/reload/boss-panel", exchange -> handle(exchange, this::reloadBossPanel));
         server.createContext("/reload/drop-config", exchange -> handle(exchange, this::reloadDropConfig));
         server.createContext("/reload/usable-items", exchange -> handle(exchange, this::reloadUsableItems));
         server.createContext("/reload/events", exchange -> handle(exchange, this::reloadEvents));
         server.createContext("/reload/god-spin", exchange -> handle(exchange, this::reloadGodSpin));
+        server.createContext("/reload/server-launch", exchange -> handle(exchange, this::reloadServerLaunch));
+        server.createContext("/reload/config", exchange -> handle(exchange, this::reloadConfig));
+        server.createContext("/reload/maintenance", exchange -> handle(exchange, this::reloadMaintenance));
 
-                server.createContext("/boss/spawn", exchange -> handle(exchange, this::spawnBoss));
+        server.createContext("/boss/spawn", exchange -> handle(exchange, this::spawnBoss));
         server.createContext("/boss/spawn-at", exchange -> handle(exchange, this::spawnBossAt));
 
         server.createContext("/players/kick-all", exchange -> handle(exchange, this::kickAll));
@@ -178,8 +180,7 @@ public final class PanelAgent {
                             : false;
                     writeJson(exchange, 200, success(Map.of(
                             "applied", applied,
-                            "container", container
-                    )));
+                            "container", container)));
                 }
                 default -> writeJson(exchange, 404, error("Unknown player action"));
             }
@@ -192,8 +193,7 @@ public final class PanelAgent {
         writeJson(exchange, 200, success(Map.of(
                 "status", ServerManager.isRunning ? "ok" : "stopped",
                 "agent", "nro-panel-agent",
-                "version", "1.0.0"
-        )));
+                "version", "1.0.0")));
     }
 
     private void metrics(HttpExchange exchange, String method, String path, String body) throws IOException {
@@ -214,11 +214,6 @@ public final class PanelAgent {
 
     private void bossList(HttpExchange exchange, String method, String path, String body) throws IOException {
         writeJson(exchange, 200, success(PanelActions.listBosses()));
-    }
-
-    /** Chẩn đoán phân bổ boss: map → khu → x/y thực tế. */
-    private void bossSpread(HttpExchange exchange, String method, String path, String body) throws IOException {
-        writeJson(exchange, 200, success(PanelActions.bossSpread()));
     }
 
     private void broadcast(HttpExchange exchange, String method, String path, String body) throws IOException {
@@ -259,16 +254,14 @@ public final class PanelAgent {
                     "ok", true,
                     "cancelled", cancelled,
                     "maintenanceCountdown", Maintenance.getCountdownSeconds(),
-                    "maintenanceCountdownActive", Maintenance.isCountdownActive()
-            )));
+                    "maintenanceCountdownActive", Maintenance.isCountdownActive())));
             return;
         }
         PanelActions.startMaintenance(seconds, immediate, false);
         writeJson(exchange, 200, success(Map.of(
                 "ok", true,
                 "maintenanceCountdown", Maintenance.getCountdownSeconds(),
-                "maintenanceCountdownActive", Maintenance.isCountdownActive()
-        )));
+                "maintenanceCountdownActive", Maintenance.isCountdownActive())));
     }
 
     private void adminMode(HttpExchange exchange, String method, String path, String body) throws IOException {
@@ -284,7 +277,7 @@ public final class PanelAgent {
         writeJson(exchange, 200, success(Map.of("ok", PanelActions.setExpRate(rate), "rate", rate)));
     }
 
-        private void reloadItems(HttpExchange exchange, String method, String path, String body) throws IOException {
+    private void reloadItems(HttpExchange exchange, String method, String path, String body) throws IOException {
         try {
             writeJson(exchange, 200, success(PanelActions.reloadItemTemplates()));
         } catch (Exception e) {
@@ -304,7 +297,7 @@ public final class PanelAgent {
         writeJson(exchange, 200, success(Map.of("ok", PanelActions.reloadClans())));
     }
 
-        private void reloadBossSpawn(HttpExchange exchange, String method, String path, String body) throws IOException {
+    private void reloadBossSpawn(HttpExchange exchange, String method, String path, String body) throws IOException {
         writeJson(exchange, 200, success(Map.of("ok", PanelActions.reloadBossSpawn())));
     }
 
@@ -328,7 +321,17 @@ public final class PanelAgent {
         writeJson(exchange, 200, success(PanelActions.reloadGodSpin()));
     }
 
+    private void reloadServerLaunch(HttpExchange exchange, String method, String path, String body) throws IOException {
+        writeJson(exchange, 200, success(PanelActions.reloadServerLaunch()));
+    }
 
+    private void reloadConfig(HttpExchange exchange, String method, String path, String body) throws IOException {
+        writeJson(exchange, 200, success(Map.of("ok", PanelActions.reloadConfig())));
+    }
+
+    private void reloadMaintenance(HttpExchange exchange, String method, String path, String body) throws IOException {
+        writeJson(exchange, 200, success(Map.of("ok", PanelActions.reloadMaintenance())));
+    }
 
     private void spawnBoss(HttpExchange exchange, String method, String path, String body) throws IOException {
         JSONObject json = parseJson(body);
@@ -389,7 +392,7 @@ public final class PanelAgent {
     private static void addCors(HttpExchange exchange) {
         Headers headers = exchange.getResponseHeaders();
         headers.set("Access-Control-Allow-Origin", "*");
-                headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
 
         headers.set("Access-Control-Allow-Headers", "Content-Type, X-Panel-Key");
         headers.set("Content-Type", "application/json; charset=utf-8");

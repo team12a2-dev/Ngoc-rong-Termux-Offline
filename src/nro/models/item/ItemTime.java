@@ -7,6 +7,10 @@ import nro.models.player.Player;
 import nro.models.services.Service;
 import nro.models.utils.Util;
 import nro.models.services.ItemTimeService;
+import nro.models.map.service.MapService;
+import nro.models.map.service.ChangeMapService;
+import nro.models.consts.ConstItem;
+import nro.models.services.InventoryService;
 
 public class ItemTime {
 
@@ -22,10 +26,12 @@ public class ItemTime {
     public static final int TIME_MAY_DO = 1800000;
     public static final int TIME_MAY_DO2 = 1800000;
     public static final long TIME_CO_BON_LA = 30 * 60 * 1000L;
+    public static final long TIME_KHAU_TRANG = 30 * 60 * 1000L;
     public static final int TIME_KILIS = 3600000;
     public static final int TIME_NUOC_MIA1 = 600_000;
     public static final int TIME_NUOC_MIA2 = 600_000;
     public static final int TIME_NUOC_MIA3 = 600_000;
+    public static final long TIME_PHIEU_SAO_VANG = 1440L * 60 * 1000L;
 
     public static final int TIME_BUA_SANTA = 1800000;
     public static final int TIME_EAT_MEAL = 600000;
@@ -34,6 +40,11 @@ public class ItemTime {
     public static final int TIME_NCD = 1800000;
 
     private Player player;
+
+    public boolean isUsePhieuSaoVang;
+    public long remainingPhieuSaoVangTime;
+    public long lastTimeUpdatePhieuSaoVang;
+    public int iconPhieuSaoVang = 1959;
 
     public boolean isUseBoHuyet;
     public boolean isUseBoKhi;
@@ -244,11 +255,13 @@ public class ItemTime {
             }
         }
         if (isUseCoBonLa) {
-            long now = System.currentTimeMillis();
-            long timeLeft = (lastTimeUseCoBonLa + timeLengthCoBonLa) - now;
-            if (timeLeft <= 0) {
+            if (Util.canDoWithTime(lastTimeUseCoBonLa, TIME_CO_BON_LA)) {
                 isUseCoBonLa = false;
-                timeLengthCoBonLa = 0;
+            }
+        }
+        if (isUseKhauTrang) {
+            if (Util.canDoWithTime(lastTimeKhauTrang, TIME_KHAU_TRANG)) {
+                isUseKhauTrang = false;
             }
         }
         if (isUseKilis) {
@@ -295,6 +308,76 @@ public class ItemTime {
                 isUseRX = false;
             }
         }
+        if (isUsePhieuSaoVang) {
+            Item itemPhieu = InventoryService.gI().findItemBag(player, ConstItem.PHIEU_SAO_VANG_MAY_MAN);
+            if (itemPhieu == null) {
+                itemPhieu = InventoryService.gI().findItemBag(player, 1959);
+            }
+            if (itemPhieu == null) {
+                isUsePhieuSaoVang = false;
+                remainingPhieuSaoVangTime = 0;
+                lastTimeUpdatePhieuSaoVang = 0;
+                if (iconPhieuSaoVang > 0) {
+                    ItemTimeService.gI().removeItemTime(player, iconPhieuSaoVang);
+                }
+                Service.gI().sendThongBao(player, "Hiệu lực Phiếu sao vàng may mắn đã kết thúc do không còn vật phẩm trong hành trang!");
+                if (player != null && player.zone != null && player.zone.map != null && MapService.gI().isMapUpVang(player.zone.map.mapId)) {
+                    ChangeMapService.gI().changeMapBySpaceShip(player, player.gender + 21, -1, 400);
+                }
+            } else {
+                boolean inMapUpVang = (player != null && player.zone != null && player.zone.map != null
+                        && MapService.gI().isMapUpVang(player.zone.map.mapId));
+                if (inMapUpVang) {
+                    long now = System.currentTimeMillis();
+                    if (lastTimeUpdatePhieuSaoVang > 0) {
+                        long elapsed = now - lastTimeUpdatePhieuSaoVang;
+                        remainingPhieuSaoVangTime -= elapsed;
+                    }
+                    lastTimeUpdatePhieuSaoVang = now;
+
+                    if (remainingPhieuSaoVangTime > 0) {
+                        int remainingMinutes = (int) ((remainingPhieuSaoVangTime + 59999) / 60000);
+                        Item.ItemOption opt = itemPhieu.getOptionById(1);
+                        if (opt == null) {
+                            opt = itemPhieu.getOptionById(9);
+                        }
+                        if (opt != null && opt.param != remainingMinutes) {
+                            opt.param = Math.max(0, remainingMinutes);
+                            InventoryService.gI().sendItemBags(player);
+                        }
+                    }
+
+                    if (remainingPhieuSaoVangTime <= 0) {
+                        remainingPhieuSaoVangTime = 0;
+                        isUsePhieuSaoVang = false;
+                        lastTimeUpdatePhieuSaoVang = 0;
+                        if (iconPhieuSaoVang > 0) {
+                            ItemTimeService.gI().removeItemTime(player, iconPhieuSaoVang);
+                        }
+                        InventoryService.gI().subQuantityItemsBag(player, itemPhieu, 1);
+                        InventoryService.gI().sendItemBags(player);
+                        Service.gI().sendThongBao(player, "Phiếu sao vàng may mắn đã hết hạn và biến mất!");
+                        Service.gI().sendThongBao(player, "Hết thời gian hiệu lực Phiếu sao vàng may mắn, bạn đã được đưa về làng!");
+                        ChangeMapService.gI().changeMapBySpaceShip(player, player.gender + 21, -1, 400);
+                    }
+                } else {
+                    lastTimeUpdatePhieuSaoVang = 0;
+                }
+            }
+        }
+        if (player != null && player.zone != null && player.zone.map != null && MapService.gI().isMapUpVang(player.zone.map.mapId)) {
+            if (!player.isAdmin() && (!isUsePhieuSaoVang || getPhieuSaoVangTimeLeft() <= 0)) {
+                Service.gI().sendThongBao(player, "Hết thời gian hiệu lực Phiếu sao vàng may mắn, bạn đã được đưa về làng!");
+                ChangeMapService.gI().changeMapBySpaceShip(player, player.gender + 21, -1, 400);
+            }
+        }
+    }
+
+    public long getPhieuSaoVangTimeLeft() {
+        if (!isUsePhieuSaoVang) {
+            return 0;
+        }
+        return Math.max(0, remainingPhieuSaoVangTime);
     }
 
     public void dispose() {

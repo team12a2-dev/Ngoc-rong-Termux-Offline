@@ -110,7 +110,7 @@ public class ShenronEvent {
         case 0: 
             switch (this.select) {
             case 0: 
-                //thay chiÃªu 3-4 Ä‘á»‡ tá»­
+                //thay chiêu 3-4 đệ tử
                 if (player.pet != null) {
                     if (player.pet.playerSkill.skills.get(2).skillId != -1) {
                         player.pet.openSkill3();
@@ -144,7 +144,7 @@ public class ShenronEvent {
                 }
                 break;
             case 2: 
-                // TÄƒng hp, ki, sd
+                // Tăng hp, ki, sd
                 int timeRX = player.itemTime.timeRX / 1000 + 1800;
                 int maxTimeInSeconds = 32767;
                 if (timeRX >= maxTimeInSeconds) {
@@ -163,7 +163,7 @@ public class ShenronEvent {
                 Service.gI().Send_Info_NV(player);
                 break;
             case 3: 
-                //quáº§n Ä‘ang Ä‘eo lÃªn 1 cáº¥p
+                //quần đang đeo lên 1 cấp
                 Item item = this.player.inventory.itemsBody.get(1);
                 if (item.isNotNullItem()) {
                     int level = 0;

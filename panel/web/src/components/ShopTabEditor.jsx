@@ -1,94 +1,128 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, getServerId } from '../api';
-import { formatLiveSync } from '../utils/liveSync';
 import {
   genderLabel,
-  hasGenderOverride,
   itemVisibleForRace,
   parseGenderOverride,
   patchShopItemGender,
 } from '../utils/shopRace';
 import {
-  evaluateShopOrderImport,
   exportShopOrderText,
-  extractImportTempIds,
-  filterItemsForRace,
-  formatOptionsString,
-  parseImportPreviewForRace,
-  parseShopOrderText,
-  planStructuredImport,
-  templateMapFromList,
-  applyStructuredImportExact,
-  alignCreatedItems,
-  sortEntriesForImport,
-  withImportSortOrder,
 } from '../utils/shopItemOrder';
-import ShopOrderPreview from './ShopOrderPreview';
 import ItemIcon from './ItemIcon';
-import { OptionEditor, OptionChips, useOptionMap } from './OptionEditor';
-import ShopGenderField from './ShopGenderField';
-import ShopPowerRequireField from './ShopPowerRequireField';
+import { OptionEditor, useOptionMap } from './OptionEditor';
 import ShopRacePills from './ShopRacePills';
 import { useShopRacePreview } from '../hooks/useShopRacePreview';
 
 const TYPE_SELL = [
-  { value: 0, label: 'Vàng' },
-  { value: 1, label: 'Ngọc' },
-  { value: 3, label: 'Hồng ngọc' },
-  { value: 4, label: 'Coupon' },
+  { value: 0, label: '🟡 Vàng', color: '#eab308' },
+  { value: 1, label: '🟢 Ngọc xanh', color: '#10b981' },
+  { value: 3, label: '🔴 Hồng ngọc', color: '#ef4444' },
+  { value: 4, label: '🎫 Coupon', color: '#8b5cf6' },
 ];
 
-const CATALOG_PAGE = 50;
-
-function moveItem(items, from, to) {
-  if (to < 0 || to >= items.length) return items;
-  const next = [...items];
-  const [x] = next.splice(from, 1);
-  next.splice(to, 0, x);
-  return next;
-}
-
-function matchesItemQuery(it, qRaw) {
-  const q = String(qRaw || '').trim().toLowerCase();
-  if (!q) return true;
-  const num = Number(q);
-  if (!Number.isNaN(num) && Number(it.temp_id) === num) return true;
-  if (String(it.temp_id).includes(q)) return true;
-  return String(it.item_name || '').toLowerCase().includes(q);
-}
-
-function isShopItemNew(it) {
-  return Number(it?.is_new) === 1;
-}
+const PRESET_PACKS = [
+  {
+    id: 'dragon_balls',
+    title: '🌟 Bộ 7 Viên Ngọc Rồng (1 - 7 Sao)',
+    desc: 'Bao gồm trọn bộ ngọc rồng từ 1 sao đến 7 sao với giá bán chuẩn',
+    items: [
+      { temp_id: 14, name: 'Ngọc Rồng 1 Sao', cost: 5000000, type_sell: 0, options: [{ id: 30, param: 0 }] },
+      { temp_id: 15, name: 'Ngọc Rồng 2 Sao', cost: 2000000, type_sell: 0, options: [{ id: 30, param: 0 }] },
+      { temp_id: 16, name: 'Ngọc Rồng 3 Sao', cost: 1000000, type_sell: 0, options: [{ id: 30, param: 0 }] },
+      { temp_id: 17, name: 'Ngọc Rồng 4 Sao', cost: 500000, type_sell: 0, options: [{ id: 30, param: 0 }] },
+      { temp_id: 18, name: 'Ngọc Rồng 5 Sao', cost: 300000, type_sell: 0, options: [{ id: 30, param: 0 }] },
+      { temp_id: 19, name: 'Ngọc Rồng 6 Sao', cost: 200000, type_sell: 0, options: [{ id: 30, param: 0 }] },
+      { temp_id: 20, name: 'Ngọc Rồng 7 Sao', cost: 100000, type_sell: 0, options: [{ id: 30, param: 0 }] },
+    ],
+  },
+  {
+    id: 'god_set_td',
+    title: '👑 Set Đồ Thần Linh (Trái Đất)',
+    desc: 'Full 5 món Thần Linh: Áo, Quần, Găng, Giày, Rada Thần (Có chỉ số khủng)',
+    items: [
+      { temp_id: 555, name: 'Áo Thần Trái Đất', cost: 1000, type_sell: 3, options: [{ id: 47, param: 1200 }, { id: 77, param: 15 }, { id: 30, param: 0 }] },
+      { temp_id: 556, name: 'Quần Thần Trái Đất', cost: 1000, type_sell: 3, options: [{ id: 22, param: 85000 }, { id: 103, param: 15 }, { id: 30, param: 0 }] },
+      { temp_id: 562, name: 'Găng Thần Trái Đất', cost: 1500, type_sell: 3, options: [{ id: 0, param: 8500 }, { id: 14, param: 10 }, { id: 30, param: 0 }] },
+      { temp_id: 563, name: 'Giày Thần Trái Đất', cost: 1000, type_sell: 3, options: [{ id: 23, param: 80000 }, { id: 30, param: 0 }] },
+      { temp_id: 561, name: 'Rada Thần Linh', cost: 1500, type_sell: 3, options: [{ id: 14, param: 12 }, { id: 50, param: 10 }, { id: 30, param: 0 }] },
+    ],
+  },
+  {
+    id: 'hot_costumes',
+    title: '🦹 Top Cải Trang Hot VIP',
+    desc: 'Cải trang Yardrat, Black Goku, Broly (Kèm chỉ số SĐ, HP, KI, HSD 30 ngày)',
+    items: [
+      { temp_id: 545, name: 'Cải Trang Yardrat', cost: 500, type_sell: 1, is_new: 1, options: [{ id: 50, param: 25 }, { id: 77, param: 20 }, { id: 103, param: 20 }, { id: 93, param: 30 }] },
+      { temp_id: 543, name: 'Cải Trang Black Goku', cost: 800, type_sell: 1, is_new: 1, options: [{ id: 50, param: 30 }, { id: 77, param: 30 }, { id: 93, param: 30 }] },
+      { temp_id: 421, name: 'Cải Trang Broly', cost: 1000, type_sell: 1, is_new: 1, options: [{ id: 50, param: 35 }, { id: 77, param: 35 }, { id: 93, param: 30 }] },
+    ],
+  },
+  {
+    id: 'upgrade_stones',
+    title: '💎 Pha Lê Ép Sao & Đá Nâng Cấp',
+    desc: 'Trọn bộ 7 loại Pha Lê (Hút HP, Hút KI, Phản Dame, May Mắn, SĐ, HP, KI)',
+    items: [
+      { temp_id: 441, name: 'Pha Lê Hút Máu', cost: 50, type_sell: 1, options: [{ id: 95, param: 5 }, { id: 30, param: 0 }] },
+      { temp_id: 442, name: 'Pha Lê Hút KI', cost: 50, type_sell: 1, options: [{ id: 96, param: 5 }, { id: 30, param: 0 }] },
+      { temp_id: 443, name: 'Pha Lê Phản ST', cost: 50, type_sell: 1, options: [{ id: 97, param: 5 }, { id: 30, param: 0 }] },
+      { temp_id: 444, name: 'Pha Lê May Mắn', cost: 50, type_sell: 1, options: [{ id: 100, param: 5 }, { id: 30, param: 0 }] },
+      { temp_id: 445, name: 'Pha Lê Sức Đánh', cost: 80, type_sell: 1, options: [{ id: 50, param: 5 }, { id: 30, param: 0 }] },
+      { temp_id: 446, name: 'Pha Lê Máu HP', cost: 80, type_sell: 1, options: [{ id: 77, param: 5 }, { id: 30, param: 0 }] },
+      { temp_id: 447, name: 'Pha Lê KI Mana', cost: 80, type_sell: 1, options: [{ id: 103, param: 5 }, { id: 30, param: 0 }] },
+    ],
+  },
+  {
+    id: 'porata_beans',
+    title: '💍 Bông Tai Porata & Đậu Thần Cấp 10',
+    desc: 'Bông tai hợp thể Porata Cấp 1, Cấp 2, Thỏi Vàng và Đậu Thần cấp 10',
+    items: [
+      { temp_id: 454, name: 'Bông Tai Porata', cost: 200, type_sell: 1, options: [{ id: 72, param: 2 }, { id: 30, param: 0 }] },
+      { temp_id: 921, name: 'Bông Tai Porata Cấp 2', cost: 1500, type_sell: 1, is_new: 1, options: [{ id: 72, param: 2 }, { id: 50, param: 15 }, { id: 77, param: 15 }] },
+      { temp_id: 457, name: 'Thỏi Vàng', cost: 37500000, type_sell: 0, options: [{ id: 30, param: 0 }] },
+      { temp_id: 9, name: 'Đậu Thần Cấp 10', cost: 10000, type_sell: 0, options: [{ id: 30, param: 0 }] },
+    ],
+  },
+];
 
 export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeedback }) {
   const [items, setItems] = useState(tab.items || []);
-  const [selectedIdx, setSelectedIdx] = useState(null);
-  const [catalog, setCatalog] = useState([]);
-  const [catalogQ, setCatalogQ] = useState('');
-  const [shopItemQ, setShopItemQ] = useState('');
-  const [catalogPage, setCatalogPage] = useState(0);
-  const [catalogLoading, setCatalogLoading] = useState(true);
-  const [selectedCatalogIds, setSelectedCatalogIds] = useState(() => new Set());
-  const [selectedShopIds, setSelectedShopIds] = useState(() => new Set());
-  const [bulkEditOpen, setBulkEditOpen] = useState(false);
-  const [bulkEditForm, setBulkEditForm] = useState({ cost: '', type_sell: '', is_sell: '', is_new: '' });
-  const [defaultCost, setDefaultCost] = useState(1000);
-  const [defaultTypeSell, setDefaultTypeSell] = useState(0);
+  const [isDirty, setIsDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [filterQ, setFilterQ] = useState('');
   const [raceFilter, setRaceFilter] = useShopRacePreview();
-  const [dragIdx, setDragIdx] = useState(null);
-  const [dropIdx, setDropIdx] = useState(null);
+
+  // Quick Add state
+  const [quickSearch, setQuickSearch] = useState('');
+  const [quickResults, setQuickResults] = useState([]);
+  const [selectedQuickTemplate, setSelectedQuickTemplate] = useState(null);
+  const [quickCost, setQuickCost] = useState(1000);
+  const [quickTypeSell, setQuickTypeSell] = useState(0);
+
+  // Selected for bulk
+  const [selectedItemIds, setSelectedItemIds] = useState(new Set());
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkForm, setBulkForm] = useState({ cost: '', type_sell: '', is_new: '', is_sell: '' });
+
+  // Option editor modal
+  const [optModalItem, setOptModalItem] = useState(null);
+  const [optModalIdx, setOptModalIdx] = useState(null);
+
+  // Preset modal
+  const [presetModalOpen, setPresetModalOpen] = useState(false);
+
+  // Order IO modal
   const [orderIoOpen, setOrderIoOpen] = useState(false);
   const [orderIoText, setOrderIoText] = useState('');
-  const [importTemplates, setImportTemplates] = useState({});
-  const [importTemplatesLoading, setImportTemplatesLoading] = useState(false);
+
   const optionMap = useOptionMap();
   const itemsDirtyRef = useRef(false);
 
   useEffect(() => {
     itemsDirtyRef.current = false;
+    setIsDirty(false);
     setItems(tab.items || []);
+    setSelectedItemIds(new Set());
   }, [tab.id]);
 
   useEffect(() => {
@@ -97,134 +131,196 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
   }, [tab.items]);
 
   useEffect(() => {
-    setSelectedIdx(null);
-    setShopItemQ('');
-    setCatalogQ('');
-    setDragIdx(null);
-    setDropIdx(null);
-    setOrderIoOpen(false);
-    setOrderIoText('');
-    setSelectedCatalogIds(new Set());
-    setSelectedShopIds(new Set());
-    setBulkEditOpen(false);
-    setBulkEditForm({ cost: '', type_sell: '', is_sell: '', is_new: '' });
-  }, [tab.id]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const q = catalogQ.trim();
-    const t = setTimeout(async () => {
-      setCatalogLoading(true);
-      try {
-        const params = new URLSearchParams({ limit: '80' });
-        if (q) params.set('q', q);
-        if (raceFilter) params.set('race', raceFilter);
-        const res = await api(`/shops/meta/item-templates?${params}`);
-        if (!cancelled) {
-          setCatalog(res.data || []);
-          setCatalogPage(0);
-        }
-      } catch {
-        if (!cancelled) setCatalog([]);
-      } finally {
-        if (!cancelled) setCatalogLoading(false);
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
       }
-    }, q ? 250 : 0);
-    return () => { cancelled = true; clearTimeout(t); };
-  }, [catalogQ, raceFilter]);
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
-  const catalogFiltered = useMemo(
-    () => catalog.filter((it) => itemVisibleForRace(it.gender, raceFilter)),
-    [catalog, raceFilter]
-  );
-  const catalogPages = Math.max(1, Math.ceil(catalogFiltered.length / CATALOG_PAGE));
-  const catalogSlice = catalogFiltered.slice(
-    catalogPage * CATALOG_PAGE,
-    (catalogPage + 1) * CATALOG_PAGE
-  );
-  const shopRows = useMemo(
-    () => items
-      .map((it, idx) => ({ it, idx }))
-      .filter(({ it }) => itemVisibleForRace(it.item_gender, raceFilter)),
-    [items, raceFilter]
-  );
-  const shopRowsVisible = useMemo(
-    () => shopRows.filter(({ it }) => matchesItemQuery(it, shopItemQ)),
-    [shopRows, shopItemQ]
-  );
-  const visibleCatalogIds = useMemo(() => catalogSlice.map((it) => it.id), [catalogSlice]);
-  const visibleShopIds = useMemo(() => shopRowsVisible.map(({ it }) => it.id), [shopRowsVisible]);
-  const allVisibleCatalogSelected = visibleCatalogIds.length > 0
-    && visibleCatalogIds.every((id) => selectedCatalogIds.has(id));
-  const allVisibleShopSelected = visibleShopIds.length > 0
-    && visibleShopIds.every((id) => selectedShopIds.has(id));
-  const hiddenCount = items.length - shopRows.length;
-  const selected = selectedIdx != null ? items[selectedIdx] : null;
-  const inShopIds = useMemo(() => new Set(items.map((it) => it.temp_id)), [items]);
-  const addableCatalogCount = catalog.filter((it) => selectedCatalogIds.has(it.id) && !inShopIds.has(it.id)).length;
-  const selectedExistingCatalogCount = selectedCatalogIds.size - addableCatalogCount;
-
-  const raceSummary = raceFilter === ''
-    ? `Toàn bộ DB · tab ${items.length} item`
-    : `Player ${genderLabel(raceFilter)}: ${shopRows.length}/${items.length} item trong tab${
-        hiddenCount ? ` · ${hiddenCount} ẩn` : ''
-      }`;
-
-  const canDragReorder = !shopItemQ.trim();
-  const importTempIds = useMemo(
-    () => (orderIoOpen ? extractImportTempIds(orderIoText) : []),
-    [orderIoOpen, orderIoText]
-  );
-
+  // Autocomplete for quick search
   useEffect(() => {
-    if (!orderIoOpen || !importTempIds.length) {
-      setImportTemplates({});
-      setImportTemplatesLoading(false);
-      return undefined;
+    const q = quickSearch.trim();
+    if (!q) {
+      setQuickResults([]);
+      return;
     }
     let cancelled = false;
-    setImportTemplatesLoading(true);
-    (async () => {
+    const t = setTimeout(async () => {
       try {
-        const res = await api(`/shops/meta/item-templates/batch?ids=${importTempIds.join(',')}`);
-        if (!cancelled) setImportTemplates(templateMapFromList(res.data || []));
+        const res = await api('/shops/meta/item-templates?limit=15&q=' + encodeURIComponent(q));
+        if (!cancelled) setQuickResults(res.data || []);
       } catch {
-        if (!cancelled) setImportTemplates({});
-      } finally {
-        if (!cancelled) setImportTemplatesLoading(false);
+        if (!cancelled) setQuickResults([]);
       }
-    })();
-    return () => { cancelled = true; };
-  }, [orderIoOpen, importTempIds.join(',')]);
-
-  const orderImportPreview = useMemo(
-    () => parseImportPreviewForRace(items, orderIoText, '', itemVisibleForRace, importTemplates, {
-      templatesLoading: importTemplatesLoading,
-    }),
-    [items, orderIoText, importTemplates, importTemplatesLoading]
-  );
-  const orderIoSummary = `Import thứ tự: ${orderImportPreview.lineCount || 0} dòng file · tab hiện ${items.length} item`;
-  const importApplyBlocked = importTemplatesLoading
-    && orderImportPreview.format === 'structured'
-    && orderImportPreview.lineCount > 0
-    && (orderImportPreview.willAdd > 0 || orderImportPreview.rows?.some((r) => r.pendingTemplate));
-
-  useEffect(() => {
-    setCatalogPage(0);
-    setSelectedCatalogIds(new Set());
-  }, [catalogQ, raceFilter]);
-
-  function patchLocal(idx, patch) {
-    itemsDirtyRef.current = true;
-    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
-  }
+    }, 200);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [quickSearch]);
 
   function withServer(body = {}) {
     return JSON.stringify({ ...body, serverId: getServerId() });
   }
 
-  function toggleSelection(setter, id) {
-    setter((prev) => {
+  function markDirty() {
+    itemsDirtyRef.current = true;
+    setIsDirty(true);
+  }
+
+  function patchItem(idx, patch) {
+    markDirty();
+    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
+  }
+
+  function moveItem(from, to) {
+    if (to < 0 || to >= items.length) return;
+    markDirty();
+    const next = [...items];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setItems(next);
+  }
+
+  function cloneItem(idx) {
+    const it = items[idx];
+    if (!it) return;
+    markDirty();
+    const copy = {
+      ...it,
+      id: 'new_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      options: (it.options || []).map((o) => ({ ...o })),
+    };
+    const next = [...items];
+    next.splice(idx + 1, 0, copy);
+    setItems(next);
+    onFeedback?.(`Đã nhân bản "${it.item_name || it.temp_id}". Nhớ bấm "Lưu Vào Database"!`, 'success');
+  }
+
+  function deleteItem(idx) {
+    const it = items[idx];
+    if (!confirm(`Xóa "${it.item_name || it.temp_id}" khỏi shop?`)) return;
+    markDirty();
+    setItems((prev) => prev.filter((_, i) => i !== idx));
+    onFeedback?.('Đã xóa item khỏi danh sách. Nhớ bấm "Lưu Vào Database"!', 'success');
+  }
+
+  async function handleQuickAdd() {
+    let tpl = selectedQuickTemplate;
+    const q = quickSearch.trim();
+    if (!tpl && q) {
+      const num = Number(q.replace(/^[#\s]+/, ''));
+      if (!Number.isNaN(num) && num > 0) {
+        try {
+          const res = await api('/shops/meta/item-templates?limit=1&q=' + num);
+          if (res.data?.[0]) tpl = res.data[0];
+        } catch {}
+      }
+      if (!tpl && quickResults.length > 0) {
+        tpl = quickResults[0];
+      }
+    }
+    if (!tpl) {
+      if (q) {
+        onFeedback?.(`Không tìm thấy vật phẩm nào khớp với "${q}". Vui lòng chọn từ gợi ý tìm kiếm.`, 'error');
+      } else {
+        onFeedback?.('Vui lòng nhập tên hoặc ID vật phẩm để thêm vào shop!', 'error');
+      }
+      return;
+    }
+    markDirty();
+    const newItem = {
+      id: 'new_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      temp_id: tpl.id,
+      item_name: tpl.name,
+      icon_id: tpl.icon_id,
+      cost: Number(quickCost) || 0,
+      type_sell: Number(quickTypeSell) || 0,
+      is_sell: 1,
+      is_new: 1,
+      gender_override: null,
+      options: [],
+    };
+    setItems((prev) => [newItem, ...prev]);
+    setSelectedQuickTemplate(null);
+    setQuickSearch('');
+    setQuickResults([]);
+    onFeedback?.(`Đã thêm "${tpl.name}" (ID #${tpl.id}) vào tab! Bấm nút "💾 Lưu Vào Database" để lưu vĩnh viễn vào MySQL.`, 'success');
+  }
+
+  function handleAddPreset(preset) {
+    markDirty();
+    const newItems = preset.items.map((it, i) => ({
+      id: 'preset_' + Date.now() + '_' + i,
+      temp_id: it.temp_id,
+      item_name: it.name,
+      cost: it.cost,
+      type_sell: it.type_sell,
+      is_sell: 1,
+      is_new: it.is_new ? 1 : 0,
+      gender_override: null,
+      options: it.options || [],
+    }));
+    setItems((prev) => [...prev, ...newItems]);
+    setPresetModalOpen(false);
+    onFeedback?.(`Đã thêm gói "${preset.title}" (${newItems.length} item) vào tab. Nhớ bấm "Lưu Vào Database"!`, 'success');
+  }
+
+  // Option Editor Modal handlers
+  function openOptionModal(it, idx) {
+    setOptModalItem(JSON.parse(JSON.stringify(it)));
+    setOptModalIdx(idx);
+  }
+
+  async function saveOptionModal(andSaveToDb = false) {
+    if (optModalIdx == null || !optModalItem) return;
+    const nextOptions = (optModalItem.options || []).map((o) => ({
+      id: Number(o.id),
+      param: Number(o.param) || 0,
+      ...(o.min != null && o.max != null ? { min: Number(o.min), max: Number(o.max) } : {}),
+    }));
+    const nextItems = items.map((it, i) => (i === optModalIdx ? { ...it, options: nextOptions } : it));
+    setItems(nextItems);
+    setOptModalItem(null);
+    setOptModalIdx(null);
+    if (andSaveToDb) {
+      await handleSaveToDatabase(nextItems);
+    } else {
+      markDirty();
+      onFeedback?.('Đã cập nhật chỉ số vào danh sách! Hãy bấm "Lưu Vào Database" để lưu vĩnh viễn.', 'success');
+    }
+  }
+
+  // Bulk Edit
+  function applyBulkEdit() {
+    if (!selectedItemIds.size) return;
+    markDirty();
+    setItems((prev) => prev.map((it) => {
+      if (!selectedItemIds.has(it.id)) return it;
+      const patch = {};
+      if (bulkForm.cost !== '') patch.cost = Number(bulkForm.cost);
+      if (bulkForm.type_sell !== '') patch.type_sell = Number(bulkForm.type_sell);
+      if (bulkForm.is_new !== '') patch.is_new = Number(bulkForm.is_new);
+      if (bulkForm.is_sell !== '') patch.is_sell = Number(bulkForm.is_sell);
+      return { ...it, ...patch };
+    }));
+    setBulkModalOpen(false);
+    setSelectedItemIds(new Set());
+    setBulkForm({ cost: '', type_sell: '', is_new: '', is_sell: '' });
+    onFeedback?.('Đã áp dụng thay đổi hàng loạt. Nhớ bấm "Lưu Vào Database"!', 'success');
+  }
+
+  function toggleSelectAll(checked) {
+    if (checked) {
+      setSelectedItemIds(new Set(items.map((it) => it.id)));
+    } else {
+      setSelectedItemIds(new Set());
+    }
+  }
+
+  function toggleSelectItem(id) {
+    setSelectedItemIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -232,881 +328,750 @@ export default function ShopTabEditor({ tab, shopId, shopMeta, onRefresh, onFeed
     });
   }
 
-  function toggleVisibleSelection(setter, ids, shouldSelect) {
-    setter((prev) => {
-      const next = new Set(prev);
-      ids.forEach((id) => (shouldSelect ? next.add(id) : next.delete(id)));
-      return next;
-    });
-  }
-
-  function toggleCatalogSelection(id) {
-    toggleSelection(setSelectedCatalogIds, id);
-  }
-
-  function toggleShopSelection(id) {
-    toggleSelection(setSelectedShopIds, id);
-  }
-
-  async function addSelectedCatalog() {
-    const templates = catalog.filter((it) => selectedCatalogIds.has(it.id) && !inShopIds.has(it.id));
-    if (!templates.length) {
-      onFeedback?.('Các item đã chọn đều đang có trong tab — không thêm trùng.', 'info');
-      return;
-    }
+  // SAVE TO DATABASE MYSQL (100% PERSISTENCE)
+  async function handleSaveToDatabase(customItems = null) {
+    const listToSave = Array.isArray(customItems) ? customItems : items;
     setSaving(true);
     try {
-      const res = await api(`/shops/tabs/${tab.id}/items/bulk-create`, {
+      const payloadItems = listToSave.map((it) => ({
+        id: (typeof it.id === 'string' && (it.id.startsWith('new_') || it.id.startsWith('preset_'))) ? undefined : it.id,
+        temp_id: Number(it.temp_id),
+        cost: Number(it.cost) || 0,
+        type_sell: Number(it.type_sell) || 0,
+        is_sell: it.is_sell ? 1 : 0,
+        icon_spec: Number(it.icon_spec) || 0,
+        is_new: it.is_new ? 1 : 0,
+        gender_override: parseGenderOverride(it.gender_override),
+        options: (it.options || []).map((o) => ({ id: Number(o.id), param: Number(o.param) || 0 })),
+      }));
+
+      await api(`/shops/tabs/${tab.id}/items/bulk`, {
+        method: 'PUT',
+        body: withServer({ items: payloadItems }),
+      });
+
+      await api('/shops/reload', {
         method: 'POST',
-        body: withServer({
-          items: templates.map((template) => ({
-            temp_id: template.id,
-            cost: defaultCost,
-            type_sell: defaultTypeSell,
-            is_sell: 1,
-            options: [],
-          })),
-        }),
-      });
-      const count = res.data?.count ?? templates.length;
-      onFeedback?.(`Đã thêm ${count} item vào tab với giá mặc định${formatLiveSync(res?.data)}`, 'success');
-      setSelectedCatalogIds(new Set());
+        body: withServer(),
+      }).catch(() => null);
+
+      itemsDirtyRef.current = false;
+      setIsDirty(false);
+      onFeedback?.(`🎉 ĐÃ LƯU ${listToSave.length} VẬT PHẨM VÀO DATABASE VĨNH VIỄN & LIVE-SYNC IN-GAME!`, 'success');
       await onRefresh?.();
     } catch (e) {
-      onFeedback?.(e.message, 'error');
+      onFeedback?.('Lỗi khi lưu vào Database: ' + e.message, 'error');
     } finally {
       setSaving(false);
     }
   }
 
-  async function applyBulkEdit() {
-    const ids = new Set([...selectedShopIds]);
-    const hasPatch = Object.values(bulkEditForm).some((value) => value !== '');
-    if (!ids.size || !hasPatch) return;
-    const next = items.map((it) => {
-      if (!ids.has(it.id)) return it;
-      const patch = {};
-      if (bulkEditForm.cost !== '') patch.cost = Number(bulkEditForm.cost);
-      if (bulkEditForm.type_sell !== '') patch.type_sell = Number(bulkEditForm.type_sell);
-      if (bulkEditForm.is_sell !== '') patch.is_sell = Number(bulkEditForm.is_sell);
-      if (bulkEditForm.is_new !== '') patch.is_new = Number(bulkEditForm.is_new);
-      return { ...it, ...patch };
+  const filteredItems = useMemo(() => {
+    return items.filter((it) => {
+      if (raceFilter && !itemVisibleForRace(it.gender_override ?? it.gender, raceFilter)) return false;
+      if (!filterQ) return true;
+      const q = filterQ.toLowerCase();
+      return (
+        String(it.temp_id).includes(q) ||
+        String(it.item_name || '').toLowerCase().includes(q)
+      );
     });
-    setSaving(true);
-    try {
-      const res = await api(`/shops/tabs/${tab.id}/items/bulk`, {
-        method: 'PUT',
-        body: withServer({ items: next.filter((it) => ids.has(it.id)).map(itemSavePayload) }),
-      });
-      setItems(next);
-      itemsDirtyRef.current = false;
-      const count = res.data?.saved ?? ids.size;
-      onFeedback?.(`Đã cập nhật nhanh ${count} item${formatLiveSync(res?.data)} — đóng shop rồi mở lại NPC`, 'success');
-      setSelectedShopIds(new Set());
-      setBulkEditOpen(false);
-      setBulkEditForm({ cost: '', type_sell: '', is_sell: '', is_new: '' });
-      await onRefresh?.();
-    } catch (e) {
-      onFeedback?.(e.message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function fetchImportTemplateMap(tempIds) {
-    const ids = [...new Set((tempIds || []).filter((id) => id > 0 && !Number.isNaN(Number(id))))];
-    if (!ids.length) return {};
-    const merged = [];
-    for (let i = 0; i < ids.length; i += 80) {
-      const chunk = ids.slice(i, i + 80);
-      const res = await api(`/shops/meta/item-templates/batch?ids=${chunk.join(',')}`);
-      merged.push(...(res.data || []));
-    }
-    return templateMapFromList(merged);
-  }
-
-  async function persistOrder(nextItems) {
-    const order = nextItems
-      .map((it) => Number(it.id))
-      .filter((id) => !Number.isNaN(id) && id > 0);
-    if (!order.length) return null;
-    const res = await api(`/shops/tabs/${tab.id}/reorder`, {
-      method: 'POST',
-      body: withServer({ order }),
-    });
-    return res;
-  }
-
-  async function moveAndSave(from, to) {
-    if (from === to) return;
-    const next = moveItem(items, from, to);
-    await applyOrder(next, from, to);
-  }
-
-  function remapSelectedIdx(from, to, prevSelected) {
-    if (prevSelected == null) return null;
-    if (prevSelected === from) return to;
-    if (from < prevSelected && to >= prevSelected) return prevSelected - 1;
-    if (from > prevSelected && to <= prevSelected) return prevSelected + 1;
-    return prevSelected;
-  }
-
-  async function applyOrder(next, from = null, to = null) {
-    const prevSelected = selectedIdx;
-    itemsDirtyRef.current = true;
-    setItems(next);
-    if (from != null && to != null) {
-      setSelectedIdx(remapSelectedIdx(from, to, prevSelected));
-    } else if (selected?.id != null) {
-      const ni = next.findIndex((it) => it.id === selected.id);
-      setSelectedIdx(ni >= 0 ? ni : null);
-    }
-    try {
-      const res = await persistOrder(next);
-      const syncNote = formatLiveSync(res?.data);
-      itemsDirtyRef.current = false;
-      onFeedback?.(`Đã cập nhật thứ tự trong SQL${syncNote} — đóng shop trong game rồi mở lại NPC`, 'success');
-      await onRefresh?.();
-    } catch (e) {
-
-      onFeedback?.(e.message, 'error');
-      onRefresh?.();
-    }
-  }
-
-  function handleExportOrderList() {
-    const text = exportShopOrderText(items, {
-      npcId: shopMeta?.npcId ?? shopId,
-      tagName: shopMeta?.tagName,
-      tabId: tab.id,
-      tabName: tab.name,
-    });
-    setOrderIoText(text);
-    setOrderIoOpen(true);
-    if (text && navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).catch(() => {});
-    }
-    onFeedback?.(
-      `Đã xuất ${items.length} dòng toàn tab — sort|temp_id|tên|option`,
-      'success'
-    );
-  }
-
-  async function handleImportOrderList() {
-    const parsed = parseShopOrderText(orderIoText);
-    const importEntries = parsed.format === 'structured'
-      ? sortEntriesForImport(parsed.entries)
-      : parsed.entries;
-
-    let tmap = importTemplates;
-    if (parsed.format === 'structured' && importEntries.length) {
-      try {
-        tmap = await fetchImportTemplateMap(importEntries.map((e) => e.tempId));
-        setImportTemplates(tmap);
-      } catch (e) {
-        onFeedback?.(e.message, 'error');
-        return;
-      }
-    }
-
-    const result = evaluateShopOrderImport(
-      items,
-      orderIoText,
-      '',
-      itemVisibleForRace,
-      tmap
-    );
-    const {
-      matched,
-      willAdd,
-      missingTemplate,
-      lineCount,
-      format,
-      changed,
-    } = result;
-
-    if (format === 'structured' && matched === 0 && willAdd === 0) {
-      onFeedback?.(
-        lineCount > 0
-          ? missingTemplate > 0
-            ? `Không thêm được (${missingTemplate} temp_id không có trong item_template)`
-            : 'Không khớp dòng nào — kiểm tra temp_id hoặc đợi tải template'
-          : 'Không có dòng structured — cần sort|temp_id|tên|option (dòng # là comment)',
-        'error'
-      );
-      return;
-    }
-    if (!changed) {
-      onFeedback?.(
-        format === 'structured'
-          ? `Đã khớp ${matched}/${lineCount} dòng — thứ tự và option trùng file, không cần lưu`
-          : 'Thứ tự đã khớp — không cần lưu',
-        'success'
-      );
-      return;
-    }
-
-    const selectedId = selected?.id;
-    setSaving(true);
-    try {
-      let working = [...items];
-      let addedCount = 0;
-
-      if (format === 'structured' && importEntries.length) {
-        const plan = planStructuredImport(working, importEntries, tmap);
-        if (plan.toCreate.length) {
-          const createRes = await api(`/shops/tabs/${tab.id}/items/bulk-create`, {
-            method: 'POST',
-            body: withServer({
-              items: plan.toCreate.map(({ entry }) => ({
-                temp_id: entry.tempId,
-                cost: defaultCost,
-                type_sell: defaultTypeSell,
-                is_sell: 1,
-                options: entry.hasOptionsColumn && entry.options != null ? entry.options : [],
-              })),
-            }),
-          });
-          const created = alignCreatedItems(plan.toCreate, createRes.data?.created || []);
-          working = [...working, ...created];
-          addedCount = created.length;
-        }
-      }
-
-      const next = withImportSortOrder(
-        format === 'structured'
-          ? applyStructuredImportExact(working, importEntries)
-          : result.next
-      );
-
-      let removedCount = 0;
-      if (format === 'structured') {
-        const keepIds = new Set(
-          next.map((it) => Number(it.id)).filter((id) => !Number.isNaN(id) && id > 0)
-        );
-        const toRemove = items.filter((it) => it.id && !keepIds.has(Number(it.id)));
-        for (const it of toRemove) {
-          await api(`/shops/items/${it.id}`, { method: 'DELETE', body: withServer({}) });
-          removedCount += 1;
-        }
-      }
-
-      setItems(next);
-      if (selectedId != null) {
-        const ni = next.findIndex((it) => it.id === selectedId);
-        setSelectedIdx(ni >= 0 ? ni : null);
-      }
-
-      await persistOrder(next);
-      const res = await api(`/shops/tabs/${tab.id}/items/bulk`, {
-        method: 'PUT',
-        body: withServer({ items: next.map(itemSavePayload) }),
-      });
-
-      const skipNote = missingTemplate > 0 ? ` · bỏ qua ${missingTemplate} dòng (không có template)` : '';
-      const removedNote = removedCount > 0 ? ` · xóa ${removedCount} item không trong file` : '';
-      itemsDirtyRef.current = false;
-      onFeedback?.(
-        `Đã lưu ${next.length} item vào SQL${addedCount ? ` (+${addedCount} mới)` : ''}${removedNote}${skipNote}${formatLiveSync(res?.data)} — đóng shop rồi mở lại NPC`,
-        'success'
-      );
-      setOrderIoOpen(false);
-
-      await onRefresh?.();
-    } catch (e) {
-      onFeedback?.(e.message, 'error');
-      onRefresh?.();
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function handleDragStart(idx, e) {
-    if (!canDragReorder || saving) {
-      e.preventDefault();
-      return;
-    }
-    setDragIdx(idx);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(idx));
-  }
-
-  function handleDragOver(idx, e) {
-    if (!canDragReorder || dragIdx == null) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dropIdx !== idx) setDropIdx(idx);
-  }
-
-  function handleDragEnd() {
-    setDragIdx(null);
-    setDropIdx(null);
-  }
-
-  async function handleDrop(idx, e) {
-    e.preventDefault();
-    const from = dragIdx;
-    handleDragEnd();
-    if (from == null || from === idx) return;
-    await moveAndSave(from, idx);
-  }
-
-  async function addFromCatalog(template) {
-    setSaving(true);
-    try {
-      const res = await api(`/shops/tabs/${tab.id}/items`, {
-        method: 'POST',
-        body: withServer({
-          temp_id: template.id,
-          cost: defaultCost,
-          type_sell: defaultTypeSell,
-          is_sell: 1,
-          options: [],
-        }),
-      });
-      onFeedback?.(`Đã thêm ${template.name}${formatLiveSync(res?.data)}`, 'success');
-      await onRefresh?.();
-    } catch (e) {
-      onFeedback?.(e.message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function itemSavePayload(it) {
-    return {
-      id: it.id,
-      cost: Number(it.cost),
-      type_sell: Number(it.type_sell),
-      is_sell: it.is_sell ? 1 : 0,
-      icon_spec: Number(it.icon_spec) || 0,
-      is_new: isShopItemNew(it) ? 1 : 0,
-      gender_override: parseGenderOverride(it.gender_override),
-      options: (it.options || []).map((o) => ({ id: o.id, param: o.param ?? 0 })),
-    };
-  }
-
-  function patchItemGender(idx, genderOverride) {
-    itemsDirtyRef.current = true;
-    setItems((prev) => prev.map((it, i) => (
-      i === idx ? { ...it, ...patchShopItemGender(it, genderOverride) } : it
-    )));
-  }
-
-  async function saveItem(idx) {
-    const it = items[idx];
-    setSaving(true);
-    try {
-      const res = await api(`/shops/items/${it.id}`, {
-        method: 'PUT',
-        body: withServer(itemSavePayload(it)),
-      });
-      const raceNote = hasGenderOverride(it.gender_override) ? ' · đã lưu tộc ghi đè' : '';
-      onFeedback?.(
-        `Đã lưu item shop${raceNote}${isShopItemNew(it) ? ' · nhãn NEW bật trong game' : ''}${formatLiveSync(res?.data)} — đóng shop rồi mở lại NPC`,
-        'success'
-      );
-      itemsDirtyRef.current = false;
-      await onRefresh?.();
-    } catch (e) {
-      onFeedback?.(e.message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function saveAllItems() {
-    if (!items.length) return;
-    setSaving(true);
-    try {
-      const res = await api(`/shops/tabs/${tab.id}/items/bulk`, {
-        method: 'PUT',
-        body: withServer({ items: items.map(itemSavePayload) }),
-      });
-      const n = res?.data?.saved ?? items.length;
-      onFeedback?.(
-        `Đã lưu ${n} item trong tab${formatLiveSync(res?.data)} — đóng shop rồi mở lại NPC`,
-        'success'
-      );
-      itemsDirtyRef.current = false;
-      await onRefresh?.();
-    } catch (e) {
-      onFeedback?.(e.message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function removeItem(idx) {
-    const it = items[idx];
-    if (!confirm(`Xóa "${it.item_name || it.temp_id}" khỏi shop?`)) return;
-    setSaving(true);
-    try {
-      const res = await api(`/shops/items/${it.id}`, {
-        method: 'DELETE',
-        body: withServer({}),
-      });
-      onFeedback?.(`Đã xóa item${formatLiveSync(res?.data)}`, 'success');
-      setSelectedIdx(null);
-      await onRefresh?.();
-    } catch (e) {
-      onFeedback?.(e.message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  }
+  }, [items, raceFilter, filterQ]);
 
   return (
-    <div className="shop-tab-editor">
-      <div className="shop-toolbar">
-        <div className="shop-toolbar-steps muted">
-          <span>1. Tộc</span>
-          <span>2. Thêm</span>
-          <span>3. Tab shop</span>
-          <span>4. Chi tiết</span>
+    <div className="shop-studio-container" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* 1. TOP TOOLBAR & STATUS */}
+      <div className="card-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', background: 'var(--card-glass, rgba(26, 35, 50, 0.8))', padding: '14px 18px', borderRadius: '12px', border: '1px solid var(--border-accent, rgba(59, 130, 246, 0.2))' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '1.2rem' }}>🏪</span>
+            <strong style={{ fontSize: '1.05rem', color: '#60a5fa' }}>Tab: {tab.name}</strong>
+            <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#93c5fd' }}>{items.length} vật phẩm</span>
+          </div>
+
+          {isDirty ? (
+            <div style={{ background: 'rgba(234, 179, 8, 0.2)', border: '1px solid rgba(234, 179, 8, 0.5)', padding: '4px 10px', borderRadius: '8px', color: '#fde047', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>⚠️</span>
+              <span>CHƯA LƯU VÀO DATABASE!</span>
+            </div>
+          ) : (
+            <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.4)', padding: '4px 10px', borderRadius: '8px', color: '#34d399', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>🛡️</span>
+              <span>Dữ liệu đã lưu an toàn trên MySQL</span>
+            </div>
+          )}
         </div>
-        {items.length > 0 && (
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             type="button"
-            className="btn sm primary shop-toolbar-save-all"
-            disabled={saving}
-            onClick={saveAllItems}
+            className="btn sm secondary"
+            onClick={() => setPresetModalOpen(true)}
+            style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)', color: '#fff', border: 'none', fontWeight: 600 }}
+            title="Thêm nhanh các gói vật phẩm hot có sẵn (Ngọc rồng, Đồ thần linh, Cải trang...)"
           >
-            Lưu tất cả ({items.length})
+            ⚡ Mẫu Có Sẵn (Presets)
           </button>
-        )}
+
+          {selectedItemIds.size > 0 && (
+            <button
+              type="button"
+              className="btn sm"
+              onClick={() => setBulkModalOpen(true)}
+              style={{ background: '#0284c7', color: '#fff' }}
+            >
+              ✨ Chỉnh Sửa Hàng Loạt ({selectedItemIds.size})
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="btn sm"
+            onClick={() => {
+              const text = exportShopOrderText(items, { tabId: tab.id, tabName: tab.name });
+              setOrderIoText(text);
+              setOrderIoOpen(true);
+            }}
+            title="Xuất/Nhập danh sách vật phẩm dạng Text"
+          >
+            📋 Import / Export
+          </button>
+
+          <button
+            type="button"
+            className="btn sm primary"
+            disabled={saving}
+            onClick={handleSaveToDatabase}
+            style={{
+              background: isDirty ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : undefined,
+              boxShadow: isDirty ? '0 0 14px rgba(16, 185, 129, 0.6)' : undefined,
+              fontWeight: 700,
+              fontSize: '0.92rem',
+              padding: '7px 16px',
+            }}
+          >
+            {saving ? '⏳ Đang Lưu MySQL...' : `💾 Lưu Vào Database (${items.length} item)`}
+          </button>
+        </div>
       </div>
 
-      <ShopRacePills value={raceFilter} onChange={setRaceFilter} summary={raceSummary} />
+      {/* 2. QUICK ADD BAR - THÊM VẬT PHẨM TỨC THÌ */}
+      <div className="card-inner" style={{ padding: '14px 18px', borderRadius: '12px', background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+          <strong style={{ fontSize: '0.95rem', color: '#38bdf8' }}>➕ Thêm Vật Phẩm Mới Vào Shop:</strong>
+          <span className="muted" style={{ fontSize: '0.82rem' }}>Gõ tên hoặc ID item để thêm nhanh chỉ trong 1 thao tác</span>
+        </div>
 
-      <div className="shop-workspace">
-        <section className="shop-panel shop-panel-catalog card-inner" aria-label="Thêm item">
-          <div className="shop-panel-head">
-            <h4>① Thêm item</h4>
-            <span className="muted shop-panel-hint">item_template</span>
-          </div>
-          <div className="row shop-defaults">
-            <label className="field mini">
-              Giá mặc định
-              <input type="number" min={0} value={defaultCost} onChange={(e) => setDefaultCost(Number(e.target.value))} />
-            </label>
-            <label className="field mini">
-              Loại tiền
-              <select value={defaultTypeSell} onChange={(e) => setDefaultTypeSell(Number(e.target.value))}>
-                {TYPE_SELL.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </label>
-          </div>
-          <input
-            className="catalog-search"
-            placeholder="Tìm theo tên hoặc ID: thỏi vàng, 457, ngọc..."
-            value={catalogQ}
-            onChange={(e) => setCatalogQ(e.target.value)}
-          />
-          <div className="shop-bulk-bar">
-            <label className="toggle-empty shop-select-all">
-              <input
-                type="checkbox"
-                checked={allVisibleCatalogSelected}
-                onChange={(e) => toggleVisibleSelection(setSelectedCatalogIds, visibleCatalogIds, e.target.checked)}
-                disabled={catalogLoading || visibleCatalogIds.length === 0 || saving}
-              />
-              Chọn trang này
-            </label>
-            <span className="muted">
-              {selectedCatalogIds.size
-                ? `Đã chọn ${selectedCatalogIds.size} item${selectedExistingCatalogCount ? ` · ${selectedExistingCatalogCount} đã có` : ''}`
-                : 'Chọn nhiều item để thêm một lần'}
-            </span>
-            {selectedCatalogIds.size > 0 && (
-              <button type="button" className="btn sm primary" disabled={saving || addableCatalogCount === 0} onClick={addSelectedCatalog}>
-                + Thêm {addableCatalogCount} item mới
-              </button>
-            )}
-          </div>
-          <div className="option-template-table-wrap giftcode-catalog-table shop-catalog-table">
-            <table className="compact">
-              <thead><tr><th className="col-check" /><th className="col-icon" /><th>ID</th><th>Tên</th><th>Tộc</th><th /></tr></thead>
-              <tbody>
-                {catalogLoading && <tr><td colSpan={6} className="muted">Đang tải danh sách item...</td></tr>}
-                {!catalogLoading && catalogFiltered.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="muted">
-                      {raceFilter
-                        ? `Không có item cho ${genderLabel(raceFilter)} (và Chung). Thử từ khóa khác hoặc đổi bộ lọc tộc.`
-                        : 'Không tìm thấy item. Thử ID hoặc tên khác.'}
-                    </td>
-                  </tr>
-                )}
-                {!catalogLoading && catalogSlice.map((it) => (
-                  <tr key={it.id} className={inShopIds.has(it.id) ? 'row-active' : ''}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        aria-label={`Chọn ${it.name}`}
-                        checked={selectedCatalogIds.has(it.id)}
-                        onChange={() => toggleCatalogSelection(it.id)}
-                        disabled={saving}
-                      />
-                    </td>
-                    <td><ItemIcon iconId={it.icon_id} tempId={it.id} name={it.name} size={32} /></td>
-                    <td><strong>{it.id}</strong></td>
-                    <td>{it.name}</td>
-                    <td><span className="badge">{genderLabel(it.gender)}</span></td>
-                    <td>
-                      <button type="button" className="btn sm primary" disabled={saving} onClick={() => addFromCatalog(it)}>
-                        {inShopIds.has(it.id) ? '+ Nữa' : '+ Thêm'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {catalogFiltered.length > CATALOG_PAGE && (
-            <div className="row catalog-pagination">
-              <button type="button" className="btn sm" disabled={catalogPage <= 0} onClick={() => setCatalogPage((p) => p - 1)}>←</button>
-              <span className="muted">
-                Trang {catalogPage + 1}/{catalogPages} · {catalogFiltered.length} item
-                {raceFilter ? ` · ${genderLabel(raceFilter)}` : ''}
-                {catalogQ.trim() ? '' : ' (mẫu — gõ tìm thêm)'}
-              </span>
-              <button type="button" className="btn sm" disabled={catalogPage >= catalogPages - 1} onClick={() => setCatalogPage((p) => p + 1)}>→</button>
-            </div>
-          )}
-        </section>
-
-        <section className="shop-panel shop-panel-items card-inner" aria-label="Item trong tab">
-          <div className="shop-panel-head">
-            <h4>
-              ② Tab shop
-              {' '}
-              <span className="shop-count-badge">
-                {shopItemQ.trim()
-                  ? `${shopRowsVisible.length}/${shopRows.length}`
-                  : raceFilter
-                    ? shopRows.length
-                    : items.length}
-              </span>
-            </h4>
-            {items.length > 0 && (
-              <div className="shop-panel-head-actions">
-                <button type="button" className="btn sm" disabled={saving} onClick={handleExportOrderList}>
-                  Xuất tên
-                </button>
-                <button type="button" className="btn sm" disabled={saving} onClick={() => {
-                  setOrderIoOpen((o) => !o);
-                  if (!orderIoOpen && !orderIoText) {
-                    setOrderIoText(exportShopOrderText(items, {
-                      npcId: shopMeta?.npcId ?? shopId,
-                      tagName: shopMeta?.tagName,
-                      tabId: tab.id,
-                      tabName: tab.name,
-                    }));
-                  }
-                }}>
-                  Nhập thứ tự
-                </button>
-              </div>
-            )}
-          </div>
-          <p className="muted shop-panel-hint shop-panel-hint-block">
-            {canDragReorder
-              ? 'Kéo ⋮⋮ để sắp xếp · ↑↓ · bấm dòng → chi tiết'
-              : 'Tắt bộ lọc tìm để kéo thả sắp xếp · bấm dòng → chi tiết'}
-          </p>
-          {orderIoOpen && (
-            <div className="shop-order-io">
-              <p className="muted shop-order-io-scope">{orderIoSummary}</p>
-              <div className="shop-order-io-split">
-                <label className="field shop-order-io-text">
-                  <span>
-                    Định dạng:
-                    {' '}
-                    <code>thứ tự|temp_id|tên|option_id:param;...</code>
-                    {' '}
-                    · áp dụng toàn tab, thêm item thiếu, đúng thứ tự file
-                  </span>
-                  <textarea
-                    rows={10}
-                    value={orderIoText}
-                    onChange={(e) => setOrderIoText(e.target.value)}
-                    placeholder={'# NPC 39 Santa | Tab 1: Cải\n0|885|CT Lích Tên béo|210:4;38:0\n1|878|Cải trang Cooler vàng|50:23;103:19'}
-                    className="shop-order-io-code"
-                  />
-                </label>
-                <ShopOrderPreview
-                  title="Xem trước (trên → dưới)"
-                  rows={orderImportPreview.rows}
-                  trailing={orderImportPreview.trailingItems}
-                  hidden={orderImportPreview.hiddenItems}
-                  genderLabel={genderLabel}
-                  showTrailing={false}
-                />
-              </div>
-              <p className="muted shop-order-io-hint">
-                {orderImportPreview.format === 'structured' ? 'Structured: sort|temp_id|tên|option' : 'Chỉ tên (legacy)'}
-                {importTemplatesLoading ? ' · đang tra template…' : ''}
-                {' · '}
-                Khớp {orderImportPreview.matched}/
-                {orderImportPreview.format === 'structured' ? orderImportPreview.lineCount : orderImportPreview.scopedCount}
-                {orderImportPreview.willAdd > 0 ? ` · +${orderImportPreview.willAdd} sẽ thêm vào tab` : ''}
-                {orderImportPreview.missingTemplate > 0
-                  ? ` · ${orderImportPreview.missingTemplate} không có template`
-                  : ''}
-                {orderImportPreview.trailing > 0
-                  ? ` · ${orderImportPreview.trailing} item tab cũ sẽ bỏ (không có trong file)`
-                  : ''}
-              </p>
-              <div className="row shop-order-io-actions">
-                <button type="button" className="btn sm" onClick={handleExportOrderList}>Xuất lại</button>
-                <button
-                  type="button"
-                  className="btn sm primary"
-                  disabled={saving || importApplyBlocked}
-                  onClick={handleImportOrderList}
-                >
-                  Áp dụng thứ tự + option
-                </button>
-                <button type="button" className="btn sm ghost" onClick={() => setOrderIoOpen(false)}>Đóng</button>
-              </div>
-            </div>
-          )}
-          {items.length > 0 && shopRows.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 2.5fr) minmax(140px, 1fr) minmax(150px, 1.2fr) auto', gap: '10px', alignItems: 'center' }}>
+          {/* Ô tìm kiếm Autocomplete */}
+          <div style={{ position: 'relative' }}>
             <input
-              className="catalog-search shop-in-tab-search"
-              placeholder="Tìm trong tab: tên, ID (vd. lích, 1566)..."
-              value={shopItemQ}
-              onChange={(e) => setShopItemQ(e.target.value)}
+              type="text"
+              className="input"
+              style={{ width: '100%' }}
+              placeholder="🔍 Gõ tên hoặc ID: Cải trang, Thỏi vàng, 457, 545..."
+              value={quickSearch}
+              onChange={(e) => {
+                setQuickSearch(e.target.value);
+                setSelectedQuickTemplate(null);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleQuickAdd();
+                }
+              }}
             />
-          )}
-          {items.length > 0 && shopRowsVisible.length > 0 && (
-            <div className="shop-bulk-bar shop-bulk-existing">
-              <label className="toggle-empty shop-select-all">
+
+            {/* Dropdown gợi ý */}
+            {quickResults.length > 0 && !selectedQuickTemplate && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  zIndex: 50,
+                  background: '#1e293b',
+                  border: '1px solid #3b82f6',
+                  borderRadius: '8px',
+                  maxHeight: '260px',
+                  overflowY: 'auto',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                  marginTop: '4px',
+                }}
+              >
+                {quickResults.map((t) => (
+                  <div
+                    key={t.id}
+                    onClick={() => {
+                      setSelectedQuickTemplate(t);
+                      setQuickSearch(`#${t.id} - ${t.name}`);
+                      setQuickResults([]);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '8px 12px',
+                      cursor: 'pointer',
+                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <ItemIcon iconId={t.icon_id} size={28} />
+                    <div style={{ flex: 1 }}>
+                      <strong>{t.name}</strong>
+                      <span className="muted" style={{ marginLeft: '8px', fontSize: '0.8rem' }}>ID: #{t.id}</span>
+                    </div>
+                    <span className="badge sm">{genderLabel(t.gender)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Ô nhập Giá Bán */}
+          <div>
+            <input
+              type="number"
+              className="input"
+              style={{ width: '100%' }}
+              min={0}
+              placeholder="Giá bán..."
+              value={quickCost}
+              onChange={(e) => setQuickCost(Number(e.target.value))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleQuickAdd();
+                }
+              }}
+            />
+          </div>
+
+          {/* Chọn Loại Tiền */}
+          <div>
+            <select
+              className="input"
+              style={{ width: '100%' }}
+              value={quickTypeSell}
+              onChange={(e) => setQuickTypeSell(Number(e.target.value))}
+            >
+              {TYPE_SELL.map((ts) => (
+                <option key={ts.value} value={ts.value}>{ts.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Nút Thêm */}
+          <button
+            type="button"
+            className="btn primary"
+            disabled={!selectedQuickTemplate && !quickSearch.trim()}
+            onClick={handleQuickAdd}
+            style={{ fontWeight: 600, padding: '8px 18px' }}
+          >
+            + Thêm Vào Shop
+          </button>
+        </div>
+      </div>
+
+      {/* 3. BỘ LỌC TỘC VÀ TÌM KIẾM TRONG TAB */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <ShopRacePills value={raceFilter} onChange={setRaceFilter} />
+        <div style={{ width: '260px' }}>
+          <input
+            type="text"
+            className="input sm"
+            style={{ width: '100%' }}
+            placeholder="🔎 Lọc item trong tab..."
+            value={filterQ}
+            onChange={(e) => setFilterQ(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* 4. SMART INTERACTIVE TABLE - BẢNG ĐIỀU KHIỂN CHÍNH */}
+      <div className="table-wrap card-inner" style={{ padding: 0, borderRadius: '12px', overflow: 'hidden' }}>
+        <table className="compact" style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: 'rgba(15, 23, 42, 0.8)', borderBottom: '1px solid var(--border)' }}>
+              <th style={{ width: '40px', textAlign: 'center' }}>
                 <input
                   type="checkbox"
-                  checked={allVisibleShopSelected}
-                  onChange={(e) => toggleVisibleSelection(setSelectedShopIds, visibleShopIds, e.target.checked)}
-                  disabled={saving}
+                  checked={items.length > 0 && selectedItemIds.size === items.length}
+                  onChange={(e) => toggleSelectAll(e.target.checked)}
                 />
-                Chọn item hiển thị
-              </label>
-              <span className="muted">{selectedShopIds.size ? `Đã chọn ${selectedShopIds.size}` : 'Chọn nhiều để sửa giá/trạng thái'}</span>
-              {selectedShopIds.size > 0 && (
-                <>
-                  <button type="button" className="btn sm" disabled={saving} onClick={() => setBulkEditOpen((open) => !open)}>
-                    {bulkEditOpen ? 'Đóng chỉnh nhanh' : 'Chỉnh nhanh'}
-                  </button>
-                  <button type="button" className="btn sm ghost" disabled={saving} onClick={() => setSelectedShopIds(new Set())}>
-                    Bỏ chọn
-                  </button>
-                </>
-              )}
+              </th>
+              <th style={{ width: '60px', textAlign: 'center' }}>Vị Trí</th>
+              <th style={{ minWidth: '220px' }}>Vật Phẩm (Item)</th>
+              <th style={{ width: '140px' }}>Giá Bán</th>
+              <th style={{ width: '140px' }}>Loại Tiền</th>
+              <th style={{ minWidth: '240px' }}>Chỉ Số (Options)</th>
+              <th style={{ width: '120px' }}>Tộc Mua</th>
+              <th style={{ width: '110px', textAlign: 'center' }}>Trạng Thái</th>
+              <th style={{ width: '90px', textAlign: 'center' }}>Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredItems.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--muted)' }}>
+                  {items.length === 0
+                    ? 'Chưa có vật phẩm nào trong Tab này. Hãy dùng thanh "Thêm Vật Phẩm" ở trên hoặc bấm "Mẫu Có Sẵn"!'
+                    : 'Không tìm thấy vật phẩm nào khớp với bộ lọc.'}
+                </td>
+              </tr>
+            ) : (
+              filteredItems.map((it, idx) => {
+                const realIdx = items.findIndex((orig) => orig === it || orig.id === it.id);
+                const isSelected = selectedItemIds.has(it.id);
+
+                return (
+                  <tr
+                    key={it.id || idx}
+                    style={{
+                      background: isSelected ? 'rgba(59, 130, 246, 0.1)' : idx % 2 === 1 ? 'rgba(255, 255, 255, 0.015)' : 'transparent',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    }}
+                  >
+                    {/* Checkbox */}
+                    <td style={{ textAlign: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectItem(it.id)}
+                      />
+                    </td>
+
+                    {/* Vị trí & Nút ⬆️ ⬇️ */}
+                    <td style={{ textAlign: 'center' }}>
+                      <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px' }}>
+                        <button
+                          type="button"
+                          className="btn sm ghost"
+                          style={{ padding: '0 4px', fontSize: '0.7rem', lineHeight: '1' }}
+                          disabled={realIdx === 0}
+                          onClick={() => moveItem(realIdx, realIdx - 1)}
+                          title="Di chuyển lên trên"
+                        >
+                          ▲
+                        </button>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 600 }}>{realIdx + 1}</span>
+                        <button
+                          type="button"
+                          className="btn sm ghost"
+                          style={{ padding: '0 4px', fontSize: '0.7rem', lineHeight: '1' }}
+                          disabled={realIdx === items.length - 1}
+                          onClick={() => moveItem(realIdx, realIdx + 1)}
+                          title="Di chuyển xuống dưới"
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    </td>
+
+                    {/* Tên & Icon */}
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <ItemIcon iconId={it.icon_id} size={36} />
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{it.item_name || `Item #${it.temp_id}`}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                            <span className="badge sm" style={{ fontSize: '0.75rem' }}>ID: {it.temp_id}</span>
+                            {it.icon_spec > 0 && <span className="badge sm">Icon: {it.icon_spec}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Sửa Giá Trực Tiếp (Inline Cost) */}
+                    <td>
+                      <input
+                        type="number"
+                        className="input sm"
+                        style={{ width: '100%', fontWeight: 600 }}
+                        min={0}
+                        value={it.cost}
+                        onChange={(e) => patchItem(realIdx, { cost: Number(e.target.value) })}
+                      />
+                    </td>
+
+                    {/* Chọn Loại Tiền Trực Tiếp */}
+                    <td>
+                      <select
+                        className="input sm"
+                        style={{ width: '100%', fontWeight: 500 }}
+                        value={it.type_sell}
+                        onChange={(e) => patchItem(realIdx, { type_sell: Number(e.target.value) })}
+                      >
+                        {TYPE_SELL.map((ts) => (
+                          <option key={ts.value} value={ts.value}>{ts.label}</option>
+                        ))}
+                      </select>
+                    </td>
+
+                    {/* Options (Chỉ số) */}
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {(it.options || []).length === 0 ? (
+                            <span className="muted" style={{ fontSize: '0.8rem', fontStyle: 'italic' }}>Không có chỉ số</span>
+                          ) : (
+                            (it.options || []).map((o, oi) => (
+                              <span
+                                key={oi}
+                                className="badge sm"
+                                style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#93c5fd', fontSize: '0.75rem' }}
+                              >
+                                {optionMap[o.id]
+                                  ? String(optionMap[o.id]).replace('#', o.param)
+                                  : `#${o.id}: ${o.param}`}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="btn sm ghost"
+                          style={{ padding: '2px 8px', fontSize: '0.78rem', border: '1px solid rgba(255,255,255,0.1)' }}
+                          onClick={() => openOptionModal(it, realIdx)}
+                          title="Chỉnh sửa chỉ số / option chi tiết"
+                        >
+                          ✏️ Sửa ({(it.options || []).length})
+                        </button>
+                      </div>
+                    </td>
+
+                    {/* Tộc Mua */}
+                    <td>
+                      <select
+                        className="input sm"
+                        style={{ width: '100%', fontSize: '0.8rem' }}
+                        value={it.gender_override ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? null : Number(e.target.value);
+                          patchItem(realIdx, patchShopItemGender(it, val));
+                        }}
+                      >
+                        <option value="">Theo Gốc</option>
+                        <option value="3">Tất cả Tộc</option>
+                        <option value="0">Trái Đất</option>
+                        <option value="1">Namec</option>
+                        <option value="2">Xayda</option>
+                      </select>
+                    </td>
+
+                    {/* Trạng thái Bán & NEW */}
+                    <td style={{ textAlign: 'center' }}>
+                      <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          className={`badge sm ${it.is_new ? 'ok' : 'muted'}`}
+                          style={{ cursor: 'pointer', border: 'none' }}
+                          onClick={() => patchItem(realIdx, { is_new: it.is_new ? 0 : 1 })}
+                          title="Bật/Tắt nhãn NEW đỏ trong game"
+                        >
+                          {it.is_new ? '🔥 NEW' : 'Cũ'}
+                        </button>
+                        <button
+                          type="button"
+                          className={`badge sm ${it.is_sell ? 'ok' : 'danger'}`}
+                          style={{ cursor: 'pointer', border: 'none' }}
+                          onClick={() => patchItem(realIdx, { is_sell: it.is_sell ? 0 : 1 })}
+                          title="Bật/Tắt bán trong shop"
+                        >
+                          {it.is_sell ? 'Bán' : 'Ẩn'}
+                        </button>
+                      </div>
+                    </td>
+
+                    {/* Thao tác (Clone, Delete) */}
+                    <td style={{ textAlign: 'center' }}>
+                      <div style={{ display: 'inline-flex', gap: '4px' }}>
+                        <button
+                          type="button"
+                          className="btn sm ghost"
+                          style={{ padding: '3px 6px', fontSize: '0.85rem' }}
+                          onClick={() => cloneItem(realIdx)}
+                          title="Nhân bản item này"
+                        >
+                          📋
+                        </button>
+                        <button
+                          type="button"
+                          className="btn sm ghost danger"
+                          style={{ padding: '3px 6px', fontSize: '0.85rem', color: '#ef4444' }}
+                          onClick={() => deleteItem(realIdx)}
+                          title="Xóa khỏi shop"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 5. STICKY BOTTOM FLOATING BAR - BẬT LÊN KHI CÓ THAY ĐỔI */}
+      {isDirty && (
+        <div
+          style={{
+            position: 'sticky',
+            bottom: '16px',
+            zIndex: 100,
+            background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%)',
+            border: '2px solid #10b981',
+            borderRadius: '14px',
+            padding: '12px 24px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(16, 185, 129, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.4rem' }}>⚠️</span>
+            <div>
+              <strong style={{ color: '#fde047', fontSize: '1rem' }}>Bạn có thay đổi chưa lưu vào Database MySQL!</strong>
+              <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Các chỉnh sửa chỉ lưu vĩnh viễn và có hiệu lực in-game khi bạn bấm nút Lưu bên phải.</div>
             </div>
-          )}
-          {bulkEditOpen && selectedShopIds.size > 0 && (
-            <div className="shop-bulk-editor card-inner">
-              <div className="shop-bulk-editor-head">
-                <strong>Chỉnh nhanh {selectedShopIds.size} item</strong>
-                <span className="muted">Để trống nếu không muốn thay đổi trường đó</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              className="btn sm"
+              onClick={() => {
+                if (confirm('Hủy các thay đổi chưa lưu và tải lại từ Database?')) {
+                  itemsDirtyRef.current = false;
+                  setIsDirty(false);
+                  setItems(tab.items || []);
+                }
+              }}
+            >
+              ↩️ Hoàn Tác
+            </button>
+            <button
+              type="button"
+              className="btn primary"
+              disabled={saving}
+              onClick={handleSaveToDatabase}
+              style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                boxShadow: '0 0 15px rgba(16, 185, 129, 0.6)',
+                fontWeight: 700,
+                fontSize: '0.95rem',
+                padding: '10px 22px',
+              }}
+            >
+              {saving ? '⏳ Đang Lưu MySQL...' : `💾 LƯU NGAY VÀO DATABASE (${items.length} item)`}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 6. MODAL PRESET PACKS */}
+      {presetModalOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-content card" style={{ maxWidth: '700px', width: '95%', maxHeight: '85vh', overflowY: 'auto' }}>
+            <div className="modal-header">
+              <h3>⚡ Mẫu Vật Phẩm Có Sẵn (NRO Presets)</h3>
+              <button type="button" className="btn sm ghost" onClick={() => setPresetModalOpen(false)}>✕</button>
+            </div>
+            <p className="muted" style={{ marginTop: '6px', fontSize: '0.88rem' }}>
+              Chọn gói vật phẩm thông dụng để thêm ngay vào tab hiện tại với cấu hình chỉ số chuẩn nhất.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '16px' }}>
+              {PRESET_PACKS.map((pack) => (
+                <div
+                  key={pack.id}
+                  className="card-inner"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    padding: '14px 18px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
+                >
+                  <div>
+                    <strong style={{ fontSize: '1rem', color: '#60a5fa' }}>{pack.title}</strong>
+                    <div className="muted" style={{ fontSize: '0.84rem', marginTop: '3px' }}>{pack.desc}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px' }}>
+                      Bao gồm {pack.items.length} item: {pack.items.map((i) => i.name).join(', ')}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn primary sm"
+                    onClick={() => handleAddPreset(pack)}
+                    style={{ whiteSpace: 'nowrap', fontWeight: 600 }}
+                  >
+                    + Thêm Gói Này
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. MODAL CHỈNH SỬA OPTION CHI TIẾT */}
+      {optModalItem && (
+        <div className="modal-backdrop" style={{ zIndex: 1100 }}>
+          <div className="modal-content card" style={{ maxWidth: '850px', width: '95%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ItemIcon iconId={optModalItem.icon_id} size={28} />
+                <h3 style={{ margin: 0 }}>
+                  ✏️ Chỉnh Sửa Chỉ Số: <span style={{ color: '#60a5fa' }}>{optModalItem.item_name || `Item #${optModalItem.temp_id}`}</span>
+                </h3>
               </div>
-              <div className="row">
-                <label className="field mini">
-                  <span>Giá chung</span>
-                  <input type="number" min={0} placeholder="Không đổi" value={bulkEditForm.cost} onChange={(e) => setBulkEditForm({ ...bulkEditForm, cost: e.target.value })} />
-                </label>
-                <label className="field mini">
-                  <span>Loại tiền</span>
-                  <select value={bulkEditForm.type_sell} onChange={(e) => setBulkEditForm({ ...bulkEditForm, type_sell: e.target.value })}>
-                    <option value="">Không đổi</option>
-                    {TYPE_SELL.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                </label>
-                <label className="field mini">
-                  <span>Trạng thái bán</span>
-                  <select value={bulkEditForm.is_sell} onChange={(e) => setBulkEditForm({ ...bulkEditForm, is_sell: e.target.value })}>
-                    <option value="">Không đổi</option>
-                    <option value="1">Đang bán</option>
-                    <option value="0">Tạm ẩn</option>
-                  </select>
-                </label>
-                <label className="field mini">
-                  <span>Nhãn NEW</span>
-                  <select value={bulkEditForm.is_new} onChange={(e) => setBulkEditForm({ ...bulkEditForm, is_new: e.target.value })}>
-                    <option value="">Không đổi</option>
-                    <option value="1">Bật</option>
-                    <option value="0">Tắt</option>
-                  </select>
-                </label>
+              <button type="button" className="btn sm ghost" onClick={() => setOptModalItem(null)}>✕</button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 4px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <OptionEditor
+                options={optModalItem.options || []}
+                onChange={(nextOpts) => setOptModalItem((prev) => ({ ...prev, options: nextOpts }))}
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <button type="button" className="btn sm ghost" onClick={() => setOptModalItem(null)}>
+                Đóng / Hủy
+              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   type="button"
-                  className="btn sm primary"
-                  disabled={saving || !Object.values(bulkEditForm).some((value) => value !== '')}
-                  onClick={applyBulkEdit}
+                  className="btn"
+                  onClick={() => saveOptionModal(false)}
+                  title="Cập nhật vào danh sách tạm (cần bấm Lưu Database ở dưới)"
                 >
-                  Áp dụng
+                  ✓ Áp Dụng Tạm
+                </button>
+                <button
+                  type="button"
+                  className="btn primary"
+                  disabled={saving}
+                  onClick={() => saveOptionModal(true)}
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    fontWeight: 700,
+                  }}
+                  title="Lưu ngay lập tức vào MySQL Database và đồng bộ in-game"
+                >
+                  {saving ? '⏳ Đang Lưu...' : '💾 Lưu Ngay Vào Database'}
                 </button>
               </div>
             </div>
-          )}
-          {items.length === 0 ? (
-            <p className="muted empty-hint">Tab trống. Thêm item từ danh sách bên trái.</p>
-          ) : shopRows.length === 0 ? (
-            <p className="muted empty-hint">Không có item nào cho tộc đã chọn — đổi bộ lọc hoặc thêm item đúng gender trong item_template.</p>
-          ) : shopRowsVisible.length === 0 ? (
-            <p className="muted empty-hint">Không khớp &quot;{shopItemQ.trim()}&quot; — thử ID hoặc tên khác.</p>
-          ) : (
-            <ul className="shop-item-list">
-              {shopRowsVisible.map(({ it, idx }) => (
-                <li
-                  key={it.id}
-                  className={`shop-item-card ${selectedIdx === idx ? 'selected' : ''} ${dragIdx === idx ? 'dragging' : ''} ${dropIdx === idx && dragIdx !== idx ? 'drop-target' : ''}`}
-                  onDragOver={(e) => handleDragOver(idx, e)}
-                  onDrop={(e) => handleDrop(idx, e)}
-                >
-                  <div className="shop-item-card-top">
-                    <label className="shop-item-select" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        aria-label={`Chọn ${it.item_name || `item ${it.temp_id}`}`}
-                        checked={selectedShopIds.has(it.id)}
-                        onChange={() => toggleShopSelection(it.id)}
-                        disabled={saving}
-                      />
-                    </label>
-                    <span
-                      className={`shop-drag-handle ${canDragReorder && !saving ? '' : 'disabled'}`}
-                      draggable={canDragReorder && !saving}
-                      title={canDragReorder ? 'Kéo để đổi thứ tự' : 'Tắt ô tìm để kéo thả'}
-                      onDragStart={(e) => handleDragStart(idx, e)}
-                      onDragEnd={handleDragEnd}
-                      aria-hidden="true"
-                    >
-                      ⋮⋮
-                    </span>
-                    <button
-                      type="button"
-                      className="shop-item-card-select"
-                      onClick={() => setSelectedIdx(idx)}
-                    >
-                      <ItemIcon iconId={it.icon_id} iconSpec={it.icon_spec} tempId={it.temp_id} name={it.item_name} size={44} />
-                      <div className="shop-item-card-title">
-                        <span className="shop-item-name">{it.item_name || `Item #${it.temp_id}`}</span>
-                        <span className="shop-item-meta muted">
-                          #{it.temp_id} · {genderLabel(it.item_gender)} · #{idx + 1}
-                        </span>
-                        <div className="shop-item-badges">
-                          {isShopItemNew(it) && <span className="badge badge-new">NEW</span>}
-                          {(it.options || []).length > 0 && (
-                            <span className="badge">{it.options.length} opt</span>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                    <div className="shop-item-card-fields" onClick={(e) => e.stopPropagation()}>
-                      <label className="field mini">
-                        <span>Giá</span>
-                        <input type="number" min={0} value={it.cost} onChange={(e) => patchLocal(idx, { cost: Number(e.target.value) })} />
-                      </label>
-                      <label className="field mini">
-                        <span>Tiền</span>
-                        <select value={it.type_sell ?? 0} onChange={(e) => patchLocal(idx, { type_sell: Number(e.target.value) })}>
-                          {TYPE_SELL.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                        </select>
-                      </label>
-                      <label className="field toggle-field compact">
-                        <span>Bán</span>
-                        <input type="checkbox" checked={it.is_sell !== 0} onChange={(e) => patchLocal(idx, { is_sell: e.target.checked ? 1 : 0 })} />
-                      </label>
-                      <label className="field toggle-field compact" title="Nhãn NEW in-game">
-                        <span>New</span>
-                        <input
-                          type="checkbox"
-                          checked={isShopItemNew(it)}
-                          onChange={(e) => patchLocal(idx, { is_new: e.target.checked ? 1 : 0 })}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                  <div className="shop-item-card-actions" onClick={(e) => e.stopPropagation()}>
-                    <button type="button" className="btn sm" title="Lên" disabled={idx === 0 || saving} onClick={() => moveAndSave(idx, idx - 1)}>↑</button>
-                    <button type="button" className="btn sm" title="Xuống" disabled={idx === items.length - 1 || saving} onClick={() => moveAndSave(idx, idx + 1)}>↓</button>
-                    <button type="button" className="btn sm primary" disabled={saving} onClick={() => saveItem(idx)}>Lưu</button>
-                    <button type="button" className="btn danger sm" disabled={saving} onClick={() => removeItem(idx)}>Xóa</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="shop-panel shop-panel-detail card-inner" aria-label="Chi tiết item">
-          <div className="shop-panel-head">
-            <h4>③ Chi tiết</h4>
-            {selected && (
-              <button type="button" className="btn sm primary" disabled={saving} onClick={() => saveItem(selectedIdx)}>
-                Lưu
-              </button>
-            )}
           </div>
-          {selected ? (
-            <div className="shop-detail-body">
-              <div className="shop-detail-hero">
-                <ItemIcon iconId={selected.icon_id} iconSpec={selected.icon_spec} tempId={selected.temp_id} name={selected.item_name} size={52} />
-                <div>
-                  <strong className="shop-detail-name">{selected.item_name || `#${selected.temp_id}`}</strong>
-                  <p className="muted">
-                    #{selected.temp_id} · {genderLabel(selected.item_gender)}
-                    {hasGenderOverride(selected.gender_override) ? ' · ghi đè tộc' : ''}
-                  </p>
-                  <OptionChips options={selected.options} optionMap={optionMap} />
-                </div>
-              </div>
-              <div className="shop-detail-quick row">
-                <label className="field mini">
-                  <span>icon_spec</span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={selected.icon_spec ?? 0}
-                    onChange={(e) => patchLocal(selectedIdx, { icon_spec: Number(e.target.value) })}
-                  />
-                </label>
-                <label className="field toggle-field compact">
-                  <span>NEW</span>
-                  <input
-                    type="checkbox"
-                    checked={isShopItemNew(selected)}
-                    onChange={(e) => patchLocal(selectedIdx, { is_new: e.target.checked ? 1 : 0 })}
-                  />
-                </label>
-              </div>
-              <ShopGenderField
-                itemId={selected.id}
-                templateGender={selected.template_gender ?? selected.item_gender}
-                genderOverride={selected.gender_override}
-                onChange={(genderOverride) => patchItemGender(selectedIdx, genderOverride)}
-              />
-              <ShopPowerRequireField
-                strRequire={selected.item_str_require ?? 0}
-                options={selected.options || []}
-                onChange={(options) => patchLocal(selectedIdx, { options })}
-              />
-              <div className="shop-option-scroll">
-                <OptionEditor
-                  compact
-                  options={selected.options || []}
-                  onChange={(options) => patchLocal(selectedIdx, { options })}
+        </div>
+      )}
+
+      {/* 8. MODAL BULK EDIT */}
+      {bulkModalOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-content card" style={{ maxWidth: '440px', width: '90%' }}>
+            <div className="modal-header">
+              <h3>✨ Chỉnh Sửa Hàng Loạt ({selectedItemIds.size} item đã chọn)</h3>
+              <button type="button" className="btn sm ghost" onClick={() => setBulkModalOpen(false)}>✕</button>
+            </div>
+            <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label className="label">Đặt Lại Giá Bán (để trống nếu không đổi):</label>
+                <input
+                  type="number"
+                  className="input"
+                  min={0}
+                  placeholder="Giữ nguyên giá hiện tại"
+                  value={bulkForm.cost}
+                  onChange={(e) => setBulkForm((p) => ({ ...p, cost: e.target.value }))}
                 />
               </div>
+
+              <div>
+                <label className="label">Đổi Loại Tiền (để trống nếu không đổi):</label>
+                <select
+                  className="input"
+                  value={bulkForm.type_sell}
+                  onChange={(e) => setBulkForm((p) => ({ ...p, type_sell: e.target.value }))}
+                >
+                  <option value="">-- Giữ nguyên --</option>
+                  {TYPE_SELL.map((ts) => (
+                    <option key={ts.value} value={ts.value}>{ts.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="label">Gán Nhãn NEW:</label>
+                <select
+                  className="input"
+                  value={bulkForm.is_new}
+                  onChange={(e) => setBulkForm((p) => ({ ...p, is_new: e.target.value }))}
+                >
+                  <option value="">-- Giữ nguyên --</option>
+                  <option value="1">Bật nhãn NEW</option>
+                  <option value="0">Tắt nhãn NEW</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" className="btn" onClick={() => setBulkModalOpen(false)}>Hủy</button>
+                <button type="button" className="btn primary" onClick={applyBulkEdit}>Áp Dụng Cho Tất Cả</button>
+              </div>
             </div>
-          ) : (
-            <div className="shop-detail-empty">
-              <p className="muted">Chọn một item ở cột «Tab shop» để chỉnh tộc, option, sức mạnh yêu cầu và icon.</p>
+          </div>
+        </div>
+      )}
+
+      {/* 9. MODAL IMPORT / EXPORT TEXT */}
+      {orderIoOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-content card" style={{ maxWidth: '600px', width: '95%' }}>
+            <div className="modal-header">
+              <h3>📋 Nhập / Xuất Danh Sách Vật Phẩm</h3>
+              <button type="button" className="btn sm ghost" onClick={() => setOrderIoOpen(false)}>✕</button>
             </div>
-          )}
-        </section>
-      </div>
+            <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <p className="muted" style={{ fontSize: '0.85rem' }}>
+                Bạn có thể sao chép văn bản bên dưới để lưu trữ hoặc dán danh sách ID/vật phẩm mới vào đây.
+              </p>
+              <textarea
+                className="input"
+                style={{ width: '100%', height: '220px', fontFamily: 'monospace', fontSize: '0.82rem' }}
+                value={orderIoText}
+                onChange={(e) => setOrderIoText(e.target.value)}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="btn sm secondary"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(orderIoText);
+                    onFeedback?.('Đã sao chép vào Clipboard!', 'success');
+                  }}
+                >
+                  📄 Sao Chép
+                </button>
+                <button type="button" className="btn" onClick={() => setOrderIoOpen(false)}>Đóng</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

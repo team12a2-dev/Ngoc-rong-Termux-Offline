@@ -73,6 +73,9 @@ function normalizeItems(items) {
     const tempId = intValue(item?.tempId ?? item?.temp_id, -1, 0, 2147483647);
     const quantityMin = intValue(item?.quantityMin ?? item?.quantity_min, 1, 1, 2147483647);
     const quantityMax = intValue(item?.quantityMax ?? item?.quantity_max, quantityMin, 1, 2147483647);
+    const spreadCountMin = intValue(item?.spreadCountMin ?? item?.spread_count_min, 1, 1, 2147483647);
+    const spreadCountMax = intValue(item?.spreadCountMax ?? item?.spread_count_max, spreadCountMin, 1, 2147483647);
+    const spreadDistance = intValue(item?.spreadDistance ?? item?.spread_distance, 25, 5, 2000);
     const mobTempId = intValue(item?.mobTempId ?? item?.mob_temp_id, -1, -1, 2147483647);
     const playerLevelMin = intValue(item?.playerLevelMin ?? item?.player_level_min, 0, 0, 19);
     const playerLevelMax = intValue(item?.playerLevelMax ?? item?.player_level_max, 19, 0, 19);
@@ -89,6 +92,9 @@ function normalizeItems(items) {
       chancePercent: percentValue(item?.chancePercent ?? item?.chance_percent),
       quantityMin,
       quantityMax: Math.max(quantityMin, quantityMax),
+      spreadCountMin,
+      spreadCountMax: Math.max(spreadCountMin, spreadCountMax),
+      spreadDistance,
       options: normalizeOptions(item?.options ?? item?.options_json),
     };
   }).filter((item) => {
@@ -127,6 +133,7 @@ async function loadConfigs(serverId) {
   for (const config of configs) {
     const items = await query(
       `SELECT d.id, d.temp_id, d.mob_temp_id, d.player_level_min, d.player_level_max, d.time_start_min, d.time_end_min, d.enabled, d.chance_percent, d.quantity_min, d.quantity_max,
+              d.spread_count_min, d.spread_count_max, d.spread_distance,
               d.options_json, it.NAME AS item_name, it.icon_id, it.gender, it.power_require
        FROM panel_map_drop_items d
        LEFT JOIN item_template it ON it.id = d.temp_id
@@ -147,6 +154,9 @@ async function loadConfigs(serverId) {
       chancePercent: Number(item.chance_percent),
       quantityMin: item.quantity_min,
       quantityMax: item.quantity_max,
+      spreadCountMin: item.spread_count_min ?? 1,
+      spreadCountMax: item.spread_count_max ?? 1,
+      spreadDistance: item.spread_distance ?? 25,
       options: parseOptions(item.options_json),
       itemName: item.item_name || `Item #${item.temp_id}`,
       iconId: item.icon_id,
@@ -257,10 +267,10 @@ router.post('/', requirePermission('server.config'), async (req, res) => {
       await exec(
         `INSERT INTO panel_map_drop_items
            (config_id, temp_id, mob_temp_id, player_level_min, player_level_max, time_start_min, time_end_min, enabled,
-            chance_percent, quantity_min, quantity_max, options_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            chance_percent, quantity_min, quantity_max, spread_count_min, spread_count_max, spread_distance, options_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [configId, item.tempId, item.mobTempId, item.playerLevelMin, item.playerLevelMax, item.timeStartMin, item.timeEndMin, item.enabled,
-          item.chancePercent, item.quantityMin, item.quantityMax, JSON.stringify(item.options)]
+          item.chancePercent, item.quantityMin, item.quantityMax, item.spreadCountMin, item.spreadCountMax, item.spreadDistance, JSON.stringify(item.options)]
       );
     }
     const liveSync = await reloadGameResource(serverId, 'drop-config');

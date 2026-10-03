@@ -36,6 +36,31 @@ export async function ensureGenderOverrideColumn() {
       genderOverrideColumnReady = true;
       return { ok: true, created: false };
     }
-    throw e;
+    return { ok: false, error: e.message };
+  }
+}
+
+let snapshotTableReady = null;
+
+export async function ensureShopSnapshotTable() {
+  if (snapshotTableReady === true) return true;
+  try {
+    await exec(`
+      CREATE TABLE IF NOT EXISTS panel_shop_snapshots (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        shop_id INT DEFAULT NULL,
+        title VARCHAR(255) NOT NULL,
+        description VARCHAR(500) DEFAULT NULL,
+        snapshot_data LONGTEXT NOT NULL,
+        created_by INT DEFAULT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    snapshotTableReady = true;
+    return true;
+  } catch (e) {
+    console.error('Failed to ensure panel_shop_snapshots table:', e.message);
+    snapshotTableReady = false;
+    return false;
   }
 }

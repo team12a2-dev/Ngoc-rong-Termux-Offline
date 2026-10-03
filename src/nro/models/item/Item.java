@@ -216,6 +216,14 @@ public class Item {
     }
 
     public ItemOption getOptionDaPhaLe() {
+        if (itemOptions != null) {
+            for (ItemOption io : itemOptions) {
+                if (io.optionTemplate != null && io.optionTemplate.id != 73 && io.optionTemplate.id != 93 
+                        && io.optionTemplate.id != 30 && io.optionTemplate.id != 102 && io.optionTemplate.id != 107) {
+                    return io;
+                }
+            }
+        }
         return switch (template.id) {
             case 20 ->
                 new ItemOption(77, 5);
@@ -246,6 +254,11 @@ public class Item {
                 new ItemOption(100, 5);
             case 447 ->
                 new ItemOption(101, 5);
+
+            case 964 ->
+                new ItemOption(153, 5);
+            case 965 ->
+                new ItemOption(160, 5);
 
             case 1416 ->
                 new ItemOption(95, 5);
@@ -280,8 +293,12 @@ public class Item {
                 new ItemOption(153, 5);
             case 1434 ->
                 new ItemOption(160, 5);
+
+            case 1975 ->
+                new ItemOption(251, 5);
+
             default ->
-                itemOptions.get(0);
+                (itemOptions != null && !itemOptions.isEmpty()) ? itemOptions.get(0) : new ItemOption(73, 0);
         };
     }
 

@@ -147,7 +147,8 @@ public final class PanelActions {
         int safeGemDelta = Math.max(0, gemDelta);
         int safeRubyDelta = Math.max(0, rubyDelta);
         long newGold = safeGoldDelta > Inventory.LIMIT_GOLD - oldGold
-                ? Inventory.LIMIT_GOLD : oldGold + safeGoldDelta;
+                ? Inventory.LIMIT_GOLD
+                : oldGold + safeGoldDelta;
         int newGem = (int) Math.min(2_000_000_000L, (long) oldGem + safeGemDelta);
         int newRuby = (int) Math.min(2_000_000_000L, (long) oldRuby + safeRubyDelta);
         target.inventory.gold = newGold;
@@ -181,8 +182,7 @@ public final class PanelActions {
                     "UPDATE account SET vnd = vnd + ?, tongnap = tongnap + ? WHERE id = ?",
                     amount,
                     amount,
-                    target.getSession().userId
-            );
+                    target.getSession().userId);
         } catch (Exception e) {
             Logger.logException(PanelActions.class, e);
             return false;
@@ -287,7 +287,10 @@ public final class PanelActions {
         return result;
     }
 
-    /** Giải tán bang — RAM + DB + thông báo thành viên online (thực thi trực tiếp trên server đang chạy). */
+    /**
+     * Giải tán bang — RAM + DB + thông báo thành viên online (thực thi trực tiếp
+     * trên server đang chạy).
+     */
     public static boolean dissolveClan(int clanId, String broadcastMessage) {
         return PanelClanBridge.dissolveClan(clanId, broadcastMessage);
     }
@@ -314,7 +317,7 @@ public final class PanelActions {
         Maintenance.gI().startSeconds(Math.max(seconds, 5));
     }
 
-        public static Map<String, Object> reloadDropConfig() {
+    public static Map<String, Object> reloadDropConfig() {
         int rules = MapDropConfigService.gI().reload();
         return Map.of("ok", true, "rules", rules);
     }
@@ -322,6 +325,11 @@ public final class PanelActions {
     public static Map<String, Object> reloadUsableItems() {
         int loaded = UsableItemConfigService.gI().reload();
         return Map.of("ok", true, "loaded", loaded);
+    }
+
+    public static Map<String, Object> reloadServerLaunch() {
+        boolean ok = nro.models.services.ServerLaunchConfigService.gI().reload();
+        return Map.of("ok", ok);
     }
 
     public static boolean reloadShop() {
@@ -355,7 +363,7 @@ public final class PanelActions {
         }
     }
 
-        public static Map<String, Object> reloadBossPanel() {
+    public static Map<String, Object> reloadBossPanel() {
         int rules = BossPanelConfigService.gI().reload();
         return Map.of("ok", true, "rules", rules);
     }
@@ -366,6 +374,28 @@ public final class PanelActions {
 
     public static Map<String, Object> reloadGodSpin() {
         return GodSpinConfigService.gI().reload();
+    }
+
+    public static boolean reloadConfig() {
+        try {
+            Manager.gI().loadProperties();
+            Logger.success("Live-Sync: Đã nạp lại Config.properties thành công (EXP x" + Manager.getExpRate() + ")");
+            return true;
+        } catch (Exception e) {
+            Logger.logException(PanelActions.class, e);
+            return false;
+        }
+    }
+
+    public static boolean reloadMaintenance() {
+        try {
+            nro.models.server.AutoMaintenance.reload();
+            Logger.success("Live-Sync: Đã nạp lại maintenanceConfig.txt");
+            return true;
+        } catch (Exception e) {
+            Logger.logException(PanelActions.class, e);
+            return false;
+        }
     }
 
     public static boolean reloadBossSpawn() {
@@ -389,7 +419,8 @@ public final class PanelActions {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", boss.id);
             String displayName = boss.data != null && boss.data.length > 0
-                    ? boss.data[0].getName() : boss.name;
+                    ? boss.data[0].getName()
+                    : boss.name;
             row.put("name", displayName);
             row.put("status", boss.bossStatus != null ? boss.bossStatus.name() : "UNKNOWN");
             row.put("hp", boss.nPoint != null ? boss.nPoint.hp : 0);
@@ -420,99 +451,39 @@ public final class PanelActions {
         return bossId == BossID.TIEU_DOI_TRUONG || bossId == BossID.TIEU_DOI_TRUONG_NM;
     }
 
-    /**
-     * Chẩn đoán phân bổ boss trên map: nhóm theo map → khu, kèm x/y thực tế của từng boss
-     * (kể cả boss con). Dùng để xác nhận boss có bị dồn vào một khu / một điểm hay không.
-     */
-    public static List<Map<String, Object>> bossSpread() {
-        Map<Integer, Map<Integer, List<Boss>>> grouped = new LinkedHashMap<>();
-        for (Boss boss : BossManager.getAllBosses()) {
-            if (boss == null || boss.zone == null || boss.zone.map == null || boss.location == null || boss.isDie()) {
-                continue;
-            }
-            if (boss.bossStatus == BossStatus.REST || boss.bossStatus == BossStatus.LEAVE_MAP) {
-                continue;
-            }
-            grouped.computeIfAbsent(boss.zone.map.mapId, k -> new LinkedHashMap<>())
-                    .computeIfAbsent(boss.zone.zoneId, k -> new ArrayList<>())
-                    .add(boss);
-        }
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Map.Entry<Integer, Map<Integer, List<Boss>>> mapEntry : grouped.entrySet()) {
-            int mapId = mapEntry.getKey();
-            String mapName = "";
-            nro.models.map.Map map = MapService.gI().getMapById(mapId);
-            if (map != null) {
-                mapName = map.mapName;
-            }
-            List<Map<String, Object>> zoneRows = new ArrayList<>();
-            for (Map.Entry<Integer, List<Boss>> zoneEntry : mapEntry.getValue().entrySet()) {
-                List<Boss> bosses = zoneEntry.getValue();
-                int minX = Integer.MAX_VALUE;
-                int maxX = Integer.MIN_VALUE;
-                java.util.Set<Integer> distinctX = new java.util.HashSet<>();
-                List<Map<String, Object>> rows = new ArrayList<>();
-                for (Boss boss : bosses) {
-                    int x = boss.location.x;
-                    int y = boss.location.y;
-                    minX = Math.min(minX, x);
-                    maxX = Math.max(maxX, x);
-                    distinctX.add(x);
-                    Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("id", (int) boss.id);
-                    row.put("name", boss.name);
-                    row.put("x", x);
-                    row.put("y", y);
-                    row.put("parent", boss.getParentBoss() != null ? (int) boss.getParentBoss().id : 0);
-                    row.put("lv", boss.lv);
-                    row.put("status", boss.bossStatus != null ? boss.bossStatus.name() : "UNKNOWN");
-                    rows.add(row);
-                }
-                Map<String, Object> zoneRow = new LinkedHashMap<>();
-                zoneRow.put("zoneId", zoneEntry.getKey());
-                zoneRow.put("count", bosses.size());
-                zoneRow.put("minX", minX);
-                zoneRow.put("maxX", maxX);
-                zoneRow.put("spreadX", maxX - minX);
-                zoneRow.put("distinctX", distinctX.size());
-                zoneRow.put("bosses", rows);
-                zoneRows.add(zoneRow);
-            }
-            Map<String, Object> mapRow = new LinkedHashMap<>();
-            mapRow.put("mapId", mapId);
-            mapRow.put("mapName", mapName);
-            mapRow.put("mapWidth", map != null ? map.mapWidth : -1);
-            mapRow.put("mapHeight", map != null ? map.mapHeight : -1);
-            mapRow.put("zones", zoneRows);
-            result.add(mapRow);
-        }
-        return result;
-    }
-
     public static boolean spawnBoss(int bossId) {
-        if (bossId >= 0) return false;
+        if (bossId >= 0)
+            return false;
         Boss oldBoss = BossManager.gI().getBossById(bossId);
-        if (oldBoss != null) BossManager.gI().removeBoss(oldBoss);
+        if (oldBoss != null)
+            BossManager.gI().removeBoss(oldBoss);
         Boss boss = BossManager.gI().createBoss(bossId, false);
-        if (boss == null) return false;
+        if (boss == null)
+            return false;
         BossSpawnSchedule.initOnCreate(boss);
         return true;
     }
 
     public static boolean spawnBossAt(int bossId, Integer mapId, Integer zoneId) {
-        if (bossId >= 0) return false;
+        if (bossId >= 0)
+            return false;
         Zone targetZone = null;
         if (mapId != null) {
             nro.models.map.Map map = MapService.gI().getMapById(mapId);
-            if (map == null || map.zones == null || map.zones.isEmpty()) return false;
+            if (map == null || map.zones == null || map.zones.isEmpty())
+                return false;
             int selectedZone = zoneId == null ? 0 : zoneId;
-            if (selectedZone < 0 || selectedZone >= map.zones.size()) return false;
+            if (selectedZone < 0 || selectedZone >= map.zones.size())
+                return false;
             targetZone = map.zones.get(selectedZone);
-            if (targetZone == null || !targetZone.getBosses().isEmpty()) return false;
+            if (targetZone == null || !targetZone.getBosses().isEmpty())
+                return false;
         }
         Boss boss = BossManager.gI().createBoss(bossId, false);
-        if (boss == null) return false;
-        if (targetZone != null) boss.setPanelSpawnZone(targetZone);
+        if (boss == null)
+            return false;
+        if (targetZone != null)
+            boss.setPanelSpawnZone(targetZone);
         BossSpawnSchedule.initOnCreate(boss);
         return true;
     }
@@ -530,7 +501,7 @@ public final class PanelActions {
     }
 
     private static final java.util.Set<String> ALLOWED_CONFIG_FILES = java.util.Set.of(
-                        "Config.properties", "boss_spawn.properties", "boss_panel.json", "maintenanceConfig.txt"
+            "Config.properties", "boss_spawn.properties", "boss_panel.json", "maintenanceConfig.txt"
 
     );
 
@@ -557,6 +528,10 @@ public final class PanelActions {
         java.nio.file.Files.writeString(path, content == null ? "" : content, StandardCharsets.UTF_8);
         if ("boss_spawn.properties".equals(name)) {
             reloadBossSpawn();
+        } else if ("Config.properties".equals(name)) {
+            reloadConfig();
+        } else if ("maintenanceConfig.txt".equals(name)) {
+            reloadMaintenance();
         }
     }
 

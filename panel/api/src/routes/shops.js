@@ -6,7 +6,7 @@ import { agentPost } from '../services/agent.js';
 import { getDefaultServerId } from '../services/serverRegistry.js';
 import { reloadShop } from '../services/liveSync.js';
 import { canonicalItemShopTabId, resolveItemShopTabIds } from '../utils/shopTabIds.js';
-import { ensureGenderOverrideColumn, hasGenderOverrideColumn } from '../services/shopSchema.js';
+import { ensureGenderOverrideColumn, hasGenderOverrideColumn, ensureShopSnapshotTable } from '../services/shopSchema.js';
 
 const router = Router();
 router.use(authMiddleware);
@@ -330,41 +330,99 @@ router.post('/tabs/:tabId/items/bulk-create', requirePermission('giftcode.manage
 
 router.put('/tabs/:tabId/items/bulk', requirePermission('giftcode.manage'), async (req, res) => {
   const rows = req.body?.items;
-  if (!Array.isArray(rows) || !rows.length) {
-    return res.status(400).json({ ok: false, error: 'Cần mảng items [{ id, cost, ... }]' });
+  if (!Array.isArray(rows)) {
+    return res.status(400).json({ ok: false, error: 'Cần mảng items [{ id?, temp_id, cost, ... }]' });
   }
   try {
     await ensureGenderOverrideColumn();
     const genderCol = await hasGenderOverrideColumn();
+    const tabId = canonicalItemShopTabId(req.params.tabId);
+    const tabIds = resolveItemShopTabIds(req.params.tabId);
     const saved = await withTransaction(async (conn) => {
-      let count = 0;
-      for (const row of rows) {
-        if (!row?.id) continue;
-        const genderOverride = genderCol && Object.prototype.hasOwnProperty.call(row, 'gender_override')
-          ? parseGenderOverride(row.gender_override)
-          : undefined;
-        await conn.execute(
-          `UPDATE item_shop SET
-             cost = COALESCE(?, cost),
-             type_sell = COALESCE(?, type_sell),
-             is_sell = COALESCE(?, is_sell),
-             icon_spec = COALESCE(?, icon_spec),
-             is_new = COALESCE(?, is_new)${genderOverride !== undefined ? ', gender_override = ?' : ''}
-           WHERE id = ?`,
-          [
-            row.cost ?? null,
-            row.type_sell ?? null,
-            row.is_sell ?? null,
-            row.icon_spec ?? null,
-            row.is_new ?? null,
-            ...(genderOverride !== undefined ? [genderOverride] : []),
-            row.id,
-          ]
-        );
-        if (row.options != null) await saveItemOptions(conn, row.id, row.options);
-        count += 1;
+      const retainedIds = [];
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const tempId = Number(row?.temp_id);
+        if (!tempId || Number.isNaN(tempId)) continue;
+
+        const rowId = (typeof row.id === 'number' && row.id > 0) ? row.id : null;
+        const genderOverride = genderCol ? parseGenderOverride(row.gender_override) : undefined;
+        const isSell = row.is_sell != null ? (row.is_sell ? 1 : 0) : 1;
+        const typeSell = Number(row.type_sell) || 0;
+        const cost = Number(row.cost) || 0;
+        const iconSpec = Number(row.icon_spec) || 0;
+        const isNew = row.is_new ? 1 : 0;
+        const sortOrder = i;
+
+        if (rowId) {
+          await conn.execute(
+            `UPDATE item_shop SET
+               tab_id = ?,
+               temp_id = ?,
+               cost = ?,
+               type_sell = ?,
+               is_sell = ?,
+               icon_spec = ?,
+               is_new = ?,
+               sort_order = ?${genderOverride !== undefined ? ', gender_override = ?' : ''}
+             WHERE id = ?`,
+            [
+              tabId,
+              tempId,
+              cost,
+              typeSell,
+              isSell,
+              iconSpec,
+              isNew,
+              sortOrder,
+              ...(genderOverride !== undefined ? [genderOverride] : []),
+              rowId,
+            ]
+          );
+          if (row.options != null) {
+            await saveItemOptions(conn, rowId, row.options);
+          }
+          retainedIds.push(rowId);
+        } else {
+          const [insertRes] = await conn.execute(
+            `INSERT INTO item_shop (tab_id, temp_id, is_new, is_sell, type_sell, cost, icon_spec, sort_order${genderOverride !== undefined ? ', gender_override' : ''})
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?${genderOverride !== undefined ? ', ?' : ''})`,
+            [
+              tabId,
+              tempId,
+              isNew,
+              isSell,
+              typeSell,
+              cost,
+              iconSpec,
+              sortOrder,
+              ...(genderOverride !== undefined ? [genderOverride] : []),
+            ]
+          );
+          const newId = insertRes.insertId;
+          if (row.options != null && row.options.length > 0) {
+            await saveItemOptions(conn, newId, row.options);
+          }
+          retainedIds.push(newId);
+        }
       }
-      return count;
+
+      // Xóa các vật phẩm trong tab này đã bị gỡ bỏ khỏi danh sách
+      const placeholders = tabIds.map(() => '?').join(',');
+      let deleteSql = `SELECT id FROM item_shop WHERE tab_id IN (${placeholders})`;
+      const queryParams = [...tabIds];
+      if (retainedIds.length > 0) {
+        const retainPh = retainedIds.map(() => '?').join(',');
+        deleteSql += ` AND id NOT IN (${retainPh})`;
+        queryParams.push(...retainedIds);
+      }
+      const [toDelete] = await conn.execute(deleteSql, queryParams);
+      for (const d of toDelete) {
+        await conn.execute('DELETE FROM item_shop_option WHERE item_shop_id = ?', [d.id]);
+        await conn.execute('DELETE FROM item_shop WHERE id = ?', [d.id]);
+      }
+
+      return retainedIds.length;
     });
     await auditLog({
       userId: req.user.id,
@@ -470,6 +528,377 @@ router.delete('/items/:itemId', requirePermission('giftcode.manage'), async (req
     });
     const liveSync = await reloadShop(req.body?.serverId);
     res.json({ ok: true, data: { liveSync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// --- CRUD SHOP (LƯU BỀN VỮNG MYSQL) ---
+router.post('/', requirePermission('giftcode.manage'), async (req, res) => {
+  const { npc_id, tag_name, type_shop, initial_tab_name, serverId } = req.body || {};
+  if (npc_id == null || !tag_name) {
+    return res.status(400).json({ ok: false, error: 'Cần npc_id và tag_name' });
+  }
+  try {
+    const created = await withTransaction(async (conn) => {
+      const [resShop] = await conn.execute(
+        'INSERT INTO shop (npc_id, tag_name, type_shop) VALUES (?, ?, ?)',
+        [Number(npc_id), String(tag_name).trim(), Number(type_shop || 0)]
+      );
+      const shopId = resShop.insertId;
+      const tabName = (initial_tab_name || 'Hàng mới').trim();
+      const [resTab] = await conn.execute(
+        'INSERT INTO tab_shop (shop_id, name) VALUES (?, ?)',
+        [shopId, tabName]
+      );
+      return { shopId, tabId: resTab.insertId };
+    });
+
+    await auditLog({
+      userId: req.user.id,
+      action: 'shop.create',
+      target: created.shopId,
+      requestBody: req.body,
+      ip: req.ip,
+    });
+    const liveSync = await reloadShop(serverId);
+    res.json({ ok: true, data: { ...created, persisted: true, liveSync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.put('/:id', requirePermission('giftcode.manage'), async (req, res) => {
+  const { npc_id, tag_name, type_shop, serverId } = req.body || {};
+  try {
+    await withTransaction(async (conn) => {
+      await conn.execute(
+        `UPDATE shop SET
+           npc_id = COALESCE(?, npc_id),
+           tag_name = COALESCE(?, tag_name),
+           type_shop = COALESCE(?, type_shop)
+         WHERE id = ?`,
+        [
+          npc_id != null ? Number(npc_id) : null,
+          tag_name != null ? String(tag_name).trim() : null,
+          type_shop != null ? Number(type_shop) : null,
+          req.params.id,
+        ]
+      );
+    });
+
+    await auditLog({
+      userId: req.user.id,
+      action: 'shop.update',
+      target: req.params.id,
+      requestBody: req.body,
+      ip: req.ip,
+    });
+    const liveSync = await reloadShop(serverId);
+    res.json({ ok: true, data: { persisted: true, liveSync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.delete('/:id', requirePermission('giftcode.manage'), async (req, res) => {
+  try {
+    await withTransaction(async (conn) => {
+      const [tabs] = await conn.execute('SELECT id FROM tab_shop WHERE shop_id = ?', [req.params.id]);
+      for (const t of tabs) {
+        const [items] = await conn.execute('SELECT id FROM item_shop WHERE tab_id = ?', [t.id]);
+        for (const it of items) {
+          await conn.execute('DELETE FROM item_shop_option WHERE item_shop_id = ?', [it.id]);
+        }
+        await conn.execute('DELETE FROM item_shop WHERE tab_id = ?', [t.id]);
+      }
+      await conn.execute('DELETE FROM tab_shop WHERE shop_id = ?', [req.params.id]);
+      await conn.execute('DELETE FROM shop WHERE id = ?', [req.params.id]);
+    });
+
+    await auditLog({
+      userId: req.user.id,
+      action: 'shop.delete',
+      target: req.params.id,
+      ip: req.ip,
+    });
+    const liveSync = await reloadShop(req.body?.serverId);
+    res.json({ ok: true, data: { persisted: true, liveSync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// --- CRUD TAB SHOP ---
+router.post('/:shopId/tabs', requirePermission('giftcode.manage'), async (req, res) => {
+  const { name, serverId } = req.body || {};
+  if (!name || !name.trim()) {
+    return res.status(400).json({ ok: false, error: 'Tên tab không được để trống' });
+  }
+  try {
+    const created = await withTransaction(async (conn) => {
+      const [result] = await conn.execute(
+        'INSERT INTO tab_shop (shop_id, name) VALUES (?, ?)',
+        [req.params.shopId, String(name).trim()]
+      );
+      return { id: result.insertId };
+    });
+
+    await auditLog({
+      userId: req.user.id,
+      action: 'shop.tab.create',
+      target: created.id,
+      requestBody: req.body,
+      ip: req.ip,
+    });
+    const liveSync = await reloadShop(serverId);
+    res.json({ ok: true, data: { id: created.id, persisted: true, liveSync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.put('/tabs/:tabId', requirePermission('giftcode.manage'), async (req, res) => {
+  const { name, serverId } = req.body || {};
+  if (!name || !name.trim()) {
+    return res.status(400).json({ ok: false, error: 'Tên tab không được để trống' });
+  }
+  try {
+    await withTransaction(async (conn) => {
+      await conn.execute('UPDATE tab_shop SET name = ? WHERE id = ?', [String(name).trim(), req.params.tabId]);
+    });
+
+    await auditLog({
+      userId: req.user.id,
+      action: 'shop.tab.update',
+      target: req.params.tabId,
+      requestBody: req.body,
+      ip: req.ip,
+    });
+    const liveSync = await reloadShop(serverId);
+    res.json({ ok: true, data: { persisted: true, liveSync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.delete('/tabs/:tabId', requirePermission('giftcode.manage'), async (req, res) => {
+  try {
+    await withTransaction(async (conn) => {
+      const [items] = await conn.execute('SELECT id FROM item_shop WHERE tab_id = ?', [req.params.tabId]);
+      for (const it of items) {
+        await conn.execute('DELETE FROM item_shop_option WHERE item_shop_id = ?', [it.id]);
+      }
+      await conn.execute('DELETE FROM item_shop WHERE tab_id = ?', [req.params.tabId]);
+      await conn.execute('DELETE FROM tab_shop WHERE id = ?', [req.params.tabId]);
+    });
+
+    await auditLog({
+      userId: req.user.id,
+      action: 'shop.tab.delete',
+      target: req.params.tabId,
+      ip: req.ip,
+    });
+    const liveSync = await reloadShop(req.body?.serverId);
+    res.json({ ok: true, data: { persisted: true, liveSync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// --- CLONE TAB VÀ CLONE SHOP ---
+router.post('/tabs/:tabId/clone', requirePermission('giftcode.manage'), async (req, res) => {
+  const { targetShopId, newTabName, serverId } = req.body || {};
+  try {
+    const cloned = await withTransaction(async (conn) => {
+      const [srcTabs] = await conn.execute('SELECT * FROM tab_shop WHERE id = ? LIMIT 1', [req.params.tabId]);
+      if (!srcTabs.length) throw new Error('Tab gốc không tồn tại');
+      const srcTab = srcTabs[0];
+      const targetId = targetShopId ? Number(targetShopId) : srcTab.shop_id;
+      const tabName = (newTabName || `${srcTab.name} (Copy)`).trim();
+
+      const [tabRes] = await conn.execute('INSERT INTO tab_shop (shop_id, name) VALUES (?, ?)', [targetId, tabName]);
+      const newTabId = tabRes.insertId;
+
+      const [srcItems] = await conn.execute('SELECT * FROM item_shop WHERE tab_id = ? ORDER BY sort_order, id', [req.params.tabId]);
+      for (const item of srcItems) {
+        const [itRes] = await conn.execute(
+          `INSERT INTO item_shop (tab_id, temp_id, is_new, is_sell, type_sell, cost, icon_spec, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [newTabId, item.temp_id, item.is_new, item.is_sell, item.type_sell, item.cost, item.icon_spec, item.sort_order]
+        );
+        const [options] = await conn.execute('SELECT option_id, param FROM item_shop_option WHERE item_shop_id = ?', [item.id]);
+        for (const opt of options) {
+          await conn.execute(
+            'INSERT INTO item_shop_option (item_shop_id, option_id, param) VALUES (?, ?, ?)',
+            [itRes.insertId, opt.option_id, opt.param]
+          );
+        }
+      }
+      return { tabId: newTabId, itemCount: srcItems.length };
+    });
+
+    const liveSync = await reloadShop(serverId);
+    res.json({ ok: true, data: { ...cloned, persisted: true, liveSync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// --- SNAPSHOT & ROLLBACK CHO SHOP ---
+router.post('/snapshots', requirePermission('giftcode.manage'), async (req, res) => {
+  const { shopId, title, description } = req.body || {};
+  try {
+    await ensureShopSnapshotTable();
+    // Xuất dữ liệu shop
+    let shopData = [];
+    if (shopId) {
+      const [s] = await query('SELECT * FROM shop WHERE id = ? LIMIT 1', [shopId]);
+      if (s) {
+        const tabs = await query('SELECT * FROM tab_shop WHERE shop_id = ? ORDER BY id', [shopId]);
+        for (const t of tabs) {
+          t.items = await query('SELECT * FROM item_shop WHERE tab_id = ? ORDER BY sort_order, id', [t.id]);
+          for (const it of t.items) {
+            it.options = await query('SELECT option_id, param FROM item_shop_option WHERE item_shop_id = ?', [it.id]);
+          }
+        }
+        shopData = [{ ...s, tabs }];
+      }
+    } else {
+      const shops = await query('SELECT * FROM shop ORDER BY id');
+      for (const s of shops) {
+        const tabs = await query('SELECT * FROM tab_shop WHERE shop_id = ? ORDER BY id', [s.id]);
+        for (const t of tabs) {
+          t.items = await query('SELECT * FROM item_shop WHERE tab_id = ? ORDER BY sort_order, id', [t.id]);
+          for (const it of t.items) {
+            it.options = await query('SELECT option_id, param FROM item_shop_option WHERE item_shop_id = ?', [it.id]);
+          }
+        }
+        s.tabs = tabs;
+      }
+      shopData = shops;
+    }
+
+    const snapTitle = title || (shopId ? `Sao lưu Shop #${shopId}` : 'Sao lưu toàn bộ Shop');
+    const [resInsert] = await query(
+      'INSERT INTO panel_shop_snapshots (shop_id, title, description, snapshot_data, created_by) VALUES (?, ?, ?, ?, ?)',
+      [shopId || null, snapTitle, description || null, JSON.stringify(shopData), req.user.id]
+    );
+
+    res.json({ ok: true, data: { id: resInsert.insertId, title: snapTitle } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.get('/snapshots', requirePermission('giftcode.manage'), async (req, res) => {
+  try {
+    await ensureShopSnapshotTable();
+    const rows = await query(
+      `SELECT s.id, s.shop_id, s.title, s.description, s.created_at, u.username AS creator_name
+       FROM panel_shop_snapshots s
+       LEFT JOIN panel_users u ON u.id = s.created_by
+       ORDER BY s.id DESC LIMIT 50`
+    );
+    res.json({ ok: true, data: rows });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.post('/snapshots/:id/rollback', requirePermission('giftcode.manage'), async (req, res) => {
+  try {
+    await ensureShopSnapshotTable();
+    const [snap] = await query('SELECT * FROM panel_shop_snapshots WHERE id = ? LIMIT 1', [req.params.id]);
+    if (!snap) return res.status(404).json({ ok: false, error: 'Snapshot không tồn tại' });
+    const shops = JSON.parse(snap.snapshot_data);
+
+    await withTransaction(async (conn) => {
+      for (const s of shops) {
+        // Xóa shop cũ và các tab/item cũ nếu có
+        const [oldTabs] = await conn.execute('SELECT id FROM tab_shop WHERE shop_id = ?', [s.id]);
+        for (const ot of oldTabs) {
+          const [oldItems] = await conn.execute('SELECT id FROM item_shop WHERE tab_id = ?', [ot.id]);
+          for (const oit of oldItems) {
+            await conn.execute('DELETE FROM item_shop_option WHERE item_shop_id = ?', [oit.id]);
+          }
+          await conn.execute('DELETE FROM item_shop WHERE tab_id = ?', [ot.id]);
+        }
+        await conn.execute('DELETE FROM tab_shop WHERE shop_id = ?', [s.id]);
+        await conn.execute('DELETE FROM shop WHERE id = ?', [s.id]);
+
+        // Phục hồi lại shop
+        await conn.execute(
+          'INSERT INTO shop (id, npc_id, tag_name, type_shop) VALUES (?, ?, ?, ?)',
+          [s.id, s.npc_id, s.tag_name, s.type_shop]
+        );
+
+        for (const t of (s.tabs || [])) {
+          await conn.execute(
+            'INSERT INTO tab_shop (id, shop_id, name) VALUES (?, ?, ?)',
+            [t.id, s.id, t.name]
+          );
+          for (const it of (t.items || [])) {
+            await conn.execute(
+              `INSERT INTO item_shop (id, tab_id, temp_id, is_new, is_sell, type_sell, cost, icon_spec, sort_order)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [it.id, t.id, it.temp_id, it.is_new, it.is_sell, it.type_sell, it.cost, it.icon_spec, it.sort_order]
+            );
+            for (const opt of (it.options || [])) {
+              await conn.execute(
+                'INSERT INTO item_shop_option (item_shop_id, option_id, param) VALUES (?, ?, ?)',
+                [it.id, opt.option_id, opt.param]
+              );
+            }
+          }
+        }
+      }
+    });
+
+    const liveSync = await reloadShop(req.body?.serverId);
+    res.json({ ok: true, data: { rolledBack: true, liveSync } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// --- XUẤT SQL DUMP CHO SHOP ---
+router.get('/export-sql/:id?', requirePermission('giftcode.manage'), async (req, res) => {
+  try {
+    const shopId = req.params.id ? Number(req.params.id) : null;
+    let sql = `-- EXPORT SHOP DATA FROM PANEL - ${new Date().toISOString()}\n`;
+    sql += 'SET FOREIGN_KEY_CHECKS = 0;\n\n';
+
+    let shops = [];
+    if (shopId) {
+      shops = await query('SELECT * FROM shop WHERE id = ?', [shopId]);
+    } else {
+      shops = await query('SELECT * FROM shop ORDER BY id');
+    }
+
+    for (const s of shops) {
+      sql += `-- SHOP #${s.id} (NPC: ${s.npc_id}, Tag: ${s.tag_name})\n`;
+      sql += `REPLACE INTO shop (id, npc_id, tag_name, type_shop) VALUES (${s.id}, ${s.npc_id}, '${s.tag_name.replace(/'/g, "\\'")}', ${s.type_shop});\n`;
+
+      const tabs = await query('SELECT * FROM tab_shop WHERE shop_id = ? ORDER BY id', [s.id]);
+      for (const t of tabs) {
+        sql += `REPLACE INTO tab_shop (id, shop_id, name) VALUES (${t.id}, ${t.shop_id}, '${t.name.replace(/'/g, "\\'")}');\n`;
+        const items = await query('SELECT * FROM item_shop WHERE tab_id = ? ORDER BY sort_order, id', [t.id]);
+        for (const it of items) {
+          sql += `REPLACE INTO item_shop (id, tab_id, temp_id, is_new, is_sell, type_sell, cost, icon_spec, sort_order) VALUES (${it.id}, ${it.tab_id}, ${it.temp_id}, ${it.is_new}, ${it.is_sell}, ${it.type_sell}, ${it.cost}, ${it.icon_spec}, ${it.sort_order});\n`;
+          const opts = await query('SELECT option_id, param FROM item_shop_option WHERE item_shop_id = ?', [it.id]);
+          for (const o of opts) {
+            sql += `REPLACE INTO item_shop_option (item_shop_id, option_id, param) VALUES (${it.id}, ${o.option_id}, ${o.param});\n`;
+          }
+        }
+      }
+      sql += '\n';
+    }
+
+    sql += 'SET FOREIGN_KEY_CHECKS = 1;\n';
+    res.setHeader('Content-Type', 'application/sql');
+    res.setHeader('Content-Disposition', `attachment; filename="shop_dump_${shopId || 'all'}_${Date.now()}.sql"`);
+    res.send(sql);
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }

@@ -1,6 +1,5 @@
 package nro.models.boss.doanh_trai;
 
-
 import nro.models.boss.Boss;
 import nro.models.boss.BossData;
 import nro.models.consts.BossStatus;
@@ -9,6 +8,7 @@ import nro.models.boss.Boss_Manager.RedRibbonHQManager;
 import static nro.models.consts.BossType.PHOBANDT;
 import nro.models.map.ItemMap;
 import nro.models.map.Zone;
+import nro.models.player.Pet;
 import nro.models.player.Player;
 import nro.models.skill.Skill;
 import nro.models.services.EffectSkillService;
@@ -25,8 +25,8 @@ public class NinjaClone extends Boss {
                 "Ninja Áo Tím", //name
                 ConstPlayer.TRAI_DAT, //gender
                 new short[]{123, 124, 125, -1, -1, -1}, //outfit {head, body, leg, bag, aura, eff}
-                ((dame)), //dame
-                new int[]{((hp))}, //hp
+                Math.max(1, dame), //dame
+                new int[]{Math.max(1000, hp)}, //hp
                 new int[]{54}, //map join
                 new int[][]{
                     {Skill.DEMON, 3, 1}, {Skill.DEMON, 6, 2}, {Skill.DRAGON, 7, 3}, {Skill.DRAGON, 1, 4}, {Skill.GALICK, 5, 5},
@@ -37,47 +37,74 @@ public class NinjaClone extends Boss {
                 new String[]{"|-1|Ta sẽ xé xác ngươi ra thành trăm mảnh",
                     "|-1|Ha ha ha"}, //text chat 2
                 new String[]{}, //text chat 3
-                60
+                0 // secondsRest = 0 để spawn ngay lập tức
         ));
         this.zone = zone;
         this.boss = boss;
     }
-@Override
-public void reward(Player plKill) {
 
-  
-    if (Util.isTrue(1, 100)) {
-        // 30% rơi item 17
-        ItemMap it = new ItemMap(
-                this.zone,
-                17,
-                1,
-                this.location.x,
-                this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24),
-                plKill.id
-        );
-        Service.gI().dropItemMap(this.zone, it);
-    } else {
-        // 70% rơi 190 x50000
-        ItemMap it = new ItemMap(
-                this.zone,
-                190,
-                50000,
-                this.location.x,
-                this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24),
-                plKill.id
-        );
-        Service.gI().dropItemMap(this.zone, it);
+    @Override
+    public void reward(Player plKill) {
+        if (plKill == null) {
+            return;
+        }
+        Player realPlayer = plKill.isPet ? ((Pet) plKill).master : plKill;
+        long ownerId = (realPlayer != null) ? realPlayer.id : plKill.id;
+
+        int dropY = this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24);
+        if (dropY <= 0) {
+            dropY = this.location.y;
+        }
+
+        if (Util.isTrue(10, 100)) {
+            // 10% rơi Ngọc Rồng 7 sao
+            ItemMap it = new ItemMap(
+                    this.zone,
+                    20,
+                    1,
+                    this.location.x,
+                    dropY,
+                    ownerId
+            );
+            Service.gI().dropItemMap(this.zone, it);
+        } else {
+            // 90% rơi Vàng 50.000
+            ItemMap it = new ItemMap(
+                    this.zone,
+                    190,
+                    50000,
+                    this.location.x,
+                    dropY,
+                    ownerId
+            );
+            Service.gI().dropItemMap(this.zone, it);
+        }
     }
-
-
-}
 
     @Override
     public void joinMap() {
-        ChangeMapService.gI().changeMap(this, this.zone,
-                this.boss.location.x + Util.nextInt(-200, 200), this.boss.location.y);
+        int spawnX;
+        if (this.boss != null && this.boss.location != null && this.boss.location.x > 0) {
+            spawnX = this.boss.location.x + Util.nextInt(-150, 150);
+        } else {
+            spawnX = 190 + Util.nextInt(-150, 150);
+        }
+        if (this.zone != null && this.zone.map != null) {
+            spawnX = Math.max(100, Math.min(this.zone.map.mapWidth - 100, spawnX));
+        } else {
+            spawnX = Math.max(100, Math.min(800, spawnX));
+        }
+        int spawnY = 312;
+        ChangeMapService.gI().changeMap(this, this.zone, spawnX, spawnY);
         this.changeStatus(BossStatus.CHAT_S);
+    }
+
+    @Override
+    public void doneChatS() {
+        super.doneChatS();
+        if (this.typePk == ConstPlayer.NON_PK) {
+            this.changeToTypePK();
+        }
     }
 
     @Override
@@ -88,7 +115,7 @@ public void reward(Player plKill) {
                 return 0;
             }
             damage = this.nPoint.subDameInjureWithDeff(damage / 2);
-            if (!piercing && effectSkill.isShielding) {
+            if (!piercing && effectSkill != null && effectSkill.isShielding) {
                 if (damage > nPoint.hpMax) {
                     EffectSkillService.gI().breakShield(this);
                 }
@@ -103,7 +130,6 @@ public void reward(Player plKill) {
         } else {
             return 0;
         }
-
     }
 
     @Override

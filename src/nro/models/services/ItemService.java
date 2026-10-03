@@ -40,6 +40,36 @@ public class ItemService {
         return -1;
     }
 
+    public boolean isTrangBi(Item item) {
+        if (item != null && item.isNotNullItem() && item.template != null) {
+            return (item.template.type >= 0 && item.template.type <= 5) || item.template.type == 32;
+        }
+        return false;
+    }
+
+    public long getPowerRequire(Item item) {
+        if (item == null || !item.isNotNullItem() || item.template == null) {
+            return 0;
+        }
+        long powerRequire = item.template.strRequire;
+        if (item.itemOptions != null) {
+            for (Item.ItemOption io : item.itemOptions) {
+                if (io.optionTemplate != null && io.optionTemplate.id == 21) {
+                    powerRequire = io.param * 1000000000L;
+                    break;
+                }
+            }
+        }
+        return powerRequire;
+    }
+
+    public boolean isTrangBiKhongTheVut(Item item) {
+        if (isTrangBi(item)) {
+            return getPowerRequire(item) >= 20_000_000L;
+        }
+        return false;
+    }
+
     public Item createItemNull() {
         Item item = new Item();
         return item;
@@ -354,7 +384,18 @@ public class ItemService {
     }
 
     public ItemOptionTemplate getItemOptionTemplate(int id) {
-        return Manager.ITEM_OPTION_TEMPLATES.get(id);
+        if (id >= 0 && id < Manager.ITEM_OPTION_TEMPLATES.size()) {
+            ItemOptionTemplate temp = Manager.ITEM_OPTION_TEMPLATES.get(id);
+            if (temp != null && temp.id == id) {
+                return temp;
+            }
+        }
+        for (ItemOptionTemplate temp : Manager.ITEM_OPTION_TEMPLATES) {
+            if (temp != null && temp.id == id) {
+                return temp;
+            }
+        }
+        return null;
     }
 
     public Template.ItemTemplate getTemplate(int id) {
@@ -416,6 +457,17 @@ public class ItemService {
                             return true;
                         } else {
                             item.createTime = System.currentTimeMillis();
+                        }
+                    }
+                } else if (io.optionTemplate.id == 268) {
+                    long diffMs = System.currentTimeMillis() - item.createTime;
+                    long hourPass = diffMs / (1000L * 60 * 60);
+                    if (hourPass > 0) {
+                        io.param -= (int) hourPass;
+                        if (io.param <= 0) {
+                            return true;
+                        } else {
+                            item.createTime += hourPass * 1000L * 60 * 60;
                         }
                     }
                 }
@@ -754,21 +806,21 @@ public class ItemService {
         int op2 = -1;
         int op3 = -1;
         int op4 = -1;
-        if (Util.isTrue(30, 100)) {
+        if (Util.isTrue(2, 100)) { // 2% Tỉ lệ nhận Set VIP siêu hiếm
             switch (gender) {
-                case 0 -> { // td
+                case 0 -> { // Trái Đất: Set Thần Vũ Trụ Kaio
                     op1 = 245;
                     op2 = 246;
                     op3 = 247;
                     op4 = 248;
                 }
-                case 1 -> { // nm
+                case 1 -> { // Namec: Set Nail
                     op1 = 237;
                     op2 = 238;
                     op3 = 239;
                     op4 = 240;
                 }
-                default -> { // xd
+                default -> { // Xayda: Set Cađic M
                     op1 = 241;
                     op2 = 242;
                     op3 = 243;
@@ -776,53 +828,22 @@ public class ItemService {
                 }
             }
         } else {
+            // 98% còn lại chia đều cho 3 Set gốc chuẩn TeaMobi (~32.66% mỗi set)
+            int[][] teaMobiSets;
             switch (gender) {
-                case 0 -> { // td
-                    if (Util.isTrue(50, 100)) {
-                        op1 = 128;
-                        op2 = 140;
-                    } else if (Util.isTrue(50, 100)) {
-                        op1 = 127;
-                        op2 = 139;
-                    } else if (Util.isTrue(50, 100)) {
-                        op1 = 233;
-                        op2 = 234;
-                    } else {
-                        op1 = 129;
-                        op2 = 141;
-                    }
+                case 0 -> { // Trái Đất: Songoku, Kirin, Thiên Xin Hăng (Yamcha)
+                    teaMobiSets = new int[][]{{127, 139}, {128, 140}, {129, 141}};
                 }
-                case 1 -> { // nm
-                    if (Util.isTrue(50, 100)) {
-                        op1 = 130;
-                        op2 = 142;
-                    } else if (Util.isTrue(50, 100)) {
-                        op1 = 131;
-                        op2 = 143;
-                    } else if (Util.isTrue(50, 100)) {
-                        op1 = 233;
-                        op2 = 234;
-                    } else {
-                        op1 = 132;
-                        op2 = 144;
-                    }
+                case 1 -> { // Namec: Picolo, Ốc Tiêu, Pikkoro Daimao
+                    teaMobiSets = new int[][]{{130, 142}, {131, 143}, {132, 144}};
                 }
-                default -> { // xd
-                    if (Util.isTrue(50, 100)) {
-                        op1 = 134;
-                        op2 = 137;
-                    } else if (Util.isTrue(50, 100)) {
-                        op1 = 135;
-                        op2 = 138;
-                    } else if (Util.isTrue(50, 100)) {
-                        op1 = 233;
-                        op2 = 234;
-                    } else {
-                        op1 = 133;
-                        op2 = 136;
-                    }
+                default -> { // Xayda: Kakarot, Cađic, Nappa
+                    teaMobiSets = new int[][]{{133, 136}, {134, 137}, {135, 138}};
                 }
             }
+            int[] selected = teaMobiSets[Util.nextInt(teaMobiSets.length)];
+            op1 = selected[0];
+            op2 = selected[1];
         }
         return new int[]{op1, op2, op3, op4};
     }

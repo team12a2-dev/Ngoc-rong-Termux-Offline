@@ -8,7 +8,6 @@ import nro.models.map.ItemMap;
 import nro.models.map.Zone;
 import nro.models.mob.Mob;
 import nro.models.player.Player;
-import nro.models.map.service.MapService;
 import nro.models.utils.Util;
 
 /**
@@ -20,8 +19,8 @@ public final class StarEquipmentDropService {
     private static final StarEquipmentDropService INSTANCE = new StarEquipmentDropService();
     private static final int DENOMINATOR = 1_000_000;
 
-    // Tỷ lệ tổng theo tier: 0,20%; 0,12%; 0,07%; 0,035%; 0,015%; 0,005%.
-    private static final int[] DROP_CHANCE_BP = {2_000, 1_200, 700, 350, 150, 50};
+    // Tỷ lệ tổng theo tier: 0,05%; 0,03%; 0,02%; 0,01%; 0,005%; 0,002%.
+    private static final int[] DROP_CHANCE_BP = {500, 300, 200, 100, 50, 20};
 
     private StarEquipmentDropService() {
     }
@@ -32,18 +31,20 @@ public final class StarEquipmentDropService {
 
     /** Roll tối đa một trang bị cho mỗi lần quái chết. */
     public ItemMap roll(Player player, Mob mob, int x, int yEnd) {
-        if (player == null || mob == null || mob.zone == null || mob.isBigBoss()) {
+        if (ServerLaunchConfigService.gI().isBlockStarCrystalItemDrops()) {
+            return null;
+        }
+        if (player == null || mob == null || mob.zone == null || mob.isBigBoss() || !hasSeed(player)) {
             return null;
         }
 
         int mapId = mob.zone.map.mapId;
-        // 3 map đầu mỗi hành tinh chỉ cho roll đồ sao khi tài khoản còn Hạt mầm.
-        if (MapService.gI().isMapUpSKH(mapId) && !hasSeed(player)) {
-            return null;
-        }
-
         int tier = getTier(mapId, mob.point.getHpFull());
-        if (!Util.isTrue(DROP_CHANCE_BP[tier - 1], DENOMINATOR)) {
+        int chance = DROP_CHANCE_BP[tier - 1];
+        if (player.itemTime != null && player.itemTime.isUseCoBonLa) {
+            chance *= 2;
+        }
+        if (!Util.isTrue(chance, DENOMINATOR)) {
             return null;
         }
 
@@ -92,24 +93,33 @@ public final class StarEquipmentDropService {
         return 6;
     }
 
+    /**
+     * Roll số lỗ sao pha lê (chỉ từ 1 đến 3 sao).
+     */
     private int rollStar(int tier) {
         int roll = Util.nextInt(100);
         if (tier == 1) {
-            return roll < 50 ? 1 : roll < 85 ? 2 : 3;
+            // Tier 1: 65% 1 sao, 25% 2 sao, 10% 3 sao
+            return roll < 65 ? 1 : roll < 90 ? 2 : 3;
         }
         if (tier == 2) {
-            return roll < 35 ? 1 : roll < 70 ? 2 : roll < 95 ? 3 : 4;
+            // Tier 2: 55% 1 sao, 30% 2 sao, 15% 3 sao
+            return roll < 55 ? 1 : roll < 85 ? 2 : 3;
         }
         if (tier == 3) {
-            return roll < 20 ? 1 : roll < 55 ? 2 : roll < 85 ? 3 : roll < 97 ? 4 : 5;
+            // Tier 3: 45% 1 sao, 35% 2 sao, 20% 3 sao
+            return roll < 45 ? 1 : roll < 80 ? 2 : 3;
         }
         if (tier == 4) {
-            return roll < 10 ? 1 : roll < 35 ? 2 : roll < 67 ? 3 : roll < 89 ? 4 : roll < 98 ? 5 : 6;
+            // Tier 4: 35% 1 sao, 40% 2 sao, 25% 3 sao
+            return roll < 35 ? 1 : roll < 75 ? 2 : 3;
         }
         if (tier == 5) {
-            return roll < 5 ? 1 : roll < 20 ? 2 : roll < 45 ? 3 : roll < 75 ? 4 : roll < 92 ? 5 : roll < 99 ? 6 : 7;
+            // Tier 5: 25% 1 sao, 45% 2 sao, 30% 3 sao
+            return roll < 25 ? 1 : roll < 70 ? 2 : 3;
         }
-        return roll < 2 ? 1 : roll < 10 ? 2 : roll < 28 ? 3 : roll < 58 ? 4 : roll < 83 ? 5 : roll < 97 ? 6 : 7;
+        // Tier 6: 15% 1 sao, 50% 2 sao, 35% 3 sao
+        return roll < 15 ? 1 : roll < 65 ? 2 : 3;
     }
 
     private ItemMap createItem(Player player, Zone zone, int tier, int star, int x, int yEnd) {

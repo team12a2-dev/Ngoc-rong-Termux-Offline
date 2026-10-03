@@ -12,6 +12,7 @@ import nro.models.consts.ConstTaskBadges;
 import nro.models.map.ItemMap;
 import nro.models.map.Zone;
 import nro.models.player.Player;
+import nro.models.server.Client;
 import nro.models.services.Service;
 import nro.models.services.SkillService;
 import nro.models.map.service.ChangeMapService;
@@ -26,8 +27,8 @@ public class AnTrom extends Boss {
     private static final int STEAL_RANGE = 45;
     private static final int CHASE_RANGE = 250;
     private static final long STEAL_COOLDOWN_MS = 700;
-    private static final long FLEE_COOLDOWN_MS = 12_000;
-    private static final long MIN_GOLD_TO_TARGET = 50_000;
+    private static final long FLEE_COOLDOWN_MS = 30_000;
+    private static final long MIN_GOLD_TO_TARGET = 1_000;
     private static final long MAX_STOLEN_PER_SPAWN = 30_000_000L;
     private static final int MIN_PLAYERS_IN_ZONE = 1;
     private static final int MAX_PLAYERS_IN_ZONE = 12;
@@ -43,35 +44,94 @@ public class AnTrom extends Boss {
         super(BossID.AN_TROM, new BossData(
                 "Ăn Trộm",
                 ConstPlayer.TRAI_DAT,
-                new short[]{201, 202, 203, -1, -1, -1},
+                new short[] { 201, 202, 203, -1, -1, -1 },
                 1,
-                new int[]{100},
-                new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 79, 80, 81, 82, 83, 84, 92, 93, 94, 96, 97, 98, 99, 100, 102, 103, 104, 105, 106, 107, 108, 109, 110},
-                new int[][]{
-                    {Skill.THAI_DUONG_HA_SAN, 5, 8000}},
-                new String[]{
-                    "|-1|Có ai mang vàng không ta? Ta nghe tiếng leng keng rồi.",
-                    "|-1|Khu này nhìn nghèo quá... chắc phải lục kỹ hơn thôi.",
-                    "|-1|Đừng để ta thấy túi vàng của ngươi!"
+                new int[] { 100 },
+                new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27,
+                        28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76,
+                        77, 79, 80, 81, 82, 83, 84, 92, 93, 94, 96, 97, 98, 99, 100, 102, 103, 104, 105, 106, 107, 108,
+                        109, 110 },
+                new int[][] {
+                        { Skill.THAI_DUONG_HA_SAN, 5, 8000 } },
+                new String[] {
+                        "|-1|Túi tiền căng tròn thế kia mà không chia cho ta thì phí quá!",
+                        "|-1|Ai nhiều vàng nhất khu này nào? Cho xin nhẹ vài cọc làm phí bảo kê nhé!"
                 },
-                new String[]{
-                    "|-1|Haha, ví nào cũng là của ta!",
-                    "|-1|Chạy đi, ta chỉ lấy vàng thôi!",
-                    "|-1|Đứng lại! Ta chưa kiểm tra hết túi của ngươi.",
-                    "|-1|Đông người thế này càng vui, vàng sẽ rơi nhiều hơn!"
+                new String[] {
+                        "|-1|Haha, ví nào cũng là của ta!",
+                        "|-1|Chạy đi, ta chỉ mượn tạm vàng thôi!",
+                        "|-1|Chói mắt chưa con bò! Tạm biệt và không hẹn gặp lại!"
                 },
-                new String[]{
-                    "|-1|Thôi, đủ rồi — ta đi trước khi các ngươi gọi thêm người!",
-                    "|-1|Vàng đã đầy túi, hẹn gặp lại ở khu khác nhé!"
+                new String[] {
+                        "|-1|Thôi xong, bị phát hiện rồi! Chuồn là thượng sách!"
                 },
-                3600));
+                180));
+    }
+
+    private boolean isValidMapId(int mapId) {
+        int[] maps = this.data[this.currentLevel].getMapJoin();
+        for (int m : maps) {
+            if (m == mapId) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public Zone getMapJoin() {
         int[] maps = this.data[this.currentLevel].getMapJoin();
+        // 1. Tỉ lệ nhỏ (20%) tìm zone có người chơi online nếu zone đó CHƯA CÓ BOSS NÀO
+        try {
+            List<Player> onlinePlayers = Client.gI().getPlayers();
+            if (onlinePlayers != null && !onlinePlayers.isEmpty() && Util.isTrue(1, 5)) {
+                List<Zone> validPlayerZones = new ArrayList<>();
+                for (Player pl : onlinePlayers) {
+                    if (pl != null && pl.isPl() && !pl.isDie() && pl.zone != null && pl.zone.map != null) {
+                        int mapId = pl.zone.map.mapId;
+                        if (isValidMapId(mapId)
+                                && !MapService.gI().isMapSafeOrHome(mapId)
+                                && !BossManager.gI().hasBossInZone(pl.zone)) {
+                            validPlayerZones.add(pl.zone);
+                        }
+                    }
+                }
+                if (!validPlayerZones.isEmpty()) {
+                    return validPlayerZones.get(Util.nextInt(0, validPlayerZones.size() - 1));
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        // 2. Mặc định: Rải rác ngẫu nhiên trên các map được cấu hình, ưu tiên zone trống
+        try {
+            List<Integer> mapList = new ArrayList<>();
+            for (int m : maps) {
+                if (!MapService.gI().isMapSafeOrHome(m)) {
+                    mapList.add(m);
+                }
+            }
+            java.util.Collections.shuffle(mapList);
+            for (int mapId : mapList) {
+                nro.models.map.Map map = MapService.gI().getMapById(mapId);
+                if (map != null && map.zones != null && !map.zones.isEmpty()) {
+                    List<Zone> emptyZones = new ArrayList<>();
+                    for (Zone z : map.zones) {
+                        if (z != null && !BossManager.gI().hasBossInZone(z)) {
+                            emptyZones.add(z);
+                        }
+                    }
+                    if (!emptyZones.isEmpty()) {
+                        return emptyZones.get(Util.nextInt(0, emptyZones.size() - 1));
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
         int mapId = maps[Util.nextInt(0, maps.length - 1)];
-        return MapService.gI().getMapById(mapId).zones.get(0);
+        nro.models.map.Map map = MapService.gI().getMapById(mapId);
+        return map.zones.get(Util.nextInt(0, map.zones.size() - 1));
     }
 
     /** Ưu tiên mục tiêu giàu nhất trong khu, không đổi mục tiêu quá thường xuyên */
@@ -151,7 +211,7 @@ public class AnTrom extends Boss {
         if (goldAnTrom >= MAX_STOLEN_PER_SPAWN) {
             return true;
         }
-        if (this.nPoint.hpMax > 0 && this.nPoint.hp <= this.nPoint.hpMax * 0.35) {
+        if (this.nPoint.hpMax > 0 && this.nPoint.hp <= this.nPoint.hpMax * 0.15) {
             return true;
         }
         int nearby = countNearbyPlayers(120);
@@ -173,15 +233,19 @@ public class AnTrom extends Boss {
             return;
         }
         lastTimeFlee = System.currentTimeMillis();
-        this.chat("|-1|Ăn xong rồi — tạm biệt!");
         Zone next = pickZoneWithPlayers(true);
         if (next != null && next != this.zone) {
+            this.chat("|-1|Haha, gà quá! Ta lách qua khu " + next.zoneId + " rồi nhé!");
+            if (this.zone != null && this.zone.getNotBosses() != null) {
+                Service.gI().sendThongBao(this.zone.getNotBosses(), "Ăn Trộm đã nhanh chân chuồn sang khu " + next.zoneId + "!");
+            }
             int maxX = Math.max(120, next.map.mapWidth - 100);
             int x = Util.nextInt(100, maxX);
             int y = next.map.yPhysicInTop(x, 0);
             ChangeMapService.gI().changeMap(this, next, x, y);
             this.playerTarger = null;
         } else if (goldAnTrom >= MAX_STOLEN_PER_SPAWN / 2) {
+            this.chat("|-1|Ăn xong rồi — tạm biệt!");
             this.changeStatus(BossStatus.LEAVE_MAP);
         }
     }
@@ -198,8 +262,18 @@ public class AnTrom extends Boss {
             int n = z.getNumOfPlayers();
             if (n >= MIN_PLAYERS_IN_ZONE
                     && n <= MAX_PLAYERS_IN_ZONE
-                    && !BossManager.gI().checkBosses(z, BossID.AN_TROM)) {
+                    && !BossManager.gI().hasBossInZone(z)) {
                 candidates.add(z);
+            }
+        }
+        if (candidates.isEmpty()) {
+            for (Zone z : this.zone.map.zones) {
+                if (excludeCurrent && z == this.zone) {
+                    continue;
+                }
+                if (!BossManager.gI().hasBossInZone(z)) {
+                    candidates.add(z);
+                }
             }
         }
         if (candidates.isEmpty()) {
@@ -224,7 +298,7 @@ public class AnTrom extends Boss {
             this.playerSkill.skillSelect = this.playerSkill.skills.get(0);
             SkillService.gI().useSkill(this, plAtt, null, -1, null);
         }
-        if (Util.isTrue(2, 5)) {
+        if (Util.isTrue(15, 100)) {
             tryFlee();
         }
         return (int) damage;
@@ -265,6 +339,14 @@ public class AnTrom extends Boss {
         if (!Util.canDoWithTime(this.lastTimeAnTrom, STEAL_COOLDOWN_MS)) {
             return;
         }
+        if (this.zone == null || this.zone.map == null || MapService.gI().isMapSafeOrHome(this.zone.map.mapId)) {
+            this.playerTarger = null;
+            return;
+        }
+        if (pl == null || pl.isDie() || pl.zone == null || pl.zone.map == null || MapService.gI().isMapSafeOrHome(pl.zone.map.mapId)) {
+            this.playerTarger = null;
+            return;
+        }
         if (goldAnTrom >= MAX_STOLEN_PER_SPAWN) {
             tryFlee();
             return;
@@ -284,7 +366,10 @@ public class AnTrom extends Boss {
         goldAnTrom += gold;
         stealCount++;
         Service.gI().stealMoney(pl, -gold);
-        this.chat("Haha! Trộm " + Util.numberToMoney(gold) + " vàng của " + pl.name + " (tổng: " + Util.numberToMoney(goldAnTrom) + ")");
+        this.chat("Móc túi thành công! Cảm ơn " + pl.name + " đã tài trợ " + Util.numberToMoney(gold) + " vàng!");
+        if (this.zone != null && this.zone.getNotBosses() != null) {
+            Service.gI().sendThongBao(this.zone.getNotBosses(), "Ôi không! " + pl.name + " vừa bị Ăn Trộm móc mất " + Util.numberToMoney(gold) + " vàng!");
+        }
 
         ItemMap itemMap = new ItemMap(this.zone, 190, gold,
                 (this.location.x + pl.location.x) / 2, this.location.y, this.id);
@@ -298,7 +383,7 @@ public class AnTrom extends Boss {
             this.moveTo(escapeX, this.location.y);
         }
 
-        if (stealCount >= 2 && Util.isTrue(1, 2)) {
+        if (stealCount >= 3 && Util.isTrue(1, 2)) {
             tryFlee();
         }
     }
@@ -364,7 +449,7 @@ public class AnTrom extends Boss {
 
     @Override
     public void joinMap() {
-        int hpRandom = Util.nextInt(150, 200);
+        int hpRandom = Util.nextInt(300, 500);
         this.name = "Ăn Trộm";
         this.nPoint.hpMax = hpRandom;
         this.nPoint.hp = this.nPoint.hpMax;
@@ -374,7 +459,7 @@ public class AnTrom extends Boss {
         stealCount = 0;
         lastTimeFlee = 0;
         sessionStart = System.currentTimeMillis();
-        sessionDurationMs = Util.nextInt(180_000, 420_000);
+        sessionDurationMs = Util.nextInt(300_000, 600_000);
 
         joinMapSmart();
     }
@@ -383,8 +468,10 @@ public class AnTrom extends Boss {
         if (this.zone == null) {
             if (this.parentBoss != null) {
                 this.zone = parentBoss.zone;
+            } else if (this.lastZone == null) {
+                this.zone = getMapJoin();
             } else {
-                this.zone = getRandomMiniSpawnZone();
+                this.zone = this.lastZone;
             }
         }
         if (this.zone == null) {
@@ -392,14 +479,28 @@ public class AnTrom extends Boss {
             return;
         }
         try {
-            Zone target = pickZoneWithPlayers(false);
+            if (MapService.gI().isMapSafeOrHome(this.zone.map.mapId)) {
+                this.changeStatus(BossStatus.REST);
+                return;
+            }
+            Zone target = null;
+            // Nếu zone được chọn từ getMapJoin() chưa có boss
+            if (!BossManager.gI().hasBossInZone(this.zone)) {
+                target = this.zone;
+            } else {
+                target = pickZoneWithPlayers(false);
+            }
             if (target == null) {
                 for (Zone z : this.zone.map.zones) {
-                    if (!BossManager.gI().checkBosses(z, BossID.AN_TROM)) {
+                    if (!BossManager.gI().hasBossInZone(z)) {
                         target = z;
                         break;
                     }
                 }
+            }
+            if (target == null) {
+                this.zone = getMapJoin();
+                target = this.zone;
             }
             if (target == null) {
                 this.changeStatus(BossStatus.REST);

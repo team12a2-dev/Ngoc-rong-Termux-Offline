@@ -1,6 +1,5 @@
 package nro.models.npc_list;
 
-import nro.models.consts.ConstMap;
 import nro.models.consts.ConstNpc;
 import nro.models.item.Item;
 import nro.models.map.phoban.BanDoKhoBau;
@@ -10,7 +9,6 @@ import static nro.models.npc.NpcFactory.PLAYERID_OBJECT;
 import nro.models.player.Player;
 import nro.models.services.ItemService;
 import nro.models.services.InventoryService;
-import nro.models.services.LearnSkillService;
 import nro.models.map.service.NpcService;
 import nro.models.services.ClanService;
 import nro.models.services.RewardService;
@@ -33,9 +31,6 @@ import java.util.Map;
 
 public class QuyLaoKame extends Npc {
 
-    /** map_template.id = 153 'Lãnh địa Bang Hội' - khu vực bang, 156 là Tây thánh địa. */
-    private static final int MAP_LANH_DIA_BANG_HOI = ConstMap.LANH_DIA_BANG_HOI;
-
     private static class RewardItem {
 
         int itemId;
@@ -56,7 +51,8 @@ public class QuyLaoKame extends Npc {
         List<RewardItem> rewards;
         String description;
 
-        public KOLQuestData(int questType, int itemId, int requiredQuantity, List<RewardItem> rewards, String description) {
+        public KOLQuestData(int questType, int itemId, int requiredQuantity, List<RewardItem> rewards,
+                String description) {
             this.questType = questType;
             this.itemId = itemId;
             this.requiredQuantity = requiredQuantity;
@@ -68,25 +64,57 @@ public class QuyLaoKame extends Npc {
     private static final Map<Integer, KOLQuestData> KOL_QUESTS = new HashMap<>();
 
     static {
-        KOL_QUESTS.put(1, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_ITEM_COLLECTION, 225, 100, Arrays.asList(new RewardItem(1821, 3)), "Nhiệm vụ 1:\nThu thập 100 mảnh đá vụn"));
-        KOL_QUESTS.put(2, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_ITEM_COLLECTION, 1613, 20, Arrays.asList(new RewardItem(1592, 3), new RewardItem(1757, 5)), "Nhiệm vụ 2:\nThu thập 20 nước đá"));
-        // KOL_QUESTS.put(3, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_DUNGEON_COMPLETION, -1, 5, Arrays.asList(new RewardItem(1360, 1)), "Nhiệm vụ 3:\nHoàn thành phó bản Destron Gas cấp 70 trên 5 lần"));
-        // KOL_QUESTS.put(3, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_PVP_WINS, -1, 10, Arrays.asList(new RewardItem(1654, 1)), "Nhiệm vụ 4:\nĐánh bại 10 người trong đại hội võ thuật"));
-        // KOL_QUESTS.put(3, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_DAILY_QUEST_COMPLETION, -1, 30, Arrays.asList(new RewardItem(1822, 10)), "Nhiệm vụ 5:\nHoàn thành 20 nhiệm vụ siêu khó hàng ngày"));
-        KOL_QUESTS.put(3, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_BOSS_DEFEAT_PARTICIPATION, -1, 10, Arrays.asList(new RewardItem(1797, 1), new RewardItem(1592, 3), new RewardItem(1757, 3)), "Nhiệm vụ 3:\nTham gia hạ gục boss baby 10 lần"));
-        KOL_QUESTS.put(4, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_MONSTER_KILL_COUNT, -1, 100000, Arrays.asList(new RewardItem(1592, 10), new RewardItem(664, 333), new RewardItem(1757, 3)), "Nhiệm vụ 4:\nHạ 100.000 quái"));
+        KOL_QUESTS.put(1, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_ITEM_COLLECTION, 225, 100,
+                Arrays.asList(new RewardItem(1821, 3)), "Nhiệm vụ 1:\nThu thập 100 mảnh đá vụn"));
+        KOL_QUESTS.put(2, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_ITEM_COLLECTION, 1613, 20,
+                Arrays.asList(new RewardItem(1592, 3), new RewardItem(1757, 5)), "Nhiệm vụ 2:\nThu thập 20 nước đá"));
+        // KOL_QUESTS.put(3, new
+        // KOLQuestData(ConstNpc.KOL_QUEST_TYPE_DUNGEON_COMPLETION, -1, 5,
+        // Arrays.asList(new RewardItem(1360, 1)), "Nhiệm vụ 3:\nHoàn thành phó bản
+        // Destron Gas cấp 70 trên 5 lần"));
+        // KOL_QUESTS.put(3, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_PVP_WINS, -1, 10,
+        // Arrays.asList(new RewardItem(1654, 1)), "Nhiệm vụ 4:\nĐánh bại 10 người trong
+        // đại hội võ thuật"));
+        // KOL_QUESTS.put(3, new
+        // KOLQuestData(ConstNpc.KOL_QUEST_TYPE_DAILY_QUEST_COMPLETION, -1, 30,
+        // Arrays.asList(new RewardItem(1822, 10)), "Nhiệm vụ 5:\nHoàn thành 20 nhiệm vụ
+        // siêu khó hàng ngày"));
+        KOL_QUESTS.put(3,
+                new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_BOSS_DEFEAT_PARTICIPATION, -1, 10,
+                        Arrays.asList(new RewardItem(1797, 1), new RewardItem(1592, 3), new RewardItem(1757, 3)),
+                        "Nhiệm vụ 3:\nTham gia hạ gục boss baby 10 lần"));
+        KOL_QUESTS.put(4,
+                new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_MONSTER_KILL_COUNT, -1, 100000,
+                        Arrays.asList(new RewardItem(1592, 10), new RewardItem(664, 333), new RewardItem(1757, 3)),
+                        "Nhiệm vụ 4:\nHạ 100.000 quái"));
     }
 
     private static final Map<Integer, KOLQuestData> KOL_VIP_QUESTS = new HashMap<>();
 
     static {
-        KOL_VIP_QUESTS.put(1, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_ITEM_COLLECTION, 225, 100, Arrays.asList(new RewardItem(1821, 2)), "Nhiệm vụ 1:\nThu thập  100 mảnh đá vụn"));
-        KOL_VIP_QUESTS.put(2, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_ITEM_COLLECTION, 1613, 20, Arrays.asList(new RewardItem(1592, 2), new RewardItem(1757, 10)), "Nhiệm vụ 2:\nThu thập 20 nước đá"));
-        // KOL_VIP_QUESTS.put(3, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_DUNGEON_COMPLETION, -1, 5, Arrays.asList(new RewardItem(1360, 1)), "Nhiệm vụ 3:\nHoàn thành phó bản Destron Gas cấp 70 trên 5 lần"));
-        // KOL_VIP_QUESTS.put(4, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_PVP_WINS, -1, 10, Arrays.asList(new RewardItem(1654, 1)), "Nhiệm vụ 4:\nĐánh bại 10 người trong đại hội võ thuật"));
-        // KOL_VIP_QUESTS.put(3, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_DAILY_QUEST_COMPLETION, -1, 30, Arrays.asList(new RewardItem(1822, 20)), "Nhiệm vụ 5:\nHoàn thành 20 nhiệm vụ siêu khó hàng ngày"));
-        KOL_VIP_QUESTS.put(3, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_BOSS_DEFEAT_PARTICIPATION, -1, 10, Arrays.asList(new RewardItem(1797, 1), new RewardItem(1592, 2), new RewardItem(1757, 2)), "Nhiệm vụ 3:\nTham gia hạ gục boss baby 10 lần"));
-        KOL_VIP_QUESTS.put(4, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_MONSTER_KILL_COUNT, -1, 100000, Arrays.asList(new RewardItem(1592, 2),new RewardItem(664, 222), new RewardItem(1757, 2)), "Nhiệm vụ 4:\nHạ 100.000 quái"));
+        KOL_VIP_QUESTS.put(1, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_ITEM_COLLECTION, 225, 100,
+                Arrays.asList(new RewardItem(1821, 2)), "Nhiệm vụ 1:\nThu thập  100 mảnh đá vụn"));
+        KOL_VIP_QUESTS.put(2, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_ITEM_COLLECTION, 1613, 20,
+                Arrays.asList(new RewardItem(1592, 2), new RewardItem(1757, 10)), "Nhiệm vụ 2:\nThu thập 20 nước đá"));
+        // KOL_VIP_QUESTS.put(3, new
+        // KOLQuestData(ConstNpc.KOL_QUEST_TYPE_DUNGEON_COMPLETION, -1, 5,
+        // Arrays.asList(new RewardItem(1360, 1)), "Nhiệm vụ 3:\nHoàn thành phó bản
+        // Destron Gas cấp 70 trên 5 lần"));
+        // KOL_VIP_QUESTS.put(4, new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_PVP_WINS, -1,
+        // 10, Arrays.asList(new RewardItem(1654, 1)), "Nhiệm vụ 4:\nĐánh bại 10 người
+        // trong đại hội võ thuật"));
+        // KOL_VIP_QUESTS.put(3, new
+        // KOLQuestData(ConstNpc.KOL_QUEST_TYPE_DAILY_QUEST_COMPLETION, -1, 30,
+        // Arrays.asList(new RewardItem(1822, 20)), "Nhiệm vụ 5:\nHoàn thành 20 nhiệm vụ
+        // siêu khó hàng ngày"));
+        KOL_VIP_QUESTS.put(3,
+                new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_BOSS_DEFEAT_PARTICIPATION, -1, 10,
+                        Arrays.asList(new RewardItem(1797, 1), new RewardItem(1592, 2), new RewardItem(1757, 2)),
+                        "Nhiệm vụ 3:\nTham gia hạ gục boss baby 10 lần"));
+        KOL_VIP_QUESTS.put(4,
+                new KOLQuestData(ConstNpc.KOL_QUEST_TYPE_MONSTER_KILL_COUNT, -1, 100000,
+                        Arrays.asList(new RewardItem(1592, 2), new RewardItem(664, 222), new RewardItem(1757, 2)),
+                        "Nhiệm vụ 4:\nHạ 100.000 quái"));
     }
 
     public QuyLaoKame(int mapId, int status, int cx, int cy, int tempId, int avartar) {
@@ -135,7 +163,7 @@ public class QuyLaoKame extends Npc {
                 handleMenu12(player, select);
                 break;
             case 13:
-                LearnSkillService.gI().cancel(player);
+                handleMenu13(player, select);
                 break;
             case 0:
                 handleMenu0(player, select);
@@ -204,7 +232,26 @@ public class QuyLaoKame extends Npc {
     }
 
     private void handleTalk(Player player) {
-        LearnSkillService.gI().checkFinish(player);
+        if (player.LearnSkill.Time != -1 && player.LearnSkill.Time <= System.currentTimeMillis()) {
+            player.LearnSkill.Time = -1;
+            try {
+                String[] subName = ItemService.gI().getTemplate(player.LearnSkill.ItemTemplateSkillId).name.split("");
+                byte level = Byte.parseByte(subName[subName.length - 1]);
+                var curSkill = SkillUtil.createSkill(
+                        SkillUtil.getTempSkillSkillByItemID(player.LearnSkill.ItemTemplateSkillId),
+                        level);
+                player.BoughtSkill.add((int) player.LearnSkill.ItemTemplateSkillId);
+                SkillUtil.setSkill(player, curSkill);
+                var msg = Service.gI().messageSubCommand((byte) 62);
+                msg.writer().writeShort(curSkill.skillId);
+                player.sendMessage(msg);
+                msg.cleanup();
+                PlayerService.gI().sendInfoHpMpMoney(player);
+                Service.gI().sendThongBao(player, "Chúc mừng con đã học thành công kỹ năng " + curSkill.template.name + " cấp " + level);
+            } catch (Exception e) {
+                Logger.log(e.toString());
+            }
+        }
 
         ArrayList<String> menu = new ArrayList<>();
         menu.add("Nhiệm vụ");
@@ -216,33 +263,79 @@ public class QuyLaoKame extends Npc {
                 menu.add("Giải tán\nBang hội");
             }
         }
-        this.createOtherMenu(player, 0, "Chào con, ta rất vui khi gặp con\nCon muốn làm gì nào ?", menu.toArray(new String[0]));
+        this.createOtherMenu(player, 0, "Chào con, ta rất vui khi gặp con\nCon muốn làm gì nào ?",
+                menu.toArray(new String[0]));
     }
 
     private void handleTradeRuacon(Player player) {
         Item ruacon = InventoryService.gI().findItemBag(player, 874);
         if (ruacon != null && ruacon.quantity >= 1) {
-            this.createOtherMenu(player, 1, "Cảm ơn cậu đã cứu con rùa của ta\nĐể cảm ơn ta sẽ tặng cậu món quà.", "Nhận quà", "Đóng");
+            this.createOtherMenu(player, 1, "Cảm ơn cậu đã cứu con rùa của ta\nĐể cảm ơn ta sẽ tặng cậu món quà.",
+                    "Nhận quà", "Đóng");
+        }
+    }
+
+    private void learnSkill(Player player) {
+        try {
+            String[] subName = ItemService.gI().getTemplate(player.LearnSkill.ItemTemplateSkillId).name.split("");
+            byte level = Byte.parseByte(subName[subName.length - 1]);
+            Skill curSkill = SkillUtil
+                    .createSkill(SkillUtil.getTempSkillSkillByItemID(player.LearnSkill.ItemTemplateSkillId), level);
+            player.BoughtSkill.add((int) player.LearnSkill.ItemTemplateSkillId);
+            SkillUtil.setSkill(player, curSkill);
+            var msg = Service.gI().messageSubCommand((byte) 62);
+            msg.writer().writeShort(curSkill.skillId);
+            player.sendMessage(msg);
+            msg.cleanup();
+            PlayerService.gI().sendInfoHpMpMoney(player);
+        } catch (Exception e) {
+            Logger.log(e.toString());
         }
     }
 
     private void handleMenu12(Player player, int select) {
         switch (select) {
-            case 0 ->
-                LearnSkillService.gI().finishFast(player);
+            case 0 -> {
+                var time = player.LearnSkill.Time - System.currentTimeMillis();
+                var ngoc = 5;
+                if (time / 600_000 >= 2) {
+                    ngoc += time / 600_000;
+                }
+                if (player.inventory.gem < ngoc) {
+                    Service.gI().sendThongBao(player, "Bạn không có đủ ngọc");
+                    return;
+                }
+                player.inventory.subGem(ngoc);
+                player.LearnSkill.Time = -1;
+                learnSkill(player);
+            }
             case 1 ->
-                createOtherMenu(player, 13, "Con có muốn huỷ học kỹ năng này và nhận lại 50% số tiềm năng không ?", "Ok", "Đóng");
+                createOtherMenu(player, 13, "Con có muốn huỷ học kỹ năng này và nhận lại 50% số tiềm năng không ?",
+                        "Ok", "Đóng");
+        }
+    }
+
+    private void handleMenu13(Player player, int select) {
+        if (select == 0) {
+            if (player.LearnSkill.Time != -1) {
+                player.nPoint.tiemNang += (player.LearnSkill.Potential / 2);
+                player.LearnSkill.Time = -1;
+                Service.gI().point(player);
+                Service.gI().sendThongBao(player, "Đã huỷ học kỹ năng thành công và nhận lại 50% số tiềm năng!");
+            }
         }
     }
 
     private void handleMenu0(Player player, int select) {
         switch (select) {
             case 0: // Nhiệm vụ
-                NpcService.gI().createTutorial(player, tempId, avartar, player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).name);
+                NpcService.gI().createTutorial(player, tempId, avartar,
+                        player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).name);
                 break;
             case 1: // Học Kỹ năng
                 handleSkillLearning(player);
                 break;
+
             case 2: // Về khu vực bang
                 handleClanMapChange(player);
                 break;
@@ -259,17 +352,25 @@ public class QuyLaoKame extends Npc {
     }
 
     private void handleSkillLearning(Player player) {
-        if (LearnSkillService.gI().isLearning(player)) {
-            var ngoc = LearnSkillService.gI().getGemCost(player);
-            var time = Math.max(0, player.LearnSkill.Time - System.currentTimeMillis());
-            byte level = LearnSkillService.gI().getLevel(player.LearnSkill.ItemTemplateSkillId);
-            if (level < 0) {
-                Service.gI().sendThongBao(player, "Không tìm thấy sách kỹ năng đang học, hãy thử lại");
-                return;
+        if (player.gender != nro.models.consts.ConstPlayer.TRAI_DAT) {
+            String suPhuName = (player.gender == nro.models.consts.ConstPlayer.NAMEC) ? "Trưởng lão Guru (Đảo Guru)" : "Vua Vegeta (Thành phố Vegeta)";
+            NpcService.gI().createTutorial(player, tempId, avartar,
+                    "Ta chỉ dạy đệ tử Trái Đất thôi con.\nCon hãy về gặp " + suPhuName + " để học kỹ năng nhé!");
+            return;
+        }
+        if (player.LearnSkill.Time != -1) {
+            var ngoc = 5;
+            var time = player.LearnSkill.Time - System.currentTimeMillis();
+            if (time / 600_000 >= 2) {
+                ngoc += time / 600_000;
             }
+            String[] subName = ItemService.gI().getTemplate(player.LearnSkill.ItemTemplateSkillId).name.split("");
+            byte level = Byte.parseByte(subName[subName.length - 1]);
             createOtherMenu(player, 12,
-                    "Con đang học kỹ năng\n" + SkillUtil.findSkillTemplate(SkillUtil.getTempSkillSkillByItemID(player.LearnSkill.ItemTemplateSkillId)).name
-                    + " cấp " + level + "\nThời gian còn lại " + TimeUtil.getTime(time),
+                    "Con đang học kỹ năng\n"
+                            + SkillUtil.findSkillTemplate(
+                                    SkillUtil.getTempSkillSkillByItemID(player.LearnSkill.ItemTemplateSkillId)).name
+                            + " cấp " + level + "\nThời gian còn lại " + TimeUtil.getTime(time),
                     "Học Cấp tốc " + ngoc + " ngọc", "Huỷ", "Bỏ qua");
         } else {
             ShopService.gI().opendShop(player, "QUY_LAO", false);
@@ -278,7 +379,7 @@ public class QuyLaoKame extends Npc {
 
     private void handleClanMapChange(Player player) {
         if (player.clan != null) {
-            ChangeMapService.gI().changeMapNonSpaceship(player, MAP_LANH_DIA_BANG_HOI, Util.nextInt(100, 200), 432);
+            ChangeMapService.gI().changeMapNonSpaceship(player, 153, Util.nextInt(100, 200), 432);
         } else {
             Service.gI().sendThongBao(player, "Bạn cần có bang hội để thực hiện chức năng này.");
         }
@@ -292,9 +393,14 @@ public class QuyLaoKame extends Npc {
 
     private void handleTreasureMap(Player player) {
         if (player.clan != null && player.clan.BanDoKhoBau != null) {
-            this.createOtherMenu(player, ConstNpc.MENU_OPENED_DBKB, "Bang hội con đang ở hang kho báu cấp " + player.clan.BanDoKhoBau.level + "\ncon có muốn đi cùng họ không?", "Top\nBang hội", "Thành tích\nBang", "Đồng ý", "Từ chối");
+            this.createOtherMenu(player, ConstNpc.MENU_OPENED_DBKB,
+                    "Bang hội con đang ở hang kho báu cấp " + player.clan.BanDoKhoBau.level
+                            + "\ncon có muốn đi cùng họ không?",
+                    "Top\nBang hội", "Thành tích\nBang", "Đồng ý", "Từ chối");
         } else {
-            this.createOtherMenu(player, ConstNpc.MENU_OPEN_DBKB, "Đây là bản đồ kho báu hải tặc tí hon\nCác con cứ yên tâm lên đường\nỞ đây có ta lo\nNhớ chọn cấp độ vừa sức mình nhé", "Top\nBang hội", "Thành tích\nBang", "Chọn\ncấp độ", "Từ chối");
+            this.createOtherMenu(player, ConstNpc.MENU_OPEN_DBKB,
+                    "Đây là bản đồ kho báu hải tặc tí hon\nCác con cứ yên tâm lên đường\nỞ đây có ta lo\nNhớ chọn cấp độ vừa sức mình nhé",
+                    "Top\nBang hội", "Thành tích\nBang", "Chọn\ncấp độ", "Từ chối");
         }
     }
 
@@ -317,7 +423,8 @@ public class QuyLaoKame extends Npc {
                     this.npcChat(player, "Bang hội của con hiện không có hang kho báu đang hoạt động.");
                 }
             } else {
-                this.npcChat(player, "Yêu cầu sức mạnh lớn hơn " + Util.numberToMoney(BanDoKhoBau.POWER_CAN_GO_TO_DBKB));
+                this.npcChat(player,
+                        "Yêu cầu sức mạnh lớn hơn " + Util.numberToMoney(BanDoKhoBau.POWER_CAN_GO_TO_DBKB));
             }
         }
     }
@@ -335,14 +442,16 @@ public class QuyLaoKame extends Npc {
             if (player.isAdmin() || player.nPoint.power >= BanDoKhoBau.POWER_CAN_GO_TO_DBKB) {
                 Input.gI().createFormChooseLevelBDKB(player);
             } else {
-                this.npcChat(player, "Yêu cầu sức mạnh lớn hơn " + Util.numberToMoney(BanDoKhoBau.POWER_CAN_GO_TO_DBKB));
+                this.npcChat(player,
+                        "Yêu cầu sức mạnh lớn hơn " + Util.numberToMoney(BanDoKhoBau.POWER_CAN_GO_TO_DBKB));
             }
         }
     }
 
     private void handleMenuAcceptGoToBDKB(Player player, int select) {
         if (select == 0) {
-            TreasureUnderSeaService.gI().openBanDoKhoBau(player, Byte.parseByte(String.valueOf(PLAYERID_OBJECT.get(player.id))));
+            TreasureUnderSeaService.gI().openBanDoKhoBau(player,
+                    Byte.parseByte(String.valueOf(PLAYERID_OBJECT.get(player.id))));
         }
     }
 
@@ -373,7 +482,9 @@ public class QuyLaoKame extends Npc {
         KOLQuestData questData = questsMap.get(currentStage);
 
         if (questData == null) {
-            this.createOtherMenu(player, menuType, "Con đã hoàn thành tất cả nhiệm vụ " + (isVIP ? "KOL VIP" : "KOL") + " rồi! Chúc mừng con!", "Đóng");
+            this.createOtherMenu(player, menuType,
+                    "Con đã hoàn thành tất cả nhiệm vụ " + (isVIP ? "KOL VIP" : "KOL") + " rồi! Chúc mừng con!",
+                    "Đóng");
             return;
         }
 
@@ -504,7 +615,8 @@ public class QuyLaoKame extends Npc {
             }
             InventoryService.gI().sendItemBags(player);
 
-            Service.gI().sendThongBao(player, "Bạn đã nhận phần thưởng nhiệm vụ " + (isVIP ? "KOL VIP" : "KOL") + " cấp " + currentStage + "!");
+            Service.gI().sendThongBao(player,
+                    "Bạn đã nhận phần thưởng nhiệm vụ " + (isVIP ? "KOL VIP" : "KOL") + " cấp " + currentStage + "!");
 
             if (isVIP) {
                 player.kolVIPQuestStage++;

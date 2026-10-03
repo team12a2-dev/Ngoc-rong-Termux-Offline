@@ -94,7 +94,7 @@ public void close() {
 
  public void dispose() {
     this.session = null;
-    // KHÃ”NG set messages = null á»Ÿ Ä‘Ã¢y
+    // KHÔNG set messages = null ở đây
     this.sendCollect = null;
     this.dos = null;
 }

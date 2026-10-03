@@ -129,7 +129,7 @@ public class SnakeWay implements Runnable {
     }
 
     private void init() {
-        //Há»“i sinh quÃ¡i
+        //Hồi sinh quái
         for (Zone zone : this.zones) {
             List<Mob> mobs = zone.mobs;
             for (int i = 0; i < mobs.size(); i++) {

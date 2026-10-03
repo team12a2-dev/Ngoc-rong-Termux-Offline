@@ -1,0 +1,97 @@
+{
+  "version": 2,
+  "serverId": 1,
+  "timestamp": 1789274695411,
+  "rules": [
+    {
+      "bossId": -1001,
+      "mapId": 0,
+      "enabled": true,
+      "mapIds": [
+        0
+      ],
+      "spawnX": 624,
+      "spawnY": 300,
+      "patrolMinX": 374,
+      "patrolMaxX": 874,
+      "moveSpeed": 4,
+      "aiBehavior": "PATROL",
+      "zonePolicy": "random",
+      "zoneMin": 0,
+      "zoneMax": 20,
+      "spawnChancePercent": 100,
+      "respawnMinSec": 300,
+      "respawnMaxSec": 600,
+      "maxActive": 1,
+      "spawnCondition": {
+        "type": "TIMER",
+        "data": {
+          "mobTempId": -1,
+          "requiredKills": 30
+        }
+      },
+      "bossesTogether": [],
+      "texts": {
+        "appear": "Ta là Pan VIP! Ngươi to gan lắm mới dám xâm phạm nơi này!",
+        "chat": "Nếm thử chiêu thức của Pan VIP này!",
+        "die": "Pan VIP ta không thể thua dễ dàng thế này...!"
+      },
+      "bossName": "Pan VIP",
+      "disguiseId": 1858,
+      "head": 1877,
+      "body": 1878,
+      "leg": 1879,
+      "flagBag": 0,
+      "aura": 0,
+      "effFront": 0,
+      "hpMax": 50000000,
+      "dame": 25000,
+      "gender": 2,
+      "worldNotify": true,
+      "worldNotifyText": "",
+      "skills": [
+        {
+          "skillId": 1,
+          "skillLevel": 7,
+          "cooldownMs": 3000,
+          "chancePercent": 40,
+          "range": 350,
+          "triggerCondition": "NONE"
+        },
+        {
+          "skillId": 6,
+          "skillLevel": 3,
+          "cooldownMs": 15000,
+          "chancePercent": 100,
+          "range": 400,
+          "triggerCondition": "HP_BELOW_50"
+        },
+        {
+          "skillId": 0,
+          "skillLevel": 7,
+          "cooldownMs": 3000,
+          "chancePercent": 50,
+          "range": 100,
+          "triggerCondition": "NONE"
+        }
+      ],
+      "drops": [
+        {
+          "tempId": 457,
+          "enabled": true,
+          "chancePercent": 100,
+          "quantityMin": 1,
+          "quantityMax": 5,
+          "spreadCountMin": 2,
+          "spreadCountMax": 4,
+          "spreadDistance": 30,
+          "playerLevelMin": 0,
+          "playerLevelMax": 255,
+          "timeStartMin": 0,
+          "timeEndMin": 1440,
+          "options": []
+        }
+      ]
+    }
+  ]
+}

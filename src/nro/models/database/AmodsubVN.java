@@ -19,6 +19,7 @@ import nro.models.player.Enemy;
 import nro.models.player.Friend;
 import nro.models.player.Fusion;
 import nro.models.player.Pet;
+import nro.models.player.Inventory;
 import nro.models.player.Player;
 import nro.models.skill.Skill;
 import nro.models.task.TaskMain;
@@ -226,7 +227,13 @@ public class AmodsubVN {
 
             //data kim lượng
             dataArray = (JSONArray) JSONValue.parse(rs.getString("data_inventory"));
-            player.inventory.gold = Long.parseLong(String.valueOf(dataArray.get(0)));
+            long rawGold = Long.parseLong(String.valueOf(dataArray.get(0)));
+            if (rawGold > Inventory.LIMIT_GOLD) {
+                player.excessGoldRecovered = rawGold - Inventory.LIMIT_GOLD;
+                player.inventory.gold = Inventory.LIMIT_GOLD;
+            } else {
+                player.inventory.gold = rawGold;
+            }
             player.inventory.gem = Integer.parseInt(String.valueOf(dataArray.get(1)));
             player.inventory.ruby = Integer.parseInt(String.valueOf(dataArray.get(2)));
             player.inventory.coupon = Integer.parseInt(String.valueOf(dataArray.get(3)));
@@ -278,7 +285,8 @@ public class AmodsubVN {
                 player.location.x = Integer.parseInt(String.valueOf(dataArray.get(1)));
                 player.location.y = Integer.parseInt(String.valueOf(dataArray.get(2)));
                 player.location.lastTimeplayerMove = System.currentTimeMillis();
-                if (mapId == 51 || MapService.gI().isMapDoanhTrai(mapId) || MapService.gI().isMapBlackBallWar(mapId) || MapService.gI().isMapSieuThanhThuy(mapId) || MapService.gI().isMapMabu2H(mapId)) {
+                if (mapId == 51 || MapService.gI().isMapDoanhTrai(mapId) || MapService.gI().isMapBlackBallWar(mapId) || MapService.gI().isMapSieuThanhThuy(mapId) || MapService.gI().isMapMabu2H(mapId)
+                        || MapService.gI().isMapUpVang(mapId)) {
                     mapId = player.gender + 21;
                     player.location.x = 300;
                     player.location.y = 336;
@@ -306,15 +314,19 @@ public class AmodsubVN {
                     player.location.y = 336;
                     Logger.log("[NRO] Đưa người chơi không đủ điều kiện khỏi Đông Nam Karin khi đăng nhập: " + player.name);
                 }
-                // Lãnh địa Bang Hội là map phó bản tạm, thoát ra khi tắt game không được giữ vị trí.
-                if (MapService.gI().isMapLanhDiaBangHoi(mapId)) {
-                    mapId = ConstMap.DAO_KAME;
-                    player.location.x = 1156;
-                    player.location.y = 408;
-                    Logger.log("[NRO] Đưa người chơi về Đảo Kame sau khi thoát ở Lãnh địa Bang Hội: " + player.name);
-                }
 
                 player.zone = MapService.gI().getMapCanJoin(player, mapId, -1);
+                if (player.zone == null) {
+                    int homeMapId = player.gender + 21;
+                    player.location.x = 300;
+                    player.location.y = 336;
+                    player.zone = MapService.gI().getMapCanJoin(player, homeMapId, -1);
+                    if (player.zone == null) {
+                        player.zone = MapService.gI().getMapCanJoin(player, 0, -1);
+                    }
+                    Logger.warning("[NRO] Bản đồ ID " + mapId + " không tồn tại hoặc đã bị xóa. Đã tự động chuyển player " + player.name + " về nhà an toàn (Map " + homeMapId + ")");
+                    player.notify = "Bản đồ trước đó không còn tồn tại. Bạn đã được tự động đưa về Nhà an toàn!";
+                }
             } catch (Exception e) {
                 Logger.error(e + "\n");
             }
@@ -612,24 +624,25 @@ public class AmodsubVN {
                 timeMayDo = Integer.parseInt(String.valueOf(dataArray.get(11)));
             }
             if (dataArray.size() > 12) {
-                timeKhoBauX2 = Integer.parseInt(String.valueOf(dataArray.get(12)));
+                timeCoBonLa = Long.parseLong(String.valueOf(dataArray.get(12)));
             }
             if (dataArray.size() > 13) {
+                timeKhoBauX2 = Integer.parseInt(String.valueOf(dataArray.get(13)));
             }
             if (dataArray.size() > 14) {
-    timeBuaSanta = Long.parseLong(String.valueOf(dataArray.get(14)));
-}
+                timeBuaSanta = Long.parseLong(String.valueOf(dataArray.get(14)));
+            }
             if (dataArray.size() > 15) {
-                iconMeal = Integer.parseInt(String.valueOf(dataArray.get(15)));
+                timeMeal = Integer.parseInt(String.valueOf(dataArray.get(15)));
             }
             if (dataArray.size() > 16) {
-                timeUseTDLT = Integer.parseInt(String.valueOf(dataArray.get(16)));
+                iconMeal = Integer.parseInt(String.valueOf(dataArray.get(16)));
             }
             if (dataArray.size() > 17) {
-                timeUseCMS = Integer.parseInt(String.valueOf(dataArray.get(17)));
+                timeUseTDLT = Integer.parseInt(String.valueOf(dataArray.get(17)));
             }
             if (dataArray.size() > 18) {
-                timeUseGTPT = Integer.parseInt(String.valueOf(dataArray.get(18)));
+                timeUseCMS = Integer.parseInt(String.valueOf(dataArray.get(18)));
             }
             if (dataArray.size() > 19) {
                 timeUseDK = Integer.parseInt(String.valueOf(dataArray.get(19)));
@@ -643,27 +656,24 @@ public class AmodsubVN {
             if (dataArray.size() > 22) {
                 iconMeal2 = Integer.parseInt(String.valueOf(dataArray.get(22)));
             }
-            if (dataArray.size() > 23) {
-            }
             if (dataArray.size() > 24) {
                 timeUseNCD = Integer.parseInt(String.valueOf(dataArray.get(24)));
             }
-//             if (dataArray.size() > 25) {
-//     timeBuaSanta = Long.parseLong(String.valueOf(dataArray.get(25)));
-// }
+            if (dataArray.size() > 25) {
+                timeNuocMia1 = Long.parseLong(String.valueOf(dataArray.get(25)));
+            }
             if (dataArray.size() > 26) {
-                timeKilis = (int) Long.parseLong(String.valueOf(dataArray.get(26)));
+                timeNuocMia2 = Long.parseLong(String.valueOf(dataArray.get(26)));
             }
             if (dataArray.size() > 27) {
-                timeNuocMia1 = (int) Long.parseLong(String.valueOf(dataArray.get(27)));
+                timeNuocMia3 = Long.parseLong(String.valueOf(dataArray.get(27)));
             }
             if (dataArray.size() > 28) {
-                timeNuocMia2 = (int) Long.parseLong(String.valueOf(dataArray.get(28)));
+                timeKilis = Long.parseLong(String.valueOf(dataArray.get(28)));
             }
+            long timeKhauTrang = 0;
             if (dataArray.size() > 29) {
-    timeNuocMia3 = (int) Long.parseLong(String.valueOf(dataArray.get(29)));
-}
-            if (dataArray.size() > 30) {
+                timeKhauTrang = Long.parseLong(String.valueOf(dataArray.get(29)));
             }
             if (dataArray.size() > 31) {
                 timeUsableItem = Long.parseLong(String.valueOf(dataArray.get(31)));
@@ -676,6 +686,14 @@ public class AmodsubVN {
             }
             if (dataArray.size() > 34) {
                 usableItemOptionsData = String.valueOf(dataArray.get(34));
+            }
+            long timePhieuSaoVang = 0;
+            int iconPhieuSaoVang = 1959;
+            if (dataArray.size() > 35) {
+                timePhieuSaoVang = Long.parseLong(String.valueOf(dataArray.get(35)));
+            }
+            if (dataArray.size() > 36) {
+                iconPhieuSaoVang = Integer.parseInt(String.valueOf(dataArray.get(36)));
             }
 
             player.itemTime.lastTimeBoHuyet = System.currentTimeMillis() - (ItemTime.TIME_ITEM - timeBoHuyet);
@@ -703,6 +721,7 @@ public class AmodsubVN {
             player.itemTime.lastTimeUseRX = System.currentTimeMillis();
             player.itemTime.lastTimeEatMeal2 = System.currentTimeMillis() - (ItemTime.TIME_EAT_MEAL - timeMeal2);
             player.itemTime.lastTimeUseNCD = System.currentTimeMillis() - (ItemTime.TIME_NCD - timeUseNCD);
+            player.itemTime.lastTimeKhauTrang = System.currentTimeMillis() - (ItemTime.TIME_KHAU_TRANG - timeKhauTrang);
 
             player.itemTime.iconMeal = iconMeal;
             player.itemTime.isEatMeal = timeMeal != 0;
@@ -716,6 +735,8 @@ public class AmodsubVN {
             player.itemTime.isUseGiapXen2 = timeGiapXen2 != 0;
             player.itemTime.isUseCuongNo2 = timeCuongNo2 != 0;
             player.itemTime.isUseAnDanh2 = timeAnDanh2 != 0;
+            player.itemTime.isUseCoBonLa = timeCoBonLa > 0;
+            player.itemTime.isUseKhauTrang = timeKhauTrang > 0;
             player.itemTime.isUseUsableItem = timeUsableItem > 0;
             player.itemTime.lastTimeUseUsableItem = System.currentTimeMillis();
             player.itemTime.timeLengthUsableItem = Math.max(0, timeUsableItem);
@@ -742,33 +763,38 @@ public class AmodsubVN {
             player.itemTime.isUseGTPT = timeUseGTPT != 0;
             player.itemTime.isUseDK = timeUseDK != 0;
             player.itemTime.isUseRX = timeUseRX != 0;
-            player.itemTime.iconMeal2 = iconMeal2;
-            player.itemTime.isEatMeal2 = timeMeal2 != 0;
             player.itemTime.isUseNCD = timeUseNCD != 0;
-            player.itemTime.isUseKilis = timeKilis != 0;
             player.itemTime.isUseNuocMia1 = timeNuocMia1 != 0;
             player.itemTime.isUseNuocMia2 = timeNuocMia2 != 0;
             player.itemTime.isUseNuocMia3 = timeNuocMia3 != 0;
+            player.itemTime.isUseKilis = timeKilis != 0;
+            player.itemTime.isUsePhieuSaoVang = timePhieuSaoVang > 0;
+            player.itemTime.remainingPhieuSaoVangTime = Math.max(0, timePhieuSaoVang);
+            player.itemTime.lastTimeUpdatePhieuSaoVang = 0;
+            player.itemTime.iconPhieuSaoVang = iconPhieuSaoVang > 0 ? iconPhieuSaoVang : 1959;
+            player.itemTime.iconMeal2 = iconMeal2;
+            player.itemTime.isEatMeal2 = timeMeal2 != 0;
             dataArray.clear();
 
             //data nhiệm vụ
             dataArray = (JSONArray) JSONValue.parse(rs.getString("data_task"));
             TaskMain taskMain = TaskService.gI().getTaskMainById(player, Byte.parseByte(String.valueOf(dataArray.get(0))));
-            taskMain.index = Byte.parseByte(String.valueOf(dataArray.get(1)));
-            taskMain.subTasks.get(taskMain.index).count = Short.parseShort(String.valueOf(dataArray.get(2)));
-            if (dataArray.size() > 3) {
-                taskMain.lastTime = Long.parseLong(String.valueOf(dataArray.get(3)));
-            } else {
-                taskMain.lastTime = System.currentTimeMillis();
+            if (taskMain != null && taskMain.subTasks != null && !taskMain.subTasks.isEmpty()) {
+                byte taskIndex = Byte.parseByte(String.valueOf(dataArray.get(1)));
+                if (taskIndex >= taskMain.subTasks.size()) {
+                    taskIndex = (byte) (taskMain.subTasks.size() - 1);
+                } else if (taskIndex < 0) {
+                    taskIndex = 0;
+                }
+                taskMain.index = taskIndex;
+                taskMain.subTasks.get(taskMain.index).count = Short.parseShort(String.valueOf(dataArray.get(2)));
+                if (dataArray.size() > 3) {
+                    taskMain.lastTime = Long.parseLong(String.valueOf(dataArray.get(3)));
+                } else {
+                    taskMain.lastTime = System.currentTimeMillis();
+                }
+                player.playerTask.taskMain = taskMain;
             }
-            if (dataArray.size() > 4) {
-                player.playerTask.fastMainTask.usedCount = Integer.parseInt(String.valueOf(dataArray.get(4)));
-            }
-            if (dataArray.size() > 5) {
-                player.playerTask.fastMainTask.lastTime = Long.parseLong(String.valueOf(dataArray.get(5)));
-            }
-            player.playerTask.fastMainTask.renew();
-            player.playerTask.taskMain = taskMain;
             dataArray.clear();
 
             //data nhiệm vụ hàng ngày
@@ -1066,8 +1092,8 @@ public class AmodsubVN {
                 player.lastTimePKDHVT23 = Long.parseLong(dataArray.get(4).toString());
             } catch (Exception e) {
                 player.levelWoodChest = 0;
-                player.goldChallenge = 50000000;
-                player.rubyChallenge = 100;
+                player.goldChallenge = 50_000;
+                player.rubyChallenge = 10;
                 player.lastTimeRewardWoodChest = System.currentTimeMillis();
                 player.lastTimePKDHVT23 = 0;
             }

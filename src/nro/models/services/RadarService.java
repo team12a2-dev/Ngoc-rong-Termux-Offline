@@ -60,7 +60,7 @@ public class RadarService {
                 m.writer().writeByte(card.Used);  //use
                 m.writer().writeByte(radar.Options.size());  //option radar
                 for (OptionCard option : radar.Options) {
-                    m.writer().writeByte(option.id);  //id
+                    m.writer().writeShort(option.id);  //id
                     m.writer().writeShort(option.param);  //param
                     m.writer().writeByte(option.active);  //ActiveCard
                 }

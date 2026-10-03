@@ -1,19 +1,16 @@
 package nro.models.data;
 
-import nro.models.utils.Logger;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.util.Collections;
-import java.util.Properties;
 import java.sql.ResultSet;
 import java.sql.PreparedStatement;
 import java.io.FileInputStream;
+import java.util.Properties;
 import java.sql.SQLException;
 import java.sql.Connection;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import nro.models.data.ResultSetImpl;
 import java.io.IOException;
+import nro.models.utils.Logger;
 import nro.models.data.LocalResultSet;
 
 public class LocalManager {
@@ -28,7 +25,6 @@ public class LocalManager {
     private static int MIN_CONN;
     private static int MAX_CONN;
     private static long MAX_LIFE_TIME;
-    private static final String LOCAL_DB_HOST = "127.0.0.1";
     public static boolean LOG_QUERY;
     private static HikariConfig config;
     private static HikariDataSource ds;
@@ -61,7 +57,9 @@ public class LocalManager {
     private static void loadProperties() {
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream("Config.properties"));
+            try (java.io.InputStreamReader reader = new java.io.InputStreamReader(new FileInputStream("Config.properties"), java.nio.charset.StandardCharsets.UTF_8)) {
+                properties.load(reader);
+            }
             Object value;
             if ((value = properties.get("database.driver")) != null) {
                 DRIVER = String.valueOf(value);
@@ -70,7 +68,7 @@ public class LocalManager {
                 DRIVER = "org.mariadb.jdbc.Driver";
             }
             if ((value = properties.get("database.host")) != null) {
-                DB_HOST = resolveDbHost(String.valueOf(value));
+                DB_HOST = String.valueOf(value);
             }
             if ((value = properties.get("database.port")) != null) {
                 DB_PORT = String.valueOf(value);
@@ -102,58 +100,6 @@ public class LocalManager {
         } finally {
             properties.clear();
         }
-    }
-
-    /**
-     * MariaDB do launcher quản lý chỉ bind 127.0.0.1 và chỉ cấp quyền cho
-     * 'user'@'localhost' + 'user'@'127.0.0.1'. Nếu database.host trỏ về địa
-     * chỉ của chính máy này (IP Wi-Fi, IP 4G) thì MariaDB từ chối với
-     * "Host ... is not allowed to connect". Khi đó ép về loopback.
-     * Host MariaDB ở máy khác vẫn được giữ nguyên.
-     */
-    private static String resolveDbHost(String host) {
-        if (host == null || host.trim().isEmpty()) {
-            return LOCAL_DB_HOST;
-        }
-        String trimmed = host.trim();
-        if (trimmed.equalsIgnoreCase("localhost") || "::1".equals(trimmed) || trimmed.startsWith("127.")) {
-            return trimmed;
-        }
-        if (!isIpLiteral(trimmed)) {
-            return trimmed;
-        }
-        try {
-            InetAddress target = InetAddress.getByName(trimmed);
-            if (target.isLoopbackAddress()) {
-                return trimmed;
-            }
-            for (NetworkInterface nic : Collections.list(NetworkInterface.getNetworkInterfaces())) {
-                for (InetAddress local : Collections.list(nic.getInetAddresses())) {
-                    if (local.equals(target)) {
-                        Logger.log(Logger.YELLOW, "database.host=" + trimmed
-                                + " là IP của chính máy này nhưng MariaDB chỉ nghe " + LOCAL_DB_HOST
-                                + "; chuyển sang " + LOCAL_DB_HOST + "\n");
-                        return LOCAL_DB_HOST;
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            return trimmed;
-        }
-        return trimmed;
-    }
-
-    private static boolean isIpLiteral(String host) {
-        if (host.indexOf(':') >= 0) {
-            return true;
-        }
-        for (int i = 0; i < host.length(); i++) {
-            char c = host.charAt(i);
-            if (c != '.' && (c < '0' || c > '9')) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public static LocalResultSet executeQuery(final String query) throws Exception {
@@ -227,6 +173,7 @@ public class LocalManager {
 
     private static HikariConfig createConfig(String poolName, String databaseName) {
     HikariConfig config = new HikariConfig();
+
     config.setDriverClassName(DRIVER);
 
     config.setJdbcUrl(String.format(
@@ -242,8 +189,7 @@ public class LocalManager {
 
     config.setMaxLifetime(MAX_LIFE_TIME);
     config.setConnectionTimeout(30000);
-    // HikariCP bỏ qua idleTimeout nếu nó >= maxLifetime, nên phải luôn nhỏ hơn.
-    config.setIdleTimeout(Math.max(30000L, Math.min(600000L, MAX_LIFE_TIME / 2)));
+    config.setIdleTimeout(600000);
     config.setValidationTimeout(5000);
 
     config.setConnectionTestQuery("SELECT 1");

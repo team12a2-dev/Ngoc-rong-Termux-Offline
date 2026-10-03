@@ -1,5 +1,7 @@
 package nro.models.player;
 
+import nro.models.server.Manager;
+import nro.models.player_system.Template.Part;
 import nro.models.consts.ConstPlayer;
 import nro.models.item.Item;
 import nro.models.map.service.MapService;
@@ -16,6 +18,7 @@ import nro.models.map.service.ChangeMapService;
 import nro.models.utils.TimeUtil;
 import java.util.List;
 import nro.models.consts.ConstAchievement;
+
 import nro.models.services.AchievementService;
 import nro.models.services_func.UseItem;
 
@@ -70,7 +73,8 @@ public class Pet extends Player {
         if (status != GOHOME && status != FUSION && !isDie()) {
             this.location.x = master.location.x + Util.nextInt(-10, 10);
             this.location.y = master.location.y;
-            if (MapService.gI().isMapOffline(this.master.zone.map.mapId) || this.master.zone.map.mapId == 113) {
+            if (MapService.gI().isMapOffline(this.master.zone.map.mapId) || this.master.zone.map.mapId == 113
+                    || MapService.gI().isMapUpVang(this.master.zone.map.mapId)) {
                 ChangeMapService.gI().goToMap(this, MapService.gI().getMapCanJoin(this, master.gender + 21, -1));
                 return;
             }
@@ -270,6 +274,7 @@ public class Pet extends Player {
         Service.gI().Send_Caitrang(master);
         Service.gI().point(master);
         this.lastTimeUnfusion = System.currentTimeMillis();
+        Service.gI().chatJustForMe(master, this, getTextStatus(this.status));
     }
 
     private void fusionEffect(int type) {
@@ -523,9 +528,12 @@ public class Pet extends Player {
                                 case 23 -> directAtHome == -1 ? new int[] {250, 336} : new int[] {200, 336};
                                 default -> new int[] {200, 336};
                             };
-                            PlayerService.gI().playerMove(this, coords[0], coords[1]);
-                            directAtHome *= -1;
-                            Service.gI().chatJustForMe(master, this, "Là do bạn không chơi đồ đấy bạn ạ!");
+                            String[] homeChats = new String[] {
+                                "Sư phụ về rồi à!",
+                                "Con đang chăm chỉ luyện tập ở nhà đây sư phụ!",
+                                "Nhà cửa vẫn yên ổn sư phụ yên tâm nhé!"
+                            };
+                            Service.gI().chatJustForMe(master, this, homeChats[Util.nextInt(0, homeChats.length - 1)]);
                             lastTimeMoveAtHome = System.currentTimeMillis();
                         }
                     }
@@ -786,7 +794,7 @@ public class Pet extends Player {
         if (effectSkill != null && effectSkill.isMonkey) {
             return (short) ConstPlayer.HEADMONKEY[effectSkill.levelMonkey - 1];
         } else if (effectSkill != null && effectSkill.isSocola) {
-            return 412;
+            return (short) (effectSkill.typeSocola == 1 ? 406 : 412);
         } else if (this.typePet == 1) {
             return 297;
         } else if (this.typePet == 2) {
@@ -822,7 +830,7 @@ public class Pet extends Player {
         if (effectSkill != null && effectSkill.isMonkey) {
             return 193;
         } else if (effectSkill != null && effectSkill.isSocola) {
-            return 413;
+            return (short) (effectSkill.typeSocola == 1 ? 407 : 413);
         } else if (this.typePet == 1 && !this.isTransform) {
             return 298;
         } else if (this.typePet == 2 && !this.isTransform) {
@@ -861,7 +869,7 @@ public class Pet extends Player {
         if (effectSkill != null && effectSkill.isMonkey) {
             return 194;
         } else if (effectSkill != null && effectSkill.isSocola) {
-            return 414;
+            return (short) (effectSkill.typeSocola == 1 ? 408 : 414);
         } else if (this.typePet == 1 && !this.isTransform) {
             return 299;
         } else if (this.typePet == 2 && !this.isTransform) {

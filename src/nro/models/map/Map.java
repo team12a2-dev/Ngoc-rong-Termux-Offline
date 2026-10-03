@@ -21,7 +21,6 @@ import nro.models.npc.NpcFactory;
 import nro.models.player.Player;
 import nro.models.server.Manager;
 import nro.models.services.Service;
-import nro.models.map.service.MapService;
 import nro.models.utils.Functions;
 import nro.models.utils.Util;
 import java.util.ArrayList;
@@ -180,9 +179,12 @@ public class Map implements Runnable {
                     && (templateId == ConstNpc.HUNG_VUONG || templateId == ConstNpc.NOI_BANH);
             boolean phoAnhHaiDisabled = !EventManager.gI().isPhoAnhHaiRuntimeEnabled()
                     && templateId == ConstNpc.PHO_ANH_HAI;
-            boolean boMongDisabledAtHome = templateId == ConstNpc.BO_MONG
-                    && MapService.gI().isHome(this.mapId);
-            if (hungVuongDisabled || phoAnhHaiDisabled || boMongDisabledAtHome) {
+            if (hungVuongDisabled || phoAnhHaiDisabled) {
+                continue;
+            }
+            if (templateId == ConstNpc.BO_MONG && (this.mapId == ConstMap.NHA_GOHAN
+                    || this.mapId == ConstMap.NHA_MOORI
+                    || this.mapId == ConstMap.NHA_BROLY)) {
                 continue;
             }
             Npc npc = NpcFactory.createNPC(this.mapId, 1, npcX[i], npcY[i], npcId[i]);
@@ -205,7 +207,7 @@ public class Map implements Runnable {
             } catch (Exception e) {
                 Logger.logException(Map.class, e, "Lỗi update map " + this.mapName);
             }
-        }, 0, 5000, TimeUnit.MILLISECONDS);  // Cập nhật mỗi 1 giây
+        }, 0, 5000, TimeUnit.MILLISECONDS); // Cập nhật mỗi 1 giây
     }
 
     public void initMob(byte[] mobTemp, byte[] mobLevel, int[] mobHp, short[] mobX, short[] mobY) {
@@ -277,7 +279,7 @@ public class Map implements Runnable {
                     trap.y = 960;
                     trap.w = 740;
                     trap.h = 72;
-                    trap.effectId = 49; //xiên
+                    trap.effectId = 49; // xiên
                     zone.trapMaps.add(trap);
                 }
 
@@ -301,19 +303,19 @@ public class Map implements Runnable {
                     itemMap = new ItemMap(zone, 78, 1, 70, 264, -1);
                 case 44 ->
                     itemMap = new ItemMap(zone, 78, 1, 70, 288, -1);
-                case 85 -> //1 sao đen
+                case 85 -> // 1 sao đen
                     itemMap = new ItemMap(zone, 372, 1, 0, 0, -1);
-                case 86 -> //2 sao đen
+                case 86 -> // 2 sao đen
                     itemMap = new ItemMap(zone, 373, 1, 0, 0, -1);
-                case 87 -> //3 sao đen
+                case 87 -> // 3 sao đen
                     itemMap = new ItemMap(zone, 374, 1, 0, 0, -1);
-                case 88 -> //4 sao đen
+                case 88 -> // 4 sao đen
                     itemMap = new ItemMap(zone, 375, 1, 0, 0, -1);
-                case 89 -> //5 sao đen
+                case 89 -> // 5 sao đen
                     itemMap = new ItemMap(zone, 376, 1, 0, 0, -1);
-                case 90 -> //6 sao đen
+                case 90 -> // 6 sao đen
                     itemMap = new ItemMap(zone, 377, 1, 0, 0, -1);
-                case 91 -> //7 sao đen
+                case 91 -> // 7 sao đen
                     itemMap = new ItemMap(zone, 378, 1, 0, 0, -1);
             }
         }
@@ -338,10 +340,10 @@ public class Map implements Runnable {
                     bossId = BossID.DRABURA_2;
                 case 120 ->
                     bossId = BossID.MABU_12H;
-                case 127 ->
-                    bossId = BossID.MABU;
-                case 128 ->
-                    bossId = BossID.SUPERBU;
+                // case 127 ->
+                // bossId = BossID.MABU;
+                // case 128 ->
+                // bossId = BossID.SUPERBU;
                 case 131 ->
                     bossId = BossID.TAN_BINH_5;
                 case 132 ->
@@ -350,18 +352,13 @@ public class Map implements Runnable {
                     bossId = BossID.DOI_TRUONG_5;
             }
             if (bossId != -1) {
-                boolean mabu14H = MapService.gI().isMapMabu2H(this.mapId);
-                Boss boss = BossManager.gI().createBoss(bossId, !mabu14H);
+                Boss boss = BossManager.gI().createBoss(bossId);
                 if (boss == null) {
                     Logger.error("initBoss: không tạo được boss id=" + bossId + " trên map " + this.mapId + "\n");
                     continue;
                 }
                 boss.zoneFinal = zone;
                 boss.setLastTimeRest(System.currentTimeMillis());
-                if (mabu14H) {
-                    MajinBuu14HService.gI().registerEventBoss(zone, boss);
-                    continue;
-                }
                 if (boss.currentLevel < 0) {
                     boss.respawn();
                 } else {
@@ -392,14 +389,15 @@ public class Map implements Runnable {
 
     public Npc getNpc(Player player, int tempId) {
         for (Npc npc : npcs) {
-            if (npc.tempId == tempId && (MapService.gI().isMapBlackBallWar(mapId) || Util.getDistance(player, npc) <= 60)) {
+            if (npc.tempId == tempId
+                    && (MapService.gI().isMapBlackBallWar(mapId) || Util.getDistance(player, npc) <= 60)) {
                 return npc;
             }
         }
         return null;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     public int yPhysicInTop(int x, int y) {
         try {
             int rX = x / SIZE;
@@ -468,31 +466,31 @@ public class Map implements Runnable {
         if (tileMap[ysd][xsd] != 0) {
             if (tileMap[ysd - p][xsd] != 0) {
                 if (tileMap[LastY(player.location.x, player.location.y - p * 24) / 24][xsd] != 0) {
-                    return new int[]{
-                        player.xSend,
-                        player.ySend
+                    return new int[] {
+                            player.xSend,
+                            player.ySend
                     };
                 } else {
-                    return new int[]{
-                        player.xSend,
-                        LastY(player.location.x, 120)
+                    return new int[] {
+                            player.xSend,
+                            LastY(player.location.x, 120)
                     };
                 }
             }
-            return new int[]{
-                player.location.x,
-                ysd
+            return new int[] {
+                    player.location.x,
+                    ysd
             };
         }
         if (LastY(player.location.x, player.location.y) >= pxh - 24) {
-            return new int[]{
-                player.xSend,
-                player.ySend
+            return new int[] {
+                    player.xSend,
+                    player.ySend
             };
         }
-        return new int[]{
-            player.location.x,
-            ysd
+        return new int[] {
+                player.location.x,
+                ysd
         };
     }
 

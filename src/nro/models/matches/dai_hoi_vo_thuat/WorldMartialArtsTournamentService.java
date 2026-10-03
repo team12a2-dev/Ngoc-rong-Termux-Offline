@@ -17,11 +17,11 @@ public class WorldMartialArtsTournamentService extends ConstTournament {
     public static int getTournament() {
         int hours = TimeUtil.getCurrHour();
         switch (hours) {
-            case 8, 14, 18 -> {
-                return NGOAI_HANG;
+            case 8, 13, 18 -> {
+                return NHI_DONG;
             }
-            case 9, 13, 19 -> {
-                return NGOAI_HANG;
+            case 9, 14, 19 -> {
+                return SIEU_CAP_1;
             }
             case 10, 15, 20 -> {
                 return SIEU_CAP_2;
@@ -132,15 +132,15 @@ public class WorldMartialArtsTournamentService extends ConstTournament {
     }
 
     public static void dangky_huy(Npc npc, Player player) {
-          if (player.playerTask.taskMain.id < 27) {
-        NpcService.gI().createTutorial(
-                player,
-                npc.tempId,
-                npc.avartar,
-                "Bạn cần hoàn thành nhiệm vụ 27 mới có thể đăng ký Đại Hội Võ Thuật"
-        );
-        return;
-    }
+        if (player.playerTask.taskMain.id < 17) {
+            NpcService.gI().createTutorial(
+                    player,
+                    npc.tempId,
+                    npc.avartar,
+                    "Bạn cần hoàn thành nhiệm vụ 17 mới có thể đăng ký Đại Hội Võ Thuật"
+            );
+            return;
+        }
         if (WorldMartialArtsTournamentManager.gI().listChamp.contains(player.name)) {
             NpcService.gI().createTutorial(player, npc.tempId, npc.avartar, TEXT_DA_VO_DICH);
             return;
@@ -211,7 +211,19 @@ public class WorldMartialArtsTournamentService extends ConstTournament {
             WorldMartialArtsTournamentManager.gI().listReg.add(player.id);
             NpcService.gI().createTutorial(player, npc.tempId, npc.avartar, ConstTournament.TEXT_DANG_KY_THANH_CONG.replaceAll("%1", TimeUtil.getCurrHour() + "").replaceAll("%2", TimeUtil.getCurrHour() + "h" + TimeUtil.getCurrMin()));
         } else {
-            // Hủy đăng ký
+            // Hủy đăng ký và hoàn trả lệ phí
+            int tour = getTournament();
+            if (tour != -1) {
+                int gold = tournamentGolds[tour];
+                int gem = tournamentGems[tour];
+                if (gold > 0) {
+                    player.inventory.addGold(gold);
+                }
+                if (gem > 0) {
+                    player.inventory.gem += gem;
+                }
+                Service.gI().sendMoney(player);
+            }
             WorldMartialArtsTournamentManager.gI().listReg.remove(player.id);
             NpcService.gI().createTutorial(player, npc.tempId, npc.avartar, ConstTournament.TEXT_HUY_DANG_KY);
         }

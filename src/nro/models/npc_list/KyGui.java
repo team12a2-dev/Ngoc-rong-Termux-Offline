@@ -26,7 +26,7 @@ public class KyGui extends Npc {
             switch (select) {
                 case 0 ->
                     NpcService.gI().createTutorial(pl, tempId, avartar,
-                            "Cửa hàng chuyên nhận ký gửi mua bán vật phẩm\bChỉ với 5 ngọc\bGiá trị ký gửi 10k-200Tr vàng hoặc 2-2k ngọc\bMột người bán, vạn người mua, mại dô, mại dô");
+                            "Cửa hàng chuyên nhận ký gửi mua bán vật phẩm\bPhí đăng bán: 5.000.000 vàng và 5 ngọc\bNhận lại vàng trực tiếp khi bán thành công (chiết khấu 10%)\bMột người bán, vạn người mua, mại dô!");
                 case 1 -> {
                     if (pl.getSession().actived) {
                         ConsignShopService.gI().openShopKyGui(pl);

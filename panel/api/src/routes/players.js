@@ -759,4 +759,45 @@ router.post('/:id/buff-vnd', requirePermission('player.buff'), async (req, res) 
   }
 });
 
+
+// Cứu kẹt map / tọa độ cho nhân vật
+router.post('/:id/rescue', requirePermission('player.edit'), async (req, res) => {
+  try {
+    const rows = await query('SELECT id, name, gender FROM player WHERE id = ? LIMIT 1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ ok: false, error: 'Player không tồn tại' });
+    const pl = rows[0];
+    // Map về nhà theo tộc: 0: Trái Đất (Map 0), 1: Namec (Map 7), 2: Xayda (Map 14)
+    const homeMap = pl.gender === 1 ? 7 : pl.gender === 2 ? 14 : 0;
+    const defaultLocation = JSON.stringify([100, 300, homeMap]);
+
+    await query('UPDATE player SET data_location = ? WHERE id = ?', [defaultLocation, pl.id]);
+
+    // Thử kick nếu đang online để khi đăng nhập lại nhận tọa độ mới
+    try {
+      const sid = Number(req.body?.serverId || await getDefaultServerId());
+      await agentPost(sid, `/players/${encodeURIComponent(pl.name)}/kick`, {});
+    } catch {}
+
+    await auditLog({ userId: req.user.id, action: 'player.rescue', target: pl.name, ip: req.ip });
+    res.json({ ok: true, message: `Đã cứu kẹt thành công cho ${pl.name} về làng chính (Map ${homeMap})!` });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Reset mật khẩu cho account của nhân vật
+router.post('/:id/reset-password', requirePermission('account.manage'), async (req, res) => {
+  const { password } = req.body || {};
+  if (!password || !password.trim()) return res.status(400).json({ ok: false, error: 'Cần nhập mật khẩu mới' });
+  try {
+    const rows = await query('SELECT account_id, name FROM player WHERE id = ? LIMIT 1', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ ok: false, error: 'Player không tồn tại' });
+    await query('UPDATE account SET password = ? WHERE id = ?', [password.trim(), rows[0].account_id]);
+    await auditLog({ userId: req.user.id, action: 'account.reset_password', target: rows[0].name, ip: req.ip });
+    res.json({ ok: true, message: `Đã đổi mật khẩu cho tài khoản của ${rows[0].name} thành công!` });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 export default router;

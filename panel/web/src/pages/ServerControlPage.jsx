@@ -639,13 +639,44 @@ export default function ServerControlPage() {
           </div>
         </div>
 
-        <div className="control-card">
-          <h3>Hot Reload</h3>
-          <p className="card-hint">Tải lại dữ liệu in-memory sau khi sửa DB hoặc file config — không cần restart server.</p>
-          <div className="action-grid">
-            <button className="btn" onClick={() => call('/reload/shop', {}, 'Reload shop OK')}>Reload Shop</button>
-            <button className="btn" onClick={() => call('/reload/giftcode', {}, 'Reload giftcode OK')}>Reload Giftcode</button>
-            <button className="btn" onClick={() => call('/reload/boss-spawn', {}, 'Reload boss spawn OK')}>Reload Boss Spawn</button>
+        <div className="control-card" style={{ gridColumn: 'span 2' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div>
+              <h3 style={{ margin: 0 }}>⚡ Hot Reload &amp; Đồng Bộ Tài Nguyên</h3>
+              <p className="card-hint" style={{ margin: 0 }}>Nạp lại dữ liệu in-memory sau khi cập nhật Database MySQL — hoạt động tức thì mà không cần khởi động lại Game Server.</p>
+            </div>
+            <button
+              type="button"
+              className="btn primary"
+              style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', fontWeight: 'bold', boxShadow: '0 0 12px rgba(16, 185, 129, 0.4)' }}
+              onClick={() => call('/reload/all', {}, 'Đồng bộ thành công TOÀN BỘ tài nguyên lên Game Server!')}
+              title="Đồng bộ đồng thời Shop, Giftcode, Items, Drops, Boss, Usable, Events, GodSpin"
+            >
+              🚀 Đồng Bộ Tất Cả (Full Reload)
+            </button>
+          </div>
+
+          <div className="action-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '8px' }}>
+            <button className="btn" onClick={() => call('/reload/shop', {}, 'Reload Shop OK')}>🛒 Reload Shop</button>
+            <button className="btn" onClick={() => call('/reload/giftcode', {}, 'Reload Giftcode OK')}>🎁 Reload Giftcode</button>
+            <button className="btn" onClick={() => call('/reload/items', {}, 'Reload Items OK')}>📦 Reload Items</button>
+            <button className="btn" onClick={() => call('/reload/boss-spawn', {}, 'Reload Boss Spawn OK')}>👹 Reload Boss Spawn</button>
+            <button className="btn" onClick={() => call('/reload/drop-config', {}, 'Reload Tỷ Lệ Drop OK')}>💎 Reload Drop Config</button>
+            <button className="btn" onClick={() => call('/reload/usable-items', {}, 'Reload Usable Items OK')}>🧪 Reload Usable Items</button>
+            <button className="btn" onClick={() => call('/reload/events', {}, 'Reload Events OK')}>🎪 Reload Events</button>
+            <button className="btn" onClick={() => call('/reload/god-spin', {}, 'Reload God Spin OK')}>🎡 Reload God Spin</button>
+            <button className="btn" onClick={() => call('/reload/clan', {}, 'Reload Clan OK')}>🛡️ Reload Clan</button>
+            <button
+              className="btn danger"
+              onClick={() => {
+                if (confirm('KICK TOÀN BỘ người chơi online khỏi server?')) {
+                  call('/players/kick-all', {}, 'Đã kick toàn bộ người chơi.');
+                }
+              }}
+              title="Kick tất cả người chơi để dọn kết nối socket hoặc chuẩn bị restart"
+            >
+              ⛔ Kick All Players
+            </button>
           </div>
         </div>
       </div>

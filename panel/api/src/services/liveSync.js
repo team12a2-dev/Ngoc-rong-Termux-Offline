@@ -46,7 +46,9 @@ export async function reloadClans(serverId) {
 }
 
 const CONFIG_RELOAD = {
+  'Config.properties': 'config',
   'boss_spawn.properties': 'boss-spawn',
+  'maintenanceConfig.txt': 'maintenance',
 };
 
 export async function reloadAfterConfigSave(fileName, serverId) {

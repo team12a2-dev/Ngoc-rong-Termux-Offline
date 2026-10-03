@@ -379,6 +379,11 @@ break;
                         PlayerService.gI().sendInfoHpMpMoney(this.playerSummonShenron);
                         break;
                     case 2: //+200 tr smtn
+                        if (nro.models.services.ServerLaunchConfigService.gI().isBlockShenronPowerWish()) {
+                            Service.gI().sendThongBao(playerSummonShenron, "Điều ước ban thêm sức mạnh đang tạm khóa trong thời gian đua top!");
+                            reOpenShenronWishes(playerSummonShenron);
+                            return;
+                        }
                         Service.gI().addSMTN(this.playerSummonShenron, (byte) 2, 200000000, false);
                         break;
                     case 3: //găng tay đệ lên 1 cấp
@@ -431,6 +436,11 @@ break;
                         PlayerService.gI().sendInfoHpMpMoney(this.playerSummonShenron);
                         break;
                     case 1: //+20 tr smtn
+                        if (nro.models.services.ServerLaunchConfigService.gI().isBlockShenronPowerWish()) {
+                            Service.gI().sendThongBao(playerSummonShenron, "Điều ước ban thêm sức mạnh đang tạm khóa trong thời gian đua top!");
+                            reOpenShenronWishes(playerSummonShenron);
+                            return;
+                        }
                         Service.gI().addSMTN(this.playerSummonShenron, (byte) 2, 20000000, false);
                         break;
                   case 2: // +200tr vàng
@@ -444,6 +454,11 @@ break;}
                         PlayerService.gI().sendInfoHpMpMoney(this.playerSummonShenron);
                         break;
                     case 1: //+2 tr smtn
+                        if (nro.models.services.ServerLaunchConfigService.gI().isBlockShenronPowerWish()) {
+                            Service.gI().sendThongBao(playerSummonShenron, "Điều ước ban thêm sức mạnh đang tạm khóa trong thời gian đua top!");
+                            reOpenShenronWishes(playerSummonShenron);
+                            return;
+                        }
                         Service.gI().addSMTN(this.playerSummonShenron, (byte) 2, 2000000, false);
                         break;
                    case 2: // +20tr vàng
@@ -456,7 +471,7 @@ break;
     }
 private void addGold(Player pl, long amount) {
     // 1. Khai báo giới hạn 20 tỷ (Dùng hậu tố L để chỉ định kiểu long)
-    long maxGold = 200000000000L; 
+    long maxGold = Inventory.LIMIT_GOLD; 
     long currentGold = pl.inventory.gold;
     
     // 2. Kiểm tra logic cộng vàng

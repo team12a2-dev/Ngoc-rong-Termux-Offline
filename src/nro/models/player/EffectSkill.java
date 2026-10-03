@@ -10,36 +10,37 @@ import nro.models.utils.Util;
  */
 public class EffectSkill {
     private Player player;
-    //thÃ¡i dÆ°Æ¡ng háº¡ san
+    //thái dương hạ san
     public boolean isStun;
     public long lastTimeStartStun;
     public int timeStun;
-    //khiÃªn nÄƒng lÆ°á»£ng
+    //khiên năng lượng
     public boolean isShielding;
+    public byte levelShield;
     public long lastTimeShieldUp;
     public int timeShield;
-    //biáº¿n khá»‰
+    //biến khỉ
     public boolean isMonkey;
     public byte levelMonkey;
     public long lastTimeUpMonkey;
     public int timeMonkey;
-    //BÃ¬nh
+    //Bình
     public boolean isBinh;
     public int typeBinh;
     public long lastTimeUpBinh;
     public int timeBinh;
     public Player playerUseMafuba;
-    //HÃ³a Ä‘Ã¡
+    //Hóa đá
     public boolean isStone;
     public long lastTimeStone;
     public int timeStone;
     //Mabu Hold
     public boolean isMabuHold;
-    //LÃ m cháº­m
+    //Làm chậm
     public boolean isLamCham;
     public long lastTimeLamCham;
     public int timeLamCham;
-    //TÃ n hÃ¬nh
+    //Tàng hình
     public boolean isTanHinh;
     public long lastTimeTanHinh;
     public int timeTanHinh;
@@ -55,17 +56,17 @@ public class EffectSkill {
     public boolean isChibi;
     public long lastTimeChibi;
     public int timeChibi;
-    //tÃ¡i táº¡o nÄƒng lÆ°á»£ng
+    //tái tạo năng lượng
     public boolean isCharging;
     public int countCharging;
-    //huÃ½t sÃ¡o
+    //huýt sáo
     public int tiLeHPHuytSao;
     public long lastTimeHuytSao;
-    //thÃ´i miÃªn
+    //thôi miên
     public boolean isThoiMien;
     public long lastTimeThoiMien;
     public int timeThoiMien;
-    //trÃ³i
+    //trói
     public boolean useTroi;
     public boolean anTroi;
     public long lastTimeTroi;
@@ -73,18 +74,15 @@ public class EffectSkill {
     public Player plTroi;
     public Player plAnTroi;
     public Mob mobAnTroi;
-    //dá»‹ch chuyá»ƒn tá»©c thá»i
+    //dịch chuyển tức thá»i
     public boolean isBlindDCTT;
     public long lastTimeBlindDCTT;
     public int timeBlindDCTT;
     //socola
     public boolean isSocola;
+    public int typeSocola; // 0: Socola (Mabu), 1: Củ Cà Rốt (Thỏ Đại Ca)
     public long lastTimeSocola;
     public int timeSocola;
-    /** Thỏ Đại Ca biến người chơi thành cà rốt; sức đánh bị giảm 15%. */
-    public boolean isCarrot;
-    public long lastTimeCarrot;
-    public int timeCarrot;
     public int countPem1hp;
     //halloween
     public boolean isHalloween;
@@ -109,6 +107,20 @@ public class EffectSkill {
     public long lastTimeDameBuff;
     public int timeDameBuff;
     public int tileDameBuff;
+    //Crit Buff (Option Wow)
+    public boolean isCritBuff;
+    public long lastTimeCritBuff;
+    public int timeCritBuff;
+    public int tileCritBuff;
+    //Giam Dame Buff (Option Ngau)
+    public boolean isGiamDameBuff;
+    public long lastTimeGiamDameBuff;
+    public int timeGiamDameBuff;
+    public int tileGiamDameBuff;
+    //Chong Lanh Buff
+    public boolean isChongLanhBuff;
+    public long lastTimeChongLanhBuff;
+    public int timeChongLanhBuff;
     public boolean isBodyChangeTechnique;
     boolean isXinbato;
 
@@ -157,8 +169,14 @@ public class EffectSkill {
         if (isDameBuff) {
             EffectSkillService.gI().removeDameBuff(this.player);
         }
-        if (isCarrot) {
-            EffectSkillService.gI().removeCarrot(this.player);
+        if (isCritBuff) {
+            EffectSkillService.gI().removeCritBuff(this.player);
+        }
+        if (isGiamDameBuff) {
+            EffectSkillService.gI().removeGiamDameBuff(this.player);
+        }
+        if (isChongLanhBuff) {
+            EffectSkillService.gI().removeChongLanhBuff(this.player);
         }
     }
 
@@ -186,9 +204,6 @@ public class EffectSkill {
         }
         if (isSocola && (Util.canDoWithTime(lastTimeSocola, timeSocola))) {
             EffectSkillService.gI().removeSocola(this.player);
-        }
-        if (isCarrot && Util.canDoWithTime(lastTimeCarrot, timeCarrot)) {
-            EffectSkillService.gI().removeCarrot(this.player);
         }
         if (tiLeHPHuytSao != 0 && Util.canDoWithTime(lastTimeHuytSao, 30000)) {
             EffectSkillService.gI().removeHuytSao(this.player);
@@ -226,10 +241,19 @@ public class EffectSkill {
         if (isDameBuff && Util.canDoWithTime(lastTimeDameBuff, timeDameBuff)) {
             EffectSkillService.gI().removeDameBuff(this.player);
         }
+        if (isCritBuff && Util.canDoWithTime(lastTimeCritBuff, timeCritBuff)) {
+            EffectSkillService.gI().removeCritBuff(this.player);
+        }
+        if (isGiamDameBuff && Util.canDoWithTime(lastTimeGiamDameBuff, timeGiamDameBuff)) {
+            EffectSkillService.gI().removeGiamDameBuff(this.player);
+        }
+        if (isChongLanhBuff && Util.canDoWithTime(lastTimeChongLanhBuff, timeChongLanhBuff)) {
+            EffectSkillService.gI().removeChongLanhBuff(this.player);
+        }
     }
 
     public boolean isHaveEffectSkill() {
-        return (isStun || isBlindDCTT || anTroi || isThoiMien || isStone || isMabuHold || isUseSkillMonkey) && !player.isDie();
+        return (isStun || isBlindDCTT || anTroi || isThoiMien || isStone || isSocola || isMabuHold || isUseSkillMonkey) && !player.isDie();
     }
 
     public void dispose() {

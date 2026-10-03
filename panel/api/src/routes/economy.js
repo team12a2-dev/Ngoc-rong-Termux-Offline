@@ -33,6 +33,12 @@ export const ECONOMY_TABS = {
     label: 'Chuyển khoản',
     searchColumn: 'username',
   },
+  consign: {
+    table: 'shop_ky_gui',
+    permission: 'logs.view',
+    label: 'Chợ ký gửi (Toàn server)',
+    searchColumn: 'player_id',
+  },
 };
 
 function parseLimit(raw) {
@@ -214,6 +220,16 @@ router.get('/bank', requirePermission('account.view'), async (req, res) => {
       [...params, limit]
     );
     res.json({ ok: true, data: rows, meta: meta('bank', { limit, q, credited, count: rows.length }) });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+
+router.delete('/consign/:id', requirePermission('logs.view'), async (req, res) => {
+  try {
+    await query('DELETE FROM shop_ky_gui WHERE id = ?', [req.params.id]);
+    res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }

@@ -31,9 +31,7 @@ public class ItemMap {
     public boolean isBlackBall;
     public boolean isNamecBall;
     public boolean isPickedUp;
-    /** 0: vật phẩm thường, 1: ngọc xanh, 2: hồng ngọc. */
-    public byte currencyType;
-    public int currencyAmount;
+    public boolean isNotifiedSKH;
     public String id;
 
     public ItemMap(Zone zone, int tempId, int quantity, int x, int y, long playerId) {
@@ -74,12 +72,6 @@ public class ItemMap {
         this.zone.addItem(this);
     }
 
-    public ItemMap asCurrency(byte currencyType, int currencyAmount) {
-        this.currencyType = currencyType;
-        this.currencyAmount = currencyAmount;
-        return this;
-    }
-
     public ItemMap(ItemMap itemMap) {
         this.zone = itemMap.zone;
         this.itemMapId = itemMap.itemMapId;
@@ -91,8 +83,6 @@ public class ItemMap {
         this.options = itemMap.options;
         this.isBlackBall = itemMap.isBlackBall;
         this.isNamecBall = itemMap.isNamecBall;
-        this.currencyType = itemMap.currencyType;
-        this.currencyAmount = itemMap.currencyAmount;
         this.lastTimeMoveToPlayer = itemMap.lastTimeMoveToPlayer;
         this.createTime = System.currentTimeMillis();
         this.zone.addItem(this);
@@ -131,12 +121,12 @@ public class ItemMap {
                     ItemMapService.gI().removeItemMapAndSendClient(this);
                 }
             }
-            // //========================DHVT ITEM 726========================
-            // if (this.zone != null && this.zone.map.mapId == 52 && isNotNullItem() && this.itemTemplate.id == 726) {
-            //     if (!findPlayerByID(this.playerId)) {
-            //         ItemMapService.gI().removeItemMapAndSendClient(this);
-            //     }
-            // }
+            //========================DHVT ITEM 726========================
+            if (this.zone != null && this.zone.map.mapId == 52 && isNotNullItem() && this.itemTemplate.id == 726) {
+                if (!findPlayerByID(this.playerId)) {
+                    ItemMapService.gI().removeItemMapAndSendClient(this);
+                }
+            }
             // if (this.zone != null && isNotNullItem() && this.itemTemplate.id == 460 && this.playerId == 123456789 && Util.canDoWithTime(createTime, 5000)) {
             //     ItemMapService.gI().removeItemMapAndSendClient(this);
             // }
@@ -153,42 +143,33 @@ public class ItemMap {
     }
 
     private void satelliteUpdate() {
-        if (this.zone == null) {
+        if (this.zone == null || this.itemTemplate == null) {
             return;
         }
         for (Player pl : this.zone.getPlayers()) {
-            if (!pl.isDie() && Util.getDistance(pl.location.x, pl.location.y, x, y) < 200 && pl.satellite != null && (pl.id == this.playerId || this.clanId != -1 && pl.clan != null && pl.clan.id == this.clanId)) {
+            if (pl != null && !pl.isDie() && Util.getDistance(pl.location.x, pl.location.y, x, y) < 200 && pl.satellite != null && (this.playerId == -1 || pl.id == this.playerId || Math.abs(pl.id) == Math.abs(this.playerId) || (this.clanId != -1 && pl.clan != null && pl.clan.id == this.clanId))) {
                 switch (this.itemTemplate.id) {
                     case 342 -> {
-                        if (!pl.satellite.isMP) {
-                            pl.satellite.isMP = true;
+                        if (Util.canDoWithTime(pl.satellite.lastMPTime, 30000)) {
                             pl.satellite.lastMPTime = System.currentTimeMillis();
                             if (pl.nPoint.mp < pl.nPoint.mpMax) {
-                                pl.nPoint.addMp(pl.nPoint.mpMax / 10);
-                                PlayerService.gI().sendInfoMp(pl);
+                                PlayerService.gI().hoiPhuc(pl, 0, (long) (pl.nPoint.mpMax / 10));
                             }
                         }
                     }
                     case 343 -> {
-                        if (!pl.satellite.isIntelligent) {
-                            pl.satellite.isIntelligent = true;
-                            pl.satellite.lastIntelligentTime = System.currentTimeMillis();
-                        }
+                        pl.satellite.isIntelligent = true;
+                        pl.satellite.lastIntelligentTime = System.currentTimeMillis();
                     }
                     case 344 -> {
-                        if (!pl.satellite.isDefend) {
-                            pl.satellite.isDefend = true;
-                            pl.satellite.lastDefendTime = System.currentTimeMillis();
-                        }
+                        pl.satellite.isDefend = true;
+                        pl.satellite.lastDefendTime = System.currentTimeMillis();
                     }
                     case 345 -> {
-                        if (!pl.satellite.isHP) {
-                            pl.satellite.isHP = true;
+                        if (Util.canDoWithTime(pl.satellite.lastHPTime, 30000)) {
                             pl.satellite.lastHPTime = System.currentTimeMillis();
                             if (pl.nPoint.hp < pl.nPoint.hpMax) {
-                                pl.nPoint.addHp(pl.nPoint.hpMax / 10);
-                                PlayerService.gI().sendInfoHp(pl);
-                                Service.gI().Send_Info_NV(pl);
+                                PlayerService.gI().hoiPhuc(pl, (long) (pl.nPoint.hpMax / 10), 0);
                             }
                         }
                     }

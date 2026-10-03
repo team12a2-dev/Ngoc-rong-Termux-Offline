@@ -88,14 +88,44 @@ public class TrainingService {
         for (Boss boss : OtherBossManager.gI().getBosses()) {
             if (boss instanceof TauPayPay questBoss
                     && questBoss.playerAtt != null
-                    && questBoss.playerAtt.id == player.id
-                    && questBoss.zone != null
-                    && questBoss.zone.equals(player.zone)
-                    && !questBoss.isDie()) {
-                return;
+                    && questBoss.playerAtt.id == player.id) {
+                if (questBoss.zone != null && questBoss.zone.equals(player.zone) && !questBoss.isDie()) {
+                    return;
+                } else {
+                    questBoss.leaveMap();
+                }
             }
         }
         callBoss(player, BossID.TAUPAYPAY, false);
+    }
+
+    public boolean isTauPayPayQuestBossAlive(Player player) {
+        if (player == null || player.zone == null) {
+            return false;
+        }
+        for (Boss boss : OtherBossManager.gI().getBosses()) {
+            if (boss instanceof TauPayPay questBoss
+                    && questBoss.playerAtt != null
+                    && questBoss.playerAtt.id == player.id) {
+                if (questBoss.zone != null && questBoss.zone.equals(player.zone) && !questBoss.isDie()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public void removeTauPayPayQuestBoss(Player player) {
+        if (player == null) {
+            return;
+        }
+        for (Boss boss : OtherBossManager.gI().getBosses()) {
+            if (boss instanceof TauPayPay questBoss
+                    && questBoss.playerAtt != null
+                    && questBoss.playerAtt.id == player.id) {
+                questBoss.leaveMap();
+            }
+        }
     }
 
     public Boss callBoss(Player pl, int bossID, boolean isThachDau) {

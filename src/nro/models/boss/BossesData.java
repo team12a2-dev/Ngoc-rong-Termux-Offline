@@ -6,14 +6,6 @@ import nro.models.skill.Skill;
 import nro.models.utils.Util;
 
 public class BossesData {
-    /** Các map thường hợp lệ cho mini boss; khu được chọn ngẫu nhiên ở runtime. */
-    public static final int[] MINI_BOSS_MAPS = {
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-        16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
-        34, 35, 36, 37, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73,
-        74, 75, 76, 77, 79, 80, 81, 82, 83, 84, 92, 93, 94, 96, 97,
-        98, 99, 100, 102, 103, 104, 105, 106, 107, 108, 109, 110
-    };
 
     private static final int[][] FULL_DRAGON = new int[][]{{Skill.DRAGON, 1}, {Skill.DRAGON, 2}, {Skill.DRAGON, 3}, {Skill.DRAGON, 4}, {Skill.DRAGON, 5}, {Skill.DRAGON, 6}, {Skill.DRAGON, 7}};
     private static final int[][] FULL_DEMON = new int[][]{{Skill.DEMON, 1}, {Skill.DEMON, 2}, {Skill.DEMON, 3}, {Skill.DEMON, 4}, {Skill.DEMON, 5}, {Skill.DEMON, 6}, {Skill.DEMON, 7}};
@@ -49,19 +41,22 @@ public class BossesData {
             new int[][]{
                 {Skill.MASENKO, 3, 1000},
                 {Skill.LIEN_HOAN, 7, 1000}},
-            new String[]{}, //text chat 1
-            new String[]{"|-1|Ta sẽ tàn sát khu này trong vòng 5 phút nữa",
-                "|-1|Haha, mày đây rồi",
-                "|-1|Tao đã có lệnh của đại ca Fide rồi",
-                "|-1|Tao hơn hẳn mày, nhìn máy đo đi",
-                "|-1|Mày yếu đi đó, với sức chiến đấu đó sao có thể thắng được tao",
-                "|-1|Định chạy trốn hả, hử"
+            new String[]{"|-1|Chiến binh Kuku thuộc quân đoàn Fide đã có mặt!"}, //text chat 1
+            new String[]{
+                "|-1|Ngươi to gan lắm, dám xâm phạm lãnh địa của Đại đế Fide!",
+                "|-1|Máy đo chỉ số báo ngươi chẳng có lấy 1% cơ hội chiến thắng!",
+                "|-1|Xem đây, đòn tấn công hủy diệt của ta!",
+                "|-1|Chút sức mạnh cỏn con đó không đủ gãi ngứa cho ta đâu!",
+                "|-1|Đừng hòng trốn thoát khỏi tay Kuku!"
             }, //text chat 2
-            new String[]{}, //text chat 3
-            REST_5_M //second rest
+            new String[]{
+                "|-1|Không thể nào... Ta đã đánh giá thấp ngươi...",
+                "|-1|Đại ca... hãy báo thù cho ta..."
+            }, //text chat 3
+            REST_10_M //second rest
     );
     public static final BossData KU = new BossData(
-            "Ma Bư Ngu", //name
+            "Ma Bư Mập", //name
             ConstPlayer.XAYDA, //gender
             new short[]{297, 298, 299, -1, -1, -1}, //outfit {head, body, leg, bag, aura, eff}
             10000, //dame
@@ -92,15 +87,19 @@ public class BossesData {
             new int[][]{
                 {Skill.GALICK, 7, 1000},
                 {Skill.ANTOMIC, 7, 10000},},//skill //skill
-            new String[]{}, //text chat 1
-            new String[]{"|-1|HAHAHA",
-                "|-1|Tao chỉ cần 10 giây để giết hết bọn mày",
-                "|-1|Được rồi tao sẽ thổi bay hết",
-                "|-1|Chết hết đi cho tao",
-                "|-1|Ta sẽ tàn sát khu này trong vòng 5 phút nữa",
-                "|-1|Tao sẽ giết hết bọn mày"}, //text chat 2
-            new String[]{}, //text chat 3
-            REST_5_M //second rest
+            new String[]{"|-1|Mập Đầu Đinh xuất trận! Kẻ nào dám cản đường ta?"}, //text chat 1
+            new String[]{
+                "|-1|Ha ha ha! Lại có thêm kẻ chán sống đến nộp mạng!",
+                "|-1|Ta chỉ cần một quyền là đủ để nghiền nát ngươi thành tro bụi!",
+                "|-1|Ngươi nghĩ tốc độ đó chạm được vào vạt áo của ta sao?",
+                "|-1|Hãy cảm nhận uy lực hủy diệt từ nắm đấm của ta!",
+                "|-1|Khu vực này đã bị phong tỏa, các ngươi tận số rồi!"
+            }, //text chat 2
+            new String[]{
+                "|-1|Khốn kiếp... Làm sao ta có thể bại dưới tay một kẻ như ngươi...",
+                "|-1|Quân đoàn Fide sẽ không tha cho ngươi đâu..."
+            }, //text chat 3
+            REST_10_M //second rest
     );
 
     public static final BossData RAMBO = new BossData(
@@ -113,15 +112,18 @@ public class BossesData {
             new int[][]{
                 {Skill.GALICK, 7, 1000},
                 {Skill.ANTOMIC, 7, 10000},},//skill //skill
-            new String[]{}, //text chat 1
-            new String[]{"|-1|HAHAHA",
-                "|-1|Tao chỉ cần 10 giây để giết hết bọn mày",
-                "|-1|Thấy ta đẹp trai không",
-                "|-1|Mày sợ tao chưa",
-                "|-1|Ta sẽ tàn sát khu này trong vòng 5 phút nữa",
-                "|-1|Tao sẽ giết hết bọn mày"}, //text chat 2
-            new String[]{"|-1|Ôi bạn ơi..."}, //text chat 3
-            REST_5_M //second rest
+            new String[]{"|-1|Chỉ huy Rambo tiếp quản khu vực! Tất cả hãy quy phục!"}, //text chat 1
+            new String[]{
+                "|-1|Rambo ta chính là bức tường thép kiên cố nhất của binh đoàn!",
+                "|-1|Mọi đòn tấn công của ngươi đều nằm trong tính toán của ta!",
+                "|-1|Hãy nếm trải hỏa lực tối thượng này đi!",
+                "|-1|Đầu hàng ngay đi, trước khi ta xóa sổ toàn bộ khu vực này!"
+            }, //text chat 2
+            new String[]{
+                "|-1|Chết tiệt... Kế hoạch của Đại đế... ta không cam tâm...",
+                "|-1|Ngươi... hãy đợi đấy..."
+            }, //text chat 3
+            REST_10_M //second rest
     );
 
     //========================TDST========================
@@ -245,7 +247,7 @@ public class BossesData {
                 "|-1|HAHAHA"
             }, //text chat 2
             new String[]{"|-1|Fide gọi ta về, ngươi có ngon thì chờ ở đây"}, //text chat 3
-            REST_5_M,
+            REST_15_M,
             new int[]{BossID.SO_2, BossID.SO_1, BossID.SO_3, BossID.SO_4} //type appear
     );
 
@@ -362,7 +364,7 @@ public class BossesData {
             }, //text chat 2
             new String[]{"|-1|Cay quá!"
             }, //text chat 3
-            REST_10_M,
+            REST_30_M,
             new int[]{BossID.SO_4_NM, BossID.SO_3_NM, BossID.SO_2_NM, BossID.SO_1_NM,} //type appear
     );
 
@@ -1303,20 +1305,45 @@ public class BossesData {
                 {Skill.GALICK, 7, 1000},},
             //skill
             new String[]{
-                "|-1|Gừ... ai cho các ngươi bước vào lãnh địa của ta?",
-                "|-1|Ta ngửi thấy mùi xương ngon ở quanh đây.",
-                "|-1|Đừng tưởng đông người là có thể bắt nạt ta!"
+                "|-1|Grừuuu! Mùi thịt tươi! Ai dám bước vào lãnh địa của Sói Hẹc Quyn?",
+                "|-1|Gâu... à nhầm, GRỪUUU! Ta là dã thú hung tợn nhất vũ trụ!"
             }, //text chat 1
             new String[]{
-                "|-1|Gâu! Đứng lại, để ta xem ngươi có gì trong túi.",
-                "|-1|Một cục xương thôi cũng đủ khiến ta vui cả ngày.",
-                "|-1|Các ngươi đánh đau đấy... nhưng ta còn nhiều răng lắm!"
+                "|-1|Cú cắn ngàn cân! Nếm thử nanh vuốt của ta đi!",
+                "|-1|Đứng yên cho ta gặm một miếng nào!",
+                "|-1|Gâu gâu! Grừuuu!"
             }, //text chat 2
             new String[]{
-                "|-1|Ta sẽ nhớ mùi của các ngươi... lần sau ta sẽ săn ngược lại!",
-                "|-1|Không thể nào... ta còn chưa ăn xong mà!"
+                "|-1|Ẳng ẳng... Hôm nay ta chưa ăn sáng thôi đấy, nhớ mặt ta đấy!"
             }, //text chat 3
             REST_5_M //second rest
+    );
+
+    public static final BossData THO_DAI_CA = new BossData(
+            "Thỏ Đại Ca", //name
+            ConstPlayer.TRAI_DAT, //gender
+            new short[]{403, 404, 405, -1, -1, -1}, //outfit {head, body, leg, bag, aura, eff}
+            1000, //dame
+            new int[]{50000}, //hp
+            new int[]{0, 1, 2, 3, 27, 28, 29, 7, 8, 9, 10, 11, 25, 31, 32, 33, 34, 14, 15, 16, 17, 18, 19, 20, 84}, //map join (Trái Đất, Namếc, Xayda, Siêu Thị)
+            new int[][]{
+                {Skill.KAMEJOKO, 7, 3000},
+                {Skill.MASENKO, 7, 3000},
+                {Skill.THAI_DUONG_HA_SAN, 1, 10000}
+            },
+            new String[]{
+                "|-1|Cà rốt ở đây là của ta! Đứa nào dám tranh một củ, ta biến thành bữa trưa ngay!",
+                "|-1|Hừm! Mùi của những củ cà rốt tươi ngon... và cả mấy tên phiền phức nữa."
+            }, //text chat 1
+            new String[]{
+                "|-1|Đừng hòng chạm vào một cọng lông tai của Thỏ Đại Ca!",
+                "|-1|Cú đá thỏ ngọc giáng thế! Đỡ lấy!",
+                "|-1|Úm ba la! Biến thành Củ Cà Rốt cam lè cho ta!"
+            }, //text chat 2
+            new String[]{
+                "|-1|Ái chà... Cà rốt của ta rơi mất rồi! Ta sẽ trở lại vào mùa thu hoạch sau!"
+            }, //text chat 3
+            REST_1_M //second rest
     );
 
     public static final BossData O_DO = new BossData(
@@ -1325,51 +1352,23 @@ public class BossesData {
             new short[]{400, 401, 402, -1, -1, -1}, //outfit {head, body, leg, bag, aura, eff}
             3000, //dame
             new int[]{25000}, //hp
-            MINI_BOSS_MAPS, // map join
+            new int[]{0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 31, 35, 84, 168}, //map join
             new int[][]{
                 {Skill.KAMEJOKO, 7, 5000},
                 {Skill.GALICK, 7, 1000},},
             //skill
             new String[]{
-                "|-1|Hôi quá... có ai dám lại gần ta không?",
-                "|-1|Ta vừa tìm thấy một khu rất thích hợp để bẩn thêm một chút.",
-                "|-1|Đừng nhìn ta như thế, sạch sẽ đâu có vui!"
+                "|-1|3 năm chưa tắm, 5 năm chưa gội... Hương thơm quyến rũ này ai chịu nổi không?",
+                "|-1|Tránh xa mấy cục xà phòng ra! Mùi sạch sẽ làm ta ngứa ngáy quá!"
             }, //text chat 1
             new String[]{
-                "|-1|Bùm! Tránh ra, ta sắp làm bẩn cả khu này.",
-                "|-1|Các ngươi đánh ta càng mạnh thì mùi càng nồng đấy!",
-                "|-1|Ha ha, thử chịu đựng mùi của ta thêm một lúc nữa xem."
+                "|-1|BÙM BÙM! Hít một hơi trọn vẹn tinh hoa đất trời đi các con giời!",
+                "|-1|Haha! Nhìn mặt các ngươi xanh lét vì mùi của ta kìa!"
             }, //text chat 2
             new String[]{
-                "|-1|Ta sẽ quay lại... và lần sau sẽ còn ở dơ hơn!",
-                "|-1|Không thể tin được, các ngươi chịu được mùi này sao?"
+                "|-1|Khụ... Mùi thơm của các ngươi... làm ta mất hết nội công rồi..."
             }, //text chat 3
-            REST_5_S //second rest
-    );
-
-    public static final BossData THO_DAI_CA = new BossData(
-            "Thỏ Đại Ca",
-            ConstPlayer.TRAI_DAT,
-            new short[]{403, 404, 405, -1, -1, -1}, // Cải trang Thỏ Đại Ca (item 463)
-            3000,
-            new int[]{500000}, //hp
-            MINI_BOSS_MAPS,
-            new int[][]{
-                {Skill.GALICK, 7, 1000},
-                {Skill.LIEN_HOAN, 7, 2000}
-            },
-            new String[]{
-                "|-1|Cà rốt của ta đâu? Ai lấy thì bước ra đây!",
-                "|-1|Đừng coi thường Thỏ Đại Ca!"
-            },
-            new String[]{
-                "|-1|Ăn một đòn của ta này!",
-                "|-1|Khu này giờ là địa bàn của ta!"
-            },
-            new String[]{
-                "|-1|Ta sẽ quay lại lấy cà rốt!"
-            },
-            REST_1_M
+            REST_1_M //second rest
     );
 
     public static final BossData XINBATO = new BossData(
@@ -2428,12 +2427,13 @@ public class BossesData {
 
     public static final BossData TAUPAYPAY = new BossData(
             "Tàu Pảy Pảy", //name
-            ConstPlayer.XAYDA, //gender
-            new short[]{338, 339, 340, -1, -1, -1}, //outfit {head, body, leg, bag, aura, eff}
+            ConstPlayer.TRAI_DAT, //gender
+            new short[]{92, 93, 94, -1, -1, -1}, //outfit {head, body, leg, bag, aura, eff}
             10, //dame
             new int[]{3000}, //hp — boss nhiệm vụ đụng độ
-            new int[]{46}, //map join
+            new int[]{47}, //map join
             new int[][]{
+                {Skill.DRAGON, 1, 100},
                 {Skill.GALICK, 1, 1000},
                 {Skill.TAI_TAO_NANG_LUONG, 1, 60000},},
             new String[]{"|-1|Ta sẽ dạy ngươi vài chiêu",
@@ -2601,10 +2601,11 @@ public class BossesData {
             new int[]{1000000000}, //hp
             new int[]{6}, //map join
             new int[][]{
-                {Skill.TAI_TAO_NANG_LUONG, 1, 120000}, {Skill.GALICK, 7, 1000},
-                {Skill.KAMEJOKO, 1, 1000}, {Skill.KAMEJOKO, 2, 1000}, {Skill.KAMEJOKO, 3, 1000}, {Skill.KAMEJOKO, 4, 1000}, {Skill.KAMEJOKO, 5, 1000}, {Skill.KAMEJOKO, 6, 1000}, {Skill.KAMEJOKO, 7, 1000},
-                {Skill.MASENKO, 1, 1000}, {Skill.MASENKO, 2, 1000}, {Skill.MASENKO, 3, 1000}, {Skill.MASENKO, 4, 1000}, {Skill.MASENKO, 5, 1000}, {Skill.MASENKO, 6, 1000}, {Skill.MASENKO, 7, 1000},
-                {Skill.ANTOMIC, 1, 1000}, {Skill.ANTOMIC, 2, 1000}, {Skill.ANTOMIC, 3, 1000}, {Skill.ANTOMIC, 4, 1000}, {Skill.ANTOMIC, 5, 1000}, {Skill.ANTOMIC, 6, 1000}, {Skill.ANTOMIC, 7, 1000},}, //skill
+                {Skill.GALICK, 7, 1000},
+                {Skill.KAMEJOKO, 7, 1000},
+                {Skill.MASENKO, 7, 1000},
+                {Skill.ANTOMIC, 7, 1000},
+                {Skill.LIEN_HOAN, 7, 1000}}, //skill
             new String[]{}, //text chat 1
             new String[]{"|-1|He he he",
                 "|-1|Ta sẽ xé xác ngươi ra thành trăm mảnh",
@@ -2667,21 +2668,9 @@ public class BossesData {
             new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37}, //map join
             new int[][]{
                 {Skill.GALICK, 5, 1000000000}},
-            new String[]{
-                "|-1|Tới giờ làm việc rồi! Ai muốn thử sức với ta nào?",
-                "|-1|Một ngày đẹp trời để kiếm thêm vài chiến công.",
-                "|-1|Ta nghe nói khu này có nhiều chiến binh mạnh lắm."
-            }, //text chat 1
-            new String[]{
-                "|-1|Ái chà chà, cú đánh này cũng được đấy!",
-                "|-1|Đừng tưởng ta nhỏ con mà dễ bắt nạt nhé.",
-                "|-1|Nào, cùng nhau làm cho trận chiến náo nhiệt hơn đi!",
-                "|-1|Các ngươi chạy đi đâu? Ta còn chưa nghiêm túc mà."
-            }, //text chat 2
-            new String[]{
-                "|-1|Hôm nay đến đây thôi, lần sau ta sẽ mạnh hơn!",
-                "|-1|Ta sẽ quay lại khi các ngươi mất cảnh giác."
-            },
+            new String[]{"|-1|Tới giờ làm việc"}, //text chat 1
+            new String[]{"|-1|Ái chà chà"}, //text chat 2
+            new String[]{"|-1|Ái chà chà"},
             REST_1_M //type appear
     );
 
@@ -2923,5 +2912,5 @@ public class BossesData {
                 "|-1|Đồ khốn kiếp!! Rồi ngươi sẽ phải trả giá"
             }, //text chat 3
             AppearType.ANOTHER_LEVEL
-        );
+    );
 }

@@ -1,0 +1,2086 @@
+id	TYPE	gender	NAME	description	level	icon_id	part	is_up_to_up	power_require	gold	gem	head	body	leg
+0	5	2	Avatar	Dùng để thay đổi khuôn mặt	0	17	0	0	0	0	0	0	1	2
+1	5	0	Avatar	Dùng để thay đổi khuôn mặt	0	17	0	0	0	0	0	0	1	2
+2	5	3	CT Goku	Vật phẩm sự kiện	1	17	0	0	0	0	0	0	1	2
+3	5	0	Avatar	Dùng để thay đổi khuôn mặt	1	19	64	0	0	0	0	64	65	66
+4	5	2	Avatar	Dùng để thay đổi khuôn mặt	1	91	6	0	0	0	0	6	7	8
+5	5	1	Avatar	Dùng để thay đổi khuôn mặt	1	121	9	0	0	0	0	9	10	11
+6	6	3	Đậu thần cấp 1	Thức ăn phục hồi HP và KI	1	241	-1	0	1	0	0	-1	-1	-1
+7	6	3	Đậu thần cấp 2	Thức ăn phục hồi HP và KI	2	241	-1	0	1	0	0	-1	-1	-1
+8	6	3	Đậu thần cấp 3	Thức ăn phục hồi HP và KI	3	241	-1	0	1	0	0	-1	-1	-1
+9	6	3	Đậu thần cấp 4	Thức ăn phục hồi HP và KI	4	241	-1	0	1	0	0	-1	-1	-1
+10	6	3	Đậu thần cấp 5	Thức ăn phục hồi HP và KI	5	241	-1	0	1	0	0	-1	-1	-1
+11	6	3	Đậu thần cấp 6	Thức ăn phục hồi HP và KI	6	241	-1	0	1	0	0	-1	-1	-1
+12	6	3	Đậu thần cấp 7	Thức ăn phục hồi HP và KI	7	241	-1	0	1	0	0	-1	-1	-1
+13	8	3	Đùi heo Xayda	Cần tìm đủ 10 và mang về cho ông Paragus	1	241	-1	0	1	0	0	-1	-1	-1
+14	27	3	Gói 30 đậu thần cấp 1	Gói 30 đậu thần cấp 1	1	241	-1	0	0	0	0	-1	-1	-1
+15	27	3	Gói 30 đậu thần cấp 2	Gói 30 đậu thần cấp 2	1	241	-1	0	0	0	0	-1	-1	-1
+16	27	3	Gói 30 đậu thần cấp 3	Gói 30 đậu thần cấp 3	1	241	-1	0	0	0	0	-1	-1	-1
+17	27	3	Gói 30 đậu thần cấp 4	Gói 30 đậu thần cấp 4	1	241	-1	0	0	0	0	-1	-1	-1
+18	27	3	Gói 30 đậu thần cấp 5	Gói 30 đậu thần cấp 5	1	241	-1	0	0	0	0	-1	-1	-1
+19	27	3	Gói 30 đậu thần cấp 6	Gói 30 đậu thần cấp 6	1	241	-1	0	0	0	0	-1	-1	-1
+20	27	3	Gói 30 đậu thần cấp 7	Gói 30 đậu thần cấp 7	1	241	-1	0	0	0	0	-1	-1	-1
+21	6	3	Đậu thần cấp 8	Thức ăn phục hồi HP và KI	8	241	-1	0	1	0	0	-1	-1	-1
+22	6	3	Đậu thần cấp 9	Thức ăn phục hồi HP và KI	9	241	-1	0	1	0	0	-1	-1	-1
+23	6	3	Đậu thần cấp 10	Thức ăn phục hồi HP và KI	10	241	-1	0	1	0	0	-1	-1	-1
+24	27	3	Gói 30 đậu thần cấp 8	Gói 30 đậu thần cấp 8	1	241	-1	0	0	0	0	-1	-1	-1
+25	27	3	Gói 30 đậu thần cấp 9	Gói 30 đậu thần cấp 9	1	241	-1	0	0	0	0	-1	-1	-1
+26	5	2	Avatar	Dùng để thay đổi khuôn mặt	1	259	27	0	0	0	0	24	25	26
+27	5	2	Avatar	Dùng để thay đổi khuôn mặt	1	261	28	0	0	0	0	28	34	35
+28	5	1	Avatar	Dùng để thay đổi khuôn mặt	1	263	29	0	0	0	0	29	34	35
+29	27	3	Mở rộng rương đồ	Thêm 1 ô trong rương	1	265	-1	0	0	0	0	-1	-1	-1
+30	27	3	Rương Gỗ	Giấu bên trong nhiều vật phẩm quý giá	1	265	-1	0	1000	0	0	-1	-1	-1
+31	5	0	Avatar	Dùng để thay đổi khuôn mặt	1	266	30	0	0	0	0	30	34	35
+32	5	0	Avatar	Dùng để thay đổi khuôn mặt	1	268	31	0	0	0	0	31	34	35
+33	5	1	Avatar	Dùng để thay đổi khuôn mặt	1	271	32	0	0	0	0	32	34	35
+34	0	0	Áo vải dày	Giúp giảm sát thương	3	389	1	0	26000	0	0	-1	-1	-1
+35	0	0	Áo thun dày	Giúp giảm sát thương	4	389	1	0	80000	0	0	-1	-1	-1
+36	0	0	Áo vải 3 lỗ	Giúp giảm sát thương	1	390	14	0	1200	0	0	-1	-1	-1
+37	0	0	Áo thun 3 lỗ	Giúp giảm sát thương	2	390	14	0	12000	0	0	-1	-1	-1
+38	0	2	Áo giáp sắt	Giúp giảm sát thương	3	391	7	0	26000	0	0	-1	-1	-1
+39	0	2	Áo giáp đồng	Giúp giảm sát thương	4	391	7	0	80000	0	0	-1	-1	-1
+40	0	2	Áo vải thô	Giúp giảm sát thương	1	392	16	0	1200	0	0	-1	-1	-1
+41	0	2	Áo thun thô	Giúp giảm sát thương	2	392	16	0	12000	0	0	-1	-1	-1
+42	0	1	Áo sợi len	Giúp giảm sát thương	1	393	10	0	1200	0	0	-1	-1	-1
+43	0	1	Áo sợi gai	Giúp giảm sát thương	2	393	10	0	12000	0	0	-1	-1	-1
+44	0	1	Áo len Pico	Giúp giảm sát thương	3	394	12	0	26000	0	0	-1	-1	-1
+45	0	1	Áo thun Pico	Giúp giảm sát thương	4	394	12	0	80000	0	0	-1	-1	-1
+46	1	0	Quần vải dày	Giúp tăng HP	3	395	2	0	22000	0	0	-1	-1	-1
+47	1	0	Quần thun dày	Giúp tăng HP	4	395	2	0	66000	0	0	-1	-1	-1
+48	1	0	Quần vải đen	Giúp tăng HP	1	396	15	0	1000	0	0	-1	-1	-1
+49	1	0	Quần thun đen	Giúp tăng HP	2	396	15	0	10000	0	0	-1	-1	-1
+50	1	1	Quần vải thô Pico	Giúp tăng HP	3	397	13	0	22000	0	0	-1	-1	-1
+51	1	1	Quần thun Pico	Giúp tăng HP	4	397	13	0	66000	0	0	-1	-1	-1
+52	1	1	Quần sợi len	Giúp tăng HP	1	398	11	0	1000	0	0	-1	-1	-1
+53	1	1	Quần sợi gai	Giúp tăng HP	2	398	11	0	10000	0	0	-1	-1	-1
+54	1	2	Quần giáp sắt	Giúp tăng HP	3	399	8	0	22000	0	0	-1	-1	-1
+55	1	2	Quần giáp đồng	Giúp tăng HP	4	399	8	0	66000	0	0	-1	-1	-1
+56	1	2	Quần vải thô	Giúp tăng HP	1	400	17	0	1000	0	0	-1	-1	-1
+57	1	2	Quần thun thô	Giúp tăng HP	2	400	17	0	10000	0	0	-1	-1	-1
+58	3	0	Giầy nhựa	Giúp tăng MP	1	401	-1	0	800	0	0	-1	-1	-1
+59	3	0	Giầy cao su	Giúp tăng MP	2	401	-1	0	8000	0	0	-1	-1	-1
+60	3	0	Giày nhựa đế dày	Giúp tăng MP	3	402	-1	0	18000	0	0	-1	-1	-1
+61	3	0	Giày cao su đế dày	Giúp tăng MP	4	402	-1	0	53000	0	0	-1	-1	-1
+62	3	2	Giầy vải thô	Giúp tăng MP	1	403	-1	0	800	0	0	-1	-1	-1
+63	3	2	Giầy cao su thô	Giúp tăng MP	2	403	-1	0	8000	0	0	-1	-1	-1
+64	3	2	Giầy sắt	Giúp tăng MP	3	404	-1	0	18000	0	0	-1	-1	-1
+65	3	2	Giầy đồng	Giúp tăng MP	4	404	-1	0	53000	0	0	-1	-1	-1
+66	3	1	Giầy sợi len	Giúp tăng MP	1	405	-1	0	800	0	0	-1	-1	-1
+67	3	1	Giầy sợi gai	Giúp tăng MP	2	405	-1	0	8000	0	0	-1	-1	-1
+68	3	1	Giầy nhựa Pico	Giúp tăng MP	3	406	-1	0	18000	0	0	-1	-1	-1
+69	3	1	Giầy cao su Pico	Giúp tăng MP	4	406	-1	0	53000	0	0	-1	-1	-1
+70	2	0	Găng vải dày	Giúp tăng sức đánh	3	407	-1	0	50000	0	0	-1	-1	-1
+71	2	0	Găng thun dày	Giúp tăng sức đánh	4	407	-1	0	200000	0	0	-1	-1	-1
+72	2	0	Găng vải đen	Giúp tăng sức đánh	1	408	-1	0	1500	0	0	-1	-1	-1
+73	2	0	Găng thun đen	Giúp tăng sức đánh	2	408	-1	0	15000	0	0	-1	-1	-1
+74	2	2	Găng vải thô	Giúp tăng sức đánh	1	409	-1	0	1500	0	0	-1	-1	-1
+75	2	2	Găng thun thô	Giúp tăng sức đánh	2	409	-1	0	15000	0	0	-1	-1	-1
+76	2	2	Găng sắt	Giúp tăng sức đánh	3	410	-1	0	50000	0	0	-1	-1	-1
+77	2	2	Găng đồng	Giúp tăng sức đánh	4	410	-1	0	200000	0	0	-1	-1	-1
+78	2	1	Găng sợi len	Giúp tăng sức đánh	1	411	-1	0	1500	0	0	-1	-1	-1
+79	2	1	Găng sợi gai	Giúp tăng sức đánh	2	411	-1	0	15000	0	0	-1	-1	-1
+80	2	1	Găng len Pico	Giúp tăng sức đánh	3	412	-1	0	50000	0	0	-1	-1	-1
+81	2	1	Găng thun Pico	Giúp tăng sức đánh	4	412	-1	0	200000	0	0	-1	-1	-1
+82	12	3	Ngọc Rồng 1 sao	Thu thập để ước rồng thần. Có thể nâng cấp thành ngọc rồng siêu cấp	0	419	-1	0	0	0	0	-1	-1	-1
+83	12	3	Ngọc Rồng 2 sao	Thu thập để ước rồng thần	0	420	-1	0	0	0	0	-1	-1	-1
+84	12	3	Ngọc Rồng 3 sao	Thu thập để ước rồng thần	0	421	-1	0	0	0	0	-1	-1	-1
+85	12	3	Ngọc Rồng 4 sao	Thu thập để ước rồng thần	0	422	-1	0	0	0	0	-1	-1	-1
+86	12	3	Ngọc Rồng 5 sao	Thu thập để ước rồng thần	0	423	-1	0	0	0	0	-1	-1	-1
+87	12	3	Ngọc Rồng 6 sao	Thu thập để ước rồng thần	0	424	-1	0	0	0	0	-1	-1	-1
+88	12	3	Ngọc Rồng 7 sao	Thu thập để ước rồng thần	0	425	-1	0	0	0	0	-1	-1	-1
+89	4	3	Rada cấp 2	Giúp tăng Chí Mạng	2	433	-1	0	13000	0	0	-1	-1	-1
+90	4	3	Rada cấp 8	Giúp bạn tăng Chí Mạng	8	434	-1	0	7000000	0	0	-1	-1	-1
+91	29	3	Máy dò Ngọc rồng sự kiện	Dùng để tìm kiếm Ngọc rồng sự kiện	1	434	-1	0	0	0	0	-1	-1	-1
+92	27	3	<Cập nhật phiên bản mới để xem>	<Cập nhật phiên bản mới để xem>	1	544	-1	0	0	0	0	-1	-1	-1
+93	8	3	Đùi gà	Cần tìm đủ 10 và mang về cho ông Gohan	1	643	-1	0	1	0	0	-1	-1	-1
+94	27	3	Đùi gà nướng	Ăn vào sẽ phục hồi toàn bộ HP MP	1	643	-1	0	1	0	0	-1	-1	-1
+95	7	0	Sách đấm Dragon lv1	học kĩ năng đấm Dragon	1	644	-1	0	1	0	0	-1	-1	-1
+96	37	0	Sách đấm Dragon	học kĩ năng đấm Dragon	1	644	0	0	0	0	0	-1	-1	-1
+97	7	0	Sách đấm Dragon lv2	nâng đấm Dragon lên cấp 2	2	645	-1	0	1	0	0	-1	-1	-1
+98	7	0	Sách đấm Dragon lv3	nâng đấm Dragon lên cấp 3	3	646	-1	0	1	0	0	-1	-1	-1
+99	7	0	Sách đấm Dragon lv4	nâng đấm Dragon lên cấp 4	4	647	-1	0	1	0	0	-1	-1	-1
+100	7	0	Sách đấm Dragon lv5	nâng đấm Dragon lên cấp 5	5	648	-1	0	1	0	0	-1	-1	-1
+101	7	0	Sách đấm Dragon lv6	nâng đấm Dragon lên cấp 6	6	649	-1	0	1	0	0	-1	-1	-1
+102	7	0	Sách đấm Dragon lv7	nâng đấm Dragon lên cấp 7	7	650	-1	0	1	0	0	-1	-1	-1
+103	7	0	Sách Kamejoko lv1	học kĩ năng Kamejoko	1	651	-1	0	0	0	0	-1	-1	-1
+104	37	0	Sách Kamejoko	học kĩ năng Kamejoko	1	651	1	0	0	0	0	-1	-1	-1
+105	7	0	Sách Kamejoko lv2	Nâng đòn Kamejoko lên cấp 2	2	652	-1	0	0	0	0	-1	-1	-1
+106	7	0	Sách Kamejoko lv3	Nâng đòn Kamejoko lên cấp 3	3	653	-1	0	0	0	0	-1	-1	-1
+107	7	0	Sách Kamejoko lv4	Nâng đòn Kamejoko lên cấp 4	4	654	-1	0	0	0	0	-1	-1	-1
+108	7	0	Sách Kamejoko lv5	Nâng đòn Kamejoko lên cấp 5	5	655	-1	0	0	0	0	-1	-1	-1
+109	7	0	Sách Kamejoko lv6	Nâng đòn Kamejoko lên cấp 6	6	656	-1	0	0	0	0	-1	-1	-1
+110	7	0	Sách Kamejoko lv7	Nâng đòn Kamejoko lên cấp 7	7	657	-1	0	0	0	0	-1	-1	-1
+111	7	0	Thái Dương Hạ San lv1	học Thái Dương Hạ San	1	658	-1	0	0	0	0	-1	-1	-1
+112	37	0	Thái Dương Hạ San	học Thái Dương Hạ San	1	658	6	0	0	0	0	-1	-1	-1
+113	7	0	Thái Dương Hạ San lv2	nâng TDHS lên cấp 2	2	659	-1	0	0	0	0	-1	-1	-1
+114	7	0	Thái Dương Hạ San lv3	nâng TDHS lên cấp 3	3	660	-1	0	0	0	0	-1	-1	-1
+115	7	0	Thái Dương Hạ San lv4	nâng TDHS lên cấp 4	4	661	-1	0	0	0	0	-1	-1	-1
+116	7	0	Thái Dương Hạ San lv5	nâng TDHS lên cấp 5	5	662	-1	0	0	0	0	-1	-1	-1
+117	7	0	Thái Dương Hạ San lv6	nâng TDHS lên cấp 6	6	663	-1	0	0	0	0	-1	-1	-1
+118	7	0	Thái Dương Hạ San lv7	nâng TDHS lên cấp 7	7	664	-1	0	0	0	0	-1	-1	-1
+119	7	1	Sách đấm Demon lv1	học kĩ năng đấm Demon	1	665	-1	0	1	0	0	-1	-1	-1
+120	37	1	Sách đấm Demon	học kĩ năng đấm Demon	1	665	2	0	0	0	0	-1	-1	-1
+121	7	1	Sách đấm Demon lv2	Nâng đòn đấm Demon lên cấp 2	2	666	-1	0	1	0	0	-1	-1	-1
+122	7	1	Sách đấm Demon lv3	Nâng đòn đấm Demon lên cấp 3	3	667	-1	0	1	0	0	-1	-1	-1
+123	7	1	Sách đấm Demon lv4	Nâng đòn đấm Demon lên cấp 4	4	668	-1	0	1	0	0	-1	-1	-1
+124	7	1	Sách đấm Demon lv5	Nâng đòn đấm Demon lên cấp 5	5	669	-1	0	1	0	0	-1	-1	-1
+125	7	1	Sách đấm Demon lv6	Nâng đòn đấm Demon lên cấp 6	6	670	-1	0	1	0	0	-1	-1	-1
+126	7	1	Sách đấm Demon lv7	Nâng đòn đấm Demon lên cấp 7	7	671	-1	0	1	0	0	-1	-1	-1
+127	7	1	Sách Masenko lv1	học kĩ năng Masenko	1	672	-1	0	0	0	0	-1	-1	-1
+128	37	1	Sách Masenko	học kĩ năng Masenko	1	672	3	0	0	0	0	-1	-1	-1
+129	7	1	Sách Masenko lv2	Nâng đòn Masenko lên cấp 2	2	673	-1	0	0	0	0	-1	-1	-1
+130	7	1	Sách Masenko lv3	Nâng đòn Masenko lên cấp 3	3	674	-1	0	0	0	0	-1	-1	-1
+131	7	1	Sách Masenko lv4	Nâng đòn Masenko lên cấp 4	4	675	-1	0	0	0	0	-1	-1	-1
+132	7	1	Sách Masenko lv5	Nâng đòn Masenko lên cấp 5	5	676	-1	0	0	0	0	-1	-1	-1
+133	7	1	Sách Masenko lv6	Nâng đòn Masenko lên cấp 6	6	677	-1	0	0	0	0	-1	-1	-1
+134	7	1	Sách Masenko lv7	Nâng đòn Masenko lên cấp 7	7	678	-1	0	0	0	0	-1	-1	-1
+135	7	2	Sách đấm Galick lv1	học kĩ năng đấm Galick	1	679	-1	0	1	0	0	-1	-1	-1
+136	37	2	Sách đấm Galick	học kĩ năng đấm Galick	1	679	4	0	0	0	0	-1	-1	-1
+137	7	2	Sách đấm Galick lv2	Nâng đòn đấm Galick lên cấp 2	2	680	-1	0	1	0	0	-1	-1	-1
+138	7	2	Sách đấm Galick lv3	Nâng đòn đấm Galick lên cấp 3	3	681	-1	0	1	0	0	-1	-1	-1
+139	7	2	Sách đấm Galick lv4	Nâng đòn đấm Galick lên cấp 4	4	682	-1	0	1	0	0	-1	-1	-1
+140	7	2	Sách đấm Galick lv5	Nâng đòn đấm Galick lên cấp 5	5	683	-1	0	1	0	0	-1	-1	-1
+141	7	2	Sách đấm Galick lv6	Nâng đòn đấm Galick lên cấp 6	6	684	-1	0	1	0	0	-1	-1	-1
+142	7	2	Sách đấm Galick lv7	Nâng đòn đấm Galick lên cấp 7	7	685	-1	0	1	0	0	-1	-1	-1
+143	7	2	Sách Antomic lv1	học kĩ năng Antomic	1	686	-1	0	0	0	0	-1	-1	-1
+144	37	2	Sách Antomic	học kĩ năng Antomic	1	686	5	0	0	0	0	-1	-1	-1
+145	7	2	Sách Antomic lv2	Nâng đòn Antomic lên cấp 2	2	687	-1	0	0	0	0	-1	-1	-1
+146	7	2	Sách Antomic lv3	nâng Antomic lên cấp 3	3	688	-1	0	0	0	0	-1	-1	-1
+147	7	2	Sách Antomic lv4	nâng Antomic lên cấp 4	4	689	-1	0	0	0	0	-1	-1	-1
+148	7	2	Sách Antomic lv5	nâng Antomic lên cấp 5	5	690	-1	0	0	0	0	-1	-1	-1
+149	7	2	Sách Antomic lv6	nâng Antomic lên cấp 6	6	691	-1	0	0	0	0	-1	-1	-1
+150	7	2	Sách Antomic lv7	nâng Antomic lên cấp 7	7	692	-1	0	0	0	0	-1	-1	-1
+151	7	0	Kaioken lv1	học kỹ năng Kaioken	1	716	-1	0	10000000	0	0	-1	-1	-1
+152	7	0	Kaioken lv2	nâng Kaioken lên cấp 2	2	716	-1	0	10000000	0	0	-1	-1	-1
+153	7	0	Kaioken lv3	nâng Kaioken lên cấp 3	3	716	-1	0	10000000	0	0	-1	-1	-1
+154	7	0	Kaioken lv4	nâng Kaioken lên cấp 4	4	716	-1	0	10000000	0	0	-1	-1	-1
+155	7	0	Kaioken lv5	nâng Kaioken lên cấp 5	5	716	-1	0	10000000	0	0	-1	-1	-1
+156	7	0	Kaioken lv6	nâng Kaioken lên cấp 6	6	716	-1	0	10000000	0	0	-1	-1	-1
+157	7	0	Kaioken lv7	nâng Kaioken lên cấp 7	7	716	-1	0	10000000	0	0	-1	-1	-1
+158	37	0	Kaioken	học kỹ năng Kaioken	1	716	9	0	0	0	0	-1	-1	-1
+159	7	0	Quả cầu Kênh Khi lv1	học kỹ năng Quả Cầu Kênh Khi	1	717	-1	0	10000000	0	0	-1	-1	-1
+160	7	0	Quả cầu Kênh Khi lv2	nâng Quả Cầu Kênh Khi lên cấp 2	2	717	-1	0	10000000	0	0	-1	-1	-1
+161	7	0	Quả cầu Kênh Khi lv3	nâng Quả Cầu Kênh Khi lên cấp 3	3	717	-1	0	10000000	0	0	-1	-1	-1
+162	7	0	Quả cầu Kênh Khi lv4	nâng Quả Cầu Kênh Khi lên cấp 4	4	717	-1	0	10000000	0	0	-1	-1	-1
+163	7	0	Quả cầu Kênh Khi lv5	nâng Quả Cầu Kênh Khi lên cấp 5	5	717	-1	0	10000000	0	0	-1	-1	-1
+164	7	0	Quả cầu Kênh Khi lv6	nâng Quả Cầu Kênh Khi lên cấp 6	6	717	-1	0	10000000	0	0	-1	-1	-1
+165	7	0	Quả cầu Kênh Khi lv7	nâng Quả Cầu Kênh Khi lên cấp 7	7	717	-1	0	10000000	0	0	-1	-1	-1
+166	37	0	Quả cầu Kênh Khi	học kỹ năng Quả Cầu Kênh Khi	1	717	10	0	0	0	0	-1	-1	-1
+167	7	2	Hóa khỉ khổng lồ lv1	học kỹ năng hóa thành khỉ khổng lồ	1	718	-1	0	10000000	0	0	-1	-1	-1
+168	7	2	Hóa khỉ khổng lồ lv2	nâng hóa khỉ khổng lồ lên cấp 2	2	718	-1	0	10000000	0	0	-1	-1	-1
+169	7	2	Hóa khỉ khổng lồ lv3	nâng hóa khỉ khổng lồ lên cấp 3	3	718	-1	0	10000000	0	0	-1	-1	-1
+170	7	2	Hóa khỉ khổng lồ lv4	nâng hóa khỉ khổng lồ lên cấp 4	4	718	-1	0	10000000	0	0	-1	-1	-1
+171	7	2	Hóa khỉ khổng lồ lv5	nâng hóa khỉ khổng lồ lên cấp 5	5	718	-1	0	10000000	0	0	-1	-1	-1
+172	7	2	Hóa khỉ khổng lồ lv6	nâng hóa khỉ khổng lồ lên cấp 6	6	718	-1	0	10000000	0	0	-1	-1	-1
+173	7	2	Hóa khỉ khổng lồ lv7	nâng hóa khỉ khổng lồ lên cấp 7	7	718	-1	0	10000000	0	0	-1	-1	-1
+174	37	2	Hóa khỉ khổng lồ	học kỹ năng hóa thành khỉ khổng lồ	1	718	13	0	0	0	0	-1	-1	-1
+175	7	1	Đẻ trứng lv1	học kỹ năng đẻ trứng	1	722	-1	0	10000000	0	0	-1	-1	-1
+176	7	1	Đẻ trứng lv2	nâng đẻ trứng lên cấp 2	2	722	-1	0	10000000	0	0	-1	-1	-1
+177	7	1	Đẻ trứng lv3	nâng đẻ trứng lên cấp 3	3	722	-1	0	10000000	0	0	-1	-1	-1
+178	7	1	Đẻ trứng lv4	nâng đẻ trứng lên cấp 4	4	722	-1	0	10000000	0	0	-1	-1	-1
+179	7	1	Đẻ trứng lv5	nâng đẻ trứng lên cấp 5	5	722	-1	0	10000000	0	0	-1	-1	-1
+180	7	1	Đẻ trứng lv6	nâng đẻ trứng lên cấp 6	6	722	-1	0	10000000	0	0	-1	-1	-1
+181	7	1	Đẻ trứng lv7	nâng đẻ trứng lên cấp 7	7	722	-1	0	10000000	0	0	-1	-1	-1
+182	37	1	Đẻ trứng	học kỹ năng đẻ trứng	1	722	12	0	0	0	0	-1	-1	-1
+183	7	1	Makankosappo lv1	học kỹ năng Makankosappo	1	723	-1	0	10000000	0	0	-1	-1	-1
+184	7	1	Makankosappo lv2	nâng Makankosappo lên cấp 2	2	723	-1	0	10000000	0	0	-1	-1	-1
+185	7	1	Makankosappo lv3	nâng Makankosappo lên cấp 3	3	723	-1	0	10000000	0	0	-1	-1	-1
+186	7	1	Makankosappo lv4	nâng Makankosappo lên cấp 4	4	723	-1	0	10000000	0	0	-1	-1	-1
+187	7	1	Makankosappo lv5	nâng Makankosappo lên cấp 5	5	723	-1	0	10000000	0	0	-1	-1	-1
+188	7	1	Makankosappo lv6	nâng Makankosappo lên cấp 6	6	723	-1	0	10000000	0	0	-1	-1	-1
+189	7	1	Makankosappo lv7	nâng Makankosappo lên cấp 7	7	723	-1	0	10000000	0	0	-1	-1	-1
+190	37	1	Makankosappo	học kỹ năng Makankosappo	1	723	11	0	0	0	0	-1	-1	-1
+191	11	3	Đứa bé	Đứa bé trong phi thuyền tennis	1	737	736	0	0	0	0	-1	-1	-1
+192	9	3	Vàng		1	927	-1	0	0	0	0	-1	-1	-1
+193	9	3	Vàng		1	928	-1	0	0	0	0	-1	-1	-1
+194	9	3	Vàng		1	929	-1	0	0	0	0	-1	-1	-1
+195	9	3	Vàng		1	930	-1	0	0	0	0	-1	-1	-1
+196	27	3	Cà chua		0	931	-1	0	0	0	0	-1	-1	-1
+197	10	3	Ngọc		1	932	-1	0	0	0	0	-1	-1	-1
+198	27	3	Cà rốt		0	933	-1	0	0	0	0	-1	-1	-1
+199	0	2	Áo giáp bạc	Giúp bạn giảm sát thương	5	934	69	0	240000	0	0	-1	-1	-1
+200	0	2	Áo giáp vàng	Giúp bạn giảm sát thương	6	934	69	0	720000	0	0	-1	-1	-1
+201	1	2	Quần giáp bạc	Giúp bạn tăng HP	5	935	70	0	200000	0	0	-1	-1	-1
+202	1	2	Quần giáp vàng	Giúp bạn tăng HP	6	935	70	0	600000	0	0	-1	-1	-1
+203	3	2	Giày bạc	Giúp bạn tăng MP	5	936	-1	0	160000	0	0	-1	-1	-1
+204	3	2	Giày vàng	Giúp bạn tăng MP	6	936	-1	0	480000	0	0	-1	-1	-1
+205	0	0	Áo vải Kame	Giúp bạn giảm sát thương	5	938	65	0	240000	0	0	-1	-1	-1
+206	0	0	Áo thun Kame	Giúp bạn giảm sát thương	6	938	65	0	720000	0	0	-1	-1	-1
+207	1	0	Quần vải Kame	Giúp bạn tăng HP	5	939	66	0	200000	0	0	-1	-1	-1
+208	1	0	Quần thun Kame	Giúp bạn tăng HP	6	939	66	0	600000	0	0	-1	-1	-1
+209	3	0	Giày nhựa Kame	Giúp bạn tăng MP	5	940	-1	0	160000	0	0	-1	-1	-1
+210	3	0	Giày cao su Kame	Giúp bạn tăng MP	6	940	-1	0	480000	0	0	-1	-1	-1
+211	0	1	Áo choàng len	Giúp bạn giảm sát thương	5	942	67	0	240000	0	0	-1	-1	-1
+212	0	1	Áo choàng thun	Giúp bạn giảm sát thương	6	942	67	0	720000	0	0	-1	-1	-1
+213	1	1	Quần len cứng	Giúp bạn tăng HP	5	943	68	0	200000	0	0	-1	-1	-1
+214	1	1	Quần thun cứng	Giúp bạn tăng HP	6	943	68	0	600000	0	0	-1	-1	-1
+215	3	1	Giày nhựa cứng	Giúp bạn tăng MP	5	945	-1	0	160000	0	0	-1	-1	-1
+216	3	1	Giày cao su cứng	Giúp bạn tăng MP	6	945	-1	0	480000	0	0	-1	-1	-1
+217	2	2	Găng bạc	Giúp bạn tăng sức đánh	5	946	-1	0	800000	0	0	-1	-1	-1
+218	2	2	Găng vàng	Giúp bạn tăng sức đánh	6	946	-1	0	3200000	0	0	-1	-1	-1
+219	2	0	Găng vải Kame	Giúp bạn tăng sức đánh	5	947	-1	0	800000	0	0	-1	-1	-1
+220	2	0	Găng thun Kame	Giúp bạn tăng sức đánh	6	947	-1	0	3200000	0	0	-1	-1	-1
+221	2	1	Găng len cứng	Giúp bạn tăng sức đánh	5	948	-1	0	800000	0	0	-1	-1	-1
+222	2	1	Găng thun cứng	Giúp bạn tăng sức đánh	6	948	-1	0	3200000	0	0	-1	-1	-1
+223	0	0	Áo võ Kame	Giúp bạn giảm sát thương	7	949	71	0	2200000	0	0	-1	-1	-1
+224	0	0	Áo võ Goku	Giúp bạn giảm sát thương	8	949	71	0	6400000	0	0	-1	-1	-1
+225	1	0	Quần võ Kame	Giúp bạn tăng HP	7	950	72	0	1800000	0	0	-1	-1	-1
+226	1	0	Quần võ goku	Giúp bạn tăng HP	8	950	72	0	5300000	0	0	-1	-1	-1
+227	3	0	Giày võ kame	Giúp bạn tăng MP	7	952	-1	0	1400000	0	0	-1	-1	-1
+228	3	0	Giày võ goku	Giúp bạn tăng MP	8	952	-1	0	4300000	0	0	-1	-1	-1
+229	2	0	Găng võ Kame	Giúp bạn tăng sức đánh	7	953	-1	0	10000000	0	0	-1	-1	-1
+230	2	0	Găng võ goku	Giúp bạn tăng sức đánh	8	953	-1	0	20000000	0	0	-1	-1	-1
+231	0	2	Áo lông Xayda	Giúp bạn giảm sát thương	7	954	73	0	2200000	0	0	-1	-1	-1
+232	0	2	Áo khoác Xayda	Giúp bạn giảm sát thương	8	954	73	0	6400000	0	0	-1	-1	-1
+233	1	2	Quần lông Xayda	Giúp bạn tăng HP	7	955	74	0	1800000	0	0	-1	-1	-1
+234	1	2	Quần da Xayda	Giúp bạn tăng HP	8	955	74	0	5300000	0	0	-1	-1	-1
+235	2	2	Găng lông Xayda	Giúp bạn tăng sức đánh	7	956	-1	0	10000000	0	0	-1	-1	-1
+236	2	2	Găng da Xayda	Giúp bạn tăng sức đánh	8	956	-1	0	20000000	0	0	-1	-1	-1
+237	3	2	Giày lông Xayda	Giúp bạn tăng MP	7	957	-1	0	1400000	0	0	-1	-1	-1
+238	3	2	Giày da Xayda	Giúp bạn tăng MP	8	957	-1	0	4300000	0	0	-1	-1	-1
+239	0	1	Áo vải Pico	Giúp bạn giảm sát thương	7	959	75	0	2200000	0	0	-1	-1	-1
+240	0	1	Áo da Pico	Giúp bạn giảm sát thương	8	959	75	0	6400000	0	0	-1	-1	-1
+241	1	1	Quần vải cứng Pico	Giúp bạn tăng HP	7	960	76	0	1800000	0	0	-1	-1	-1
+242	1	1	Quần vải mềm Pico	Giúp bạn tăng HP	8	960	76	0	5300000	0	0	-1	-1	-1
+243	2	1	Găng vải Pico	Giúp bạn tăng sức đánh	7	961	-1	0	10000000	0	0	-1	-1	-1
+244	2	1	Găng da Pico	Giúp bạn tăng sức đánh	8	961	-1	0	20000000	0	0	-1	-1	-1
+245	3	1	Giày da Pico	Giúp bạn tăng MP	7	963	-1	0	1400000	0	0	-1	-1	-1
+246	3	1	Giày sắt Pico	Giúp bạn tăng MP	8	963	-1	0	4300000	0	0	-1	-1	-1
+247	4	3	Rada cấp 5	Giúp bạn tăng Chí Mạng	5	1019	-1	0	260000	0	0	-1	-1	-1
+248	4	3	Rada cấp 6	Giúp bạn tăng Chí Mạng	6	1020	-1	0	780000	0	0	-1	-1	-1
+249	4	3	Rada cấp 7	Giúp bạn tăng Chí Mạng	7	1021	-1	0	2300000	0	0	-1	-1	-1
+250	4	3	Rada cấp 3	Giúp tăng Chí Mạng	3	1022	-1	0	28000	0	0	-1	-1	-1
+251	4	3	Rada cấp 4	Giúp tăng Chí Mạng	4	1023	-1	0	86000	0	0	-1	-1	-1
+252	11	3	Cờ xanh dạ	Vật phẩm bang hội	1	1025	8	0	0	0	0	-1	-1	-1
+253	11	3	Cờ đen	Vật phẩm bang hội	1	1026	1	0	0	0	0	-1	-1	-1
+254	11	3	Cờ xám	Vật phẩm bang hội	1	1027	0	0	1500000	0	0	-1	-1	-1
+255	11	3	Cờ hồng	Vật phẩm bang hội	1	1028	4	0	0	0	0	-1	-1	-1
+256	11	3	Cờ cam	Vật phẩm bang hội	1	1029	5	0	0	0	0	-1	-1	-1
+257	11	3	Cờ tím	Vật phẩm bang hội	1	1030	7	0	0	0	0	-1	-1	-1
+258	11	3	Cờ vàng	Vật phẩm bang hội	1	1031	6	0	0	0	0	-1	-1	-1
+259	11	3	Cờ xanh biển	Vật phẩm bang hội	1	1032	3	0	0	0	0	-1	-1	-1
+260	11	3	Cờ xanh lá	Vật phẩm bang hội	1	1033	2	0	0	0	0	-1	-1	-1
+261	11	3	Cờ đỏ	Vật phẩm bang hội	1	1034	9	0	0	0	0	-1	-1	-1
+262	11	3	Mai rùa	Vật phẩm bang hội	1	1035	22	0	0	0	0	-1	-1	-1
+263	11	3	Giỏ củ cải trắng	Vật phẩm bang hội	1	1036	25	0	0	0	0	-1	-1	-1
+264	11	3	Giỏ cà rốt	Vật phẩm bang hội	1	1037	26	0	0	0	0	-1	-1	-1
+265	11	3	Ba lô	Vật phẩm bang hội	1	1038	19	0	0	0	0	-1	-1	-1
+266	11	3	Gậy	Vật phẩm bang hội	1	1039	21	0	0	0	0	-1	-1	-1
+267	29	3	Dưa Hấu		1	1040	-1	0	0	0	0	-1	-1	-1
+268	11	3	Giỏ dưa hấu	Vật phẩm bang hội	1	1040	24	0	0	0	0	-1	-1	-1
+269	8	3	Truyện tranh	Vật phẩm nhiệm vụ	0	1041	-1	0	0	0	0	-1	-1	-1
+270	11	3	Giỏ chuối	Vật phẩm bang hội	1	1042	27	0	0	0	0	-1	-1	-1
+271	11	3	Giỏ bơ	Vật phẩm bang hội	1	1043	23	0	0	0	0	-1	-1	-1
+272	11	3	Đao	Vật phẩm bang hội	1	1044	20	0	0	0	0	-1	-1	-1
+273	11	3	Khăn xanh lá	Vật phẩm bang hội	1	1063	10	0	0	0	0	-1	-1	-1
+274	11	3	Khăn xanh dương	Vật phẩm bang hội	1	1064	11	0	0	0	0	-1	-1	-1
+275	11	3	Khăn vàng	Vật phẩm bang hội	1	1065	12	0	0	0	0	-1	-1	-1
+276	11	3	Khăn tím	Vật phẩm bang hội	1	1066	13	0	0	0	0	-1	-1	-1
+277	11	3	Khăn nâu	Vật phẩm bang hội	1	1067	14	0	0	0	0	-1	-1	-1
+278	11	3	Khăn hồng	Vật phẩm bang hội	1	1068	17	0	0	0	0	-1	-1	-1
+279	11	3	Khăn xanh dạ	Vật phẩm bang hội	1	1069	18	0	0	0	0	-1	-1	-1
+280	11	3	Khăn xám	Vật phẩm bang hội	1	1070	15	0	0	0	0	-1	-1	-1
+281	11	3	Khăn đỏ	Vật phẩm bang hội	1	1072	16	0	0	0	0	-1	-1	-1
+282	11	3	Gậy phép	Vật phẩm bang hội	1	1084	29	0	0	0	0	-1	-1	-1
+283	27	3	Gói 10 viên Capsule	Tàu Vận Chuyển	0	1087	-1	0	0	0	0	-1	-1	-1
+284	27	3	Viên Capsule đặc biệt	Tàu Vận Chuyển VIP dùng không giới hạn số lần	0	1088	-1	0	0	0	0	-1	-1	-1
+285	27	3	Siêu thánh thủy	Tẩy toàn bộ tiềm năng	0	1088	-1	0	0	0	0	-1	-1	-1
+286	4	3	Rada cấp 1	Giúp tăng Chí Mạng	1	1089	-1	0	1300	0	0	-1	-1	-1
+287	29	3	Hồi skill	Giảm thời gian cooldown skill thành 0,1 giây	1	1089	-1	0	0	0	0	-1	-1	-1
+288	7	1	Sách học Trị thương lv1	học trị thương	1	1090	-1	0	0	0	0	-1	-1	-1
+289	37	1	Sách học Trị thương	học trị thương	1	1090	7	0	0	0	0	-1	-1	-1
+290	7	1	Sách học Trị thương lv2	nâng trị thương lên cấp 2	2	1091	-1	0	0	0	0	-1	-1	-1
+291	7	1	Sách học Trị thương lv3	nâng trị thương lên cấp 3	3	1092	-1	0	0	0	0	-1	-1	-1
+292	7	1	Sách học Trị thương lv4	nâng trị thương lên cấp 4	4	1093	-1	0	0	0	0	-1	-1	-1
+293	7	1	Sách học Trị thương lv5	nâng trị thương lên cấp 5	5	1094	-1	0	0	0	0	-1	-1	-1
+294	7	1	Sách học Trị thương lv6	nâng trị thương lên cấp 6	6	1095	-1	0	0	0	0	-1	-1	-1
+295	7	1	Sách học Trị thương lv7	nâng trị thương lên cấp 7	7	1096	-1	0	0	0	0	-1	-1	-1
+296	7	2	Tái tạo năng lượng lv1	học Tái tạo năng lượng	1	1097	-1	0	0	0	0	-1	-1	-1
+297	37	2	Tái tạo năng lượng	học Tái tạo năng lượng	1	1097	8	0	0	0	0	-1	-1	-1
+298	7	2	Tái tạo năng lượng lv2	nâng Tái tạo năng lượng lên cấp 2	2	1098	-1	0	0	0	0	-1	-1	-1
+299	7	2	Tái tạo năng lượng lv3	nâng Tái tạo năng lượng lên cấp 3	3	1099	-1	0	0	0	0	-1	-1	-1
+300	7	2	Tái tạo năng lượng lv4	nâng Tái tạo năng lượng lên cấp 4	4	1100	-1	0	0	0	0	-1	-1	-1
+301	7	2	Tái tạo năng lượng lv5	nâng Tái tạo năng lượng lên cấp 5	5	1101	-1	0	0	0	0	-1	-1	-1
+302	7	2	Tái tạo năng lượng lv6	nâng Tái tạo năng lượng lên cấp 6	6	1102	-1	0	0	0	0	-1	-1	-1
+303	7	2	Tái tạo năng lượng lv7	nâng Tái tạo năng lượng lên cấp 7	7	1103	-1	0	0	0	0	-1	-1	-1
+304	5	3	Cải trang	Cải trang thành Tàu Pảy Pảy	1	1210	89	0	0	0	0	89	90	91
+305	5	2	Avatar	Dùng để thay đổi khuôn mặt	1	1330	101	0	0	0	0	-1	-1	-1
+306	5	3	CT Goku SSJ	Vật phẩm sự kiện	1	1330	-1	0	0	0	0	1454	1450	1451
+307	5	2	Avatar	Dùng để thay đổi khuôn mặt	2	1334	103	0	0	0	0	-1	-1	-1
+308	5	0	Avatar	Dùng để thay đổi khuôn mặt	1	1342	106	0	0	0	0	-1	-1	-1
+309	5	2	Avatar	Dùng để thay đổi khuôn mặt	3	1344	107	0	0	0	0	-1	-1	-1
+310	5	0	Avatar	Dùng để thay đổi khuôn mặt	2	1346	108	0	0	0	0	-1	-1	-1
+311	5	3	Cải trang Píc	Cải trang thành Android sát thủ	1	1348	-1	0	150000000	0	0	237	238	239
+312	5	0	Avatar	Dùng để thay đổi khuôn mặt	3	1348	110	0	0	0	0	237	238	239
+313	5	1	Avatar	Dùng để thay đổi khuôn mặt	1	1350	112	0	0	0	0	112	115	116
+314	5	1	Avatar	Dùng để thay đổi khuôn mặt	2	1352	111	0	0	0	0	111	115	116
+315	5	1	Avatar	Dùng để thay đổi khuôn mặt	3	1354	113	0	0	0	0	86	87	88
+316	5	2	Avatar	Dùng để thay đổi khuôn mặt	0	1377	107	0	0	0	0	-1	-1	-1
+317	5	2	Avatar	Dùng để thay đổi khuôn mặt	0	1378	104	0	0	0	0	-1	-1	-1
+318	5	2	Avatar	Dùng để thay đổi khuôn mặt	0	1379	103	0	0	0	0	-1	-1	-1
+319	5	2	Avatar	Dùng để thay đổi khuôn mặt	0	1380	102	0	0	0	0	-1	-1	-1
+320	5	2	Avatar	Dùng để thay đổi khuôn mặt	0	1381	105	0	0	0	0	-1	-1	-1
+321	5	0	Avatar	Dùng để thay đổi khuôn mặt	0	1382	106	0	0	0	0	-1	-1	-1
+322	5	2	Avatar	Dùng để thay đổi khuôn mặt	0	1383	101	0	0	0	0	-1	-1	-1
+323	5	1	Avatar	Dùng để thay đổi khuôn mặt	0	1384	112	0	0	0	0	112	115	116
+324	5	0	Avatar	Dùng để thay đổi khuôn mặt	0	1385	109	0	0	0	0	109	115	116
+325	5	1	Avatar	Dùng để thay đổi khuôn mặt	0	1386	111	0	0	0	0	111	115	116
+326	5	0	Avatar	Dùng để thay đổi khuôn mặt	0	1387	108	0	0	0	0	-1	-1	-1
+327	5	1	Avatar	Dùng để thay đổi khuôn mặt	0	1388	113	0	0	0	0	113	115	116
+328	5	0	Avatar	Dùng để thay đổi khuôn mặt	0	1389	110	0	0	0	0	110	115	116
+329	27	3	Nho tím	Ăn vào hồi phục 100% thể lực	0	1394	-1	0	0	0	0	-1	-1	-1
+330	27	3	Nho xanh	Ăn vào hồi phục 20% thể lực	0	1395	-1	0	0	0	0	-1	-1	-1
+331	13	3	Bùa Trí Tuệ	Tiềm năng và sức mạnh của bạn sẽ nhận được gấp đôi trong 1 khoảng thời gian, kể từ lúc mua	0	1403	-1	0	0	0	0	-1	-1	-1
+332	13	3	Bùa Đệ Tử	Đệ tử bạn sẽ tự đánh quái không cần sư phụ, giảm 50% sát thương từ quái, tăng 100% sức mạnh khi đánh quái	0	1403	-1	0	0	0	0	-1	-1	-1
+333	27	3	Chữ giải	Vật phẩm sự kiện	0	1403	-1	0	0	0	0	-1	-1	-1
+334	13	3	Bùa Trí Tuệ	Vật phẩm bang hội	0	1403	-1	0	0	0	0	-1	-1	-1
+335	13	3	Bùa Trí tuệ Đệ Tử	Tiềm năng và sức mạnh của đệ tử bạn sẽ nhận được gấp đôi trong 1 khoảng thời gian, kể từ lúc mua	0	1403	-1	0	0	0	0	-1	-1	-1
+336	13	3	Bùa Mạnh Mẽ	Cú đấm của bạn sẽ mạnh hơn. Tăng 150% sức đánh hiện có khi bạn đánh Quái trong 1 khoảng thời gian, kể từ lúc mua	0	1404	-1	0	0	0	0	-1	-1	-1
+337	27	3	Chữ khai	Vật phẩm sự kiện	0	1404	-1	0	0	0	0	-1	-1	-1
+338	27	3	Urôn	Vật phẩm sự kiện	1	1404	-1	0	0	0	0	-1	-1	-1
+339	13	3	Bùa Mạnh Mẽ	Vật phẩm bang hội	0	1404	-1	0	0	0	0	-1	-1	-1
+340	13	3	Bùa Da Trâu	Tăng sức chịu đòn cho bạn. Khi bị quái đánh, máu sẽ mất ít hơn, chỉ còn 50% bình thường. Có tác dụng trong 1 khoảng thời gian kể từ lúc mua	0	1405	-1	0	0	0	0	-1	-1	-1
+341	27	3	Vương	Vật phẩm sự kiện	1	1405	-1	0	0	0	0	-1	-1	-1
+342	13	3	Bùa Da Trâu	Vật phẩm bang hội	0	1405	-1	0	0	0	0	-1	-1	-1
+343	13	3	Bùa Oai Hùng	Bạn sẽ oai vệ hơn. Quái Thủ Lĩnh sẽ sợ bạn và đánh bạn yếu đi, y như con quái thường. Có tác dụng trong 1 khoảng thời gian kể từ lúc mua	0	1406	-1	0	0	0	0	-1	-1	-1
+344	27	3	Chữ ấn	Vật phẩm sự kiện	0	1406	-1	0	0	0	0	-1	-1	-1
+345	13	3	Bùa Trí Tuệ x3	Tiềm năng và sức mạnh của bạn sẽ nhận được gấp ba trong 1 khoảng thời gian, kể từ lúc mua	0	1406	-1	0	0	0	0	-1	-1	-1
+346	27	3	Đại	Vật phẩm sự kiện	1	1406	-1	0	0	0	0	-1	-1	-1
+347	13	3	Bùa Bất Tử	Bạn sẽ không bao giờ bị quái đánh chết. Thay vào đó chỉ còn 1 máu. Tuy nhiên bạn phải bơm máu mới có thể đánh lại. Có tác dụng trong 1 khoảng thời gian kể từ lúc mua.	0	1407	-1	0	0	0	0	-1	-1	-1
+348	27	3	Chữ phong	Vật phẩm sự kiện	0	1407	-1	0	0	0	0	-1	-1	-1
+349	13	3	Bùa Trí Tuệ x4	Tiềm năng và sức mạnh của bạn sẽ nhận được gấp bốn trong 1 khoảng thời gian, kể từ lúc mua	0	1407	-1	0	0	0	0	-1	-1	-1
+350	27	3	Bắt	Vật phẩm sự kiện	1	1407	-1	0	0	0	0	-1	-1	-1
+351	27	3	Bùa may mắn	Vật phẩm sự kiện	1	1407	-1	0	0	0	0	-1	-1	-1
+352	13	3	Bùa Dẻo Dai	Thể lực của bạn sẽ không bao giờ giảm khi bùa này có tác dụng. Có tác dụng trong 1 khoảng thời gian, kể từ lúc mua	0	1408	-1	0	0	0	0	-1	-1	-1
+353	13	3	Bùa Thu Hút	Vật phẩm bạn đánh văng ra nếu là của bạn, nó sẽ tự bay vào người. Bạn sẽ không phải nhặt bằng tay. Có tác dụng trong 1 khoảng thời gian, kể từ lúc mua	0	1409	-1	0	0	0	0	-1	-1	-1
+354	27	3	Truy	Vật phẩm sự kiện	1	1409	-1	0	0	0	0	-1	-1	-1
+355	27	3	Bùa bình an	Vật phẩm sự kiện	1	1409	-1	0	0	0	0	-1	-1	-1
+356	14	3	Đá Ruby	Gặp bà Hạt Mít để sử dụng	0	1416	-1	0	0	0	0	-1	-1	-1
+357	14	3	Đá Titan	Gặp bà Hạt Mít để sử dụng	0	1417	-1	0	0	0	0	-1	-1	-1
+358	14	3	Đá thạch anh tím	Gặp bà Hạt Mít để sử dụng	0	1418	-1	0	0	0	0	-1	-1	-1
+359	14	3	Đá Saphia	Gặp bà Hạt Mít để sử dụng	0	1419	-1	0	0	0	0	-1	-1	-1
+360	14	3	Đá lục bảo	Gặp bà Hạt Mít để sử dụng	0	1420	-1	0	0	0	0	-1	-1	-1
+361	15	3	Mảnh đá vụn	Gặp bà Hạt Mít để sử dụng	0	1421	-1	0	0	0	0	-1	-1	-1
+362	16	3	Bình nước phép	Gặp bà Hạt Mít để sử dụng	0	1422	-1	0	0	0	0	-1	-1	-1
+363	5	1	Avatar VIP	Dùng để thay đổi khuôn mặt	0	1454	128	0	0	0	0	128	130	131
+364	5	0	Avatar VIP	Dùng để thay đổi khuôn mặt	0	1477	127	0	0	0	0	128	130	131
+365	5	2	Avatar VIP	Dùng để thay đổi khuôn mặt	0	1478	126	0	0	0	0	126	130	131
+366	33	3	Mảnh Độc Nhãn	Đầu não của Red Ribbon. Bị chột một mắt. Lúc nhỏ bị mọi người chê là \Thằng lùn\	1	1568	-1	0	0	0	0	-1	-1	-1
+367	0	0	Áo da Calic	Giúp bạn giảm sát thương	11	1688	157	0	170000000	0	0	-1	-1	-1
+368	0	0	Áo jean Calic	Giúp bạn giảm sát thương	12	1688	157	0	520000000	0	0	-1	-1	-1
+369	0	0	Áo bạc Goku	Giúp bạn giảm sát thương	9	1689	155	0	20000000	0	0	-1	-1	-1
+370	0	0	Áo vàng Goku	Giúp bạn giảm sát thương	10	1689	155	0	58000000	0	0	-1	-1	-1
+371	0	2	Áo lông đỏ	Giúp bạn giảm sát thương	9	1690	147	0	20000000	0	0	-1	-1	-1
+372	0	2	Áo siêu xayda	Giúp bạn giảm sát thương	10	1690	147	0	58000000	0	0	-1	-1	-1
+373	0	2	Áo Kaio	Giúp bạn giảm sát thương	11	1691	151	0	170000000	0	0	-1	-1	-1
+374	0	2	Áo lưỡng long	Giúp bạn giảm sát thương	12	1691	151	0	520000000	0	0	-1	-1	-1
+375	0	1	Áo sắt Tron	Giúp bạn giảm sát thương	9	1692	149	0	20000000	0	0	-1	-1	-1
+376	0	1	Áo đồng Tron	Giúp bạn giảm sát thương	10	1692	149	0	58000000	0	0	-1	-1	-1
+377	0	1	Áo bạc Zealot	Giúp bạn giảm sát thương	11	1693	153	0	170000000	0	0	-1	-1	-1
+378	0	1	Áo vàng Zealot	Giúp bạn giảm sát thương	12	1693	153	0	520000000	0	0	-1	-1	-1
+379	1	0	Quần da Calic	Giúp bạn tăng HP	11	1694	158	0	170000000	0	0	-1	-1	-1
+380	1	0	Quần jean Calic	Giúp bạn tăng HP	12	1694	158	0	520000000	0	0	-1	-1	-1
+381	1	0	Quần bạc Goku	Giúp bạn tăng HP	9	1695	156	0	20000000	0	0	-1	-1	-1
+382	1	0	Quần vàng Goku	Giúp bạn tăng HP	10	1695	156	0	58000000	0	0	-1	-1	-1
+383	1	2	Quần lông đỏ	Giúp bạn tăng HP	9	1696	148	0	20000000	0	0	-1	-1	-1
+384	1	2	Quần siêu Xayda	Giúp bạn tăng HP	10	1696	148	0	58000000	0	0	-1	-1	-1
+385	1	2	Quần Kaio	Giúp bạn tăng HP	11	1697	152	0	170000000	0	0	-1	-1	-1
+386	1	2	Quần lưỡng long	Giúp bạn tăng HP	12	1697	152	0	520000000	0	0	-1	-1	-1
+387	1	1	Quần sắt Tron	Giúp bạn tăng HP	9	1698	150	0	20000000	0	0	-1	-1	-1
+388	1	1	Quần đồng Tron	Giúp bạn tăng HP	10	1698	150	0	58000000	0	0	-1	-1	-1
+389	1	1	Quần bạc Zealot	Giúp bạn tăng HP	11	1699	154	0	170000000	0	0	-1	-1	-1
+390	1	1	Quần vàng Zealot	Giúp bạn tăng HP	12	1699	154	0	520000000	0	0	-1	-1	-1
+391	3	0	Giày da Calic	Giúp bạn tăng MP	11	1700	-1	0	120000000	0	0	-1	-1	-1
+392	3	0	Giày jean Calic	Giúp bạn tăng MP	12	1700	-1	0	340000000	0	0	-1	-1	-1
+393	3	0	Giày bạc Goku	Giúp bạn tăng MP	9	1701	-1	0	13000000	0	0	-1	-1	-1
+394	3	0	Giày vàng Goku	Giúp bạn tăng MP	10	1701	-1	0	38000000	0	0	-1	-1	-1
+395	3	2	Giày lông đỏ	Giúp bạn tăng MP	9	1702	-1	0	13000000	0	0	-1	-1	-1
+396	3	2	Giày siêu Xayda	Giúp bạn tăng MP	10	1702	-1	0	38000000	0	0	-1	-1	-1
+397	3	2	Giày Kaio	Giúp bạn tăng MP	11	1703	-1	0	120000000	0	0	-1	-1	-1
+398	3	2	Giày lưỡng long	Giúp bạn tăng MP	12	1703	-1	0	340000000	0	0	-1	-1	-1
+399	3	1	Giày sắt Tron	Giúp bạn tăng MP	9	1704	-1	0	13000000	0	0	-1	-1	-1
+400	3	1	Giày đồng Tron	Giúp bạn tăng MP	10	1704	-1	0	38000000	0	0	-1	-1	-1
+401	3	1	Giày bạc Zealot	Giúp bạn tăng MP	11	1705	-1	0	120000000	0	0	-1	-1	-1
+402	3	1	Giày vàng Zealot	Giúp bạn tăng MP	12	1705	-1	0	340000000	0	0	-1	-1	-1
+403	2	0	Găng da Calic	Giúp bạn tăng sức đánh	11	1706	-1	0	600000000	0	0	-1	-1	-1
+404	2	0	Găng jean Calic	Giúp bạn tăng sức đánh	12	1706	-1	0	1500000000	0	0	-1	-1	-1
+405	2	0	Găng bạc Goku	Giúp bạn tăng sức đánh	9	1707	-1	0	68000000	0	0	-1	-1	-1
+406	2	0	Găng vàng Goku	Giúp bạn tăng sức đánh	10	1707	-1	0	200000000	0	0	-1	-1	-1
+407	2	2	Găng lông đỏ	Giúp bạn tăng sức đánh	9	1708	-1	0	68000000	0	0	-1	-1	-1
+408	2	2	Găng siêu Xayda	Giúp bạn tăng sức đánh	10	1708	-1	0	200000000	0	0	-1	-1	-1
+409	2	2	Găng Kaio	Giúp bạn tăng sức đánh	11	1709	-1	0	600000000	0	0	-1	-1	-1
+410	2	2	Găng lưỡng long	Giúp bạn tăng sức đánh	12	1709	-1	0	1500000000	0	0	-1	-1	-1
+411	2	1	Găng bạc Zealot	Giúp bạn tăng sức đánh	11	1710	-1	0	600000000	0	0	-1	-1	-1
+412	2	1	Găng vàng Zealot	Giúp bạn tăng sức đánh	12	1710	-1	0	1500000000	0	0	-1	-1	-1
+413	2	1	Găng sắt Tron	Giúp bạn tăng sức đánh	9	1711	-1	0	68000000	0	0	-1	-1	-1
+414	2	1	Găng đồng Tron	Giúp bạn tăng sức đánh	10	1711	-1	0	200000000	0	0	-1	-1	-1
+415	4	3	Rada cấp 9	Giúp bạn tăng Chí Mạng	9	1712	-1	0	42000000	0	0	-1	-1	-1
+416	4	3	Rada cấp 10	Giúp bạn tăng Chí Mạng	10	1712	-1	0	200000000	0	0	-1	-1	-1
+417	4	3	Rada cấp 11	Giúp bạn tăng Chí Mạng	11	1713	-1	0	1000000000	0	0	-1	-1	-1
+418	4	3	Rada cấp 12	Giúp bạn tăng Chí Mạng	12	1713	-1	0	1500000000	0	0	-1	-1	-1
+419	5	3	Cải trang	Cải trang thành Số 4	1	1871	-1	0	0	0	0	168	169	170
+420	5	3	Cải trang	Cải trang thành Số 4	1	1871	168	0	0	0	0	168	169	170
+421	5	3	Cải trang	Cải trang thành Số 1	1	1964	-1	0	0	0	0	177	178	179
+422	5	3	Cải trang	Cải trang thành Số 1	1	1964	177	0	0	0	0	177	178	179
+423	5	3	Cải trang	Cải trang thành Tiểu Đội Trưởng Ginyu	1	1995	-1	0	0	0	0	180	181	182
+424	5	3	Cải trang	Cải trang thành Tiểu Đội Trưởng Ginyu	1	1995	180	0	0	0	0	180	181	182
+425	5	3	Cải trang	Cải trang thành Fide cấp 1	1	2026	-1	0	0	0	0	183	184	185
+426	5	3	Cải trang	Cải trang thành Fide cấp 2	1	2057	-1	0	0	0	0	186	187	188
+427	5	3	Cải trang	Cải trang thành Fide cấp 3	1	2088	-1	0	0	0	0	189	190	191
+428	5	3	Cải trang	Cải trang thành Số 3	1	2123	174	0	0	0	0	174	175	176
+429	5	3	Cải trang	Cải trang thành Số 3	1	2123	174	0	0	0	0	174	175	176
+430	5	3	Cải trang	Cải trang thành Số 2	1	2124	-1	0	0	0	0	171	172	173
+431	5	3	Cải trang	Cải trang thành Số 2	1	2124	171	0	0	0	0	171	172	173
+432	5	2	Cải trang	Cải trang thành Rambô	1	2125	-1	0	0	0	0	162	163	164
+433	5	0	Cải trang	Cải trang thành Thần Mèo Karin	1	2126	-1	0	0	0	0	89	90	91
+434	5	1	Cải trang	Cải trang thành Thần Vũ Trụ	1	2127	-1	0	0	0	0	98	99	100
+435	5	0	Cải trang	Cải trang thành Yarirobe	1	2128	-1	0	0	0	0	77	78	79
+436	5	1	Cải trang	Cải trang thành Thượng Đế	1	2129	-1	0	0	0	0	86	87	88
+437	5	0	Cải trang	Cải trang thành Ninja Áo Tím	1	2131	83	0	0	0	0	83	84	85
+438	5	1	Cải trang	Cải trang thành Pôpô	1	2133	92	0	0	0	0	92	93	94
+439	5	2	Cải trang	Cải trang thành Kuku	1	2137	159	0	0	0	0	159	160	161
+440	27	3	Quả Trứng		1	2164	-1	0	0	0	0	-1	-1	-1
+441	7	2	Bom hi sinh lv1	học kỹ năng bom hi sinh	1	2248	-1	0	10000000	0	0	-1	-1	-1
+442	7	2	Bom hi sinh lv2	nâng bom hi sinh lên cấp 2	2	2248	-1	0	10000000	0	0	-1	-1	-1
+443	7	2	Bom hi sinh lv3	nâng bom hi sinh lên cấp 3	3	2248	-1	0	10000000	0	0	-1	-1	-1
+444	7	2	Bom hi sinh lv4	nâng bom hi sinh lên cấp 4	4	2248	-1	0	10000000	0	0	-1	-1	-1
+445	7	2	Bom hi sinh lv5	nâng bom hi sinh lên cấp 5	5	2248	-1	0	10000000	0	0	-1	-1	-1
+446	7	2	Bom hi sinh lv6	nâng bom hi sinh lên cấp 6	6	2248	-1	0	10000000	0	0	-1	-1	-1
+447	7	2	Bom hi sinh lv7	nâng bom hi sinh lên cấp 7	7	2248	-1	0	10000000	0	0	-1	-1	-1
+448	37	2	Bom hi sinh	học kỹ năng bom hi sinh	1	2248	14	0	0	0	0	-1	-1	-1
+449	22	3	Vệ tinh sinh lực	Hỗ trợ chiến đấu cho cá nhân và bang hội trong 30 phút trong phạm vi quỹ đạo của Vệ Tinh	1	2264	-1	0	0	0	0	-1	-1	-1
+450	22	3	Vệ tinh trí lực	Hỗ trợ chiến đấu cho cá nhân và bang hội trong 30 phút trong phạm vi quỹ đạo của Vệ Tinh	1	2265	-1	0	0	0	0	-1	-1	-1
+451	22	3	Vệ tinh trí tuệ	Hỗ trợ chiến đấu cho cá nhân và bang hội trong 30 phút trong phạm vi quỹ đạo của Vệ Tinh	1	2266	-1	0	0	0	0	-1	-1	-1
+452	22	3	Vệ tinh phòng thủ	Hỗ trợ chiến đấu cho cá nhân và bang hội trong 30 phút trong phạm vi quỹ đạo của Vệ Tinh	1	2267	-1	0	0	0	0	-1	-1	-1
+453	23	0	Cân đẩu vân	Bay không tốn KI	1	2273	-1	0	0	0	0	-1	-1	-1
+454	24	0	Cân đẩu vân VIP	Bay phục hồi KI	1	2274	-1	0	0	0	0	-1	-1	-1
+455	23	2	Ván bay	Bay không tốn KI	1	2275	-1	0	0	0	0	-1	-1	-1
+456	24	2	Ván bay VIP	Bay phục hồi KI	1	2276	-1	0	0	0	0	-1	-1	-1
+457	23	1	Phi Long	Bay không tốn KI	1	2277	-1	0	0	0	0	-1	-1	-1
+458	24	1	Phi Long VIP	Bay phục hồi KI	1	2278	-1	0	0	0	0	-1	-1	-1
+459	11	3	Ngọc Rồng Namek 1 Sao	Tập họp đủ 7 viên để ước	1	2280	-1	0	0	0	0	-1	-1	-1
+460	11	3	Ngọc Rồng Namek 2 Sao	Tập họp đủ 7 viên để ước	1	2281	-1	0	0	0	0	-1	-1	-1
+461	11	3	Ngọc Rồng Namek 3 Sao	Tập họp đủ 7 viên để ước	1	2282	-1	0	0	0	0	-1	-1	-1
+462	11	3	Ngọc Rồng Namek 4 Sao	Tập họp đủ 7 viên để ước	1	2283	-1	0	0	0	0	-1	-1	-1
+463	11	3	Ngọc Rồng Namek 5 Sao	Tập họp đủ 7 viên để ước	1	2284	-1	0	0	0	0	-1	-1	-1
+464	11	3	Ngọc Rồng Namek 6 Sao	Tập họp đủ 7 viên để ước	1	2285	-1	0	0	0	0	-1	-1	-1
+465	11	3	Ngọc Rồng Namek 7 Sao	Tập họp đủ 7 viên để ước	1	2286	-1	0	0	0	0	-1	-1	-1
+466	11	3	Ngọc Rồng Namek	Tập họp đủ 7 viên để ước	1	2287	-1	0	0	0	0	-1	-1	-1
+467	11	3	Hóa thạch Ngọc Rồng	Hóa thạch Ngọc Rồng	1	2288	-1	0	0	0	0	-1	-1	-1
+468	25	3	Gói 10 Rađa dò ngọc	Máy dò ngọc rồng Namếc	1	2295	-1	0	0	0	0	-1	-1	-1
+469	11	3	Ngọc rồng 1 sao đen	+15% sức đánh cho toàn bang	1	2315	-1	0	0	0	0	-1	-1	-1
+470	11	3	Ngọc rồng 2 sao đen	+20% HP và KI tối đa cho toàn bang	1	2316	-1	0	0	0	0	-1	-1	-1
+471	11	3	Ngọc rồng 3 sao đen	Mỗi giờ 10 hạt đậu thần cấp 10 cho toàn bang	1	2317	-1	0	0	0	0	-1	-1	-1
+472	11	3	Ngọc rồng 4 sao đen	Mỗi giờ 1 viên ngọc rồng 5 sao cho toàn bang	1	2318	-1	0	0	0	0	-1	-1	-1
+473	11	3	Ngọc rồng 5 sao đen	Mỗi giờ 3 ngọc nâng cấp ngẫu nhiên cho toàn bang	1	2319	-1	0	0	0	0	-1	-1	-1
+474	11	3	Ngọc rồng 6 sao đen	Mỗi giờ 2 vật phẩm hỗ trợ cấp 1 cho toàn bang	1	2320	-1	0	0	0	0	-1	-1	-1
+475	11	3	Ngọc rồng 7 sao đen	Mỗi giờ 2 ngọc cho toàn bang	1	2321	-1	0	0	0	0	-1	-1	-1
+476	28	3	Cờ đỏ	Bật để PK đồ sát các màu cờ khác	1	2323	-1	0	0	0	0	-1	-1	-1
+477	28	3	Cờ lục	Bật để PK đồ sát các màu cờ khác	1	2324	-1	0	0	0	0	-1	-1	-1
+478	28	3	Cờ xanh dương	Bật để PK đồ sát các màu cờ khác	1	2325	-1	0	0	0	0	-1	-1	-1
+479	28	3	Cờ vàng	Bật để PK đồ sát các màu cờ khác	1	2326	-1	0	0	0	0	-1	-1	-1
+480	28	3	Cờ tím	Bật để PK đồ sát các màu cờ khác	1	2327	-1	0	0	0	0	-1	-1	-1
+481	28	3	Cờ cam	Bật để PK đồ sát các màu cờ khác	1	2328	-1	0	0	0	0	-1	-1	-1
+482	28	3	Cờ hồng	Bật để PK đồ sát các màu cờ khác	1	2329	-1	0	0	0	0	-1	-1	-1
+483	28	3	Cờ xanh	Bật PK đồ sát các màu cờ khác	1	2330	-1	0	0	0	0	-1	-1	-1
+484	28	3	Cờ xám	Bật để PK đồ sát tất cả	1	2331	-1	0	0	0	0	-1	-1	-1
+485	5	3	Cải trang	Cải trang thành Xên Bọ Hung 1	1	2345	-1	0	15000000	0	0	228	229	230
+486	5	3	Cải trang	Cải trang thành Xên Bọ Hung 2	1	2376	-1	0	15000000	0	0	231	232	233
+487	5	3	Cải trang	Cải trang thành Xên Bọ Hung 3	1	2407	-1	0	15000000	0	0	234	235	236
+488	5	3	Cải trang	Cải trang thành Póc, hết hạn vào 1/12/2016 (tự xóa)	1	2467	-1	0	0	0	0	240	241	242
+489	5	3	Cải trang Póc	Cải trang thành Android sát thủ	1	2467	240	0	0	0	0	240	241	242
+490	5	3	Cải trang King kong	Cải trang thành Android sát thủ	1	2498	-1	0	150000000	0	0	243	244	245
+491	5	3	Cải trang	Cải trang thành Android 14	1	2529	-1	0	15000000	0	0	246	247	248
+492	5	3	Cải trang	Cải trang thành Android 19	1	2560	-1	0	15000000	0	0	249	250	251
+493	5	3	Cải trang	Cải trang thành Android 13	1	2592	-1	0	15000000	0	0	252	253	254
+494	5	3	Cải trang	Cải trang thành Android 15	1	2684	-1	0	15000000	0	0	261	262	263
+495	5	3	Cải trang	Cải trang thành Xên Bọ Hung con	1	2715	-1	0	15000000	0	0	264	265	266
+496	18	3	Pet Xên bọ hung con	Vật phẩm sự kiện	1	2715	-1	0	0	0	0	-1	-1	-1
+497	29	3	Cuồng nộ	Trong vòng tối đa 10 phút +100% sức đánh gốc	1	2754	-1	0	0	0	0	-1	-1	-1
+498	27	3	Sức đánh +20K		1	2754	-1	0	0	0	0	-1	-1	-1
+499	29	3	Bổ huyết	Trong vòng tối đa 10 phút +100% HP	1	2755	-1	0	0	0	0	-1	-1	-1
+500	27	3	HP +400K		1	2755	-1	0	0	0	0	-1	-1	-1
+501	29	3	Bổ khí	Trong vòng tối đa 10 phút +100% KI	1	2756	-1	0	0	0	0	-1	-1	-1
+502	27	3	KI +400K		1	2756	-1	0	0	0	0	-1	-1	-1
+503	29	3	Giáp Xên bọ hung	Trong vòng tối đa 10 phút giảm 50% sát thương	1	2757	-1	0	0	0	0	-1	-1	-1
+504	29	3	Máy dò Capsule kì bí	Dùng để tìm kiếm Capsule kì bí ở tương lai	1	2758	-1	0	0	0	0	-1	-1	-1
+505	27	3	Rađa dò vỏ Xên	Vật phẩm sự kiện	1	2758	-1	0	0	0	0	-1	-1	-1
+506	27	3	Rađa dò Zombie	Vật phẩm sự kiện	1	2758	-1	0	0	0	0	-1	-1	-1
+507	27	3	Viên Capsule kì bí	Bên trong ẩn chứa nhiều thứ bí ẩn	1	2759	-1	0	0	0	0	-1	-1	-1
+508	27	3	Capsule quà tặng	Giấu bên trong nhiều vật phẩm quý giá	1	2759	-1	0	0	0	0	-1	-1	-1
+509	29	3	Ẩn danh	Khi bạn cần sự riêng tư +10 phút (tối đa 30 phút) hạ địch không để lại tên trong danh sách kẻ thù và không cho phép người khác dịch chuyển tức thời đến	1	2760	-1	0	0	0	0	-1	-1	-1
+510	27	3	Nhân vật bí ẩn	Vật phẩm sự kiện, hết hạn vào ngày 28/2 (tự động xóa)	1	2760	-1	0	0	0	0	-1	-1	-1
+511	28	3	Tháo cờ	Tắt PK đồ sát	1	2761	-1	0	0	0	0	-1	-1	-1
+512	5	1	Nón Noel Xanh	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	2766	275	0	0	0	0	-1	-1	-1
+513	5	2	Nón Noel Đỏ	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	2780	279	0	0	0	0	279	283	284
+514	5	0	Nón Noel Xanh	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	2781	278	0	0	0	0	278	283	284
+515	5	0	Nón Noel Xám	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	2782	277	0	0	0	0	277	283	284
+516	5	0	Nón Noel Đỏ	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	2783	276	0	0	0	0	-1	-1	-1
+517	5	1	Nón Noel Xám	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	2785	274	0	0	0	0	-1	-1	-1
+518	5	1	Nón Noel Đỏ	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	2786	273	0	0	0	0	-1	-1	-1
+519	5	2	Nón Noel Xanh	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	2787	281	0	0	0	0	273	301	302
+520	5	2	Nón Noel Xám	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	2788	280	0	0	0	0	273	301	302
+521	5	3	Cải trang	Cải trang thành Mabư mập	1	2957	-1	0	15000000	0	0	297	298	299
+522	27	3	Hộp quà tết	Vật phẩm sự kiện, hết hạn vào ngày 28/2 (tự động xóa)	1	2987	-1	0	0	0	0	-1	-1	-1
+523	27	3	Hộp quà tết	Vật phẩm sự kiện, hết hạn vào ngày 28/2 (tự động xóa)	1	2987	-1	0	0	0	0	-1	-1	-1
+524	27	3	Hộp quà Tết 2019	Vật phẩm sự kiện	1	2987	-1	0	0	0	0	-1	-1	-1
+525	27	3	Thiệp chúc tết	Vật phẩm sự kiện	1	2988	-1	0	0	0	0	-1	-1	-1
+526	27	3	Thiệp đỏ	Vật phẩm sự kiện	0	2988	-1	0	0	0	0	-1	-1	-1
+527	27	3	Thiệp đỏ VIP	Vật phẩm sự kiện	0	2988	-1	0	0	0	0	-1	-1	-1
+528	27	3	Đặt tên đệ tử	Khi có vật phẩm này trong hành trang, chat: \ten con la abc\ để đặt tên \abc\ cho đệ tử	1	2989	-1	0	0	0	0	-1	-1	-1
+529	5	3	Cải trang	Cải trang thành Lý Tiểu Nương, hết hạn vào 1/9/2016 (tự xóa)	1	3014	1006	0	0	0	0	1006	1008	1009
+530	5	3	Cải trang	Cải trang thành Lý Tiểu Nương	1	3014	1006	0	0	0	0	1006	1008	1009
+531	5	3	Cải trang	Cải trang thành Bum ma, hết hạn vào 1/7/2016 (tự xóa)	1	3045	-1	0	0	0	0	309	307	308
+532	5	3	Cải trang	Cải trang thành Bum ma	1	3045	309	0	0	0	0	309	307	308
+533	5	3	Cải trang	Cải trang thành Chi Chi, hết hạn vào 1/5/2016 (tự xóa)	1	3047	306	0	0	0	0	306	307	308
+534	5	3	Cải trang	Cải trang thành Chi Chi	1	3047	306	0	0	0	0	306	307	308
+535	5	3	Cải trang	Cải trang thành Thủy Tinh	1	3069	-1	0	0	0	0	311	312	313
+536	5	3	Cải trang	Cải trang thành Sơn Tinh	1	3099	-1	0	0	0	0	314	315	316
+537	5	3	Cải trang	Cải trang thành Bojack	1	3183	-1	0	0	0	0	323	324	325
+538	5	3	Cải trang	Cải trang thành Super Bojack	1	3215	-1	0	0	0	0	326	327	328
+539	5	3	Cải trang	Cải trang thành Kogu	1	3245	-1	0	0	0	0	329	330	331
+540	5	3	Cải trang	Cải trang thành Bido	1	3310	-1	0	0	0	0	335	336	337
+541	5	3	Cải trang	Cải trang thành Bujin	1	3390	-1	0	0	0	0	341	342	343
+542	5	3	Cải trang	Cải trang thành Vua Quỷ Satan	1	3407	-1	0	1500000	0	0	344	345	346
+543	5	3	Cải trang	Cải trang thành Vua Quỷ Satan (Sự kiện Halloween)	1	3407	344	0	1500000	0	0	344	345	346
+544	5	3	Cải trang	Cải trang thành Thỏ Đầu Bạc	1	3438	-1	0	1500000	0	0	347	348	349
+545	5	3	Cải trang	Cải trang thành Bông Băng	1	3469	-1	0	1500000	0	0	350	351	352
+546	5	3	Cải trang	Cải trang thành Bông Băng (Sự kiện Halloween)	1	3469	350	0	1500000	0	0	350	351	352
+547	5	3	Cải trang	Cải trang thành Đracula	1	3496	-1	0	1500000	0	0	353	354	355
+548	5	3	Cải trang	Cải trang thành Đracula (Sự kiện Halloween)	1	3496	353	0	1500000	0	0	353	354	355
+549	5	3	Cải trang	Cải trang thành Jacky Chun	1	3527	-1	0	0	0	0	356	357	358
+550	5	3	Cải trang	Cải trang thành Xinbatô, gây đánh hụt cho mọi người ở gần	1	3558	-1	0	1500000	0	0	359	360	361
+551	5	0	Cải trang Chan Xư	Cải trang thành Chan Xư	1	3682	-1	0	150000000	0	0	371	372	373
+552	5	3	Cải trang Chan Xư	Cải trang thành Chan Xư	1	3682	371	0	0	0	0	371	372	373
+553	5	3	Cải trang Chan Xư S+	Cải trang sự kiện KOL	1	3682	371	0	0	0	0	371	372	373
+554	5	3	Cải trang	Cải trang thành Người Vô Hình	1	3745	-1	0	1500000	0	0	377	378	379
+555	7	1	Sách Liên hoàn lv1	học liên hoàn chiêu	1	3778	-1	0	150000000	0	0	-1	-1	-1
+556	7	1	Sách Liên hoàn lv2	nâng liên hoàn chiêu lên cấp 2	2	3778	-1	0	150000000	0	0	-1	-1	-1
+557	7	1	Sách Liên hoàn lv3	nâng liên hoàn chiêu lên cấp 3	3	3778	-1	0	150000000	0	0	-1	-1	-1
+558	7	1	Sách Liên hoàn lv4	nâng liên hoàn chiêu lên cấp 4	4	3778	-1	0	150000000	0	0	-1	-1	-1
+559	7	1	Sách Liên hoàn lv5	nâng liên hoàn chiêu lên cấp 5	5	3778	-1	0	150000000	0	0	-1	-1	-1
+560	7	1	Sách Liên hoàn lv6	nâng liên hoàn chiêu lên cấp 6	6	3778	-1	0	150000000	0	0	-1	-1	-1
+561	7	1	Sách Liên hoàn lv7	nâng liên hoàn chiêu lên cấp 7	7	3778	-1	0	150000000	0	0	-1	-1	-1
+562	37	1	Sách Liên hoàn	học liên hoàn chiêu	1	3778	17	0	0	0	0	-1	-1	-1
+563	7	2	Sách Trói lv1	học phép trói	1	3779	-1	0	150000000	0	0	-1	-1	-1
+564	7	2	Sách Trói lv2	nâng phép trói lên cấp 2	2	3779	-1	0	150000000	0	0	-1	-1	-1
+565	7	2	Sách Trói lv3	nâng phép trói lên cấp 3	3	3779	-1	0	150000000	0	0	-1	-1	-1
+566	7	2	Sách Trói lv4	nâng phép trói lên cấp 4	4	3779	-1	0	150000000	0	0	-1	-1	-1
+567	7	2	Sách Trói lv5	nâng phép trói lên cấp 5	5	3779	-1	0	150000000	0	0	-1	-1	-1
+568	7	2	Sách Trói lv6	nâng phép trói lên cấp 6	6	3779	-1	0	150000000	0	0	-1	-1	-1
+569	7	2	Sách Trói lv7	nâng phép trói lên cấp 7	7	3779	-1	0	150000000	0	0	-1	-1	-1
+570	37	2	Sách Trói	học phép trói	1	3779	23	0	0	0	0	-1	-1	-1
+571	7	1	Sách Biến Sôcôla lv1	học kĩ năng Biến Sôcôla	1	3780	-1	0	150000000	0	0	-1	-1	-1
+572	7	1	Sách Biến Sôcôla lv2	nâng biến Sôcôla lên cấp 2	2	3780	-1	0	150000000	0	0	-1	-1	-1
+573	7	1	Sách Biến Sôcôla lv3	nâng biến Sôcôla lên cấp 3	3	3780	-1	0	150000000	0	0	-1	-1	-1
+574	7	1	Sách Biến Sôcôla lv4	nâng biến Sôcôla lên cấp 4	4	3780	-1	0	150000000	0	0	-1	-1	-1
+575	7	1	Sách Biến Sôcôla lv5	nâng biến Sôcôla lên cấp 5	5	3780	-1	0	150000000	0	0	-1	-1	-1
+576	7	1	Sách Biến Sôcôla lv6	nâng biến Sôcôla lên cấp 6	6	3780	-1	0	150000000	0	0	-1	-1	-1
+577	7	1	Sách Biến Sôcôla lv7	nâng biến Sôcôla lên cấp 7	7	3780	-1	0	150000000	0	0	-1	-1	-1
+578	37	1	Sách Biến Sôcôla	học kĩ năng Biến Sôcôla	1	3780	18	0	0	0	0	-1	-1	-1
+579	7	2	Sách Huýt Sáo lv1	học phép Huýt Sáo	1	3781	-1	0	150000000	0	0	-1	-1	-1
+580	7	2	Sách Huýt Sáo lv2	nâng phép Huýt Sáo lên cấp 2	2	3781	-1	0	150000000	0	0	-1	-1	-1
+581	7	2	Sách Huýt Sáo lv3	nâng phép Huýt Sáo lên cấp 3	3	3781	-1	0	150000000	0	0	-1	-1	-1
+582	7	2	Sách Huýt Sáo lv4	nâng phép Huýt Sáo lên cấp 4	4	3781	-1	0	150000000	0	0	-1	-1	-1
+583	7	2	Sách Huýt Sáo lv5	nâng phép Huýt Sáo lên cấp 5	5	3781	-1	0	150000000	0	0	-1	-1	-1
+584	7	2	Sách Huýt Sáo lv6	nâng phép Huýt Sáo lên cấp 6	6	3781	-1	0	150000000	0	0	-1	-1	-1
+585	7	2	Sách Huýt Sáo lv7	nâng phép Huýt Sáo lên cấp 7	7	3781	-1	0	150000000	0	0	-1	-1	-1
+586	37	2	Sách Huýt Sáo	học phép Huýt Sáo	1	3781	21	0	0	0	0	-1	-1	-1
+587	7	0	Sách Thôi Miên lv1	học phép Thôi Miên	1	3782	-1	0	150000000	0	0	-1	-1	-1
+588	7	0	Sách Thôi Miên lv2	nâng phép thôi miên lên cấp 2	2	3782	-1	0	150000000	0	0	-1	-1	-1
+589	7	0	Sách Thôi Miên lv3	nâng phép thôi miên lên cấp 3	3	3782	-1	0	150000000	0	0	-1	-1	-1
+590	7	0	Sách Thôi Miên lv4	nâng phép thôi miên lên cấp 4	4	3782	-1	0	150000000	0	0	-1	-1	-1
+591	7	0	Sách Thôi Miên lv5	nâng phép thôi miên lên cấp 5	5	3782	-1	0	150000000	0	0	-1	-1	-1
+592	7	0	Sách Thôi Miên lv6	nâng phép thôi miên lên cấp 6	6	3782	-1	0	150000000	0	0	-1	-1	-1
+593	7	0	Sách Thôi Miên lv7	nâng phép thôi miên lên cấp 7	7	3782	-1	0	150000000	0	0	-1	-1	-1
+594	37	0	Sách Thôi Miên	học phép Thôi Miên	1	3782	22	0	0	0	0	-1	-1	-1
+595	7	0	Sách Dịch Chuyển lv1	học phép Dịch Chuyển	1	3783	-1	0	150000000	0	0	-1	-1	-1
+596	7	0	Sách Dịch Chuyển lv2	nâng phép Dịch Chuyển lên cấp 2	2	3783	-1	0	150000000	0	0	-1	-1	-1
+597	7	0	Sách Dịch Chuyển lv3	nâng phép Dịch Chuyển lên cấp 3	3	3783	-1	0	150000000	0	0	-1	-1	-1
+598	7	0	Sách Dịch Chuyển lv4	nâng phép Dịch Chuyển lên cấp 4	4	3783	-1	0	150000000	0	0	-1	-1	-1
+599	7	0	Sách Dịch Chuyển lv5	nâng phép Dịch Chuyển lên cấp 5	5	3783	-1	0	150000000	0	0	-1	-1	-1
+600	7	0	Sách Dịch Chuyển lv6	nâng phép Dịch Chuyển lên cấp 6	6	3783	-1	0	150000000	0	0	-1	-1	-1
+601	7	0	Sách Dịch Chuyển lv7	nâng phép Dịch Chuyển lên cấp 7	7	3783	-1	0	150000000	0	0	-1	-1	-1
+602	37	0	Sách Dịch Chuyển	học phép Dịch Chuyển	1	3783	20	0	0	0	0	-1	-1	-1
+603	7	3	Khiên năng lượng lv1	học kĩ năng khiên năng lượng	1	3784	-1	0	150000000	0	0	-1	-1	-1
+604	7	3	Khiên năng lượng lv2	nâng khiên năng lượng lên cấp 2	2	3784	-1	0	150000000	0	0	-1	-1	-1
+605	7	3	Khiên năng lượng lv3	nâng khiên năng lượng lên cấp 3	3	3784	-1	0	150000000	0	0	-1	-1	-1
+606	7	3	Khiên năng lượng lv4	nâng khiên năng lượng lên cấp 4	4	3784	-1	0	150000000	0	0	-1	-1	-1
+607	7	3	Khiên năng lượng lv5	nâng khiên năng lượng lên cấp 5	5	3784	-1	0	150000000	0	0	-1	-1	-1
+608	7	3	Khiên năng lượng lv6	nâng khiên năng lượng lên cấp 6	6	3784	-1	0	150000000	0	0	-1	-1	-1
+609	7	3	Khiên năng lượng lv7	nâng khiên năng lượng lên cấp 7	7	3784	-1	0	150000000	0	0	-1	-1	-1
+610	37	3	Khiên năng lượng	học kĩ năng khiên năng lượng	1	3784	19	0	0	0	0	-1	-1	-1
+611	30	3	Sao pha lê đỏ	Ép vào đồ sao pha lê để tăng chỉ số	1	3887	-1	0	1	0	0	-1	-1	-1
+612	30	3	Sao pha lê lam	Ép vào đồ sao pha lê để tăng chỉ số	1	3888	-1	0	1	0	0	-1	-1	-1
+613	30	3	Sao pha lê hồng	Ép vào đồ sao pha lê để tăng chỉ số	1	3889	-1	0	1	0	0	-1	-1	-1
+614	30	3	Sao pha lê tím	Ép vào đồ sao pha lê để tăng chỉ số	1	3890	-1	0	1	0	0	-1	-1	-1
+615	30	3	Sao pha lê cam	Ép vào đồ sao pha lê để tăng chỉ số	1	3891	-1	0	1	0	0	-1	-1	-1
+616	30	3	Sao pha lê vàng	Ép vào đồ sao pha lê để tăng chỉ số	1	3892	-1	0	1	0	0	-1	-1	-1
+617	30	3	Sao pha lê lục	Ép vào đồ sao pha lê để tăng chỉ số	1	3893	-1	0	1	0	0	-1	-1	-1
+618	27	3	Chiến thuyền Tennis	Chiến thuyền phục hồi HP, KI	1	3894	-1	0	0	0	0	-1	-1	-1
+619	27	3	Bông tai Porata	Sử dụng để hợp thể với đệ tử	1	3896	-1	0	1500000	0	0	-1	-1	-1
+620	5	3	Cải trang	Cải trang thành Sói hẹc quyn, tăng tốc độ chạy, thưởng sức mạnh và tiềm năng khi đánh quái	1	3933	391	0	1500000	0	0	391	392	393
+621	5	1	Cải trang Lão Cận	Cải trang thành Lão Cận	1	3964	-1	0	150000000	0	0	397	398	399
+622	5	3	Cải trang	Cải trang thành Ở dơ, làm mất HP mọi người ở gần	1	3995	-1	0	1500000	0	0	400	401	402
+623	27	3	Thỏi vàng	Vật phẩm sự kiện	1	4028	-1	0	1500000	0	0	-1	-1	-1
+624	27	3	Thỏi vàng	Vật phẩm sự kiện	1	4028	-1	0	0	0	0	-1	-1	-1
+625	27	3	Bình nước	Vật phẩm sự kiện	1	4029	-1	0	1500000	0	0	-1	-1	-1
+626	27	3	Phiếu giảm giá	Vật phẩm sự kiện	1	4030	-1	0	0	0	0	-1	-1	-1
+627	27	3	Phiếu giảm giá VIP	Vật phẩm sự kiện	1	4030	-1	0	0	0	0	-1	-1	-1
+628	27	3	Phiếu giảm giá Black Friday	Vật phẩm sự kiện	1	4030	-1	0	0	0	0	-1	-1	-1
+629	27	3	Cục xương	Vật phẩm sự kiện	1	4032	-1	0	0	0	0	-1	-1	-1
+630	31	3	Bánh Trung Thu 1 trứng	Vật phẩm sự kiện, tác dụng trong 60 phút	1	4042	-1	0	1500000	0	0	-1	-1	-1
+631	31	3	Bánh Trung Thu 2 trứng	Vật phẩm sự kiện, tác dụng trong 90 phút	1	4043	-1	0	1500000	0	0	-1	-1	-1
+632	5	3	Cải trang	Cải trang thành Thỏ đại ca, biến cà rốt người chạm vào	1	4044	4118	0	1500000	0	0	403	404	405
+633	27	3	Củ cà rốt	Đổi 99 củ cà rốt lấy cải trang hot tại quầy bánh trung thu	1	4083	-1	0	1500000	0	0	-1	-1	-1
+634	29	3	Cà rốt		1	4083	-1	0	0	0	0	-1	-1	-1
+635	5	3	Cải trang	Cải trang thành Thỏ Bunma, tăng sức đánh cho mình và mọi người ở gần	1	4116	406	0	1500000	0	0	406	407	408
+636	5	3	Cải trang	Cải trang thành Thỏ Bunma, tăng sức đánh cho mình và mọi người ở gần	1	4116	406	0	1500000	0	0	406	407	408
+637	11	3	Lồng đèn Hội An	Vật phẩm sự kiện	1	4120	36	0	1500000	0	0	-1	-1	-1
+638	11	3	Lồng đèn Kéo Quân	Vật phẩm sự kiện	1	4121	34	0	1500000	0	0	-1	-1	-1
+639	11	3	Lồng đèn Cá chép	Vật phẩm sự kiện	1	4122	33	0	1500000	0	0	-1	-1	-1
+640	11	3	Lồng đèn Ông trăng	Vật phẩm sự kiện	1	4123	35	0	1500000	0	0	-1	-1	-1
+641	11	3	Lồng đèn Ông Sao	Vật phẩm sự kiện	1	4124	32	0	1500000	0	0	-1	-1	-1
+642	31	3	Bánh Trung Thu Đặc Biệt	Vật phẩm sự kiện, tác dụng trong 120 phút	1	4125	-1	0	1500000	0	0	-1	-1	-1
+643	31	3	Hộp bánh Trung Thu	Vật phẩm sự kiện, tác dụng trong 150 phút	1	4126	-1	0	1500000	0	0	-1	-1	-1
+644	27	3	Sôcôla		1	4133	-1	0	0	0	0	-1	-1	-1
+645	5	3	Cải trang	Cải trang thành Yacôn	1	4135	412	0	15000000	0	0	412	375	376
+646	5	3	Cải trang	Cải trang thành Drabura	1	4165	-1	0	15000000	0	0	418	419	420
+647	5	3	Cải trang Gohan Bư	Cải trang thành Gohan Bư	1	4261	-1	0	0	0	0	427	428	429
+648	27	3	Mở rộng hành trang	Thêm 1 ô trong hành trang	1	4340	-1	0	0	0	0	-1	-1	-1
+649	5	3	Cải trang	Cải trang thành Bui Bui	1	4354	-1	0	15000000	0	0	451	452	453
+650	28	3	Cờ Mabư		1	4385	-1	0	0	0	0	-1	-1	-1
+651	28	3	Cờ Kaiô		1	4386	-1	0	0	0	0	-1	-1	-1
+652	27	3	Tự động luyện tập	Tự động luyện tập, ăn đậu, thu hoạch đậu, và sử dụng các kĩ năng hiển thị trên ô phím tắt theo thứ tự từ kĩ năng có cooldown cao nhất đến thấp nhất	1	4387	-1	0	0	0	0	-1	-1	-1
+653	27	3	Tự động luyện tập 2	Tự động luyện tập, ăn đậu, thu hoạch đậu, và sử dụng các kĩ năng hiển thị trên ô phím tắt theo thứ tự từ kĩ năng có cooldown cao nhất đến thấp nhất	1	4387	-1	0	0	0	0	-1	-1	-1
+654	27	3	Tự động luyện tập 3	Tự động luyện tập, ăn đậu, thu hoạch đậu, và sử dụng các kĩ năng hiển thị trên ô phím tắt theo thứ tự từ kĩ năng có cooldown cao nhất đến thấp nhất	1	4387	-1	0	0	0	0	-1	-1	-1
+655	32	3	Giáp tập luyện cấp 1	Khi mặc vào sẽ đánh yếu hơn bình thường 10%, khi cởi ra sẽ tăng sức đánh 10%	1	4429	-1	0	0	0	0	-1	-1	-1
+656	32	3	Giáp tập luyện cấp 1	Khi mặc vào sẽ đánh yếu hơn bình thường 10%, khi cởi ra sẽ tăng sức đánh 10%	1	4429	-1	0	0	0	0	-1	-1	-1
+657	32	3	Giáp tập luyện cấp 2	Khi mặc vào sẽ đánh yếu hơn bình thường 20%, khi cởi ra sẽ tăng sức đánh 20%	1	4430	-1	0	1500000	0	0	-1	-1	-1
+658	32	3	Giáp tập luyện cấp 2	Khi mặc vào sẽ đánh yếu hơn bình thường 20%, khi cởi ra sẽ tăng sức đánh 20%	1	4430	-1	0	1500000	0	0	-1	-1	-1
+659	32	3	Giáp tập luyện cấp 3	Khi mặc vào sẽ đánh yếu hơn bình thường 30%, khi cởi ra sẽ tăng sức đánh 30%	1	4431	-1	0	15000000	0	0	-1	-1	-1
+660	32	3	Giáp tập luyện cấp 3	Khi mặc vào sẽ đánh yếu hơn bình thường 30%, khi cởi ra sẽ tăng sức đánh 30%	1	4431	-1	0	15000000	0	0	-1	-1	-1
+661	27	3	Kẹo giáng sinh	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	4432	-1	0	0	0	0	-1	-1	-1
+662	27	3	Kẹo giáng sinh	Vật phẩm sự kiện, biến mất khi sự kiện kết thúc	1	4432	-1	0	0	0	0	-1	-1	-1
+663	24	3	Quỷ Chim	Dùng để bay phục hồi HP, KI	1	4433	-1	0	15000000	0	0	-1	-1	-1
+664	5	1	Cải trang	Cải trang thành Tôn Ngộ Không	1	4464	-1	0	0	0	0	460	458	459
+665	5	2	Cải trang	Cải trang thành Tôn Ngộ Không	1	4466	-1	0	0	0	0	461	458	459
+666	5	3	Cải trang	Cải trang thành Tôn Ngộ Không (chỉ dành cho đệ tử)	1	4468	-1	0	0	0	0	462	463	464
+667	5	3	Cải trang	Cải trang thành Bát Giới (chỉ dành cho đệ tử)	1	4498	-1	0	0	0	0	465	466	464
+668	5	0	Cải trang	Cải trang thành Tôn Ngộ Không	1	4543	-1	0	0	0	0	457	458	459
+669	27	3	Vòng Kim Cô	Vật phẩm sự kiện	0	4546	-1	0	0	0	0	-1	-1	-1
+670	27	3	Quả Hồng Đào	Vật phẩm sự kiện	0	4547	-1	0	0	0	0	-1	-1	-1
+671	27	3	Quả Hồng Đào Chín	Vật phẩm sự kiện	0	4547	-1	0	0	0	0	-1	-1	-1
+672	27	3	Pháo bông	Vật phẩm sự kiện năm mới, biến mất vào ngày 18/2	1	4548	-1	0	1000	0	0	-1	-1	-1
+673	27	3	Siêu Pháo bông x100	Vật phẩm sự kiện năm mới, biến mất vào ngày 18/2	1	4548	-1	0	1000000	0	0	-1	-1	-1
+674	23	3	Pháo Thăng Thiên	Bay không tốn KI	1	4548	8	0	0	0	0	-1	-1	-1
+675	27	3	Pháo bông	Vật phẩm sự kiện	1	4548	-1	0	1000	0	0	-1	-1	-1
+676	27	3	Pháo bông VIP	Vật phẩm sự kiện	1	4548	-1	0	1000	0	0	-1	-1	-1
+677	0	0	Áo Thần Linh	Giúp giảm sát thương	13	4647	472	0	0	0	0	-1	-1	-1
+678	1	0	Quần Thần Linh	Giúp bạn tăng HP	13	4648	473	0	0	0	0	-1	-1	-1
+679	3	0	Giầy Thần Linh	Giúp bạn tăng MP	13	4649	-1	0	0	0	0	-1	-1	-1
+680	2	0	Găng Thần Linh	Giúp bạn tăng sức đánh	13	4650	-1	0	0	0	0	-1	-1	-1
+681	0	2	Áo Thần Xayda	Giúp giảm sát thương	13	4652	474	0	0	0	0	-1	-1	-1
+682	1	2	Quần Thần Xayda	Giúp bạn tăng HP	13	4654	475	0	0	0	0	-1	-1	-1
+683	3	2	Giầy Thần Xayda	Giúp bạn tăng MP	13	4655	-1	0	0	0	0	-1	-1	-1
+684	2	2	Găng Thần Xayda	Giúp bạn tăng sức đánh	13	4656	-1	0	0	0	0	-1	-1	-1
+685	0	1	Áo Thần Namếc	Giúp giảm sát thương	13	4657	476	0	0	0	0	-1	-1	-1
+686	1	1	Quần Thần namếc	Giúp bạn tăng HP	13	4658	477	0	0	0	0	-1	-1	-1
+687	2	1	Găng Thần Namếc	Giúp bạn tăng sức đánh	13	4659	-1	0	0	0	0	-1	-1	-1
+688	3	1	Giầy Thần Namếc	Giúp bạn tăng MP	13	4660	-1	0	0	0	0	-1	-1	-1
+689	27	3	Dưa Hấu	Vật phẩm sự kiện	1	4671	-1	0	0	0	0	-1	-1	-1
+690	5	3	Cải trang Frost 1	Cải trang Frost	1	4719	-1	0	1500000000	0	0	493	494	495
+691	5	3	Cải trang Frost 2	Cải trang Frost	1	4750	-1	0	1500000000	0	0	496	497	498
+692	5	3	Cải trang Frost 3	Cải trang Frost	1	4781	-1	0	1500000000	0	0	499	500	501
+693	5	3	Cải trang Fide vàng	Cải trang Fide Vàng	1	4812	5722	0	0	0	0	502	503	504
+694	5	3	Cải trang Bill	Vật phẩm sự kiện	1	4847	505	0	0	0	0	505	506	507
+695	5	3	Cải trang Champa	Vật phẩm sự kiện	1	4879	505	0	0	0	0	505	506	507
+696	5	2	Cải trang Xayda	Cải trang thành Xayda	1	4938	-1	0	150000000	0	0	517	518	519
+697	5	3	Cải trang Hit	Vật phẩm sự kiện	1	4969	-1	0	0	0	0	520	521	522
+698	27	3	Capsule Vàng	Giấu bên trong nhiều vật phẩm quý giá	1	5004	-1	0	15000	0	0	-1	-1	-1
+699	27	3	Capsule Bạc	Giấu bên trong nhiều vật phẩm quý giá	1	5005	-1	0	15000	0	0	-1	-1	-1
+700	27	3	Rương Bạc	Giấu bên trong nhiều vật phẩm quý giá	1	5006	-1	0	15000	0	0	-1	-1	-1
+701	27	3	Rương Vàng	Giấu bên trong nhiều vật phẩm quý giá	1	5007	-1	0	15000	0	0	-1	-1	-1
+702	27	3	Rương Tranh ngọc Namếc	Giấu bên trong nhiều vật phẩm quý giá	1	5007	-1	0	15000	0	0	-1	-1	-1
+703	29	3	Rương radar	Ngẫu nhiên nhận Rada theo cấp độ tự chọn	1	5007	-1	0	0	0	0	-1	-1	-1
+704	29	3	Rương giày	Ngẫu nhiên nhận giày theo cấp độ tự chọn	1	5007	-1	0	0	0	0	-1	-1	-1
+705	29	3	Rương nhẫn	Ngẫu nhiên nhận nhẫn theo cấp độ tự chọn	1	5007	-1	0	0	0	0	-1	-1	-1
+706	29	3	Rương găng tay	Ngẫu nhiên nhận găng tay theo cấp độ tự chọn	1	5007	-1	0	0	0	0	-1	-1	-1
+707	29	3	Rương áo	Ngẫu nhiên nhận áo theo cấp độ tự chọn	1	5007	-1	0	0	0	0	-1	-1	-1
+708	29	3	Rương quần	Ngẫu nhiên nhận quần theo cấp độ tự chọn	1	5007	-1	0	0	0	0	-1	-1	-1
+709	29	3	Rương bí kíp tuyệt kỹ	Mở ra ngẫu nhiên nhận 1 sách kỹ năng	1	5007	-1	0	0	0	0	-1	-1	-1
+710	29	3	Đuôi khỉ	Vật phẩm sự kiện, biến mất vào ngày 5/10	1	5072	-1	0	15000	0	0	-1	-1	-1
+711	27	3	Đuôi khỉ	Vật phẩm sự kiện	1	5072	-1	0	0	0	0	-1	-1	-1
+712	5	1	Cải trang VIP	Cải trang VIP	1	5075	-1	0	150000000	0	0	536	476	477
+713	5	2	Cải trang VIP	Cải trang VIP	1	5079	-1	0	150000000	0	0	538	474	475
+714	5	3	Cải trang Siêu Thần	Cải trang thành Siêu Thần Xayda Tóc Xanh	1	5087	-1	0	0	0	0	542	523	524
+715	5	2	Cải trang Siêu Thần Xayda	Vật phẩm sự kiện	1	5087	542	0	0	0	0	542	523	524
+716	27	3	Bí ngô	Vật phẩm sự kiện, biến mất vào ngày 20/11	1	5138	-1	0	0	0	0	-1	-1	-1
+717	5	3	Cải trang Super Black Goku Rose	Vật phẩm sự kiện	1	5173	-1	0	0	0	0	553	551	552
+718	5	3	Cải trang	Cải trang thành Quy lão Kamê	1	5175	-1	0	0	0	0	554	555	556
+719	27	3	Bông hoa	Vật phẩm sự kiện, biến mất vào ngày 22/11	1	5206	-1	0	0	0	0	-1	-1	-1
+720	27	3	Bông hoa	Vật phẩm sự kiện	1	5206	-1	0	0	0	0	-1	-1	-1
+721	27	3	Bông hoa	Vật phẩm sự kiện	1	5206	-1	0	0	0	0	-1	-1	-1
+722	27	3	Bông hồng	Vật phẩm sự kiện	1	5206	-1	0	0	0	0	-1	-1	-1
+723	27	3	Bông hoa hồng	Vật phẩm sự kiện	1	5206	-1	0	0	0	0	-1	-1	-1
+724	27	3	Bí kiếp	Dùng để dịch chuyển tức thời	1	5207	-1	0	1500000	0	0	-1	-1	-1
+725	5	0	Cải trang Yardrat	Võ phục của người Yardrat	1	5211	-1	0	1500000	0	0	0	523	524
+726	5	1	Cải trang Yardrat	Võ phục của người Yardrat	1	5211	0	0	1500000	0	0	0	523	524
+727	5	2	Cải trang Yardrat	Võ phục của người Yardrat	1	5211	0	0	1500000	0	0	0	523	524
+728	5	1	Avatar	Vật phẩm sự kiện, biến mất vào ngày 11/2	1	5233	560	0	0	0	0	560	564	565
+729	5	0	Avatar	Vật phẩm sự kiện, biến mất vào ngày 11/2	1	5235	561	0	0	0	0	561	564	565
+730	5	2	Avatar	Vật phẩm sự kiện, biến mất vào ngày 11/2	1	5237	562	0	0	0	0	561	564	565
+731	5	2	Cải trang Hợp Thể	Cải trang khi hợp thể	1	5242	560	0	150000000	0	0	560	564	565
+732	5	0	Cải trang Hợp Thể	Cải trang khi hợp thể	1	5273	-1	0	150000000	0	0	566	567	568
+733	5	0	Cải trang VIP	Cải trang VIP	1	5304	-1	0	150000000	0	0	569	472	473
+734	5	1	Cải trang Hợp Thể	Cải trang khi hợp thể	1	5306	-1	0	150000000	0	0	570	571	572
+735	5	3	Cải trang Arale	Cải trang Dr. Slum	1	5344	536	0	150000000	0	0	536	506	507
+736	5	3	Cải trang Obotchaman	Cải trang Dr. Slum	1	5372	-1	0	150000000	0	0	576	577	578
+737	5	3	Cải trang Gatchan	Cải trang Dr. Slum	1	5403	-1	0	150000000	0	0	579	580	581
+738	27	3	Gia hạn mầm	Vật phẩm hổ trợ	1	5427	-1	0	0	0	0	-1	-1	-1
+739	27	3	Gia hạn mầm	Vật phẩm hổ trợ	1	5427	-1	0	0	0	0	-1	-1	-1
+740	27	3	Bản đồ kho báu	Gặp Quy Lão tại đảo kamê để sử dụng	1	5428	-1	0	0	0	0	-1	-1	-1
+741	5	3	Cải trang Luffy	Cải trang Hải Tặc Tí Hon	1	5432	579	0	0	0	0	579	580	581
+742	5	3	Cải trang Zoro	Cải trang Hải Tặc Tí Hon	1	5465	-1	0	0	0	0	585	586	587
+743	5	3	Cải trang Sanji	Cải trang Hải Tặc Tí Hon	1	5495	-1	0	0	0	0	588	589	590
+744	5	3	Cải trang Brook	Cải trang Hải Tặc Tí Hon	1	5526	-1	0	0	0	0	591	592	593
+745	5	3	Cải trang Franky	Cải trang Hải Tặc Tí Hon	1	5556	-1	0	0	0	0	594	595	596
+746	5	3	Cải trang Usopp	Cải trang Hải Tặc Tí Hon	1	5587	-1	0	0	0	0	597	598	599
+747	5	3	Cải trang Nami	Cải trang Hải Tặc Tí Hon	1	5617	-1	0	0	0	0	600	601	602
+748	5	3	Cải trang Robin	Cải trang Hải Tặc Tí Hon	1	5649	-1	0	0	0	0	603	604	605
+749	5	3	Cải trang Chopper	Cải trang Hải Tặc Tí Hon	1	5680	-1	0	0	0	0	606	607	608
+750	5	3	Cải trang Hải Tặc	Cải trang Hải Tặc Tí Hon	1	5721	502	0	0	0	0	502	503	504
+751	5	3	Cải trang Mai	Cải trang nhóm Pi láp	1	5758	-1	0	0	0	0	615	616	617
+752	5	3	Cải trang Su	Cải trang nhóm Pi láp	1	5789	-1	0	0	0	0	618	619	620
+753	27	3	abcd		1	5820	-1	0	0	0	0	-1	-1	-1
+754	5	3	Cải trang Pi láp	Cải trang nhóm Pi láp	1	5827	618	0	0	0	0	618	619	620
+755	27	3	Bình chứa Commeson	Vũ khí của người Potaufeu (Giảm 90% sát thương từ quái)	1	5829	-1	0	0	0	0	-1	-1	-1
+756	5	2	Cải trang Hợp Thể	Cải trang khi hợp thể	1	5834	-1	0	150000000	0	0	627	628	629
+757	5	0	Cải trang Hợp Thể	Cải trang khi hợp thể	1	5865	-1	0	150000000	0	0	630	631	632
+758	5	1	Cải trang Hợp Thể	Cải trang khi hợp thể	1	5898	-1	0	150000000	0	0	633	634	635
+759	5	3	Cải trang Super Píc	Cải trang thành Siêu Android sát thủ	1	5932	633	0	0	0	0	633	634	635
+760	5	3	Cải trang Hatchiyack	Cải trang thành Hatchiyack	1	5963	-1	0	0	0	0	639	640	641
+761	5	3	Cải trang Saibamen	Cải trang Saibamen	1	5995	-1	0	0	0	0	642	643	644
+762	5	3	Cải trang ma trơi	Vật phẩm sự kiện	1	6091	642	0	0	0	0	642	643	644
+763	5	3	Cải trang dơi nhí	Vật phẩm sự kiện	1	6094	-1	0	0	0	0	654	655	656
+764	27	3	Tất,vớ giáng sinh	Vật phẩm sự kiện	1	6122	-1	0	0	0	0	-1	-1	-1
+765	27	3	Hộp quà giáng sinh	Vật phẩm sự kiện	1	6123	-1	0	0	0	0	-1	-1	-1
+766	27	3	Hộp tháng 5	Vật phẩm sự kiện	1	6123	-1	0	0	0	0	-1	-1	-1
+767	0	2	Áo Hủy Diệt	Giúp giảm sát thương	14	6310	672	0	0	0	0	-1	-1	-1
+768	1	2	Quần Hủy Diệt	Giúp bạn tăng HP	14	6311	673	0	0	0	0	-1	-1	-1
+769	3	2	Giầy Hủy Diệt	Giúp bạn tăng MP	14	6312	-1	0	0	0	0	-1	-1	-1
+770	4	3	Nhẫn Thần Linh	Giúp tăng Chí Mạng	13	6314	-1	0	0	0	0	-1	-1	-1
+771	0	0	Áo Hủy Diệt	Giúp giảm sát thương	14	6315	674	0	0	0	0	-1	-1	-1
+772	1	0	Quần Hủy Diệt	Giúp bạn tăng HP	14	6316	675	0	0	0	0	-1	-1	-1
+773	3	0	Giầy Hủy Diệt	Giúp bạn tăng MP	14	6317	-1	0	0	0	0	-1	-1	-1
+774	2	0	Găng Hủy Diệt	Giúp bạn tăng sức đánh	14	6318	-1	0	0	0	0	-1	-1	-1
+775	2	1	Găng Hủy Diệt	Giúp bạn tăng sức đánh	14	6318	-1	0	0	0	0	-1	-1	-1
+776	2	2	Găng Hủy Diệt	Giúp bạn tăng sức đánh	14	6318	-1	0	0	0	0	-1	-1	-1
+777	0	1	Áo Hủy Diệt	Giúp giảm sát thương	14	6320	676	0	0	0	0	-1	-1	-1
+778	1	1	Quần Hủy Diệt	Giúp bạn tăng HP	14	6321	677	0	0	0	0	-1	-1	-1
+779	3	1	Giầy Hủy Diệt	Giúp bạn tăng MP	14	6322	-1	0	0	0	0	-1	-1	-1
+780	4	3	Nhẫn Hủy Diệt	Giúp tăng Chí Mạng	14	6323	-1	0	0	0	0	-1	-1	-1
+781	29	3	Bánh Pudding	Thu thập đủ 99 đến gặp Bill tại hành tinh Kaio, hoặc ăn để tăng sức đánh cho sư phụ và đệ tử 10% trong vòng tối đa 10 phút.	14	6324	-1	0	0	0	0	-1	-1	-1
+782	29	3	Xúc xích	Thu thập đủ 99 đến gặp Bill tại hành tinh Kaio, hoặc ăn để tăng sức đánh cho sư phụ và đệ tử 10% trong vòng tối đa 10 phút.	14	6325	-1	0	0	0	0	-1	-1	-1
+783	29	3	Kem dâu	Thu thập đủ 99 đến gặp Bill tại hành tinh Kaio, hoặc ăn để tăng sức đánh cho sư phụ và đệ tử 10% trong vòng tối đa 10 phút.	14	6326	-1	0	0	0	0	-1	-1	-1
+784	29	3	Mì ly	Thu thập đủ 99 đến gặp Bill tại hành tinh Kaio, hoặc ăn để tăng sức đánh cho sư phụ và đệ tử 10% trong vòng tối đa 10 phút.	14	6327	-1	0	0	0	0	-1	-1	-1
+785	29	3	Sushi	Thu thập đủ 99 đến gặp Bill tại hành tinh Kaio, hoặc ăn để tăng sức đánh cho sư phụ và đệ tử 10% trong vòng tối đa 10 phút.	14	6328	-1	0	0	0	0	-1	-1	-1
+786	5	3	Cải trang	Cải trang thành Nàng Tiên Cá	7	6329	-1	0	0	0	0	678	679	680
+787	5	3	Cải trang	Cải trang thành Muscular Lady	5	6338	-1	0	0	0	0	681	682	683
+788	5	3	Cải trang	Cải trang thành Sarah	2	6369	-1	0	0	0	0	684	685	686
+789	5	3	Cải trang	Cải trang thành Android 21	4	6400	-1	0	0	0	0	687	688	689
+790	5	3	Cải trang	Cải trang thành Caulifla	6	6431	-1	0	0	0	0	690	691	692
+791	27	3	Đá ngũ sắc	Loại đá quý hiếm nhất trong thế giới Ngọc Rồng. Dùng để đục lỗ để gắn Sao Pha Lê cho mọi loại trang bị kể cả cải trang. Dùng để mua những cải trang cực hiếm. Có thể nhặt được khi đánh quái, với tỉ lệ rất thấp. Hãy gặp Thần Hủy Diệt để sử dụng loại đá này.	1	6467	-1	0	0	0	0	-1	-1	-1
+792	5	3	Cải trang	Cải trang thành Pan	3	6470	-1	0	0	0	0	693	694	695
+793	5	3	Cải trang	Cải trang thành Sarahs Mother	1	6473	-1	0	0	0	0	696	697	698
+794	1	0	Quần đi biển	Vật phẩm sự kiện	1	6569	700	0	0	0	0	-1	-1	-1
+795	1	1	Quần đi biển	Vật phẩm sự kiện	1	6569	702	0	0	0	0	-1	-1	-1
+796	1	2	Quần đi biển	Vật phẩm sự kiện	1	6569	700	0	0	0	0	-1	-1	-1
+797	27	3	Vỏ ốc	Vật phẩm sự kiện	1	6570	-1	0	0	0	0	-1	-1	-1
+798	27	3	Con cua	Vật phẩm sự kiện	1	6571	-1	0	0	0	0	-1	-1	-1
+799	27	3	Sao biển	Vật phẩm sự kiện	1	6572	-1	0	0	0	0	-1	-1	-1
+800	27	3	Vỏ sò	Vật phẩm sự kiện	1	6573	-1	0	0	0	0	-1	-1	-1
+801	29	3	Trái dừa	Vật phẩm sự kiện	1	6574	-1	0	0	0	0	-1	-1	-1
+802	12	3	Bí ngô 1 sao	Thu thập để ước Rồng Xương	0	6579	-1	0	0	0	0	-1	-1	-1
+803	12	3	Bí ngô 2 sao	Thu thập để ước Rồng Xương	0	6580	-1	0	0	0	0	-1	-1	-1
+804	12	3	Bí ngô 3 sao	Thu thập để ước Rồng Xương	0	6581	-1	0	0	0	0	-1	-1	-1
+805	12	3	Bí ngô 4 sao	Thu thập để ước Rồng Xương	0	6582	-1	0	0	0	0	-1	-1	-1
+806	12	3	Bí ngô 5 sao	Thu thập để ước Rồng Xương	0	6583	-1	0	0	0	0	-1	-1	-1
+807	12	3	Bí ngô 6 sao	Thu thập để ước Rồng Xương	0	6584	-1	0	0	0	0	-1	-1	-1
+808	12	3	Bí ngô 7 sao	Thu thập để ước Rồng Xương	0	6585	-1	0	0	0	0	-1	-1	-1
+809	5	3	Cải trang Cooler vàng	Vật phẩm sự kiện	1	6587	-1	0	0	0	0	709	710	711
+810	5	3	Cải trang Thống Chế Kilo	Vật phẩm sự kiện	1	6618	-1	0	0	0	0	712	713	714
+811	5	3	Cải trang	Cải trang thành Urôn	1	6734	-1	0	0	0	0	724	725	726
+812	27	3	Bao Lì Xì	Vật phẩm sự kiện	1	6764	-1	0	0	0	0	-1	-1	-1
+813	27	3	Lì xì 2026	Vật phẩm sự kiện	1	6764	-1	0	0	0	0	-1	-1	-1
+814	27	3	Vé tặng ngọc	Dùng để tặng ngọc của mình cho người khác, 1 vé tương ứng số lượng là 10 ngọc	1	6765	-1	0	0	0	0	-1	-1	-1
+815	27	3	Mảnh cải trang	Thu thập để đổi cải trang thành Urôn	1	6777	-1	0	0	0	0	-1	-1	-1
+816	27	3	Capsule hồng	Vật phẩm sự kiện	1	6782	-1	0	0	0	0	-1	-1	-1
+817	5	3	Cải trang	Cải trang thành Chi Chi	1	6783	-1	0	0	0	0	736	737	738
+818	27	3	Mảnh giấy có chữ \MA\	Vật phẩm nhiệm vụ	1	6847	-1	0	1000000	0	0	-1	-1	-1
+819	27	3	Siêu thần thủy	Vật phẩm nhiệm vụ	1	6848	-1	0	1000000	0	0	-1	-1	-1
+820	27	3	Siêu thần thủy	Sử dụng sẽ có cơ hội tăng 1 triệu Sức Mạnh và Tiềm Năng vĩnh viễn.	1	6849	-1	0	100000000	0	0	-1	-1	-1
+821	27	3	Siêu thần thủy	Sử dụng sẽ có cơ hội tăng 5 triệu Sức Mạnh và Tiềm Năng vĩnh viễn.	1	6850	-1	0	1000000000	0	0	-1	-1	-1
+822	5	3	Cải trang Dr Lychee	Cải trang thành Dr Lychee	1	6852	-1	0	0	0	0	742	743	744
+823	5	3	Cải trang Sói Basil	3 Con sói đi chung +10% tấn công cho Đệ tử	1	6914	745	0	0	0	0	745	746	747
+824	5	3	Cải trang Sói Lavender	3 Con sói đi chung +10% tấn công cho Đệ tử	1	6917	-1	0	0	0	0	748	749	750
+825	5	3	Cải trang Sói Bergamo	3 Con sói đi chung +10% tấn công cho Đệ tử	1	6949	-1	0	0	0	0	751	752	753
+826	23	3	Cân đẩu vân ngũ sắc	Bay không tốn KI	1	6980	1	0	0	0	0	-1	-1	-1
+827	23	3	Ngọc Thố	Bay không tốn KI	1	6981	2	0	0	0	0	-1	-1	-1
+828	23	3	Lồng đèn cá chép	Bay không tốn KI	1	6982	3	0	0	0	0	-1	-1	-1
+829	27	3	Hộp quà 5 sao	Vật phẩm sự kiện	1	6983	-1	0	0	0	0	-1	-1	-1
+830	27	3	Hộp quà Lucky 2024	Vật phẩm sự kiện	1	6983	-1	0	0	0	0	-1	-1	-1
+831	27	3	Capsule Trung Thu	Vật phẩm sự kiện	1	6984	-1	0	0	0	0	-1	-1	-1
+832	5	3	Cải trang Bill Bí Ngô	Cải trang thành Bill Bí Ngô	1	6985	-1	0	0	0	0	754	755	756
+833	11	3	Lưỡi hái Thần Chết	Vật phẩm sự kiện	1	7019	37	0	0	0	0	-1	-1	-1
+834	11	3	Cánh dơi Dracula	Vật phẩm sự kiện	1	7022	38	0	0	0	0	-1	-1	-1
+835	5	3	Cải trang Caufila Dơi	Cải trang thành Caufila Dơi	1	7023	-1	0	0	0	0	757	758	759
+836	23	3	Chổi bay Phù Thủy	Bay không tốn KI	1	7056	4	0	0	0	0	-1	-1	-1
+837	23	3	Cột nhà	Bay không tốn KI	1	7063	5	0	0	0	0	-1	-1	-1
+838	11	3	Bông tuyết	Tạo khí lạnh gây ảnh hưởng xung quanh	1	7066	39	0	0	0	0	-1	-1	-1
+839	23	3	Xe tuần lộc	Bay không tốn KI	1	7067	6	0	0	0	0	-1	-1	-1
+840	27	3	Thịt heo	Vật phẩm sự kiện	1	7068	-1	0	0	0	0	-1	-1	-1
+841	27	3	Thịt tươi	Vật phẩm sự kiện	1	7068	-1	0	0	0	0	-1	-1	-1
+842	27	3	Thịt tươi	Vật phẩm sự kiện	1	7068	-1	0	0	0	0	-1	-1	-1
+843	27	3	Thịt tươi	Vật phẩm sự kiện	1	7068	-1	0	0	0	0	-1	-1	-1
+844	27	3	Thúng nếp	Vật phẩm sự kiện	1	7069	-1	0	0	0	0	-1	-1	-1
+845	27	3	Bột mì	Vật phẩm sự kiện	1	7069	-1	0	0	0	0	-1	-1	-1
+846	27	3	Bột gạo	Vật phẩm sự kiện	1	7069	-1	0	0	0	0	-1	-1	-1
+847	27	3	Thúng đậu xanh	Vật phẩm sự kiện	1	7070	-1	0	0	0	0	-1	-1	-1
+848	27	3	Đậu xanh	Vật phẩm sự kiện	1	7070	-1	0	0	0	0	-1	-1	-1
+849	27	3	Đậu xanh	Vật phẩm sự kiện	1	7070	-1	0	0	0	0	-1	-1	-1
+850	27	3	Lá dong	Vật phẩm sự kiện	1	7071	-1	0	0	0	0	-1	-1	-1
+851	31	3	Bánh tét	Vật phẩm sự kiện, tác dụng trong 60 phút	1	7079	-1	0	0	0	0	-1	-1	-1
+852	31	3	Bánh chưng	Vật phẩm sự kiện, tác dụng trong 60 phút	1	7080	-1	0	0	0	0	-1	-1	-1
+853	5	0	Nón Chuột may mắn	Vật phẩm sự kiện	1	7085	769	0	0	0	0	769	773	774
+854	5	2	Nón Chuột may mắn	Vật phẩm sự kiện	1	7088	770	0	0	0	0	770	773	774
+855	5	1	Nón Chuột may mắn	Vật phẩm sự kiện	1	7091	771	0	0	0	0	771	773	774
+856	27	3	Túi Canh Tý 2020	Mở ra sẽ nhận 1 chuột phát tài	1	7097	-1	0	0	0	0	-1	-1	-1
+857	27	3	Nâng kỹ năng 1 đệ tử	Nâng chiêu 1 của đệ tử lên 1 cấp	1	7098	-1	0	0	0	0	-1	-1	-1
+858	27	3	Nâng kỹ năng 2 đệ tử	Nâng chiêu 2 của đệ tử lên 1 cấp	1	7099	-1	0	0	0	0	-1	-1	-1
+859	27	3	Nâng kỹ năng 3 đệ tử	Nâng chiêu 3 của đệ tử lên 1 cấp	1	7100	-1	0	0	0	0	-1	-1	-1
+860	27	3	Nâng kỹ năng 4 đệ tử	Nâng chiêu 4 của đệ tử lên 1 cấp	1	7101	-1	0	0	0	0	-1	-1	-1
+861	5	3	Cải trang VIP	Cải trang Thủy Thủ Mặt Trăng	1	7102	-1	0	0	0	0	772	773	774
+862	5	0	Avatar đeo khẩu trang	Dùng để thay đổi khuôn mặt	1	7134	775	0	0	0	0	775	779	780
+863	5	2	Avatar đeo khẩu trang	Dùng để thay đổi khuôn mặt	1	7137	776	0	0	0	0	776	779	780
+864	5	1	Avatar đeo khẩu trang	Dùng để thay đổi khuôn mặt	1	7140	777	0	0	0	0	777	779	780
+865	29	3	Khẩu trang	Vật phẩm sự kiện	1	7149	-1	0	0	0	0	-1	-1	-1
+866	5	3	Cải trang Đôrêmon	Robot Mèo ú đến từ tương lai, có nhiều bảo bối hay bị nhầm với con chồn.	1	7189	-1	0	0	0	0	790	791	792
+867	23	3	Ghế bay	Bay không tốn KI	1	7221	7	0	0	0	0	-1	-1	-1
+868	27	3	Hộp Capsule	Vật phẩm nhiệm vụ	1	7222	-1	0	0	0	0	-1	-1	-1
+869	27	3	Capsule 1 món kích hoạt	Chứa trang bị kích hoạt bí ẩn	1	7223	-1	0	0	0	0	-1	-1	-1
+870	27	3	Capsule Trang Sức VIP	Vật phẩm đua top	1	7223	-1	0	0	0	0	-1	-1	-1
+871	11	3	Lồng đèn Cô Vy	Vật phẩm sự kiện	1	7226	40	0	0	0	0	-1	-1	-1
+872	11	3	Lồng đèn Con tàu	Vật phẩm sự kiện	1	7227	41	0	0	0	0	-1	-1	-1
+873	11	3	Lồng đèn Con gà	Vật phẩm sự kiện	1	7230	42	0	0	0	0	-1	-1	-1
+874	11	3	Lồng đèn Con bướm	Vật phẩm sự kiện	1	7233	43	0	0	0	0	-1	-1	-1
+875	11	3	Lồng đèn Đôrêmon	Vật phẩm sự kiện	1	7236	44	0	0	0	0	-1	-1	-1
+876	11	3	Vòng sáng thiên thần	Vật phẩm sự kiện	1	7334	45	0	0	0	0	-1	-1	-1
+877	12	3	Ngọc đen 1 sao	Thu thập để ước Rồng Xương (tự động xóa khi kết thúc sự kiện)	0	7337	-1	0	0	0	0	-1	-1	-1
+878	12	3	Ngọc đen 2 sao	Thu thập để ước Rồng Xương (tự động xóa khi kết thúc sự kiện)	0	7338	-1	0	0	0	0	-1	-1	-1
+879	12	3	Ngọc đen 3 sao	Thu thập để ước Rồng Xương (tự động xóa khi kết thúc sự kiện)	0	7339	-1	0	0	0	0	-1	-1	-1
+880	12	3	Ngọc đen 4 sao	Thu thập để ước Rồng Xương (tự động xóa khi kết thúc sự kiện)	0	7340	-1	0	0	0	0	-1	-1	-1
+881	12	3	Ngọc đen 5 sao	Thu thập để ước Rồng Xương (tự động xóa khi kết thúc sự kiện)	0	7341	-1	0	0	0	0	-1	-1	-1
+882	12	3	Ngọc đen 6 sao	Thu thập để ước Rồng Xương (tự động xóa khi kết thúc sự kiện)	0	7342	-1	0	0	0	0	-1	-1	-1
+883	12	3	Ngọc đen 7 sao	Thu thập để ước Rồng Xương (tự động xóa khi kết thúc sự kiện)	0	7343	-1	0	0	0	0	-1	-1	-1
+884	11	3	Ma trơi	Vật phẩm sự kiện	1	7352	46	0	0	0	0	-1	-1	-1
+885	11	3	Hồn ma Goku	Vật phẩm sự kiện	1	7353	47	0	0	0	0	-1	-1	-1
+886	11	3	Hồn ma Ca đíc	Vật phẩm sự kiện	1	7354	48	0	0	0	0	-1	-1	-1
+887	11	3	Hồn ma Pôcôlô	Vật phẩm sự kiện	1	7355	49	0	0	0	0	-1	-1	-1
+888	27	3	Capsule Halloween	Vật phẩm sự kiện	1	7356	-1	0	0	0	0	-1	-1	-1
+889	5	3	Cải trang Xuka	Xinh đẹp, hiền lành, học giỏi đúng chuẩn con nhà người ta.	1	7357	-1	0	0	0	0	802	803	804
+890	5	3	Cải trang Xuka	Xinh đẹp, hiền lành, học giỏi đúng chuẩn con nhà người ta.	1	7357	802	0	0	0	0	802	803	804
+891	27	3	Vé quay ngọc đen	Dùng để đập ngọc may mắn miễn phí ở Thượng Đế	1	7389	-1	0	0	0	0	-1	-1	-1
+892	27	3	Vé quay ngọc vàng	Dùng để đập ngọc may mắn miễn phí ở Thượng Đế	1	7390	-1	0	0	0	0	-1	-1	-1
+893	11	3	Cây thông	Vật phẩm sự kiện	1	7395	50	0	0	0	0	-1	-1	-1
+894	11	3	Túi quà	Vật phẩm sự kiện	1	7396	51	0	0	0	0	-1	-1	-1
+895	5	0	Cải trang Noel	Cải trang Noel	1	7426	-1	0	0	0	0	805	806	807
+896	5	2	Cải trang Noel	Cải trang Noel	1	7428	-1	0	0	0	0	808	806	807
+897	5	1	Cải trang Noel	Cải trang Noel	1	7430	805	0	0	0	0	805	806	807
+898	5	3	Cải trang Noel	Cải trang Noel	1	7435	809	0	0	0	0	809	811	812
+899	33	3	Mảnh Khủng long	Hai chi trước của Khủng long rất ngắn nên chúng không thể cầm thức ăn được	1	7467	-1	0	0	0	0	-1	-1	-1
+900	33	3	Mảnh Lợn lòi	Lợn lòi có sở thích mài răng nanh dưới đất, vô tình tạo ra những rãnh đất để người Namec trồng trọt	1	7468	-1	0	0	0	0	-1	-1	-1
+901	33	3	Mảnh Quỷ đất	Bản tính của Qủy đất khá nhút nhát, chúng thường núp vào cây khi gặp người lạ	1	7469	-1	0	0	0	0	-1	-1	-1
+902	33	3	Mảnh Khủng long mẹ	Hai chi trước của Khủng long rất ngắn nên chúng không thể cầm thức ăn được	1	7470	-1	0	0	0	0	-1	-1	-1
+903	33	3	Mảnh Lợn lòi mẹ	Lợn lòi có sở thích mài răng nanh dưới đất, vô tình tạo ra những rãnh đất để người Namec trồng trọt	1	7471	-1	0	0	0	0	-1	-1	-1
+904	33	3	Mảnh Quỷ đất mẹ	Bản tính của Qủy đất khá nhút nhát, chúng thường núp vào cây khi gặp người lạ	1	7472	-1	0	0	0	0	-1	-1	-1
+905	33	3	Mảnh Thằn lằn bay	Thằn lằn bay dùng cái mỏ dài và cứng để tấn công kẻ thù, đôi khi chúng vẫn dùng để gõ hạt óc chó ăn	1	7473	-1	0	0	0	0	-1	-1	-1
+906	33	3	Mảnh Phi long	Dùng tốc độ cực nhanh để tiếp cận và hạ gục mục tiêu, Phi long cũng có sở thích hơi lạ là khi bay luôn mở to miệng để đón gió	1	7474	-1	0	0	0	0	-1	-1	-1
+907	33	3	Mảnh Quỷ bay	Sở trường tấn công chớp choáng kẻ thù, nhưng đâu ai ngờ Quỷ bay lại có bệnh sợ độ cao	1	7475	-1	0	0	0	0	-1	-1	-1
+908	33	3	Mảnh Lính độc nhãn	Người ta nuôi quân lính dùng trong 1 giờ, Lính độc nhãn thì không dùng được 5 phút	1	7476	-1	0	0	0	0	-1	-1	-1
+909	33	3	Mảnh Lính độc nhãn	Người ta nuôi quân lính dùng trong 1 giờ, Lính độc nhãn thì không dùng được 5 phút	1	7477	-1	0	0	0	0	-1	-1	-1
+910	33	3	Mảnh Sói xám	Được lính độc nhãn thuần hóa và cho giữ nhà như cún con, sở thích của chúng là được chơi trò nhặt bóng	1	7478	-1	0	0	0	0	-1	-1	-1
+911	33	3	Mảnh Trung úy Xanh Lơ	Có siêu năng lực thôi miên nhưng cực kỳ sợ chuột	1	7479	-1	0	0	0	0	-1	-1	-1
+912	33	3	Mảnh Trung úy Trắng	Thân hình hơi béo so với tiêu chuẩn chung, luôn đeo chiếc khăn quàng đỏ, thường hay mơ mộng làm thơ	1	7480	-1	0	0	0	0	-1	-1	-1
+913	33	3	Mảnh Ninja Áo Tím	Ninja với nhiều tài năng để trở thành sát thủ, nhưng kỹ thuật ẩn thân lại không có, nên không thể trở thành sát thủ	1	7481	-1	0	0	0	0	-1	-1	-1
+914	5	0	Cải trang Trâu vàng	Vật phẩm sự kiện	1	7489	-1	0	0	0	0	816	817	818
+915	5	2	Cải trang Trâu trắng	Vật phẩm sự kiện	1	7520	-1	0	0	0	0	819	820	821
+916	5	1	Cải trang Trâu đen	Vật phẩm sự kiện	1	7551	-1	0	0	0	0	822	823	824
+917	5	0	Nón Trâu may mắn	Vật phẩm sự kiện	1	7585	825	0	0	0	0	822	823	824
+918	5	2	Nón Trâu may mắn	Vật phẩm sự kiện	1	7587	826	0	0	0	0	826	829	830
+919	5	1	Nón Trâu may mắn	Vật phẩm sự kiện	1	7589	827	0	0	0	0	827	829	830
+920	27	3	Cỏ tươi	Vật phẩm sự kiện	1	7594	-1	0	0	0	0	-1	-1	-1
+921	27	3	Cỏ tươi	Vật phẩm sự kiện	1	7594	-1	0	0	0	0	-1	-1	-1
+922	11	3	Cây trúc	Vật phẩm sự kiện	1	7597	52	0	0	0	0	-1	-1	-1
+923	5	0	Cải trang Trâu Đốm	Vật phẩm sự kiện	1	7600	-1	0	0	0	0	828	829	830
+924	5	2	Cải trang Trâu Đốm	Vật phẩm sự kiện	1	7602	-1	0	0	0	0	831	829	830
+925	5	1	Cải trang Trâu Đốm	Vật phẩm sự kiện	1	7604	-1	0	0	0	0	832	829	830
+926	5	0	Cải trang Trâu Nâu	Vật phẩm sự kiện	1	7641	832	0	0	0	0	832	834	835
+927	5	2	Cải trang Trâu Nâu	Vật phẩm sự kiện	1	7643	-1	0	0	0	0	836	834	835
+928	5	1	Cải trang Trâu Nâu	Vật phẩm sự kiện	1	7645	-1	0	0	0	0	837	834	835
+929	34	3	Hồng ngọc		1	7743	-1	0	0	0	0	-1	-1	-1
+930	5	3	Cải trang Nobita	Nhát như thỏ đế, lười học, mê ngủ chỉ được mỗi tài thiện xạ.	1	7744	-1	0	0	0	0	844	845	846
+931	5	3	Cải trang Chaien	Hay bắt nạt bạn bè, hát như bò rống chỉ được cái can đảm.	1	7776	844	0	0	0	0	844	845	846
+932	5	3	Cải trang Xekô	Con nhà giàu, học giỏi, yêu khoa học chỉ tội mỏ nhọn, lẻo méo, lươn lẹo.	1	7808	847	0	0	0	0	847	848	849
+933	11	3	Kiếm Z	Vật phẩm sự kiện	1	7842	53	0	0	0	0	-1	-1	-1
+934	5	2	Avatar	Dùng để thay đổi khuôn mặt	0	7843	853	0	0	0	0	853	859	860
+935	5	1	Avatar	Dùng để thay đổi khuôn mặt	0	7846	854	0	0	0	0	854	859	860
+936	5	0	Avatar	Dùng để thay đổi khuôn mặt	0	7847	855	0	0	0	0	853	859	860
+937	27	3	Capsule 1 sao	Giấu bên trong nhiều vật phẩm quý giá	1	7852	-1	0	0	0	0	-1	-1	-1
+938	27	3	Capsule 2 sao	Giấu bên trong nhiều vật phẩm quý giá	1	7853	-1	0	0	0	0	-1	-1	-1
+939	27	3	Capsule 3 sao	Giấu bên trong nhiều vật phẩm quý giá	1	7854	-1	0	0	0	0	-1	-1	-1
+940	5	0	Avatar Gohan 1	Dùng để thay đổi khuôn mặt	0	7855	856	0	0	0	0	856	859	860
+941	5	0	Avatar Gohan 2	Dùng để thay đổi khuôn mặt	0	7858	857	0	0	0	0	857	859	860
+942	27	3	Rùa con	Mang Rùa con bị lạc về cho Quy Lão để nhận thưởng.	1	7861	-1	0	0	0	0	-1	-1	-1
+943	5	2	Cải trang Cadic	Vật phẩm sự kiện	1	7862	-1	0	0	0	0	858	859	860
+944	5	0	Cải trang Gohan	Vật phẩm sự kiện	1	7894	858	0	0	0	0	858	859	860
+945	5	1	Cải trang Pocolo	Vật phẩm sự kiện	1	7926	861	0	0	0	0	861	862	863
+946	27	3	Bông tai Porata	Sử dụng để hợp thể với đệ tử	1	7993	-1	0	1500000	0	0	-1	-1	-1
+947	29	3	Cua rang me	Tặng cho Whis hoặc ăn vào để tăng 5% sức đánh trong vòng 10 phút	14	8060	-1	0	0	0	0	-1	-1	-1
+948	29	3	Bạch tuộc nướng	Tặng cho Whis hoặc ăn vào để tăng 5% sát thương khi chí mạng trong vòng 10 phút	14	8061	-1	0	0	0	0	-1	-1	-1
+949	29	3	Tôm tẩm bột chiên xù	Tặng cho Whis hoặc ăn vào để tăng 5% HP trong vòng 10 phút	14	8062	-1	0	0	0	0	-1	-1	-1
+950	5	3	Cải trang Black Gohan Rose	Vật phẩm sự kiện	1	8095	876	0	0	0	0	876	877	878
+951	27	3	Gà quay nguyên con	Vật phẩm sự kiện	1	8129	-1	0	0	0	0	-1	-1	-1
+952	27	3	Trứng vịt muối	Vật phẩm sự kiện	1	8130	-1	0	0	0	0	-1	-1	-1
+953	27	3	Bánh trung thu thập cẩm	Vật phẩm sự kiện	1	8131	-1	0	0	0	0	-1	-1	-1
+954	27	3	Bánh trung thu Gà quay	Vật phẩm sự kiện	1	8132	-1	0	0	0	0	-1	-1	-1
+955	18	3	Thỏ xám	Vật phẩm sự kiện	1	8139	-1	0	0	0	0	-1	-1	-1
+956	18	3	Thỏ trắng	Vật phẩm sự kiện	1	8146	-1	0	0	0	0	-1	-1	-1
+957	5	3	CT Lích Tên béo	Vật phẩm sự kiện	1	8147	-1	0	0	0	0	888	889	890
+958	5	3	CT Lích Tên béo	Vật phẩm sự kiện	1	8147	888	0	0	0	0	888	889	890
+959	18	3	Ma phong ba	Vật phẩm sự kiện	1	8185	-1	0	0	0	0	-1	-1	-1
+960	18	3	Bí ngô nhí nhảnh	Vật phẩm sự kiện	1	8192	-1	0	0	0	0	-1	-1	-1
+961	18	3	Thần chết cute	Vật phẩm sự kiện	1	8200	-1	0	0	0	0	-1	-1	-1
+962	5	0	Avatar	Dùng để thay đổi khuôn mặt	1	8201	900	0	0	0	0	900	904	905
+963	5	2	Avatar	Dùng để thay đổi khuôn mặt	1	8203	901	0	0	0	0	901	904	905
+964	5	1	Avatar	Dùng để thay đổi khuôn mặt	1	8205	902	0	0	0	0	900	904	905
+965	23	3	Rùa bay	Vật phẩm sự kiện. Dùng để bay phục hồi HP, KI	1	8210	9	0	0	0	0	-1	-1	-1
+966	5	3	Cải trang Zamasu	Vật phẩm sự kiện	1	8211	-1	0	0	0	0	903	904	905
+967	29	3	Kẹo một mắt	Vật phẩm sự kiện. Ăn vào +5% chí mạng trong vòng 20 phút.	1	8243	-1	0	0	0	0	-1	-1	-1
+968	29	3	Chí mạng 2	Ăn vào +10% chí mạng trong vòng 10 phút.	1	8243	-1	0	0	0	0	-1	-1	-1
+969	29	3	Chí mạng 3	Ăn vào +15% chí mạng trong vòng 10 phút.	1	8243	-1	0	0	0	0	-1	-1	-1
+970	29	3	Súp bí hắc ám	Vật phẩm sự kiện. Ăn vào +10% HP trong vòng 20 phút.	1	8244	-1	0	0	0	0	-1	-1	-1
+971	27	3	Kẹo bàn tay	Vật phẩm sự kiện	1	8245	-1	0	0	0	0	-1	-1	-1
+972	29	3	Bánh gato nhện	Vật phẩm sự kiện. Ăn vào +10% giáp trong vòng 20 phút.	1	8246	-1	0	0	0	0	-1	-1	-1
+973	29	3	Hamburger sâu	Vật phẩm sự kiện. Ăn vào +10% sức đánh trong vòng 20 phút.	1	8247	-1	0	0	0	0	-1	-1	-1
+974	5	3	Cải trang Black Goku SSJ White	Vật phẩm sự kiện	1	8248	906	0	0	0	0	906	908	909
+975	5	3	Cải trang Mighty Mask	Vật phẩm sự kiện	1	8251	906	0	0	0	0	906	908	909
+976	5	0	Cải trang Siêu Thần Trái Đất	Vật phẩm sự kiện	1	8283	907	0	0	0	0	907	908	909
+977	5	1	Cải trang Siêu thần Namếc	Vật phẩm sự kiện	1	8315	910	0	0	0	0	910	911	912
+978	5	3	Cải trang Gohan áo xanh	Vật phẩm sự kiện	1	8347	913	0	0	0	0	913	914	915
+979	5	3	Cải trang Póc áo đỏ	Vật phẩm sự kiện	1	8379	916	0	0	0	0	916	917	918
+980	5	3	Cải trang Búp bê Arale	Vật phẩm sự kiện	1	8411	919	0	0	0	0	919	920	921
+981	27	3	Capsule Squid Game	Vật phẩm sự kiện	1	8443	-1	0	0	0	0	-1	-1	-1
+982	18	3	Lính bảo vệ tròn	Vật phẩm sự kiện	1	8444	-1	0	0	0	0	-1	-1	-1
+983	18	3	Lính bảo vệ vuông	Vật phẩm sự kiện	1	8445	-1	0	0	0	0	-1	-1	-1
+984	18	3	Lính bảo vệ tam giác	Vật phẩm sự kiện	1	8446	-1	0	0	0	0	-1	-1	-1
+985	18	3	Búp bê	Vật phẩm sự kiện	1	8472	-1	0	0	0	0	-1	-1	-1
+986	23	3	Gậy như ý	Vật phẩm sự kiện. Dùng để bay phục hồi HP, KI	1	8482	10	0	0	0	0	-1	-1	-1
+987	5	0	Cải trang Goku Noel	Vật phẩm sự kiện	1	8483	-1	0	0	0	0	937	938	939
+988	5	2	Cải trang Ca đíc Noel	Vật phẩm sự kiện	1	8514	-1	0	0	0	0	940	941	942
+989	5	1	Cải trang Pico Noel	Vật phẩm sự kiện	1	8545	-1	0	0	0	0	943	944	945
+990	12	3	Ngọc rồng băng 1 sao	Thu thập để ước Rồng Băng	0	8579	-1	0	0	0	0	-1	-1	-1
+991	12	3	Ngọc rồng băng 2 sao	Thu thập để ước Rồng Băng	0	8580	-1	0	0	0	0	-1	-1	-1
+992	12	3	Ngọc rồng băng 3 sao	Thu thập để ước Rồng Băng	0	8581	-1	0	0	0	0	-1	-1	-1
+993	12	3	Ngọc rồng băng 4 sao	Thu thập để ước Rồng Băng	0	8582	-1	0	0	0	0	-1	-1	-1
+994	12	3	Ngọc rồng băng 5 sao	Thu thập để ước Rồng Băng	0	8583	-1	0	0	0	0	-1	-1	-1
+995	12	3	Ngọc rồng băng 6 sao	Thu thập để ước Rồng Băng	0	8584	-1	0	0	0	0	-1	-1	-1
+996	12	3	Ngọc rồng băng 7 sao	Thu thập để ước Rồng Băng	0	8585	-1	0	0	0	0	-1	-1	-1
+997	5	3	Cải trang Uub	Cải trang thành Uub (chỉ dành cho đệ tử)	1	8586	-1	0	0	0	0	946	947	948
+998	27	3	Mảnh vỡ bông tai	Dùng để nâng cấp bông tai Porata	1	8618	-1	0	0	0	0	-1	-1	-1
+999	27	3	Mảnh hồn bông tai	Dùng để nâng cấp bông tai Porata	1	8619	-1	0	0	0	0	-1	-1	-1
+1000	27	3	Đá xanh lam	Dùng để nâng cấp bông tai Porata	1	8620	-1	0	0	0	0	-1	-1	-1
+1001	5	3	Cải trang Mabư Noel	Vật phẩm sự kiện	1	8621	-1	0	0	0	0	950	951	952
+1002	18	3	Tuần lộc nhí	Vật phẩm sự kiện	1	8652	-1	0	0	0	0	-1	-1	-1
+1003	5	0	Cải trang Goku thời trang	Vật phẩm sự kiện	1	8662	953	0	0	0	0	953	954	955
+1004	5	2	Cải trang Ca Đíc thời trang	Vật phẩm sự kiện	1	8693	-1	0	0	0	0	959	960	961
+1005	5	1	Cải trang Pôcôlô thời trang	Vật phẩm sự kiện	1	8724	-1	0	0	0	0	962	963	964
+1006	5	3	Nón Hổ vàng	Dùng để thay đổi khuôn mặt	1	8758	965	0	0	0	0	965	967	968
+1007	18	3	Hổ mặp vàng	Vật phẩm sự kiện	1	8768	-1	0	0	0	0	-1	-1	-1
+1008	18	3	Hổ mặp trắng	Vật phẩm sự kiện	1	8776	-1	0	0	0	0	-1	-1	-1
+1009	18	3	Hổ mặp xanh	Vật phẩm sự kiện	1	8784	-1	0	0	0	0	-1	-1	-1
+1010	5	3	Cải trang Goku Tarzan	Vật phẩm sự kiện	1	8785	-1	0	0	0	0	975	976	977
+1011	5	3	Nón Hổ trắng	Dùng để thay đổi khuôn mặt	1	8818	979	0	0	0	0	979	984	985
+1012	5	3	Nón Hổ xanh	Dùng để thay đổi khuôn mặt	1	8824	981	0	0	0	0	979	984	985
+1013	5	3	Cải trang Hổ vàng	Vật phẩm sự kiện	1	8828	981	0	0	0	0	981	984	985
+1014	5	3	Cải trang Hổ trắng	Vật phẩm sự kiện	1	8860	983	0	0	0	0	983	984	985
+1015	5	3	Cải trang Hổ xanh	Vật phẩm sự kiện	1	8891	-1	0	0	0	0	989	990	991
+1016	5	3	Cải trang Siêu Goku Tarzan	Vật phẩm sự kiện	1	8924	989	0	0	0	0	989	990	991
+1017	11	3	Bó Hoa Hồng	Vật phẩm sự kiện	1	8933	54	0	0	0	0	-1	-1	-1
+1018	11	3	Bó Hoa Vàng	Vật phẩm sự kiện	1	8934	55	0	0	0	0	-1	-1	-1
+1019	33	3	Mảnh Đội trưởng Vàng	Đội trưởng Vàng là một con hổ hình người chắc nịch có cơ thể được bao phủ bởi bộ lông màu vàng, Goku đã đấm hắn ra khỏi máy bay của mình khi đang ở giữa không trung.	1	8935	-1	0	0	0	0	-1	-1	-1
+1020	5	0	Cải trang Goku võ sĩ	Khi Hp dưới 15% và ở gần Cải Trang Võ Sĩ khác +20% né đòn +20% sức đánh trong 5 giây	1	8939	994	0	0	0	0	994	995	996
+1021	5	2	Cải trang Cađíc võ sĩ	Khi Hp dưới 15% và ở gần Cải Trang Võ Sĩ khác +20% né đòn +20% sức đánh trong 5 giây	1	8970	994	0	0	0	0	994	995	996
+1022	5	1	Cải trang Pôcôlô võ sĩ	Khi Hp dưới 15% và ở gần Cải Trang Võ Sĩ khác +20% né đòn +20% sức đánh trong 5 giây	1	9001	-1	0	0	0	0	-1	-1	-1
+1023	28	3	Cờ đen	Bật để PK đồ sát các màu cờ khác	1	9065	-1	0	0	0	0	-1	-1	-1
+1024	28	3	Cờ trắng	Bật để PK đồ sát các màu cờ khác	1	9066	-1	0	0	0	0	-1	-1	-1
+1025	27	3	Nhẫn thời không sai lệch	Vật phẩm nhiệm vụ	1	9067	-1	0	0	0	0	-1	-1	-1
+1026	29	3	Thuốc mỡ Ipana	Trong vòng tối đa 10 phút +10% sức đánh gốc và hồi phục HP,KI	1	9068	-1	0	0	0	0	-1	-1	-1
+1027	29	3	Thuốc mỡ Ipana đặc biệt	Trong vòng tối đa 30 phút +10% sức đánh gốc và hồi phục HP,KI	1	9068	-1	0	0	0	0	-1	-1	-1
+1028	27	3	Cap thời trang 5 ngày	Vật phẩm sự kiện	1	9109	-1	0	0	0	0	-1	-1	-1
+1029	27	3	Cap thời trang 7 ngày	Vật phẩm sự kiện	1	9109	-1	0	0	0	0	-1	-1	-1
+1030	27	3	Capsule SEA games	Vật phẩm sự kiện	1	9109	-1	0	0	0	0	-1	-1	-1
+1031	27	3	Cápsule Kích hoạt 1 món tự chọn	Vật phẩm sự kiện	1	9109	-1	0	0	0	0	-1	-1	-1
+1032	5	3	Cải trang Chill cấp 2	Vật phẩm sự kiện	1	9142	1021	0	0	0	0	1021	1022	1023
+1033	5	3	Số 10 Pôcôlô	Vật phẩm sự kiện	1	9207	-1	0	0	0	0	1033	1034	1035
+1034	5	3	Số 2 Krilin	Vật phẩm sự kiện	1	9208	-1	0	0	0	0	1032	1047	1048
+1035	5	3	Số 4 Thên Xin Hăng	Vật phẩm sự kiện	1	9326	-1	0	0	0	0	1042	1047	1048
+1036	5	3	Số 5 Pic	Vật phẩm sự kiện	1	9358	-1	0	0	0	0	1049	1047	1048
+1037	18	3	Sao la	Vật phẩm sự kiện	1	9372	-1	0	0	0	0	-1	-1	-1
+1038	5	3	Số 7 Goku	Vật phẩm sự kiện	1	9383	-1	0	0	0	0	1029	1047	1048
+1039	5	3	Số 6 Cađíc	Vật phẩm sự kiện	1	9385	-1	0	0	0	0	1031	1047	1048
+1040	5	3	Số 11 Gohan	Vật phẩm sự kiện	1	9387	-1	0	0	0	0	1030	1047	1048
+1041	5	3	Số 1 Mabư	Vật phẩm sự kiện	1	9389	-1	0	0	0	0	1036	1037	1038
+1042	5	3	Số 8 Biden	Vật phẩm sự kiện	1	9390	-1	0	0	0	0	1039	1040	1041
+1043	5	3	Số 3 Poc	Vật phẩm sự kiện	1	9393	-1	0	0	0	0	1046	1047	1048
+1044	5	3	Số 9 Quy lão Kamê	Vật phẩm sự kiện	1	9395	-1	0	0	0	0	1043	1044	1045
+1045	11	3	Trái bóng	Vật phẩm sự kiện	1	9396	56	0	0	0	0	-1	-1	-1
+1046	27	3	Huy chương đồng	Vật phẩm sự kiện	1	9397	-1	0	0	0	0	-1	-1	-1
+1047	27	3	Huy chương bạc	Vật phẩm sự kiện	1	9398	-1	0	0	0	0	-1	-1	-1
+1048	27	3	Huy chương vàng	Vật phẩm sự kiện	1	9399	-1	0	0	0	0	-1	-1	-1
+1049	36	3	Chuyên gia lượm nhặt	Danh hiệu	1	9399	227	0	0	0	0	-1	-1	-1
+1050	11	3	Cúp vàng	Vật phẩm sự kiện	1	9402	57	0	0	0	0	-1	-1	-1
+1051	11	3	Cúp Vàng	Vật phẩm sự kiện	1	9402	57	0	0	0	0	-1	-1	-1
+1052	11	3	Cờ cổ động	Vật phẩm sự kiện	1	9403	58	0	0	0	0	-1	-1	-1
+1053	5	3	Cải trang Chill	Vật phẩm sự kiện	1	9405	-1	0	0	0	0	1024	1025	1026
+1054	27	3	Đá bảo vệ	Bảo vệ trang bị không bị rớt cấp	1	9406	-1	0	0	0	0	-1	-1	-1
+1055	27	3	Đá bảo vệ (Khóa)	Bảo vệ trang bị không bị rớt cấp	1	9406	-1	0	0	0	0	-1	-1	-1
+1056	5	3	Cải trang Gohan Siêu Nhân	Vật phẩm sự kiện	1	9407	-1	0	0	0	0	-1	-1	-1
+1057	27	3	Mở rộng túi vàng	Thêm 100 triệu sức chứa vàng	1	9432	-1	0	0	0	0	-1	-1	-1
+1058	5	3	Cải trang Biđen Siêu Nhân	Vật phẩm sự kiện	1	9433	1024	0	0	0	0	1024	1025	1026
+1059	5	3	Cải trang Bản Cô Nương Siêu Nhân	Vật phẩm sự kiện	1	9458	1024	0	0	0	0	1024	1025	1026
+1060	27	3	Giỏ thức ăn	Vật phẩm nhiệm vụ	1	9489	-1	0	0	0	0	-1	-1	-1
+1061	5	0	Cải trang Áo vịt cam	Vật phẩm sự kiện	1	9497	-1	0	0	0	0	1065	1066	1067
+1062	5	2	Cải trang Áo trắng hoa	Vật phẩm sự kiện	1	9528	-1	0	0	0	0	1068	1069	1070
+1063	5	1	Cải trang Nón rơm mùa hè	Vật phẩm sự kiện	1	9556	-1	0	0	0	0	1071	1072	1073
+1064	11	3	Ván lướt sóng	Vật phẩm sự kiện	1	9594	68	0	0	0	0	-1	-1	-1
+1065	27	3	Cá nóc	Vật phẩm sự kiện	1	9595	-1	0	0	0	0	-1	-1	-1
+1066	27	3	Cá bảy màu	Vật phẩm sự kiện	1	9596	-1	0	0	0	0	-1	-1	-1
+1067	27	3	Cá diêu hồng	Vật phẩm sự kiện	1	9597	-1	0	0	0	0	-1	-1	-1
+1068	27	3	Xô cá xanh	Vật phẩm sự kiện	1	9598	-1	0	0	0	0	-1	-1	-1
+1069	27	3	Xô cá vàng	Vật phẩm sự kiện	1	9599	-1	0	0	0	0	-1	-1	-1
+1070	11	3	Vỏ ốc	Vật phẩm sự kiện	1	9602	60	0	0	0	0	-1	-1	-1
+1071	11	3	Cây kem	Vật phẩm sự kiện	1	9605	61	0	0	0	0	-1	-1	-1
+1072	27	3	Kem trái cây	Vật phẩm sự kiện	1	9605	-1	0	0	0	0	-1	-1	-1
+1073	11	3	Cá heo	Vật phẩm sự kiện	1	9608	62	0	0	0	0	-1	-1	-1
+1074	11	3	Con diều	Vật phẩm sự kiện	1	9611	63	0	0	0	0	-1	-1	-1
+1075	11	3	Diều rồng	Vật phẩm sự kiện	1	9614	64	0	0	0	0	-1	-1	-1
+1076	18	3	Cua đỏ	Vật phẩm sự kiện	1	9621	-1	0	0	0	0	-1	-1	-1
+1077	11	3	Mèo mun	Vật phẩm sự kiện	1	9624	65	0	0	0	0	-1	-1	-1
+1078	11	3	Xiên cá	Vật phẩm sự kiện	1	9627	66	0	0	0	0	-1	-1	-1
+1079	11	3	Phóng lợn	Vật phẩm sự kiện	1	9630	67	0	0	0	0	-1	-1	-1
+1080	5	3	Cải trang Mị Nương	Vật phẩm sự kiện	1	9631	-1	0	0	0	0	-1	-1	-1
+1081	11	3	Kiếm ánh sáng	Vật phẩm sự kiện	1	9649	69	0	0	0	0	-1	-1	-1
+1082	27	3	Rađa dò ngọc Namếc	Vật phẩm nhiệm vụ	1	9651	-1	0	0	0	0	-1	-1	-1
+1083	11	3	Như Ý Kim Cô Bổng	Vật phẩm sự kiện	1	9704	73	0	0	0	0	-1	-1	-1
+1084	11	3	Cửu Hoàn Thiên Tích Trượng	Vật phẩm sự kiện	1	9705	76	0	0	0	0	-1	-1	-1
+1085	11	3	Cửu Xỉ Đinh Ba	Vật phẩm sự kiện	1	9706	74	0	0	0	0	-1	-1	-1
+1086	11	3	Nguyệt Nha Sản	Vật phẩm sự kiện	1	9707	75	0	0	0	0	-1	-1	-1
+1087	11	3	Dao răng cưa	Vật phẩm sự kiện	1	9708	77	0	0	0	0	-1	-1	-1
+1088	18	3	Pet Minion	Tăng 3% chí mạng cho chủ nhân trong 5 giây, hồi skill 20 giây	1	9709	-1	0	0	0	0	-1	-1	-1
+1089	5	0	Cải trang Broly	Cải trang thành Broly	1	9718	-1	0	0	0	0	1080	1081	1082
+1090	5	2	Cải trang Broly	Cải trang thành Broly	1	9749	-1	0	0	0	0	1086	1087	1088
+1091	5	1	Cải trang Broly	Cải trang thành Broly	1	9780	-1	0	0	0	0	1083	1084	1085
+1092	11	3	Búa Stormbreaker	Vật phẩm sự kiện	1	9814	71	0	0	0	0	-1	-1	-1
+1093	11	3	Búa Mjolnir	Vật phẩm sự kiện	1	9815	70	0	0	0	0	-1	-1	-1
+1094	11	3	Quạt ba tiêu	Vật phẩm sự kiện	1	9816	72	0	0	0	0	-1	-1	-1
+1095	5	3	Cải trang	Cải trang thành Android 20	1	9836	-1	0	15000000	0	0	-1	-1	-1
+1096	5	3	Cải trang	Cải trang thành Zangya	1	9837	-1	0	0	0	0	-1	-1	-1
+1097	27	3	Lọ nước phép	Dùng để nâng cấp Ngọc Rồng Trái Đất Siêu Cấp	1	9838	-1	0	0	0	0	-1	-1	-1
+1098	11	3	Cờ Hoa đăng	Vật phẩm sự kiện	1	9843	78	0	0	0	0	-1	-1	-1
+1099	11	3	Cờ Hoa sen	Vật phẩm sự kiện	1	9844	79	0	0	0	0	-1	-1	-1
+1100	27	3	Khung tre	Vật phẩm sự kiện	1	9845	-1	0	0	0	0	-1	-1	-1
+1101	27	3	Giấy màu	Vật phẩm sự kiện	1	9846	-1	0	0	0	0	-1	-1	-1
+1102	27	3	Giấy màu	Vật phẩm sự kiện	1	9846	-1	0	0	0	0	-1	-1	-1
+1103	27	3	Lời chúc	Vật phẩm sự kiện	1	9847	-1	0	0	0	0	-1	-1	-1
+1104	27	3	Nến	Vật phẩm sự kiện	1	9848	-1	0	0	0	0	-1	-1	-1
+1105	27	3	Pháo hoa	Vật phẩm sự kiện	1	9849	-1	0	0	0	0	-1	-1	-1
+1106	27	3	Hoa đăng	Vật phẩm sự kiện	1	9850	-1	0	0	0	0	-1	-1	-1
+1107	27	3	Hoa đăng có lời chúc	Vật phẩm sự kiện	1	9851	-1	0	0	0	0	-1	-1	-1
+1108	11	3	Lồng đèn lon	Vật phẩm sự kiện	1	9972	80	0	0	0	0	-1	-1	-1
+1109	18	3	Pet Thỏ ốm	Vật phẩm sự kiện	1	9973	-1	0	0	0	0	-1	-1	-1
+1110	18	3	Pet Thỏ mập	Vật phẩm sự kiện	1	9974	-1	0	0	0	0	-1	-1	-1
+1111	5	3	Thỏ hồng Bun ma	Vật phẩm sự kiện	1	9975	-1	0	0	0	0	1095	1096	1097
+1112	5	3	Thỏ đỏ Chi Chi	Vật phẩm sự kiện	1	9976	-1	0	0	0	0	1098	1099	1100
+1113	5	3	Thỏ đen Android 18	Vật phẩm sự kiện	1	9977	-1	0	0	0	0	1101	1102	1103
+1114	18	3	Pet Khỉ Bong Bóng	Vật phẩm sự kiện	1	9978	-1	0	0	0	0	-1	-1	-1
+1115	5	0	Avatar Thiên Sứ	Giúp giảm sát thương	15	9979	1104	0	0	0	0	1104	1105	1106
+1116	5	2	Avatar Thiên Sứ	Giúp giảm sát thương	15	10039	1109	0	0	0	0	1109	1110	1111
+1117	5	1	Avatar Thiên Sứ	Giúp giảm sát thương	15	10099	1114	0	0	0	0	1114	1115	1116
+1118	0	0	Áo Thiên Sứ	Giúp giảm sát thương	15	10165	1105	0	0	0	0	-1	-1	-1
+1119	1	0	Quần Thiên Sứ	Giúp bạn tăng HP	15	10166	1106	0	0	0	0	-1	-1	-1
+1120	3	0	Giầy Thiên Sứ	Giúp bạn tăng MP	15	10167	-1	0	0	0	0	-1	-1	-1
+1121	2	0	Găng Thiên Sứ	Giúp bạn tăng sức đánh	15	10168	-1	0	0	0	0	-1	-1	-1
+1122	4	0	Nhẫn Thiên Sứ	Giúp tăng Chí Mạng	15	10169	-1	0	0	0	0	-1	-1	-1
+1123	0	2	Áo Thiên Sứ	Giúp giảm sát thương	15	10175	1110	0	0	0	0	-1	-1	-1
+1124	1	2	Quần Thiên Sứ	Giúp bạn tăng HP	15	10176	1111	0	0	0	0	-1	-1	-1
+1125	3	2	Giầy Thiên Sứ	Giúp bạn tăng MP	15	10177	-1	0	0	0	0	-1	-1	-1
+1126	2	2	Găng Thiên Sứ	Giúp bạn tăng sức đánh	15	10178	-1	0	0	0	0	-1	-1	-1
+1127	4	2	Nhẫn Thiên Sứ	Giúp tăng Chí Mạng	15	10179	-1	0	0	0	0	-1	-1	-1
+1128	0	1	Áo Thiên Sứ	Giúp giảm sát thương	15	10185	1115	0	0	0	0	-1	-1	-1
+1129	1	1	Quần Thiên Sứ	Giúp bạn tăng HP	15	10186	1116	0	0	0	0	-1	-1	-1
+1130	3	1	Giầy Thiên Sứ	Giúp bạn tăng MP	15	10187	-1	0	0	0	0	-1	-1	-1
+1131	2	1	Găng Thiên Sứ	Giúp bạn tăng sức đánh	15	10188	-1	0	0	0	0	-1	-1	-1
+1132	4	1	Nhẫn Thiên Sứ	Giúp tăng Chí Mạng	15	10189	-1	0	0	0	0	-1	-1	-1
+1133	27	3	Đá nâng cấp cấp 5	Vật phẩm hổ trợ	5	10195	-1	0	0	0	0	-1	-1	-1
+1134	27	3	Đá may mắn cấp 5	Vật phẩm hổ trợ	5	10196	-1	0	0	0	0	-1	-1	-1
+1135	27	3	Mảnh áo	Thu thập đủ 999 đến gặp Whis tại hành tinh Bill	1	10197	-1	0	0	0	0	-1	-1	-1
+1136	27	3	Mảnh quần	Thu thập đủ 999 đến gặp Whis tại hành tinh Bill	1	10198	-1	0	0	0	0	-1	-1	-1
+1137	27	3	Mảnh giầy	Thu thập đủ 999 đến gặp Whis tại hành tinh Bill	1	10199	-1	0	0	0	0	-1	-1	-1
+1138	27	3	Mảnh găng tay	Thu thập đủ 999 đến gặp Whis tại hành tinh Bill	1	10200	-1	0	0	0	0	-1	-1	-1
+1139	27	3	Mảnh nhẫn	Thu thập đủ 999 đến gặp Whis tại hành tinh Bill	1	10201	-1	0	0	0	0	-1	-1	-1
+1140	27	3	Đá nâng cấp cấp 1	Vật phẩm hổ trợ	1	10202	-1	0	0	0	0	-1	-1	-1
+1141	27	3	Đá nâng cấp cấp 2	Vật phẩm hổ trợ	2	10203	-1	0	0	0	0	-1	-1	-1
+1142	27	3	Đá nâng cấp cấp 3	Vật phẩm hổ trợ	3	10204	-1	0	0	0	0	-1	-1	-1
+1143	27	3	Đá nâng cấp cấp 4	Vật phẩm hổ trợ	4	10205	-1	0	0	0	0	-1	-1	-1
+1144	27	3	Đá may mắn cấp 1	Vật phẩm hổ trợ	1	10206	-1	0	0	0	0	-1	-1	-1
+1145	27	3	Đá may mắn cấp 2	Vật phẩm hổ trợ	2	10207	-1	0	0	0	0	-1	-1	-1
+1146	27	3	Đá may mắn cấp 3	Vật phẩm hổ trợ	3	10208	-1	0	0	0	0	-1	-1	-1
+1147	27	3	Đá may mắn cấp 4	Vật phẩm hổ trợ	4	10209	-1	0	0	0	0	-1	-1	-1
+1148	27	0	Công thức	Chế tạo trang bị thiên sứ Trái Đất	1	10210	-1	0	0	0	0	-1	-1	-1
+1149	27	2	Công thức	Chế tạo trang bị thiên sứ Xayda	1	10211	-1	0	0	0	0	-1	-1	-1
+1150	27	1	Công thức	Chế tạo trang bị thiên sứ Namếc	1	10212	-1	0	0	0	0	-1	-1	-1
+1151	27	0	Công thức VIP	Chế tạo trang bị thiên sứ Trái Đất	1	10213	-1	0	0	0	0	-1	-1	-1
+1152	27	2	Công thức VIP	Chế tạo trang bị thiên sứ Xayda	1	10214	-1	0	0	0	0	-1	-1	-1
+1153	27	1	Công thức VIP	Chế tạo trang bị thiên sứ Namếc	1	10215	-1	0	0	0	0	-1	-1	-1
+1154	5	3	Tanjiro	Sức đánh chí mạng tăng 30% trong 15 giây, mỗi 120 giây	1	10216	-1	0	0	0	0	1119	1120	1121
+1155	5	3	Inosuke Hashibira	Tăng 60% giáp trong 20 giây, mỗi 120 giây, 30% khi ở các võ đài và Ngọc Rồng Sao Đen	1	10247	-1	0	0	0	0	1122	1123	1124
+1156	5	3	Zenitsu	Làm mọi người lo lắng bị ảnh hưởng 30% tỉ lệ hụt khi đánh quái	1	10278	-1	0	0	0	0	1125	1126	1127
+1157	5	3	Nezuko	Trạng thái điên loạn: Sức đánh +15%, hồi 3% HP, KI cho bản thân và người ở gần trong 10 giây, mỗi 120 giây	1	10311	-1	0	0	0	0	1128	1129	1130
+1158	5	3	Inosuke	Tăng 50% giáp trong 20 giây, mỗi 120 giây, 25% khi ở các võ đài và Ngọc Rồng Sao Đen	1	10342	-1	0	0	0	0	1131	1132	1133
+1159	5	3	Marron	Vật phẩm sự kiện	1	10440	-1	0	0	0	0	1140	1141	1142
+1160	27	3	Đất trồng cây	Vật phẩm sự kiện	1	10478	-1	0	0	0	0	-1	-1	-1
+1161	27	3	Đất trồng cây	Vật phẩm sự kiện	1	10478	-1	0	0	0	0	-1	-1	-1
+1162	27	3	Phân bón	Vật phẩm sự kiện	1	10479	-1	0	0	0	0	-1	-1	-1
+1163	27	3	Hạt mầm	Vật phẩm sự kiện	1	10480	-1	0	0	0	0	-1	-1	-1
+1164	27	3	Thuốc tăng trưởng	Vật phẩm sự kiện	1	10481	-1	0	0	0	0	-1	-1	-1
+1165	27	3	Thuốc tăng trưởng	Vật phẩm sự kiện	1	10481	-1	0	0	0	0	-1	-1	-1
+1166	27	3	Hoa hồng xanh	Vật phẩm sự kiện	1	10482	-1	0	0	0	0	-1	-1	-1
+1167	27	3	Hoa hồng giấy	Vật phẩm sự kiện	1	10482	-1	0	0	0	0	-1	-1	-1
+1168	27	3	Chậu sứ	Vật phẩm sự kiện	1	10483	-1	0	0	0	0	-1	-1	-1
+1169	27	3	Chậu đất	Vật phẩm sự kiện	1	10483	-1	0	0	0	0	-1	-1	-1
+1170	27	3	Chậu hoa hồng xanh	Vật phẩm sự kiện	1	10484	-1	0	0	0	0	-1	-1	-1
+1171	23	3	Gậy Quy Lão	Vật phẩm sự kiện. Dùng để bay phục hồi HP, KI	1	10485	11	0	0	0	0	-1	-1	-1
+1172	11	3	Chậu hoa ăn thịt	Vật phẩm sự kiện, cắn gây sát thương 5% Hp mọi người xung quanh mỗi 5 giây	1	10486	81	0	0	0	0	-1	-1	-1
+1173	27	3	Lời chúc	Vật phẩm sự kiện	1	10489	-1	0	0	0	0	-1	-1	-1
+1174	27	3	Lời chúc VIP	Vật phẩm sự kiện	1	10490	-1	0	0	0	0	-1	-1	-1
+1175	5	3	Poc satan	Vật phẩm sự kiện	1	10491	-1	0	0	0	0	1146	1147	1148
+1176	5	3	Bun ma phù thủy	+10% né đòn cho mọi người trong 5 giây, hồi skill 20 giây	1	10522	-1	0	0	0	0	1149	1150	1151
+1177	29	3	Né đòn	+10% né đòn trong 30 giây	1	10522	-1	0	0	0	0	-1	-1	-1
+1178	29	3	Né đòn 2	+20% né đòn trong 30 giây	1	10522	-1	0	0	0	0	-1	-1	-1
+1179	5	3	Biden dracula	Phản sát thương 3% trong 5 giây, hồi skill 20 giây	1	10553	-1	0	0	0	0	1152	1153	1154
+1180	29	3	Phản sát thương	Phản sát thương 3% trong 30 giây	1	10553	-1	0	0	0	0	-1	-1	-1
+1181	29	3	Phản sát thương 2	Phản sát thương 6% trong 30 giây	1	10553	-1	0	0	0	0	-1	-1	-1
+1182	29	3	Phản sát thương 3	Phản sát thương 12% trong 30 giây	1	10553	-1	0	0	0	0	-1	-1	-1
+1183	29	3	Kamejoko	Trong 30 giây +10% phạm vi sát thương của kỹ năng Kamejoko, Super Kamejoko	1	10553	-1	0	0	0	0	-1	-1	-1
+1184	29	3	Kamejoko 2	Trong 30 giây +20% phạm vi sát thương của kỹ năng Kamejoko, Super Kamejoko	1	10553	-1	0	0	0	0	-1	-1	-1
+1185	18	3	Pet Bí Ma Vương	Tăng 5% giáp cho chủ nhân trong 5 giây, hồi skill 20 giây	1	10589	-1	0	0	0	0	-1	-1	-1
+1186	18	3	Pet Ma vàng phù thủy	Tăng 5% chí mạng cho chủ nhân trong 5 giây, hồi skill 20 giây	1	10597	-1	0	0	0	0	-1	-1	-1
+1187	11	3	Đinh ba Satan	Vật phẩm sự kiện	1	10600	82	0	0	0	0	-1	-1	-1
+1188	11	3	Chổi phù thủy	Vật phẩm sự kiện	1	10601	83	0	0	0	0	-1	-1	-1
+1189	11	3	Cánh thiên thần	Vật phẩm sự kiện	1	10602	84	0	0	0	0	-1	-1	-1
+1190	11	3	Cánh thiên thần 2	Vật phẩm sự kiện	1	10603	85	0	0	0	0	-1	-1	-1
+1191	11	3	Cây nắp ấm	Vật phẩm sự kiện	1	10614	86	0	0	0	0	-1	-1	-1
+1192	11	3	Cá Chà Bá	Vật phẩm sự kiện	1	10617	87	0	0	0	0	-1	-1	-1
+1193	27	3	Hòm Halloween	Vật phẩm sự kiện	1	10626	-1	0	0	0	0	-1	-1	-1
+1194	27	3	Thiệp Ma Halloween	Vật phẩm sự kiện	1	10627	-1	0	0	0	0	-1	-1	-1
+1195	27	3	W	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10628	-1	0	0	0	0	-1	-1	-1
+1196	27	3	O	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10629	-1	0	0	0	0	-1	-1	-1
+1197	27	3	R	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10630	-1	0	0	0	0	-1	-1	-1
+1198	27	3	L	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10631	-1	0	0	0	0	-1	-1	-1
+1199	27	3	D	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10632	-1	0	0	0	0	-1	-1	-1
+1200	27	3	C	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10633	-1	0	0	0	0	-1	-1	-1
+1201	27	3	U	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10634	-1	0	0	0	0	-1	-1	-1
+1202	27	3	P	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10635	-1	0	0	0	0	-1	-1	-1
+1203	27	3	20	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10636	-1	0	0	0	0	-1	-1	-1
+1204	27	3	22	Thu thập các mảnh WORLD CUP 2022 và đến gặp Quy Lão	1	10637	-1	0	0	0	0	-1	-1	-1
+1205	11	3	Cờ logo Quatar 1	Vật phẩm sự kiện	1	10638	88	0	0	0	0	-1	-1	-1
+1206	11	3	Cờ logo Quatar 2	Vật phẩm sự kiện	1	10639	89	0	0	0	0	-1	-1	-1
+1207	11	3	Cờ giày vàng	Vật phẩm sự kiện	1	10640	90	0	0	0	0	-1	-1	-1
+1208	11	3	Cờ GOAL	Vật phẩm sự kiện	1	10641	91	0	0	0	0	-1	-1	-1
+1209	11	3	Cờ FIFA	Vật phẩm sự kiện	1	10642	92	0	0	0	0	-1	-1	-1
+1210	11	3	Quả Bóng Vàng	Vật phẩm sự kiện	1	10643	93	0	0	0	0	-1	-1	-1
+1211	23	3	Quả bóng siêu việt	Vật phẩm sự kiện	1	10664	12	0	0	0	0	-1	-1	-1
+1212	27	3	Quả bóng vàng 2026	Vật phẩm sự kiện	1	10664	-1	0	0	0	0	-1	-1	-1
+1213	24	3	Thú cưỡi cực VIP	Dùng để bay phục hồi HP, KI	1	10665	-1	0	0	0	0	-1	-1	-1
+1214	27	3	Fan gà nửa mùa	Vật phẩm sự kiện	1	10666	-1	0	0	0	0	-1	-1	-1
+1215	27	3	Fan cuồng bóng đá	Vật phẩm sự kiện	1	10667	-1	0	0	0	0	-1	-1	-1
+1216	27	3	Thiệp World Cup	Vật phẩm sự kiện	1	10668	-1	0	0	0	0	-1	-1	-1
+1217	27	3	Capsule World Cup	Vật phẩm sự kiện	1	10678	-1	0	0	0	0	-1	-1	-1
+1218	27	3	Capsule World Cup VIP	Vật phẩm sự kiện	1	10679	-1	0	0	0	0	-1	-1	-1
+1219	5	0	Avatar Gohan sẹo	Vật phẩm sự kiện	1	10680	1164	0	0	0	0	1166	1171	1172
+1220	5	2	Avatar Gohan sẹo	Vật phẩm sự kiện	1	10680	1164	0	0	0	0	1166	1171	1172
+1221	5	0	Avatar Gohan Blue sẹo	Vật phẩm sự kiện	1	10682	1165	0	0	0	0	1165	1171	1172
+1222	5	2	Avatar Gohan Blue sẹo	Vật phẩm sự kiện	1	10682	1165	0	0	0	0	1165	1171	1172
+1223	5	0	Avatar Gohan White	Dùng để thay đổi khuôn mặt	1	10686	1167	0	0	0	0	1164	1159	1160
+1224	5	2	Avatar Gohan White	Dùng để thay đổi khuôn mặt	1	10686	1167	0	0	0	0	1164	1159	1160
+1225	11	3	Cánh thiên sứ hắc ám	Vật phẩm sự kiện	1	10694	96	0	0	0	0	-1	-1	-1
+1226	11	3	Mèo mun đột biến	Vật phẩm sự kiện	1	10697	94	0	0	0	0	-1	-1	-1
+1227	11	3	Bong bóng heo	Vật phẩm sự kiện	1	10706	95	0	0	0	0	-1	-1	-1
+1228	5	1	Avatar Gohan White	Dùng để thay đổi khuôn mặt	1	10707	1168	0	0	0	0	1168	1171	1172
+1229	23	3	Phượng hoàng lửa	Vật phẩm sự kiện	1	10710	13	0	0	0	0	-1	-1	-1
+1230	5	3	Cải trang Black goku ssj 3 White	Vật phẩm sự kiện	1	10711	1168	0	0	0	0	1168	1171	1172
+1231	29	3	Giáp Xên bọ hung 2	Trong vòng tối đa 10 phút giảm 60% sát thương	1	10712	-1	0	0	0	0	-1	-1	-1
+1232	29	3	Bổ huyết 2	Trong vòng tối đa 10 phút +120% HP	1	10714	-1	0	0	0	0	-1	-1	-1
+1233	29	3	Bổ khí 2	Trong vòng tối đa 10 phút +120% KI	1	10715	-1	0	0	0	0	-1	-1	-1
+1234	29	3	Cuồng nộ 2	Trong vòng tối đa 10 phút +120% sức đánh gốc	1	10716	-1	0	0	0	0	-1	-1	-1
+1235	29	3	Ẩn danh 2	Khi bạn cần sự riêng tư +10 phút (tối đa 40 phút) hạ địch không để lại tên trong danh sách kẻ thù và không cho phép người khác dịch chuyển tức thời đến	1	10717	-1	0	0	0	0	-1	-1	-1
+1236	5	0	Noel Goku	Vật phẩm sự kiện	1	10718	-1	0	0	0	0	1170	1171	1172
+1237	5	2	Noel Cađíc	Vật phẩm sự kiện	1	10749	-1	0	0	0	0	1173	1174	1175
+1238	5	1	Noel Pôcôlô	Vật phẩm sự kiện	1	10780	-1	0	0	0	0	1176	1177	1178
+1239	11	3	Chú lùn	Vật phẩm sự kiện	1	10840	97	0	0	0	0	-1	-1	-1
+1240	11	3	Chú lùn	Vật phẩm sự kiện	1	10841	98	0	0	0	0	-1	-1	-1
+1241	11	3	Chú lùn	Vật phẩm sự kiện	1	10842	99	0	0	0	0	-1	-1	-1
+1242	11	3	Chú lùn	Vật phẩm sự kiện	1	10843	100	0	0	0	0	-1	-1	-1
+1243	11	3	Chú lùn	Vật phẩm sự kiện	1	10844	101	0	0	0	0	-1	-1	-1
+1244	11	3	Chú lùn	Vật phẩm sự kiện	1	10845	102	0	0	0	0	-1	-1	-1
+1245	11	3	Chú lùn	Vật phẩm sự kiện	1	10846	103	0	0	0	0	-1	-1	-1
+1246	27	3	Chuông đồng	Vật phẩm sự kiện	1	10847	-1	0	0	0	0	-1	-1	-1
+1247	27	3	Chuông Vàng Noel	Vật phẩm sự kiện	1	10847	-1	0	0	0	0	-1	-1	-1
+1248	27	3	Cá tuyết	Vật phẩm sự kiện	1	10848	-1	0	0	0	0	-1	-1	-1
+1249	27	3	Bánh quy	Vật phẩm sự kiện	1	10849	-1	0	0	0	0	-1	-1	-1
+1250	27	3	Kẹo đường	Vật phẩm sự kiện	1	10850	-1	0	0	0	0	-1	-1	-1
+1251	27	3	Kẹo người tuyết	Vật phẩm sự kiện	1	10851	-1	0	0	0	0	-1	-1	-1
+1252	27	3	Gói quà	Vật phẩm sự kiện	1	10852	-1	0	0	0	0	-1	-1	-1
+1253	27	3	Túi 7 chú lùn	Vật phẩm sự kiện	1	10853	-1	0	0	0	0	-1	-1	-1
+1254	27	3	Rương Mảnh Thiên Sứ	Vật phẩm sự kiện	1	10854	-1	0	0	0	0	-1	-1	-1
+1255	23	3	Xe heo tuần lộc	Vật phẩm sự kiện	1	10855	14	0	0	0	0	-1	-1	-1
+1256	11	3	Bóng Vịt Vàng	Vật phẩm sự kiện	1	10876	106	0	0	0	0	-1	-1	-1
+1257	18	3	Pet mèo đen đuôi vàng	Tăng 5% chí mạng cho chủ nhân trong 5 giây, hồi skill 20 giây	1	10877	-1	0	0	0	0	-1	-1	-1
+1258	27	3	Mãng cầu	Vật phẩm sự kiện	1	10884	-1	0	0	0	0	-1	-1	-1
+1259	27	3	Quả dừa	Vật phẩm sự kiện	1	10885	-1	0	0	0	0	-1	-1	-1
+1260	27	3	Đu đủ	Vật phẩm sự kiện	1	10886	-1	0	0	0	0	-1	-1	-1
+1261	27	3	Quả xoài	Vật phẩm sự kiện	1	10887	-1	0	0	0	0	-1	-1	-1
+1262	27	3	Trái sung	Vật phẩm sự kiện	1	10888	-1	0	0	0	0	-1	-1	-1
+1263	27	3	Mâm ngũ quả	Vật phẩm sự kiện	1	10889	-1	0	0	0	0	-1	-1	-1
+1264	29	3	Xúc xích xông khói	Vật phẩm sự kiện	1	10890	-1	0	0	0	0	-1	-1	-1
+1265	29	3	Dĩa thức ăn cho mèo	Vật phẩm sự kiện	1	10891	-1	0	0	0	0	-1	-1	-1
+1266	27	3	Hộp Mù Tình Yêu	Vật phẩm sự kiện	1	10892	-1	0	0	0	0	-1	-1	-1
+1267	27	3	Hộp Nón Tết VIP	Vật phẩm sự kiện	1	10892	-1	0	0	0	0	-1	-1	-1
+1268	27	3	Hộp Nón Tết	Vật phẩm sự kiện	1	10892	-1	0	0	0	0	-1	-1	-1
+1269	27	3	Thiệp chúc tết	Vật phẩm sự kiện	1	10893	-1	0	0	0	0	-1	-1	-1
+1270	27	3	Thiệp chúc tết	Vật phẩm sự kiện	1	10894	-1	0	0	0	0	-1	-1	-1
+1271	27	3	Thiệp chúc tết	Vật phẩm sự kiện	1	10895	-1	0	0	0	0	-1	-1	-1
+1272	27	3	Phong bì Tết 2024	Vật phẩm sự kiện	0	10895	-1	0	0	0	0	-1	-1	-1
+1273	11	3	Cành mai	Vật phẩm sự kiện	1	10899	104	0	0	0	0	-1	-1	-1
+1274	11	3	Cành đào	Vật phẩm sự kiện	1	10903	105	0	0	0	0	-1	-1	-1
+1275	29	3	Xí muội Hoa mai	Trong vòng tối đa 10 phút +20% HP	1	10904	-1	0	0	0	0	-1	-1	-1
+1276	29	3	Xí muội Hoa đào	Trong vòng tối đa 10 phút +20% sức đánh gốc	1	10905	-1	0	0	0	0	-1	-1	-1
+1277	5	0	Nón mèo	Dùng để thay đổi khuôn mặt	0	10910	1186	0	0	0	0	1186	1190	1191
+1278	5	2	Nón mèo	Dùng để thay đổi khuôn mặt	0	10912	1187	0	0	0	0	1187	1190	1191
+1279	5	1	Nón mèo	Dùng để thay đổi khuôn mặt	0	10914	1188	0	0	0	0	1188	1190	1191
+1280	5	0	Kimono	Vật phẩm sự kiện	1	10915	-1	0	0	0	0	1189	1190	1191
+1281	5	2	Kimono	Vật phẩm sự kiện	1	10944	-1	0	0	0	0	1192	1193	1194
+1282	5	1	Kimono	Vật phẩm sự kiện	1	10973	-1	0	0	0	0	1195	1196	1197
+1283	27	3	Hộp quà Goku Day	Vật phẩm sự kiện	1	11006	-1	0	0	0	0	-1	-1	-1
+1284	27	3	Hộp quà thiếu nhi	Vật phẩm sự kiện	1	11006	-1	0	0	0	0	-1	-1	-1
+1285	27	3	Hộp quà tháng 9	Vật phẩm sự kiện	1	11006	-1	0	0	0	0	-1	-1	-1
+1286	27	3	Hộp quà tháng 9	Vật phẩm sự kiện	1	11006	-1	0	0	0	0	-1	-1	-1
+1287	27	3	Phiếu bé ngoan	Vật phẩm sự kiện	1	11007	-1	0	0	0	0	-1	-1	-1
+1288	5	3	Karin Kid Lân	Vật phẩm sự kiện	1	11008	-1	0	0	0	0	1198	1199	1200
+1289	5	3	Karin Kid Lân 2025	Vật phẩm sự kiện	1	11008	1198	0	0	0	0	1198	1199	1200
+1290	18	3	Pet mèo trắng đuôi vàng	Tăng 3% chí mạng cho chủ nhân trong 5 giây, hồi skill 20 giây	1	11040	-1	0	0	0	0	-1	-1	-1
+1291	18	3	Pet mèo trắng đuôi vàng	Tăng 3% chí mạng cho chủ nhân trong 5 giây, hồi skill 20 giây	1	11040	-1	0	0	0	0	-1	-1	-1
+1292	11	3	Trái tim Valentine	Vật phẩm sự kiện, đẹp hơn khi dùng phiên bản 2.2.8 trở lên	1	11047	201	0	0	0	0	-1	-1	-1
+1293	33	3	Mảnh Rồng thần Namếc	Rồng thần của Namếc do trưởng lão hành tinh này tạo ra. Khác với Rồng thiêng của Trái Đất, Rồng thần Namếc có thân hình màu xanh to lớn, đồ sộ và đáng sợ hơn. Có thể thực hiện 3 điều ước.	1	11048	-1	0	0	0	0	-1	-1	-1
+1294	5	3	Drabura Frost	Đóng băng mọi người xung quanh mỗi 30 giây	1	11053	-1	0	0	0	0	1207	1208	1209
+1295	5	3	Bunma tóc xanh neon	+3% sức đánh, tối đa 10% khi ở gần Bunma tóc xanh, nâu, tím mới	1	11153	1213	0	0	0	0	1213	1214	1215
+1296	5	3	Bunma tóc nâu băng đô	+3% sức đánh, tối đa 10% khi ở gần Bunma tóc xanh, nâu, tím mới	1	11157	1216	0	0	0	0	1216	1219	1220
+1297	5	3	Bunma tóc tím thắt bím	+3% sức đánh, tối đa 10% khi ở gần Bunma tóc xanh, nâu, tím mới	1	11161	1217	0	0	0	0	1217	1219	1220
+1298	37	0	Sách Super Kamejoko	học kỹ năng Super Kamejoko	1	11162	24	0	0	0	0	-1	-1	-1
+1299	11	3	Cờ mèo Hoàng Thượng	Vật phẩm sự kiện, đẹp hơn khi dùng phiên bản 2.2.8 trở lên	1	11163	206	0	0	0	0	-1	-1	-1
+1300	29	1	Nồi cơm điện	Trong vòng tối đa 30 phút +3 nạn nhân bị Ma phong ba	1	11173	-1	0	0	0	0	-1	-1	-1
+1301	29	1	Bình chứa nhỏ	Trong vòng tối đa 30 phút +1 nạn nhân bị Ma phong ba	1	11192	-1	0	0	0	0	-1	-1	-1
+1302	37	2	Sách Cađíc liên hoàn chưởng	học kỹ năng Cađíc liên hoàn chưởng	1	11193	25	0	0	0	0	-1	-1	-1
+1303	37	1	Sách Ma phong ba	học kỹ năng Ma phong ba	1	11194	26	0	0	0	0	-1	-1	-1
+1304	27	3	Cơm nếp	Vật phẩm sự kiện	1	11195	-1	0	0	0	0	-1	-1	-1
+1305	27	3	Cơm nếp	Vật phẩm sự kiện	1	11195	-1	0	0	0	0	-1	-1	-1
+1306	27	3	Ván cơm nếp	Vật phẩm sự kiện	1	11196	-1	0	0	0	0	-1	-1	-1
+1307	27	3	Tệp cơm nếp	Vật phẩm sự kiện	1	11197	-1	0	0	0	0	-1	-1	-1
+1308	27	3	Lá dong	Vật phẩm sự kiện	1	11198	-1	0	0	0	0	-1	-1	-1
+1309	27	3	Sợi Cói	Vật phẩm sự kiện	1	11199	-1	0	0	0	0	-1	-1	-1
+1310	27	3	Tệp bánh chưng	Vật phẩm sự kiện	1	11200	-1	0	0	0	0	-1	-1	-1
+1311	27	3	Bánh chưng Lang Liêu	Vật phẩm sự kiện	1	11200	-1	0	0	0	0	-1	-1	-1
+1312	27	3	Hộp quà thường	Vật phẩm sự kiện	1	11201	-1	0	0	0	0	-1	-1	-1
+1313	27	3	Hộp quà Set kích hoạt	Vật phẩm sự kiện	1	11201	-1	0	0	0	0	-1	-1	-1
+1314	27	3	Hộp quà Set kích hoạt 3 sao	Vật phẩm sự kiện	1	11201	-1	0	0	0	0	-1	-1	-1
+1315	27	3	Hộp quà Set kích hoạt 5 sao	Vật phẩm sự kiện	1	11201	-1	0	0	0	0	-1	-1	-1
+1316	27	3	Hộp quà Goku Day	Vật phẩm sự kiện	1	11201	-1	0	0	0	0	-1	-1	-1
+1317	27	3	Hộp quà thiếu nhi	Vật phẩm sự kiện	1	11201	-1	0	0	0	0	-1	-1	-1
+1318	27	3	Hộp Nón Tết	Vật phẩm sự kiện	1	11201	-1	0	0	0	0	-1	-1	-1
+1319	27	3	Hộp quà cao cấp	Vật phẩm sự kiện	1	11202	-1	0	0	0	0	-1	-1	-1
+1320	27	3	Hộp quà Goku Day VIP	Vật phẩm sự kiện	1	11202	-1	0	0	0	0	-1	-1	-1
+1321	27	3	Hộp quà thiếu nhi	Vật phẩm sự kiện	1	11202	-1	0	0	0	0	-1	-1	-1
+1322	27	3	Hộp quà tháng 9 VIP	Vật phẩm sự kiện	1	11202	-1	0	0	0	0	-1	-1	-1
+1323	27	3	Hộp Pet Tết	Vật phẩm sự kiện	1	11202	-1	0	0	0	0	-1	-1	-1
+1324	27	3	Hộp quà tháng 9 VIP	Vật phẩm sự kiện	1	11202	-1	0	0	0	0	-1	-1	-1
+1325	27	3	Ngà voi	Vật phẩm sự kiện	1	11203	-1	0	0	0	0	-1	-1	-1
+1326	27	3	Cựa gà	Vật phẩm sự kiện	1	11204	-1	0	0	0	0	-1	-1	-1
+1327	27	3	Hồng mao	Vật phẩm sự kiện	1	11205	-1	0	0	0	0	-1	-1	-1
+1328	11	3	Bóng khí Gas	Hôi, giảm 5% HP người xung quanh mỗi 20 giây	1	11216	207	0	0	0	0	-1	-1	-1
+1329	18	3	Pet Voi Chín Ngà	Tăng 15% giáp cho chủ nhân trong 10 giây, hồi skill 20 giây	1	11232	-1	0	0	0	0	-1	-1	-1
+1330	18	3	Pet Gà Chín Cựa	Tăng 15% giáp cho chủ nhân trong 10 giây, hồi skill 20 giây	1	11233	-1	0	0	0	0	-1	-1	-1
+1331	18	3	Pet Ngựa Chín Hồng mao	Tăng 15% giáp cho chủ nhân trong 10 giây, hồi skill 20 giây	1	11234	-1	0	0	0	0	-1	-1	-1
+1332	27	3	Bí kíp tuyệt kỹ	Gặp Whis tại hành tinh Bill	1	11238	-1	0	0	0	0	-1	-1	-1
+1333	11	3	Hào Quang Rực Rỡ	Vật phẩm sự kiện, đẹp hơn khi dùng phiên bản 2.2.8 trở lên	1	11239	205	0	0	0	0	-1	-1	-1
+1334	11	3	Gậy thượng đế	Vật phẩm sự kiện	1	11245	107	0	0	0	0	-1	-1	-1
+1335	27	3	Cành khô	Vật phẩm sự kiện	1	11246	-1	0	0	0	0	-1	-1	-1
+1336	27	3	Nước Suối Tinh Khiết	Vật phẩm sự kiện	1	11247	-1	0	0	0	0	-1	-1	-1
+1337	27	3	Gỗ Lớn	Vật phẩm sự kiện	1	11248	-1	0	0	0	0	-1	-1	-1
+1338	27	3	Que đốt	Vật phẩm sự kiện	1	11249	-1	0	0	0	0	-1	-1	-1
+1339	27	3	Bồn tắm gỗ	Vật phẩm sự kiện	1	11250	-1	0	0	0	0	-1	-1	-1
+1340	27	3	Bồn tắm vàng	Vật phẩm sự kiện	1	11251	-1	0	0	0	0	-1	-1	-1
+1341	27	3	Bọ Kiến Vương Hai Sừng	Vật phẩm sự kiện	1	11252	-1	0	0	0	0	-1	-1	-1
+1342	27	3	Bọ Hung Tê Giác	Vật phẩm sự kiện	1	11253	-1	0	0	0	0	-1	-1	-1
+1343	27	3	Bọ Kẹp Kìm	Vật phẩm sự kiện	1	11254	-1	0	0	0	0	-1	-1	-1
+1344	27	3	Bọ Cánh Cứng	Vật phẩm sự kiện	1	11255	-1	0	0	0	0	-1	-1	-1
+1345	27	3	Ngài Đêm	Vật phẩm sự kiện	1	11256	-1	0	0	0	0	-1	-1	-1
+1346	27	3	Hũ Mật Ong	Vật phẩm sự kiện	1	11257	-1	0	0	0	0	-1	-1	-1
+1347	27	3	Vợt Bắt Bọ	Vật phẩm sự kiện	1	11258	-1	0	0	0	0	-1	-1	-1
+1348	5	3	Cải trang Poc Bikini	Giảm 5% sức đánh của người xung quanh, tối đa ảnh hưởng 10 người 1 lúc. Nếu đang mặc cải trang hè Pic, Poc, King Kong hè sẽ không bị ảnh hưởng lên người	1	11259	-1	0	0	0	0	1236	1237	1238
+1349	5	3	Cải trang Pic Thợ Lặn	Giảm 5% sức đánh của người xung quanh, tối đa ảnh hưởng 10 người 1 lúc. Nếu đang mặc cải trang hè Pic, Poc, King Kong hè sẽ không bị ảnh hưởng lên người	1	11293	1236	0	0	0	0	1236	1237	1238
+1350	5	3	Cải trang King Kong Sành Điệu	Giảm 5% sức đánh của người xung quanh, tối đa ảnh hưởng 10 người 1 lúc. Nếu đang mặc cải trang hè Pic, Poc, King Kong hè sẽ không bị ảnh hưởng lên người	1	11325	1239	0	0	0	0	1239	1240	1241
+1351	18	3	Pet bọ cánh cứng	Vật phẩm sự kiện	1	11371	-1	0	0	0	0	-1	-1	-1
+1352	18	3	Pet ngài đêm	Vật phẩm sự kiện	1	11372	-1	0	0	0	0	-1	-1	-1
+1353	23	3	Ve Sầu Xên	Vật phẩm sự kiện	1	11373	15	0	0	0	0	-1	-1	-1
+1354	23	3	Ve Sầu Xên Tiến Hóa	Vật phẩm sự kiện	1	11374	16	0	0	0	0	-1	-1	-1
+1355	11	3	Búa hắc hường	Vật phẩm sự kiện	1	11422	210	0	0	0	0	-1	-1	-1
+1356	5	3	Cải trang Mabư Còm	Vật phẩm sự kiện	1	11455	1264	0	0	0	0	1264	1265	1266
+1357	18	3	Pet heo bướm	Vật phẩm sự kiện	1	11462	-1	0	0	0	0	-1	-1	-1
+1358	5	3	Xe triều đình	Vật phẩm sự kiện	1	11463	-1	0	0	0	0	1270	1271	1272
+1359	27	3	Hồn ma	Vật phẩm sự kiện	1	11471	-1	0	0	0	0	-1	-1	-1
+1360	27	3	Bình phép	Vật phẩm sự kiện	1	11472	-1	0	0	0	0	-1	-1	-1
+1361	27	3	Lọ nước hồi sinh	Vật phẩm sự kiện	1	11473	-1	0	0	0	0	-1	-1	-1
+1362	27	3	Bùa hồi sinh	Vật phẩm sự kiện	1	11474	-1	0	0	0	0	-1	-1	-1
+1363	29	3	Anti phong ấn	Giảm 1s thời gian phong ấn của Ma phong ba	1	11474	-1	0	0	0	0	-1	-1	-1
+1364	27	3	Vé ước miễn phí	Vật phẩm sự kiện	1	11474	-1	0	0	0	0	-1	-1	-1
+1365	27	3	Lích Tên	Vật phẩm sự kiện	1	11475	-1	0	0	0	0	-1	-1	-1
+1366	27	3	Siêu Lích Tên	Vật phẩm sự kiện	1	11476	-1	0	0	0	0	-1	-1	-1
+1367	5	1	Avatar Gohan sẹo	Vật phẩm sự kiện	1	11477	1274	0	0	0	0	1274	1277	1278
+1368	5	1	Avatar Gohan Blue sẹo	Vật phẩm sự kiện	1	11480	1275	0	0	0	0	1275	1277	1278
+1369	29	3	Máy dò linh hồn	Vật phẩm sự kiện	1	11493	-1	0	0	0	0	-1	-1	-1
+1370	5	3	Yajirobe Zoro	Vật phẩm sự kiện	1	11526	1279	0	0	0	0	1279	1280	1281
+1371	23	3	Đài sen hồng	Vật phẩm sự kiện	1	11527	17	0	0	0	0	-1	-1	-1
+1372	23	3	Đài sen vàng	Vật phẩm sự kiện	1	11528	18	0	0	0	0	-1	-1	-1
+1373	5	3	Cải trang Cumber	Vật phẩm sự kiện	1	11529	-1	0	0	0	0	1254	1255	1256
+1374	5	3	Cải trang Cumber SSJ	Vật phẩm sự kiện	1	11530	-1	0	0	0	0	1257	1255	1256
+1375	5	3	Cải trang Nguyệt thần	Vật phẩm sự kiện	1	11531	-1	0	0	0	0	1282	1283	1284
+1376	35	0	Sách tuyệt kỹ 1	Vật phẩm hổ trợ	1	11563	-1	0	0	0	0	-1	-1	-1
+1377	35	0	Sách tuyệt kỹ 2	Vật phẩm hổ trợ	2	11564	-1	0	0	0	0	-1	-1	-1
+1378	35	2	Sách tuyệt kỹ 1	Vật phẩm hổ trợ	1	11565	-1	0	0	0	0	-1	-1	-1
+1379	35	2	Sách tuyệt kỹ 2	Vật phẩm hổ trợ	2	11566	-1	0	0	0	0	-1	-1	-1
+1380	35	1	Sách tuyệt kỹ 1	Vật phẩm hổ trợ	1	11567	-1	0	0	0	0	-1	-1	-1
+1381	35	1	Sách tuyệt kỹ 2	Vật phẩm hổ trợ	2	11568	-1	0	0	0	0	-1	-1	-1
+1382	27	3	Cuốn sách cũ	Vật phẩm hổ trợ	1	11569	-1	0	0	0	0	-1	-1	-1
+1383	27	3	Trang sách cũ	Vật phẩm hổ trợ	1	11570	-1	0	0	0	0	-1	-1	-1
+1384	27	3	Bìa sách	Vật phẩm hổ trợ	1	11571	-1	0	0	0	0	-1	-1	-1
+1385	27	3	Kìm bấm giấy	Vật phẩm hổ trợ	1	11572	-1	0	0	0	0	-1	-1	-1
+1386	27	3	Bùa giám định	Vật phẩm hổ trợ	1	11573	-1	0	0	0	0	-1	-1	-1
+1387	36	3	Bị móc sạch túi	Danh hiệu	1	11606	225	0	0	0	0	-1	-1	-1
+1388	36	3	Chiến thần khóa nick	Danh hiệu	1	11607	217	0	0	0	0	-1	-1	-1
+1389	36	3	Đại gia mới nhú	Danh hiệu	1	11608	218	0	0	0	0	-1	-1	-1
+1390	36	3	Nước anh bao	Danh hiệu	1	11609	216	0	0	0	0	-1	-1	-1
+1391	36	3	Fan cứng	Danh hiệu	1	11610	228	0	0	0	0	-1	-1	-1
+1392	36	3	Kẻ thao túng sói	Danh hiệu	1	11611	215	0	0	0	0	-1	-1	-1
+1393	36	3	Nông dân chăm chỉ	Danh hiệu	1	11612	223	0	0	0	0	-1	-1	-1
+1394	36	3	Ông thần ve chai	Danh hiệu	1	11613	224	0	0	0	0	-1	-1	-1
+1395	36	3	Cao thủ siêu hạng	Danh hiệu	1	11614	222	0	0	0	0	-1	-1	-1
+1396	36	3	Thánh đập đồ +7	Danh hiệu	1	11615	221	0	0	0	0	-1	-1	-1
+1397	36	3	Thánh ở dơ	Danh hiệu	1	11616	229	0	0	0	0	-1	-1	-1
+1398	36	3	Trùm săn Boss	Danh hiệu	1	11617	220	0	0	0	0	-1	-1	-1
+1399	36	3	Trùm ước rồng	Danh hiệu	1	11618	219	0	0	0	0	-1	-1	-1
+1400	5	3	Cải trang	Cải trang thành Sa tăng (chỉ dành cho đệ tử)	1	11621	-1	0	0	0	0	1291	1292	1319
+1401	5	3	Cải trang Nhật thần	Vật phẩm sự kiện	1	11641	-1	0	0	0	0	1293	1294	1295
+1402	27	3	Ánh trăng tròn	Vật phẩm sự kiện	1	11673	-1	0	0	0	0	-1	-1	-1
+1403	27	3	Kiếm gỗ	Vật phẩm sự kiện	1	11674	-1	0	0	0	0	-1	-1	-1
+1404	31	3	Bánh dẻo thỏ trắng	Vật phẩm sự kiện	1	11675	-1	0	0	0	0	-1	-1	-1
+1405	31	3	Bánh dẻo thỏ xanh	Vật phẩm sự kiện	1	11676	-1	0	0	0	0	-1	-1	-1
+1406	31	3	Bánh dẻo thỏ hồng	Vật phẩm sự kiện	1	11677	-1	0	0	0	0	-1	-1	-1
+1407	11	3	Cờ khỉ hoàng đế	Vật phẩm sự kiện	1	11678	230	0	0	0	0	-1	-1	-1
+1408	11	3	Lồng đèn thỏ trắng	Vật phẩm sự kiện	1	11679	231	0	0	0	0	-1	-1	-1
+1409	5	3	Bunma Ả rập Xê út	Vật phẩm sự kiện	1	11680	-1	0	0	0	0	1296	1297	1298
+1410	27	3	Thỏ ngọc	Vật phẩm sự kiện	1	11712	-1	0	0	0	0	-1	-1	-1
+1411	27	3	Lồng đèn treo	Dùng để treo lên dàn lồng đèn	1	11713	-1	0	0	0	0	-1	-1	-1
+1412	27	3	Hạt sen	Vật phẩm sự kiện	1	11714	-1	0	0	0	0	-1	-1	-1
+1413	27	3	Bánh trung thu Hạt sen	Vật phẩm sự kiện	1	11715	-1	0	0	0	0	-1	-1	-1
+1414	27	3	Túi giấy	Vật phẩm sự kiện	1	11716	-1	0	0	0	0	-1	-1	-1
+1415	27	3	Hộp bánh Trung Thu lớn	Vật phẩm đua top	1	11716	-1	0	0	0	0	-1	-1	-1
+1416	27	3	Hộp giấy	Vật phẩm sự kiện	1	11717	-1	0	0	0	0	-1	-1	-1
+1417	27	3	Hộp bánh Trung Thu đặc biệt	Vật phẩm đua top	1	11717	-1	0	0	0	0	-1	-1	-1
+1418	27	3	Hộp quà Trung Thu VIP	Vật phẩm đua top	1	11717	-1	0	0	0	0	-1	-1	-1
+1419	27	3	Hộp bánh Trung Thu nhỏ	Vật phẩm đua top	1	11717	-1	0	0	0	0	-1	-1	-1
+1420	27	3	Hộp bánh Trung Thu Vip 2026	Vật phẩm đua top	1	11717	-1	0	0	0	0	-1	-1	-1
+1421	27	3	Giỏ bánh trung thu	Vật phẩm sự kiện	1	11718	-1	0	0	0	0	-1	-1	-1
+1422	27	3	Hộp bánh Trung Thu Chay	Vật phẩm đua top	1	11718	-1	0	0	0	0	-1	-1	-1
+1423	27	3	Hộp bánh Trung Thu Chay 2026	Vật phẩm đua top	1	11718	-1	0	0	0	0	-1	-1	-1
+1424	27	3	Giỏ bánh trung thu độc đáo	Vật phẩm sự kiện	1	11719	-1	0	0	0	0	-1	-1	-1
+1425	27	3	Hộp bánh Trung Thu	Vật phẩm đua top	1	11719	-1	0	0	0	0	-1	-1	-1
+1426	27	3	Hộp bánh Trung Thu 2026	Vật phẩm đua top	1	11719	-1	0	0	0	0	-1	-1	-1
+1427	18	3	Pet Mông Quỷ	Vật phẩm sự kiện	1	11726	-1	0	0	0	0	-1	-1	-1
+1428	11	3	Con Cat hường	Vật phẩm sự kiện	1	11727	234	0	0	0	0	-1	-1	-1
+1429	23	3	Thú cưỡi mèo kéo xương	Vật phẩm sự kiện	1	11728	19	0	0	0	0	-1	-1	-1
+1430	18	3	Pet Mèo Phù Thủy	Vật phẩm sự kiện	1	11729	-1	0	0	0	0	-1	-1	-1
+1431	23	3	Thú cưỡi Xe bí ngô	Vật phẩm sự kiện	1	11730	20	0	0	0	0	-1	-1	-1
+1432	27	3	Giỏ đựng	Vật phẩm sự kiện	1	11736	-1	0	0	0	0	-1	-1	-1
+1433	27	3	Kẹo não người	Vật phẩm sự kiện	1	11737	-1	0	0	0	0	-1	-1	-1
+1434	27	3	Dây buộc	Vật phẩm sự kiện	1	11738	-1	0	0	0	0	-1	-1	-1
+1435	27	3	Bó kẹo kinh dị	Vật phẩm sự kiện	1	11739	-1	0	0	0	0	-1	-1	-1
+1436	27	3	Gói quà Halloween	Vật phẩm sự kiện	1	11739	-1	0	0	0	0	-1	-1	-1
+1437	27	3	Giỏ kẹo kinh dị	Vật phẩm sự kiện	1	11740	-1	0	0	0	0	-1	-1	-1
+1438	27	3	Giỏ đựng kẹo trái bí	Vật phẩm sự kiện	1	11741	-1	0	0	0	0	-1	-1	-1
+1439	27	3	Giấy trang trí Halloween	Vật phẩm sự kiện	1	11742	-1	0	0	0	0	-1	-1	-1
+1440	27	3	Hộp Kẹo Ma Quỷ	Vật phẩm sự kiện	1	11743	-1	0	0	0	0	-1	-1	-1
+1441	11	3	Cờ Ma đèn nhảy múa	Vật phẩm sự kiện	1	11744	235	0	0	0	0	-1	-1	-1
+1442	11	3	Cờ Ma đèn hút hồn	Vật phẩm sự kiện	1	11745	238	0	0	0	0	-1	-1	-1
+1443	11	3	Cờ hồn Xên Bọ Hung	Vật phẩm sự kiện	1	11746	236	0	0	0	0	-1	-1	-1
+1444	11	3	Cờ hồn Mabư	Vật phẩm sự kiện	1	11747	237	0	0	0	0	-1	-1	-1
+1445	27	3	Giỏ đựng ngọc bí	Vật phẩm sự kiện	1	11748	-1	0	0	0	0	-1	-1	-1
+1446	27	3	Kẹo bí ngô	Vật phẩm sự kiện	1	11749	-1	0	0	0	0	-1	-1	-1
+1447	27	3	Kẹo mù Halloween	Vật phẩm sự kiện	1	11749	-1	0	0	0	0	-1	-1	-1
+1448	5	0	Cải trang bộ xương	Vật phẩm sự kiện	1	11750	1305	0	0	0	0	1305	1309	1310
+1449	5	2	Cải trang bộ xương	Vật phẩm sự kiện	1	11752	1306	0	0	0	0	1306	1309	1310
+1450	5	1	Cải trang bộ xương	Vật phẩm sự kiện	1	11754	545	0	0	0	0	545	548	549
+1451	27	3	Hematite	Nguyên liệu. Gặp bà Hạt Mít để sử dụng	1	11759	-1	0	0	0	0	-1	-1	-1
+1452	27	3	Hematite (khóa)	Nguyên liệu. Gặp bà Hạt Mít để sử dụng	1	11759	-1	0	0	0	0	-1	-1	-1
+1453	5	0	Cải trang Thầy giáo Ca Lích	Vật phẩm sự kiện	1	11760	-1	0	0	0	0	1308	1309	1310
+1454	23	3	Thú cưỡi con Cat hường	Vật phẩm sự kiện	1	11792	21	0	0	0	0	-1	-1	-1
+1455	27	3	Lá trà tươi	Vật phẩm sự kiện	1	11793	-1	0	0	0	0	-1	-1	-1
+1456	27	3	Nia tre	Vật phẩm sự kiện	1	11794	-1	0	0	0	0	-1	-1	-1
+1457	27	3	Que tre	Vật phẩm sự kiện	1	11795	-1	0	0	0	0	-1	-1	-1
+1458	27	3	Hoa cúc	Vật phẩm sự kiện	1	11796	-1	0	0	0	0	-1	-1	-1
+1459	27	3	Túi trà khô	Vật phẩm sự kiện	1	11797	-1	0	0	0	0	-1	-1	-1
+1460	27	3	Hộp trà	Vật phẩm sự kiện	1	11798	-1	0	0	0	0	-1	-1	-1
+1461	27	3	Hộp trà hoa cúc	Vật phẩm sự kiện	1	11799	-1	0	0	0	0	-1	-1	-1
+1462	27	3	Bao bì thiệp	Vật phẩm sự kiện	1	11800	-1	0	0	0	0	-1	-1	-1
+1463	27	3	Mảnh giấy	Vật phẩm sự kiện	1	11801	-1	0	0	0	0	-1	-1	-1
+1464	27	3	Keo dán	Vật phẩm sự kiện	1	11802	-1	0	0	0	0	-1	-1	-1
+1465	27	3	Lời chúc	Vật phẩm sự kiện	1	11803	-1	0	0	0	0	-1	-1	-1
+1466	27	3	Thiệp chúc thường	Vật phẩm sự kiện	1	11804	-1	0	0	0	0	-1	-1	-1
+1467	27	3	Thiệp chúc đặc biệt	Vật phẩm sự kiện	1	11805	-1	0	0	0	0	-1	-1	-1
+1468	27	3	Thiệp mừng 8-3	Vật phẩm sự kiện	1	11805	-1	0	0	0	0	-1	-1	-1
+1469	27	3	Thiệp chúc VIP	Vật phẩm sự kiện	1	11805	-1	0	0	0	0	-1	-1	-1
+1470	27	3	Đóa hoa hồng	Vật phẩm sự kiện	1	11806	-1	0	0	0	0	-1	-1	-1
+1471	27	3	Kéo tỉa hoa đặc biệt	Vật phẩm sự kiện	1	11807	-1	0	0	0	0	-1	-1	-1
+1472	27	3	Kéo tỉa hoa	Vật phẩm sự kiện	1	11807	-1	0	0	0	0	-1	-1	-1
+1473	27	3	Bó hoa hồng	Vật phẩm sự kiện	1	11808	-1	0	0	0	0	-1	-1	-1
+1474	5	3	Cải trang Thầy giáo Quy Lão	Vật phẩm sự kiện	1	11844	1314	0	0	0	0	1314	1315	1316
+1475	5	3	Cải trang đệ tử Tí	Vật phẩm sự kiện (chỉ dành cho đệ tử)	1	11878	1317	0	0	0	0	1317	1318	1319
+1476	11	3	Bút chì hồng	Vật phẩm sự kiện	1	11879	239	0	0	0	0	-1	-1	-1
+1477	36	3	Gõ đầu trẻ	Danh hiệu	1	11880	240	0	0	0	0	-1	-1	-1
+1478	36	3	Gõ đầu trẻ	Danh hiệu	1	11880	242	0	0	0	0	-1	-1	-1
+1479	36	3	Gõ đầu trẻ	Danh hiệu	1	11880	243	0	0	0	0	-1	-1	-1
+1480	5	2	Cải trang Thầy giáo Cađíc	Vật phẩm sự kiện	1	11913	1320	0	0	0	0	1320	1321	1322
+1481	5	1	Cải trang Thầy giáo Pô cô lô	Vật phẩm sự kiện	1	11946	1323	0	0	0	0	1323	1324	1325
+1482	5	3	Cải trang đệ tử Sửu	Vật phẩm sự kiện (chỉ dành cho đệ tử)	1	11979	1326	0	0	0	0	1326	1327	1328
+1483	5	0	Avatar Cử nhân	Vật phẩm sự kiện	1	11989	1329	0	0	0	0	1330	1333	1334
+1484	5	2	Avatar Cử nhân	Vật phẩm sự kiện	1	11990	1330	0	0	0	0	1330	1333	1334
+1485	5	1	Avatar Cử nhân	Vật phẩm sự kiện	1	11991	1331	0	0	0	0	1331	1333	1334
+1486	5	3	Cải trang Thầy giáo Raddit	Vật phẩm sự kiện	1	12024	1332	0	0	0	0	1332	1333	1334
+1487	5	3	Cải trang Thầy giáo Goku	Vật phẩm sự kiện	1	12057	1335	0	0	0	0	1335	1336	1337
+1488	5	3	Cải trang đệ tử Dần	Vật phẩm sự kiện (chỉ dành cho đệ tử)	1	12090	1338	0	0	0	0	1338	1339	1340
+1489	18	3	Pet Shiba	Vật phẩm sự kiện	1	12096	-1	0	0	0	0	-1	-1	-1
+1490	5	3	Cải trang Dr Myuu	Vật phẩm sự kiện	1	12098	258	0	0	0	0	258	259	260
+1491	5	3	Cải trang Goku Santa	Vật phẩm sự kiện	1	12099	-1	0	0	0	0	1344	1345	1346
+1492	18	3	Pet chim cánh cụt	Tăng 5% chí mạng cho chủ nhân trong 5 giây, hồi skill 20 giây	1	12138	-1	0	0	0	0	-1	-1	-1
+1493	27	3	Dùi đục	Vật phẩm hổ trợ. Gặp bà Hạt Mít để sử dụng	1	12139	-1	0	0	0	0	-1	-1	-1
+1494	27	3	Đá mài	Vật phẩm hổ trợ. Gặp bà Hạt Mít để sử dụng	1	12140	-1	0	0	0	0	-1	-1	-1
+1495	5	3	Cải trang Chi Chi tuần lộc	Vật phẩm sự kiện	1	12173	1350	0	0	0	0	1350	1351	1352
+1496	27	3	Tảng tuyết	Vật phẩm sự kiện	1	12174	-1	0	0	0	0	-1	-1	-1
+1497	27	3	Mũi cà rốt	Vật phẩm sự kiện	1	12175	-1	0	0	0	0	-1	-1	-1
+1498	27	3	Tay gỗ	Vật phẩm sự kiện	1	12176	-1	0	0	0	0	-1	-1	-1
+1499	27	3	Khăn choàng	Vật phẩm sự kiện	1	12177	-1	0	0	0	0	-1	-1	-1
+1500	27	3	Người tuyết	Vật phẩm sự kiện	1	12178	-1	0	0	0	0	-1	-1	-1
+1501	27	3	Người tuyết băng giá	Vật phẩm sự kiện	1	12179	-1	0	0	0	0	-1	-1	-1
+1502	27	3	Rương sao pha lê	Vật phẩm hổ trợ	1	12180	-1	0	0	0	0	-1	-1	-1
+1503	27	3	Rương sao pha lê VIP	Vật phẩm hổ trợ	1	12180	-1	0	0	0	0	-1	-1	-1
+1504	30	3	Sao pha lê đỏ lấp lánh	Ép vào đồ sao pha lê để tăng chỉ số	3	12181	-1	0	1	0	0	-1	-1	-1
+1505	30	3	Sao pha lê lam lấp lánh	Ép vào đồ sao pha lê để tăng chỉ số	3	12182	-1	0	1	0	0	-1	-1	-1
+1506	30	3	Sao pha lê hồng lấp lánh	Ép vào đồ sao pha lê để tăng chỉ số	3	12183	-1	0	1	0	0	-1	-1	-1
+1507	30	3	Sao pha lê tím lấp lánh	Ép vào đồ sao pha lê để tăng chỉ số	3	12184	-1	0	1	0	0	-1	-1	-1
+1508	30	3	Sao pha lê cam lấp lánh	Ép vào đồ sao pha lê để tăng chỉ số	3	12185	-1	0	1	0	0	-1	-1	-1
+1509	30	3	Sao pha lê vàng lấp lánh	Ép vào đồ sao pha lê để tăng chỉ số	3	12186	-1	0	1	0	0	-1	-1	-1
+1510	30	3	Sao pha lê lục lấp lánh	Ép vào đồ sao pha lê để tăng chỉ số	3	12187	-1	0	1	0	0	-1	-1	-1
+1511	30	3	Sao pha lê trắng lấp lánh	Ép vào đồ sao pha lê để tăng chỉ số	3	12189	-1	0	1	0	0	-1	-1	-1
+1512	30	3	Sao pha lê đen lấp lánh	Ép vào đồ sao pha lê để tăng chỉ số	3	12190	-1	0	1	0	0	-1	-1	-1
+1513	5	3	Cải trang Bông Băng Vàng	Vật phẩm sự kiện	1	12223	1353	0	0	0	0	1353	1354	1355
+1514	30	3	Sao pha lê đỏ cấp 2	Ép vào đồ sao pha lê để tăng chỉ số	2	12231	-1	0	1	0	0	-1	-1	-1
+1515	30	3	Sao pha lê lam cấp 2	Ép vào đồ sao pha lê để tăng chỉ số	2	12232	-1	0	1	0	0	-1	-1	-1
+1516	30	3	Sao pha lê hồng cấp 2	Ép vào đồ sao pha lê để tăng chỉ số	2	12233	-1	0	1	0	0	-1	-1	-1
+1517	30	3	Sao pha lê tím cấp 2	Ép vào đồ sao pha lê để tăng chỉ số	2	12234	-1	0	1	0	0	-1	-1	-1
+1518	30	3	Sao pha lê cam cấp 2	Ép vào đồ sao pha lê để tăng chỉ số	2	12235	-1	0	1	0	0	-1	-1	-1
+1519	30	3	Sao pha lê vàng cấp 2	Ép vào đồ sao pha lê để tăng chỉ số	2	12236	-1	0	1	0	0	-1	-1	-1
+1520	30	3	Sao pha lê lục cấp 2	Ép vào đồ sao pha lê để tăng chỉ số	2	12237	-1	0	1	0	0	-1	-1	-1
+1521	30	3	Sao pha lê trắng cấp 2	Ép vào đồ sao pha lê để tăng chỉ số	2	12238	-1	0	1	0	0	-1	-1	-1
+1522	30	3	Sao pha lê đen cấp 2	Ép vào đồ sao pha lê để tăng chỉ số	2	12239	-1	0	1	0	0	-1	-1	-1
+1523	5	3	Cải trang S	Vật phẩm sự kiện	1	12272	1359	0	0	0	0	1359	1360	1361
+1524	5	3	Cải trang Super Xayda God	Vật phẩm sự kiện	1	12305	1362	0	0	0	0	1362	1363	1364
+1525	18	3	Pet Ông già Noel	Vật phẩm sự kiện	1	12313	-1	0	0	0	0	-1	-1	-1
+1526	27	3	Nón Noel	Vật phẩm sự kiện	1	12314	-1	0	0	0	0	-1	-1	-1
+1527	23	3	Quả bóng tuyết	Vật phẩm sự kiện	1	12315	25	0	0	0	0	-1	-1	-1
+1528	27	3	Chuông	Vật phẩm sự kiện	1	12316	-1	0	0	0	0	-1	-1	-1
+1529	36	3	Danh hiệu X-mas	Danh hiệu	1	12317	247	0	0	0	0	-1	-1	-1
+1530	27	3	Dây kim tuyến	Vật phẩm sự kiện	1	12318	-1	0	0	0	0	-1	-1	-1
+1531	11	3	Gấu bắc cực	Vật phẩm sự kiện	1	12319	249	0	0	0	0	-1	-1	-1
+1532	23	3	Tuần lộc Machine	Vật phẩm sự kiện	1	12320	23	0	0	0	0	-1	-1	-1
+1533	11	3	Kiếm Kitetsu	Vật phẩm sự kiện	1	12321	246	0	0	0	0	-1	-1	-1
+1534	27	3	Móc treo Noel	Vật phẩm sự kiện	1	12322	-1	0	0	0	0	-1	-1	-1
+1535	27	3	Ngôi sao	Vật phẩm sự kiện	1	12323	-1	0	0	0	0	-1	-1	-1
+1536	23	3	Phượng hoàng băng	Vật phẩm sự kiện	1	12324	22	0	0	0	0	-1	-1	-1
+1537	27	3	Quả châu	Vật phẩm sự kiện	1	12325	-1	0	0	0	0	-1	-1	-1
+1538	23	3	Máy bay trực thăng Noel	Vật phẩm sự kiện	1	12328	24	0	0	0	0	-1	-1	-1
+1539	27	3	Dây pháo	Vật phẩm sự kiện	1	12329	-1	0	0	0	0	-1	-1	-1
+1540	18	3	Pet Shiba đeo nơ	Vật phẩm sự kiện	1	12333	-1	0	0	0	0	-1	-1	-1
+1541	27	3	Câu đối	Vật phẩm sự kiện	1	12334	-1	0	0	0	0	-1	-1	-1
+1542	27	3	Lộc	Vật phẩm sự kiện	1	12334	-1	0	0	0	0	-1	-1	-1
+1543	27	3	Dây treo bánh	Vật phẩm sự kiện	1	12335	-1	0	0	0	0	-1	-1	-1
+1544	27	3	Đèn lồng treo cây	Vật phẩm sự kiện	1	12336	-1	0	0	0	0	-1	-1	-1
+1545	5	0	Avatar mũ rồng	Vật phẩm sự kiện	1	12341	1374	0	0	0	0	1371	1372	1373
+1546	5	2	Avatar mũ rồng	Vật phẩm sự kiện	1	12343	1375	0	0	0	0	1375	1381	1382
+1547	5	1	Avatar mũ rồng	Vật phẩm sự kiện	1	12345	1376	0	0	0	0	1374	1372	1373
+1548	5	3	Cải trang Bunma rực rỡ	Vật phẩm sự kiện	1	12388	1380	0	0	0	0	1380	1381	1382
+1549	11	3	Cờ bao lì xì	Vật phẩm sự kiện	1	12389	250	0	0	0	0	-1	-1	-1
+1550	27	3	Vạn	Vật phẩm sự kiện	0	12390	-1	0	0	0	0	-1	-1	-1
+1551	27	3	Sự	Vật phẩm sự kiện	0	12391	-1	0	0	0	0	-1	-1	-1
+1552	27	3	Như	Vật phẩm sự kiện	0	12392	-1	0	0	0	0	-1	-1	-1
+1553	27	3	Ý	Vật phẩm sự kiện	0	12393	-1	0	0	0	0	-1	-1	-1
+1554	27	3	2024	Vật phẩm sự kiện	0	12394	-1	0	0	0	0	-1	-1	-1
+1555	29	3	Mì thanh long	Vật phẩm sự kiện	1	12395	-1	0	0	0	0	-1	-1	-1
+1556	29	3	Cơm gà quay	Vật phẩm sự kiện	1	12396	-1	0	0	0	0	-1	-1	-1
+1557	27	3	Gói quà đặc biệt	Vật phẩm sự kiện	1	12397	-1	0	0	0	0	-1	-1	-1
+1558	27	3	Hộp quà Tết 2024	Vật phẩm sự kiện	1	12398	-1	0	0	0	0	-1	-1	-1
+1559	27	3	Capsule Tết 2026	Giấu bên trong nhiều vật phẩm quý giá	1	12399	-1	0	0	0	0	-1	-1	-1
+1560	23	3	Thỏi vàng bay	Vật phẩm sự kiện	1	12400	27	0	0	0	0	-1	-1	-1
+1561	27	3	Bao lì xì rồng	Vật phẩm sự kiện	1	12401	-1	0	0	0	0	-1	-1	-1
+1562	11	3	Cờ dây pháo	Vật phẩm sự kiện	1	12402	251	0	0	0	0	-1	-1	-1
+1563	5	0	Cải trang Thần tài	Vật phẩm sự kiện	1	12506	1392	0	0	0	0	1392	1393	1394
+1564	5	2	Cải trang Thần tài	Vật phẩm sự kiện	1	12507	-1	0	0	0	0	1389	1390	1391
+1565	5	1	Cải trang Thần tài	Vật phẩm sự kiện	1	12508	-1	0	0	0	0	1392	1393	1394
+1566	5	3	Cải trang Bunma thanh lịch	Vật phẩm sự kiện	1	12541	1395	0	0	0	0	1395	1396	1397
+1567	18	3	Pet rồng Pikachu thanh long	Vật phẩm sự kiện	1	12548	-1	0	0	0	0	-1	-1	-1
+1568	23	3	Cá chép rồng	Vật phẩm sự kiện	1	12549	28	0	0	0	0	-1	-1	-1
+1569	27	3	Thiệp chúc mừng	Vật phẩm sự kiện	0	12550	-1	0	0	0	0	-1	-1	-1
+1570	23	3	Thú cưỡi Rồng PiLong	Vật phẩm sự kiện	1	12551	26	0	0	0	0	-1	-1	-1
+1571	18	3	Pet rồng con thần tài	Tăng 10% giáp cho chủ nhân trong 5 giây, hồi skill 20 giây	1	12558	-1	0	0	0	0	-1	-1	-1
+1572	5	0	Cải trang Goku Dragon	Vật phẩm sự kiện	1	12653	1407	0	0	0	0	1407	1408	1409
+1573	5	2	Cải trang Cađíc Dragon	Tăng 10% giáp trong 30 giây, mỗi 120 giây	1	12655	1410	0	0	0	0	1410	1411	1412
+1574	5	1	Cải trang Pôcôlô Dragon	Vật phẩm sự kiện	1	12657	1410	0	0	0	0	1410	1411	1412
+1575	11	3	Thanh Long Yển Nguyệt đao	Vật phẩm sự kiện	1	12658	252	0	0	0	0	-1	-1	-1
+1576	5	3	CT Lý Tiểu Nương hầu gái xanh	+5% sức đánh, tối đa 12% khi ở gần Lý Tiểu Nương : Hầu Gái xanh,hồng,bikini	1	12692	1413	0	0	0	0	1413	1414	1415
+1577	5	3	CT Lý Tiểu Nương Bikini	+5% sức đánh, tối đa 12% khi ở gần Lý Tiểu Nương : Hầu Gái xanh,hồng,bikini	1	12725	1416	0	0	0	0	1416	1417	1418
+1578	5	3	CT Lý Tiểu Nương hầu gái hồng	+5% sức đánh, tối đa 12% khi ở gần Lý Tiểu Nương : Hầu Gái xanh,hồng,bikini	1	12758	1419	0	0	0	0	1419	1420	1421
+1579	27	3	Hộp đựng quà	Vật phẩm sự kiện	1	12759	-1	0	0	0	0	-1	-1	-1
+1580	27	3	Sôcôla Trái Tim	Vật phẩm sự kiện	1	12760	-1	0	0	0	0	-1	-1	-1
+1581	27	3	Nơ trang trí	Vật phẩm sự kiện	1	12761	-1	0	0	0	0	-1	-1	-1
+1582	27	3	Hộp quà nhẹ nhàng	Vật phẩm sự kiện	1	12762	-1	0	0	0	0	-1	-1	-1
+1583	27	3	Hộp quà thiếu nhi	Vật phẩm sự kiện	1	12762	-1	0	0	0	0	-1	-1	-1
+1584	27	3	Hộp quà 20/10	Vật phẩm sự kiện	1	12762	-1	0	0	0	0	-1	-1	-1
+1585	27	3	Hộp quà 20/10	Vật phẩm sự kiện	1	12762	-1	0	0	0	0	-1	-1	-1
+1586	27	3	Hộp quà thiếu nhi 2025	Vật phẩm sự kiện	1	12762	-1	0	0	0	0	-1	-1	-1
+1587	27	3	Hộp quà 20-11 VIP	Vật phẩm sự kiện	1	12762	-1	0	0	0	0	-1	-1	-1
+1588	27	3	Hộp quà chỉn chu	Vật phẩm sự kiện	1	12763	-1	0	0	0	0	-1	-1	-1
+1589	27	3	Hộp quà FA	Vật phẩm sự kiện	1	12763	-1	0	0	0	0	-1	-1	-1
+1590	27	3	Hộp quà FA	Vật phẩm sự kiện	1	12763	-1	0	0	0	0	-1	-1	-1
+1591	27	3	Hộp quà 20-11	Vật phẩm sự kiện	1	12763	-1	0	0	0	0	-1	-1	-1
+1592	27	3	Túi hạt giống Hoa Hồng	Vật phẩm sự kiện	1	12764	-1	0	0	0	0	-1	-1	-1
+1593	27	3	Ống tre nước	Vật phẩm sự kiện	1	12765	-1	0	0	0	0	-1	-1	-1
+1594	29	3	Sát thương chuẩn	Trong vòng tối đa 10 phút có cơ hội gây sát thương chuẩn: 10% lên người, 1% lên boss	1	12766	-1	0	0	0	0	-1	-1	-1
+1595	29	3	Sát thương chuẩn 2	Trong vòng tối đa 10 phút có cơ hội gây sát thương chuẩn: 15% lên người, 3% lên boss	1	12767	-1	0	0	0	0	-1	-1	-1
+1596	36	3	Em xinh, em đẹp	Danh hiệu	1	12768	253	0	0	0	0	-1	-1	-1
+1597	23	3	Song mã hoàng gia	Vật phẩm sự kiện	1	12769	29	0	0	0	0	-1	-1	-1
+1598	11	3	Chậu hoa hồng	Vật phẩm sự kiện	1	12774	108	0	0	0	0	-1	-1	-1
+1599	11	3	Bong bóng thiên thần	Vật phẩm sự kiện	1	12783	109	0	0	0	0	-1	-1	-1
+1600	11	3	Bong bóng hoa hồng	Vật phẩm sự kiện	1	12784	110	0	0	0	0	-1	-1	-1
+1601	27	3	Chuột mặp	Tìm thấy trong hang kho báu, thưởng thêm tiềm năng và sức mạnh tùy cấp độ hang	1	12831	-1	0	0	0	0	-1	-1	-1
+1602	29	3	Chuột mặp	Dùng để dụ rắn trong 60 phút	1	12831	-1	0	0	0	0	-1	-1	-1
+1603	11	3	Cánh thiên thần 3	Vật phẩm sự kiện	1	12833	111	0	0	0	0	-1	-1	-1
+1604	11	3	Cánh thiên thần 3 (Đệ)	Vật phẩm sự kiện (chỉ dành cho đệ tử 2)	1	12833	111	0	0	0	0	-1	-1	-1
+1605	29	3	Rađa kho báu	Trong vòng 15 phút, tiềm năng và sức mạnh nhận được gấp đôi trong hang kho báu	1	12834	-1	0	0	0	0	-1	-1	-1
+1606	27	3	Rađa phóng xạ	Vật phẩm sự kiện	1	12834	-1	0	0	0	0	-1	-1	-1
+1607	27	3	Rađa đa năng	Vật phẩm sự kiện	1	12834	-1	0	0	0	0	-1	-1	-1
+1608	11	3	Bụi tre	Vật phẩm sự kiện	1	12843	112	0	0	0	0	-1	-1	-1
+1609	23	3	Thuyền Âu Lạc	Tăng 5% giảm sát thương khi bay cùng với Mị Nương	1	12844	30	0	0	0	0	-1	-1	-1
+1610	27	3	Chìa khóa vàng	Vật phẩm hổ trợ	1	12845	-1	0	0	0	0	-1	-1	-1
+1611	27	3	Rương ngọc rồng	Bên trong ẩn chứa nhiều thứ bí ẩn	1	12846	-1	0	0	0	0	-1	-1	-1
+1612	27	3	Kho báu hải tặc	Vật phẩm sự kiện	1	12846	-1	0	0	0	0	-1	-1	-1
+1613	27	3	Rương mùa hè	Vật phẩm sự kiện	1	12846	-1	0	0	0	0	-1	-1	-1
+1614	27	3	Rương cải trang Hải Tặc	Vật phẩm sự kiện	1	12846	-1	0	0	0	0	-1	-1	-1
+1615	27	3	Chìa khóa bạc	Vật phẩm sự kiện	1	12847	-1	0	0	0	0	-1	-1	-1
+1616	27	3	Bánh dầy	Vật phẩm sự kiện	1	12848	-1	0	0	0	0	-1	-1	-1
+1617	27	3	Bánh dầy	Vật phẩm sự kiện	1	12849	-1	0	0	0	0	-1	-1	-1
+1618	27	3	Chả lụa	Vật phẩm sự kiện	1	12850	-1	0	0	0	0	-1	-1	-1
+1619	27	3	Muối tiêu	Vật phẩm sự kiện	1	12851	-1	0	0	0	0	-1	-1	-1
+1620	18	3	Pet Godzilla	Vật phẩm sự kiện	1	12852	-1	0	0	0	0	-1	-1	-1
+1621	18	3	Pet Kong	Vật phẩm sự kiện	1	12853	-1	0	0	0	0	-1	-1	-1
+1622	23	3	Môtô Bun ma	Vật phẩm sự kiện	1	12864	31	0	0	0	0	-1	-1	-1
+1623	29	3	Xiên nướng	Trong vòng tối đa 10 phút có cơ hội gây sát thương chuẩn: 25% lên người, 5% lên boss	1	12865	-1	0	0	0	0	-1	-1	-1
+1624	5	3	CT Goku SSJ4	Vật phẩm sự kiện	1	12898	1434	0	0	0	0	1434	1435	1436
+1625	5	3	CT Hắc Mị Nương	Vật phẩm sự kiện	1	12901	1434	0	0	0	0	1434	1435	1436
+1626	23	3	Tàu ngầm 19 Vàng	Vật phẩm sự kiện	1	12933	33	0	0	0	0	-1	-1	-1
+1627	23	3	Tàu ngầm 19 Cam	Vật phẩm sự kiện	1	12934	32	0	0	0	0	-1	-1	-1
+1628	27	3	Tem chứng nhận Mai An Tiêm	Tem truy xuất nguồn gốc kèm chứng nhận an toàn thực phẩm	1	12935	-1	0	0	0	0	-1	-1	-1
+1629	11	3	Mặt trời tí hon	Vật phẩm sự kiện	1	12953	113	0	0	0	0	-1	-1	-1
+1630	27	3	Bản đồ truyền thuyết	Vật phẩm sự kiện	1	12954	-1	0	0	0	0	-1	-1	-1
+1631	5	3	CT Frieren	Vật phẩm sự kiện	1	12987	1440	0	0	0	0	1440	1441	1442
+1632	18	3	Pet Shimo	Tạo khí lạnh gây ảnh hưởng xung quanh. Đóng băng mọi người xung quanh mỗi 30 giây	1	12993	-1	0	0	0	0	-1	-1	-1
+1633	23	3	Ván bay té nước	Vật phẩm sự kiện	1	12996	34	0	0	0	0	-1	-1	-1
+1634	18	3	Pet Po	Biến mọi người xung quanh thành bánh bao	1	12997	-1	0	0	0	0	-1	-1	-1
+1635	11	3	Goku bay	Vật phẩm sự kiện	1	12998	115	0	0	0	0	-1	-1	-1
+1636	18	3	Xe tăng Santa	Vật phẩm sự kiện	1	12999	-1	0	0	0	0	-1	-1	-1
+1637	11	3	Gậy phép của Frieren	Khi dùng với Cải trang Frieren tăng 6% sức đánh, 6% chí mạng	1	13006	114	0	0	0	0	-1	-1	-1
+1638	11	3	Cánh sấm sét	Vật phẩm sự kiện	1	13032	116	0	0	0	0	-1	-1	-1
+1639	11	3	Cánh sấm sét hoàng kim	Vật phẩm sự kiện	1	13046	117	0	0	0	0	-1	-1	-1
+1640	11	3	Cờ Bạch Vô Thường	Vật phẩm sự kiện	1	13049	140	0	0	0	0	-1	-1	-1
+1641	11	3	Cờ Hắc Vô Thường	Vật phẩm sự kiện	1	13052	139	0	0	0	0	-1	-1	-1
+1642	23	3	Mây mưa	Vật phẩm sự kiện	1	13053	35	0	0	0	0	-1	-1	-1
+1643	11	3	Cờ ngọc rồng 1 sao	Vật phẩm sự kiện	1	13063	118	0	0	0	0	-1	-1	-1
+1644	11	3	Cờ ngọc rồng 3 sao	Vật phẩm sự kiện	1	13080	120	0	0	0	0	-1	-1	-1
+1645	11	3	Cờ ngọc rồng 4 sao	Vật phẩm sự kiện	1	13090	121	0	0	0	0	-1	-1	-1
+1646	11	3	Cờ ngọc rồng 5 sao	Vật phẩm sự kiện	1	13099	122	0	0	0	0	-1	-1	-1
+1647	11	3	Cờ ngọc rồng 6 sao	Vật phẩm sự kiện	1	13108	123	0	0	0	0	-1	-1	-1
+1648	11	3	Cờ ngọc rồng 7 sao	Vật phẩm sự kiện	1	13117	124	0	0	0	0	-1	-1	-1
+1649	11	3	Cờ ngọc rồng 2 sao	Vật phẩm sự kiện	1	13118	119	0	0	0	0	-1	-1	-1
+1650	11	3	Cờ ngọc rồng Super	Vật phẩm sự kiện	1	13175	125	0	0	0	0	-1	-1	-1
+1651	23	3	Trực thăng thỏ đế	Vật phẩm sự kiện	1	13176	36	0	0	0	0	-1	-1	-1
+1652	5	3	CT Goku SSJ3	Vật phẩm sự kiện	1	13209	1449	0	0	0	0	1449	1450	1451
+1653	5	3	CT Goku SSJ2	Vật phẩm sự kiện	1	13215	-1	0	0	0	0	1455	1450	1451
+1654	5	3	CT Goku SSJ Blue	Vật phẩm sự kiện	1	13223	-1	0	0	0	0	1457	1459	1460
+1655	11	3	Túi nước mía	Vật phẩm sự kiện	1	13258	128	0	0	0	0	-1	-1	-1
+1656	18	3	Pet Khủng Long ngok	Vật phẩm sự kiện	1	13259	-1	0	0	0	0	-1	-1	-1
+1657	18	3	Pet Albart	Vật phẩm sự kiện	1	13276	-1	0	0	0	0	-1	-1	-1
+1658	18	3	Pet Albart Cup	Vật phẩm sự kiện	1	13277	-1	0	0	0	0	-1	-1	-1
+1659	5	3	CT Goku SSJ God	Vật phẩm sự kiện	1	13298	1482	0	0	0	0	1482	1483	1484
+1660	5	3	CT Fide nhí	+5% sức đánh, tối đa 10% khi ở gần Fide nhí, Xên nhí, Mabư nhí	1	13302	1476	0	0	0	0	1476	1477	1478
+1661	5	3	CT Mabư nhí	+5% sức đánh, tối đa 10% khi ở gần Fide nhí, Xên nhí, Mabư nhí	1	13303	1482	0	0	0	0	1482	1483	1484
+1662	5	3	CT Sư	Vật phẩm sự kiện	1	13303	1482	0	0	0	0	1482	1483	1484
+1663	5	3	CT Xên nhí	+5% sức đánh, tối đa 10% khi ở gần Fide nhí, Xên nhí, Mabư nhí	1	13304	1479	0	0	0	0	1479	1480	1481
+1664	18	3	Pet Xên bọ hung hoàn thiện	Vật phẩm sự kiện	1	13304	-1	0	0	0	0	-1	-1	-1
+1665	5	3	CT Android 21 kid	Vật phẩm sự kiện	1	13430	1485	0	0	0	0	1485	1486	1487
+1666	23	3	Tên lửa cá mập	Vật phẩm sự kiện	1	13432	37	0	0	0	0	-1	-1	-1
+1667	27	3	Que kem	Vật phẩm sự kiện	1	13444	-1	0	0	0	0	-1	-1	-1
+1668	18	3	Pet Minion Otto	Vật phẩm sự kiện	1	13451	-1	0	0	0	0	-1	-1	-1
+1669	27	3	Vỏ Xên bọ hung	Vật phẩm sự kiện	1	13461	-1	0	0	0	0	-1	-1	-1
+1670	29	3	Ly mía khổng lồ	Hiệu lực 10 phút Chống Nóng + 10% HP	1	13462	-1	0	0	0	0	-1	-1	-1
+1671	29	3	Ly mía thơm	Hiệu lực 10 phút Chống Nóng + 10% HP + 10% Chí Mạng	1	13463	-1	0	0	0	0	-1	-1	-1
+1672	29	3	Ly mía sầu riêng	Hiệu lực 10 phút Chống Nóng + 10% HP + 10% Giảm sát thương + 10% Sức Đánh	1	13464	-1	0	0	0	0	-1	-1	-1
+1673	27	3	Nước đá	Vật phẩm sự kiện	1	13465	-1	0	0	0	0	-1	-1	-1
+1674	27	3	Khúc mía	Vật phẩm sự kiện	1	13466	-1	0	0	0	0	-1	-1	-1
+1675	11	3	Cá nóc vàng	Vật phẩm sự kiện	1	13467	127	0	0	0	0	-1	-1	-1
+1676	11	3	Cá nóc nâu	Vật phẩm sự kiện	1	13468	126	0	0	0	0	-1	-1	-1
+1677	18	3	Pet Baby Shark	Vật phẩm sự kiện	1	13487	-1	0	0	0	0	-1	-1	-1
+1678	18	3	Pet Baby Shark	Vật phẩm sự kiện	1	13487	-1	0	0	0	0	-1	-1	-1
+1679	18	3	Pet Baby Shark	Vật phẩm sự kiện	1	13487	-1	0	0	0	0	-1	-1	-1
+1680	11	3	Trái bóng Euro	Vật phẩm sự kiện	1	13500	129	0	0	0	0	-1	-1	-1
+1681	11	3	Cup Euro	Vật phẩm sự kiện	1	13505	130	0	0	0	0	-1	-1	-1
+1682	23	3	Tivi bay	Vật phẩm sự kiện	1	13506	38	0	0	0	0	-1	-1	-1
+1683	27	3	Spain	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1684	27	3	Georgia	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1685	27	3	Germany	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1686	27	3	Denmark	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1687	27	3	Portugal	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1688	27	3	Slovenia	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1689	27	3	France	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1690	27	3	Belgium	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1691	27	3	Romania	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1692	27	3	Netherlands	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1693	27	3	Austria	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1694	27	3	Turkey	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1695	27	3	England	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1696	27	3	Slovakia	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1697	27	3	Switzerland	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1698	27	3	Italy	Vật phẩm sự kiện	1	13537	-1	0	0	0	0	-1	-1	-1
+1699	11	3	Thẻ trọng tài	Vật phẩm sự kiện	1	13538	131	0	0	0	0	-1	-1	-1
+1700	27	3	TT	Vật phẩm sự kiện	1	13539	-1	0	0	0	0	-1	-1	-1
+1701	29	3	Bùa x2 tn,sm đệ tử	Trong vòng tối đa 30 phút x2 sức mạnh và tiềm năng của đệ tử	1	13540	-1	0	0	0	0	-1	-1	-1
+1702	18	3	Pet Capybara xì mũi	Vật phẩm sự kiện	1	13541	-1	0	0	0	0	-1	-1	-1
+1703	18	3	Pet Capybara đeo ba lô	Vật phẩm sự kiện	1	13542	-1	0	0	0	0	-1	-1	-1
+1704	27	3	Cápsule Vỡ	Vật phẩm sự kiện	1	13560	-1	0	0	0	0	-1	-1	-1
+1705	18	3	Pet Zịt vàng bối rối	Vật phẩm sự kiện	1	13571	-1	0	0	0	0	-1	-1	-1
+1706	5	3	CT Himmel	Vật phẩm sự kiện	1	13604	1518	0	0	0	0	1518	1521	1522
+1707	18	3	Pet Mini Desutoron Gas	Vật phẩm sự kiện	1	13617	-1	0	0	0	0	-1	-1	-1
+1708	29	3	Cỏ bốn lá	Trong vòng tối đa 30 phút +100% cơ hội rơi vật phẩm hiếm, +50% vàng từ quái	1	13618	-1	0	0	0	0	-1	-1	-1
+1709	27	3	Loa to thế giới	Vật phẩm sự kiện	1	13619	-1	0	20000000	0	0	-1	-1	-1
+1710	27	3	Loa to liên vũ trụ	Vật phẩm sự kiện	1	13620	-1	0	0	0	0	-1	-1	-1
+1711	18	3	Pet Cerberus	Chống lạnh cho sư phụ và đệ tử	1	13631	-1	0	0	0	0	-1	-1	-1
+1712	36	3	KOL	Danh hiệu	1	13632	226	0	0	0	0	-1	-1	-1
+1713	27	3	Khoáng tái chế	Vật phẩm sự kiện	1	13633	-1	0	0	0	0	-1	-1	-1
+1714	36	3	Tay nhanh hơn não	Danh hiệu	1	13634	254	0	0	0	0	-1	-1	-1
+1715	5	2	Đầu trâu	Vật phẩm sự kiện	1	13641	1533	0	0	0	0	1541	1544	1545
+1716	5	2	Mặt ngựa	Vật phẩm sự kiện	1	13645	1539	0	0	0	0	1539	1544	1545
+1717	5	0	Đầu trâu	Vật phẩm sự kiện	1	13649	1531	0	0	0	0	1540	1544	1545
+1718	5	0	Mặt ngựa	Vật phẩm sự kiện	1	13653	1537	0	0	0	0	1532	1529	1530
+1719	5	1	Đầu trâu	Vật phẩm sự kiện	1	13657	1535	0	0	0	0	1538	1544	1545
+1720	5	1	Mặt ngựa	Vật phẩm sự kiện	1	13661	1541	0	0	0	0	1541	1544	1545
+1721	5	3	CT Gohan đi biển	Vật phẩm sự kiện	1	13696	1543	0	0	0	0	1543	1544	1545
+1722	5	3	CT Gohan kính mát	Vật phẩm sự kiện	1	13732	1546	0	0	0	0	1546	1548	1549
+1723	18	3	Pet Capybara hồng	Vật phẩm sự kiện	1	13740	-1	0	0	0	0	-1	-1	-1
+1724	11	3	Balo Capybara	Vật phẩm sự kiện	1	13743	132	0	0	0	0	-1	-1	-1
+1725	11	3	Balo Capybara hồng	Vật phẩm sự kiện	1	13746	133	0	0	0	0	-1	-1	-1
+1726	29	3	Sầu riêng 6 múi	Trong vòng tối đa 10 phút có cơ hội gây sát thương chuẩn: 15% lên người, 3% lên boss	1	13747	-1	0	0	0	0	-1	-1	-1
+1727	27	3	Túi đựng vỏ Xên bọ hung	Vật phẩm sự kiện	1	13748	-1	0	0	0	0	-1	-1	-1
+1728	11	3	Lồng đèn kéo quân NRO	Vật phẩm sự kiện	1	13761	134	0	0	0	0	-1	-1	-1
+1729	23	3	Phong hỏa luân	Đi cùng Hỏa Tiêm Thương +5% sức đánh, HP	1	13762	39	0	0	0	0	-1	-1	-1
+1730	5	3	CT Pikkon	Vật phẩm sự kiện	1	13798	1553	0	0	0	0	1553	1556	1557
+1731	23	3	Xe đỏ Bun ma	Vật phẩm sự kiện	1	13800	41	0	0	0	0	-1	-1	-1
+1732	23	3	Xe xanh Chi Chi	Vật phẩm sự kiện	1	13801	40	0	0	0	0	-1	-1	-1
+1733	11	3	Cờ Olympic	Vật phẩm sự kiện	1	13806	135	0	0	0	0	-1	-1	-1
+1734	11	3	Hỏa tiêm thương	Đi cùng Phong Hỏa Luân +10% chí mạng	1	13852	136	0	0	0	0	-1	-1	-1
+1735	18	3	Pet Hải Ly	Vật phẩm sự kiện	1	13877	-1	0	0	0	0	-1	-1	-1
+1736	18	3	Pet Hải Ly Ong Vàng	Vật phẩm sự kiện	1	13878	-1	0	0	0	0	-1	-1	-1
+1737	11	3	Cờ Hải Ly xe máy	Vật phẩm sự kiện	1	13879	137	0	0	0	0	-1	-1	-1
+1738	5	3	CT Kirin múa lân	Vật phẩm sự kiện	1	13914	1564	0	0	0	0	1564	1567	1568
+1739	5	3	CT Omega	Vật phẩm sự kiện	1	13947	1569	0	0	0	0	1569	1570	1571
+1740	27	3	Phiếu đổi Cápsule	Sưu tầm 99 phiếu để đổi Cápsule kích hoạt 1 món	1	13948	-1	0	0	0	0	-1	-1	-1
+1741	27	3	Vé riêng tư	Vật phẩm để vào khu vực đánh quái riêng tư (chỉ áp dụng khi còn mầm)	1	13948	-1	0	0	0	0	-1	-1	-1
+1742	11	3	Cờ Goku bay	Vật phẩm sự kiện	1	13952	138	0	0	0	0	-1	-1	-1
+1743	18	3	Pet Thỏ Ú	Vật phẩm sự kiện	1	13953	-1	0	0	0	0	-1	-1	-1
+1744	5	3	CT Cađíc SSJ4	Hợp thể với Goku SSJ4 biến thành Gogeta SSJ4 tăng 5%HP, Sức Đánh	1	13992	1575	0	0	0	0	1575	1576	1577
+1745	11	3	Labubu	Vật phẩm sự kiện	1	13995	141	0	0	0	0	-1	-1	-1
+1746	11	3	Lưỡi hái hồng	Đi Cùng Black Goku : Tăng 4% sức đánh HP,KI	1	14010	143	0	0	0	0	-1	-1	-1
+1747	11	3	Lưỡi hái	Vật phẩm sự kiện	1	14010	300	0	0	0	0	-1	-1	-1
+1748	5	3	CT Gogeta	Vật phẩm sự kiện	1	14047	1578	0	0	0	0	1578	1581	1582
+1749	11	3	Bồ cào 9 răng	Đi cùng với cải trang Uron Trư Bát Giới +5% sức đánh, 10% sức đánh chí mạng	1	14080	142	0	0	0	0	-1	-1	-1
+1750	5	3	CT Urôn Trư Bát Giới	Đi cùng Bồ cào 9 răng +5% sức đánh, 10% sức đánh chí mạng	1	14082	1583	0	0	0	0	1583	1584	1585
+1751	5	3	CT Hằng Nga	Đi cùng với cải trang Uron Trư Bát Giới giảm 10% sát thương	1	14115	1586	0	0	0	0	1586	1587	1588
+1752	23	3	Bí Ngô Cánh Dơi	Vật phẩm sự kiện	1	14117	43	0	0	0	0	-1	-1	-1
+1753	5	3	Cải Trang Chi Chi Võ Đài	Đi cùng Pet Giru: +15% Sức Đánh Chí Mạng	1	14149	1589	0	0	0	0	1589	1590	1591
+1754	5	3	CT Android 21 Thân Thiện	Đi cùng Android  21 Evil+5% giảm sát thương	1	14186	1592	0	0	0	0	1592	1595	1596
+1755	5	3	CT Android 21 Evil	Đi Cùng Android  21 Thân Thiện +10% chí mạng	1	14194	1597	0	0	0	0	1597	1601	1602
+1756	23	3	Cân Đẩu Vân Thơ Mộng	Đi cùng Chi Chi Võ Đài: +5% Giảm Sát Thương	1	14203	44	0	0	0	0	-1	-1	-1
+1757	18	3	Pet Giru	Đi cùng  Khủng Long Thơ Mộng: +15% Chí Mạng	1	14204	-1	0	0	0	0	-1	-1	-1
+1758	5	3	CT Android 21 Tiến Sĩ	Vật phẩm sự kiện	1	14241	1603	0	0	0	0	1603	1606	1607
+1759	11	3	Khủng Long Thơ Mộng	Đi cùng Cân Đẩu Vân Thơ Mộng: +5% Giảm Sát Thương	1	14242	144	0	0	0	0	-1	-1	-1
+1760	33	3	Mảnh Khỉ Oozaru	Oozaru là một sinh vật khổng lồ, đó chính là hình dáng của người Xayda khi họ nhìn thấy trăng tròn và biến đổi.	1	14247	-1	0	0	0	0	-1	-1	-1
+1761	18	3	Pet Rồng xương	Vật phẩm sự kiện	1	14258	-1	0	0	0	0	-1	-1	-1
+1762	6	3	Đậu thần cấp 11	Thức ăn phục hồi HP và KI	11	14259	-1	0	1	0	0	-1	-1	-1
+1763	32	3	Giáp tập luyện cấp 4	Khi mặc vào sẽ đánh yếu hơn bình thường 40%, khi cởi ra sẽ tăng sức đánh 40%	1	14260	-1	0	15000000	0	0	-1	-1	-1
+1764	11	3	Cá Koi zombie	Vật phẩm sự kiện	1	14261	145	0	0	0	0	-1	-1	-1
+1765	11	3	Cánh Thiên thần - Ác quỷ	Đi Cùng ván bay Sọ Dừa tăng 10% HP	1	14271	146	0	0	0	0	-1	-1	-1
+1766	23	3	Ván bay Sọ Dừa	Đi Cùng cánh Thiên thần - Ác quỷ: Tăng 3% sức đánh chí mạng	1	14272	45	0	0	0	0	-1	-1	-1
+1767	18	3	Pet Ma cầu mưa	Vật phẩm sự kiện	1	14282	-1	0	0	0	0	-1	-1	-1
+1768	27	3	Túi mù Halloween	Vật phẩm sự kiện	1	14284	-1	0	0	0	0	-1	-1	-1
+1769	18	3	Pet Rồng Xanh	Vật phẩm sự kiện	1	14294	-1	0	0	0	0	-1	-1	-1
+1770	5	3	CT Black Goku	Đi Cùng Black Goku Rose Tăng 5% HP	1	14334	1624	0	0	0	0	1624	1628	1629
+1771	5	3	CT Black Goku Rose	Đi Cùng Lưỡi Hái Hồng Tăng 5% Sức Đánh Chí Mạng	1	14336	1624	0	0	0	0	1624	1628	1629
+1772	11	3	Đeo lưng dụng cụ học tập	Vật phẩm sự kiện	1	14337	147	0	0	0	0	-1	-1	-1
+1773	23	3	Thú cưỡi Phong Xích Lan	Vật phẩm sự kiện	1	14342	46	0	0	0	0	-1	-1	-1
+1774	23	3	Thú cưỡi Thích Kim Quy	Vật phẩm sự kiện	1	14343	47	0	0	0	0	-1	-1	-1
+1775	27	3	Sách giáo khoa	Tiên học lễ, hậu học văn	1	14344	-1	0	0	0	0	-1	-1	-1
+1776	5	3	CT Cađíc	Vật phẩm sự kiện	1	14376	-1	0	0	0	0	1636	1637	1638
+1777	5	3	CT Cađíc SSJ	Vật phẩm sự kiện	1	14377	-1	0	0	0	0	1630	1642	1633
+1778	5	3	CT Cađíc SSJ2	Vật phẩm sự kiện	1	14378	-1	0	0	0	0	1634	1632	1633
+1779	5	3	CT Cađíc SSJ2 M	Vật phẩm sự kiện	1	14379	-1	0	0	0	0	1639	1632	1633
+1780	5	3	CT Cađíc SSJ3	Vật phẩm sự kiện	1	14380	-1	0	0	0	0	1643	1632	1633
+1781	5	3	CT Cađíc SSJ Blue	Vật phẩm sự kiện	1	14381	-1	0	0	0	0	1646	1648	1649
+1782	18	3	Pet Tuần Lộc Cute	Vật phẩm sự kiện	1	14509	-1	0	0	0	0	-1	-1	-1
+1783	23	3	Ván bay Cây Thông	Đi cùng Diều Rồng Băng tăng 4% giảm sát thương	1	14510	48	0	0	0	0	-1	-1	-1
+1784	11	3	Diều rồng băng	Vật phẩm sự kiện	1	14511	148	0	0	0	0	-1	-1	-1
+1785	27	3	Hộp quà Black Friday	Vật phẩm sự kiện	1	14514	-1	0	0	0	0	-1	-1	-1
+1786	27	3	Hộp quà Goku Day VIP 2025	Vật phẩm sự kiện	1	14519	-1	0	0	0	0	-1	-1	-1
+1787	27	3	Hộp quà Cađíc	Vật phẩm sự kiện	1	14520	-1	0	0	0	0	-1	-1	-1
+1788	27	3	Hộp quà Cađíc	Vật phẩm sự kiện	1	14520	-1	0	0	0	0	-1	-1	-1
+1789	27	3	Hộp quà Cađíc VIP	Vật phẩm sự kiện	1	14521	-1	0	0	0	0	-1	-1	-1
+1790	27	3	Hộp trang bị Thần	Vật phẩm sự kiện	1	14522	-1	0	0	0	0	-1	-1	-1
+1791	17	3	Đai lưng	Giúp giảm sát thương	1	14523	-1	0	0	0	0	-1	-1	-1
+1792	17	3	Đai lưng	Giúp giảm sát thương	1	14524	-1	0	0	0	0	-1	-1	-1
+1793	17	3	Đai lưng	Giúp giảm sát thương	1	14525	-1	0	0	0	0	-1	-1	-1
+1794	11	3	Đeo lưng Kẹo Noel	Vật phẩm sự kiện	1	14532	149	0	0	0	0	-1	-1	-1
+1795	27	3	Hộp Diêm thống nhất	Vật phẩm sự kiện	1	14533	-1	0	0	0	0	-1	-1	-1
+1796	27	3	Que diêm	Vật phẩm sự kiện	1	14534	-1	0	0	0	0	-1	-1	-1
+1797	29	3	Gà Tây Nướng	Vật phẩm hổ trợ	1	14535	-1	0	0	0	0	-1	-1	-1
+1798	5	3	CT Baby	Vật phẩm sự kiện	1	14567	1656	0	0	0	0	1656	1657	1658
+1799	5	3	CT Baby	Vật phẩm sự kiện	1	14600	1659	0	0	0	0	1659	1660	1661
+1800	5	3	CT Baby	Vật phẩm sự kiện	1	14631	1662	0	0	0	0	1662	1663	1664
+1801	36	3	Mùa đông không lạnh	Danh hiệu	1	14633	255	0	0	0	0	-1	-1	-1
+1802	27	3	Que diêm bùng cháy	Vật phẩm sự kiện	1	14634	-1	0	0	0	0	-1	-1	-1
+1803	11	3	Bóng sinh nhật NRO	Vật phẩm sự kiện	1	14646	150	0	0	0	0	-1	-1	-1
+1804	11	3	Đuôi rắn rực lửa	Đi cùng với Pet Rắn +5% giảm sát thương	1	14651	152	0	0	0	0	-1	-1	-1
+1805	11	3	Đuôi rắn xanh	Vật phẩm sự kiện	1	14656	151	0	0	0	0	-1	-1	-1
+1806	23	3	Ván bay Magikarp	Vật phẩm sự kiện	1	14657	49	0	0	0	0	-1	-1	-1
+1807	23	3	Rắn bay	Đi Cùng Đuôi Rắn +10% Sức Đánh Chí Mạng	1	14658	50	0	0	0	0	-1	-1	-1
+1808	18	3	Pet rắn cute	Đi cùng với Rắn bay tăng 5% Chí Mạng	1	14659	-1	0	0	0	0	-1	-1	-1
+1809	29	3	Bánh sinh nhật NRO 11 tuổi	Vật phẩm sự kiện	1	14667	-1	0	0	0	0	-1	-1	-1
+1810	5	3	CT Broly SSJ4	Vật phẩm sự kiện	1	14712	1692	0	0	0	0	1692	1696	1697
+1811	5	3	CT Broly SSJ God	Vật phẩm sự kiện	1	14736	1682	0	0	0	0	1682	1685	1688
+1812	5	3	CT Lý Tiểu Nương Rực Rỡ	Vật phẩm sự kiện	1	14769	1686	0	0	0	0	1686	1687	1688
+1813	27	3	Lì xì VIP	Vật phẩm sự kiện	0	14771	-1	0	0	0	0	-1	-1	-1
+1814	27	3	Lì xì xanh	Vật phẩm sự kiện	0	14772	-1	0	0	0	0	-1	-1	-1
+1815	27	3	Lì xì vàng	Vật phẩm sự kiện	0	14773	-1	0	0	0	0	-1	-1	-1
+1816	29	3	Thịt kho trứng	Vật phẩm hổ trợ (giảm 20% HP khi dùng)	1	14775	-1	0	0	0	0	-1	-1	-1
+1817	29	3	Canh khổ qua	Vật phẩm hổ trợ (giảm 20% sức đánh khi dùng)	1	14776	-1	0	0	0	0	-1	-1	-1
+1818	18	3	Pet cá mặp Koi bốn chân	Vật phẩm sự kiện	1	14785	-1	0	0	0	0	-1	-1	-1
+1819	23	3	MT Gaming	Vật phẩm sự kiện	1	14787	51	0	0	0	0	-1	-1	-1
+1820	5	3	CT Đặng Văn Chiến	Vật phẩm sự kiện	1	14794	1694	0	0	0	0	1694	1696	1697
+1821	18	3	Pet Secret	Vật phẩm sự kiện	1	14795	-1	0	0	0	0	-1	-1	-1
+1822	18	3	Pet Rabbit	Vật phẩm sự kiện	1	14796	-1	0	0	0	0	-1	-1	-1
+1823	18	3	Pet Dino	Vật phẩm sự kiện	1	14797	-1	0	0	0	0	-1	-1	-1
+1824	18	3	Pet Panda	Vật phẩm sự kiện	1	14798	-1	0	0	0	0	-1	-1	-1
+1825	27	3	Hộp mù Pet	Vật phẩm sự kiện	1	14831	-1	0	0	0	0	-1	-1	-1
+1826	27	3	Hộp mù Pet	Vật phẩm sự kiện	1	14831	-1	0	0	0	0	-1	-1	-1
+1827	27	3	Hộp mù Pet VIP	Vật phẩm sự kiện	1	14831	-1	0	0	0	0	-1	-1	-1
+1828	5	3	CT Chi Chi Hoa Hồng Xanh	Vật phẩm sự kiện	1	14863	1707	0	0	0	0	1707	1708	1709
+1829	5	3	CT Bunma Rider	Vật phẩm sự kiện	1	14896	1710	0	0	0	0	1710	1711	1712
+1830	23	3	Máy bay 41	Vật phẩm sự kiện	1	14898	52	0	0	0	0	-1	-1	-1
+1831	18	3	Pet Mắt Long Lanh	Vật phẩm sự kiện	1	14907	-1	0	0	0	0	-1	-1	-1
+1832	18	3	Pet Mắt Rưng	Vật phẩm sự kiện	1	14915	-1	0	0	0	0	-1	-1	-1
+1833	5	3	CT Goku SSJ 4 Red	Vật phẩm sự kiện	1	14952	1719	0	0	0	0	1719	1722	1723
+1834	5	3	CT Goku SSJ 4 nhí	Vật phẩm sự kiện	1	14985	1724	0	0	0	0	1724	1725	1726
+1835	11	3	Giáo Thủy Tinh	Đi với cải trang ThủyTinh tăng 5% sức đánh chí mạng	1	14993	154	0	0	0	0	-1	-1	-1
+1836	11	3	Rìu Sơn Tinh	Đi với cải trang Sơn Tinh tăng 5% Giảm Sát Thương	1	15001	153	0	0	0	0	-1	-1	-1
+1837	27	3	Rađa ngọc rồng	Mở ra cờ ngọc rồng	1	15002	-1	0	0	0	0	-1	-1	-1
+1838	27	3	Rađa ngọc rồng VIP	Mở ra cờ ngọc rồng	1	15003	-1	0	0	0	0	-1	-1	-1
+1839	5	3	Mị Hoàng Kim	Tăng 12% giảm sát thương cho đồng minh.	1	15035	1727	0	0	0	0	1727	1728	1729
+1840	5	3	Vua Vegeta	Giảm 50% sát thương từ quái	1	15068	1730	0	0	0	0	1730	1731	1732
+1841	18	3	Rồng nhí 7 sao	Sở hữu 7 Pet Rồng Nhí sẽ tăng 1% HP, Sức Đánh, KI	1	15077	-1	0	0	0	0	-1	-1	-1
+1842	18	3	Rồng nhí 6 sao	Sở hữu 7 Pet Rồng Nhí sẽ tăng 1% HP, Sức Đánh, KI	1	15085	-1	0	0	0	0	-1	-1	-1
+1843	18	3	Rồng nhí 5 sao	Sở hữu 7 Pet Rồng Nhí sẽ tăng 1% HP, Sức Đánh, KI	1	15093	-1	0	0	0	0	-1	-1	-1
+1844	18	3	Rồng nhí 4 sao	Sở hữu 7 Pet Rồng Nhí sẽ tăng 1% HP, Sức Đánh, KI	1	15101	-1	0	0	0	0	-1	-1	-1
+1845	18	3	Rồng nhí 3 sao	Sở hữu 7 Pet Rồng Nhí sẽ tăng 1% HP, Sức Đánh, KI	1	15109	-1	0	0	0	0	-1	-1	-1
+1846	18	3	Rồng nhí 2 sao	Sở hữu 7 Pet Rồng Nhí sẽ tăng 1% HP, Sức Đánh, KI	1	15117	-1	0	0	0	0	-1	-1	-1
+1847	18	3	Rồng nhí 1 sao	Sở hữu 7 Pet Rồng Nhí sẽ tăng 1% HP, Sức Đánh, KI	1	15125	-1	0	0	0	0	-1	-1	-1
+1848	23	3	Thú cưỡi Rồng Thiêng	Vật phẩm sự kiện	1	15126	53	0	0	0	0	-1	-1	-1
+1849	5	3	Cải trang Gốc	Vật phẩm sự kiện	0	14794	-1	0	1500000	0	0	1901	1903	1904
+1850	27	3	Trứng Vàng Rồng Nhí	Vật phẩm sự kiện	1	15128	-1	0	0	0	0	-1	-1	-1
+1851	27	3	Mảnh Trứng Rồng Nhí	Vật phẩm sự kiện	1	15129	-1	0	0	0	0	-1	-1	-1
+1852	27	3	Hộp quà giỗ tổ cao cấp	Vật phẩm sự kiện	1	15130	-1	0	0	0	0	-1	-1	-1
+1853	27	3	Hộp quà giỗ tổ	Vật phẩm sự kiện	1	15131	-1	0	0	0	0	-1	-1	-1
+1854	5	3	Cải trang Sơn Tinh	Vật phẩm sự kiện	1	15163	1754	0	0	0	0	1754	1755	1756
+1855	5	3	Cải trang Thủy Tinh	Vật phẩm sự kiện	1	15196	1757	0	0	0	0	1757	1758	1759
+1856	23	3	Ván bay Rồng Thiêng VIP	Vật phẩm sự kiện	1	15200	53	0	0	0	0	-1	-1	-1
+1857	5	3	Cải trang Pôcôlô	Khi chịu sát thương mà HP còn dưới 10% có 0.5% tỉ lệ hồi 50% HP	1	15232	1762	0	0	0	0	1762	1763	1764
+1858	18	3	Pet Thỏ Vui Vẻ	Vật phẩm sự kiện	1	15247	-1	0	0	0	0	-1	-1	-1
+1859	5	3	Cải trang Gohan Beast	Vật phẩm sự kiện	1	15283	1770	0	0	0	0	1770	1773	1774
+1860	23	3	Máy Bay chiến đấu	Vật phẩm sự kiện	1	15291	54	0	0	0	0	-1	-1	-1
+1861	23	3	Máy Bay Xám	Vật phẩm sự kiện	1	15292	55	0	0	0	0	-1	-1	-1
+1862	27	3	Vé nhiệm vụ tháng vip	Vật phẩm sự kiện	1	15293	-1	0	0	0	0	-1	-1	-1
+1863	27	3	Vé nhiệm vụ tháng 10 vip	Vật phẩm sự kiện	1	15293	-1	0	0	0	0	-1	-1	-1
+1864	27	3	Vé nhiệm vụ tháng 1 vip	Vật phẩm sự kiện	1	15293	-1	0	0	0	0	-1	-1	-1
+1865	27	3	Vé nhiệm vụ tháng 2 vip	Vật phẩm sự kiện	1	15293	-1	0	0	0	0	-1	-1	-1
+1866	27	3	Vé nhiệm vụ tháng 4 VIP	Vật phẩm sự kiện	1	15293	-1	0	0	0	0	-1	-1	-1
+1867	27	3	Vé nhiệm vụ tháng 5 VIP	Vật phẩm sự kiện	1	15293	-1	0	0	0	0	-1	-1	-1
+1868	29	3	Cuốn chả giò	Vật phẩm sự kiện	1	15294	-1	0	0	0	0	-1	-1	-1
+1869	29	3	Chai Cuke 2 lít	Vật phẩm sự kiện	1	15295	-1	0	0	0	0	-1	-1	-1
+1870	5	3	Cải trang Fide chai	Vật phẩm sự kiện	1	15327	1781	0	0	0	0	1781	1782	1783
+1871	5	3	Cải trang Test	Vật phẩm sự kiện	1	15327	1781	0	0	0	0	1781	1782	1783
+1872	11	3	Đeo lưng bạch tuộc Xanh cáu kỉnh	Đi cùng ván bay bạch tuộc +5% chí mạng	1	15331	155	0	0	0	0	-1	-1	-1
+1873	11	3	Đeo lưng bạch tuộc Hồng	Đi cùng ván bay bạch tuộc +3% HP	1	15334	156	0	0	0	0	-1	-1	-1
+1874	11	3	Đeo lưng bạch tuộc Vàng	Đi cùng ván bay bạch tuộc +5% giảm sát thương	1	15337	157	0	0	0	0	-1	-1	-1
+1875	11	3	Đeo lưng bạch tuộc Xanh	Đi cùng ván bay bạch tuộc +5% chí mạng	1	15340	158	0	0	0	0	-1	-1	-1
+1876	11	3	Đeo lưng bạch tuộc Xanh	Đi cùng ván bay bạch tuộc +5% chí mạng	1	15340	158	0	0	0	0	-1	-1	-1
+1877	11	3	Đeo lưng bạch tuộc Xanh	Đi cùng ván bay bạch tuộc +5% chí mạng	1	15340	158	0	0	0	0	-1	-1	-1
+1878	18	3	Pet cá Dory	Vật phẩm sự kiện	1	15354	-1	0	0	0	0	-1	-1	-1
+1879	18	3	Pet cá Nemo	Vật phẩm sự kiện	1	15355	-1	0	0	0	0	-1	-1	-1
+1880	36	3	Mẹ Rồng	Cách nhận: Sở hữu 7 Rồng nhí vĩnh viễn	1	15358	256	0	0	0	0	-1	-1	-1
+1881	27	3	Bình hút năng lượng	Vật phẩm hỗ trợ	1	15359	-1	0	0	0	0	-1	-1	-1
+1882	23	3	Ván bay cá đuối	Vật phẩm sự kiện	1	15360	56	0	0	0	0	-1	-1	-1
+1883	23	3	Ván bay bạch tuộc	Đi cùng đeo lưng bạch tuộc +2% HP, KI, sát thương	1	15361	57	0	0	0	0	-1	-1	-1
+1884	11	3	Bông cúc	Vật phẩm sự kiện	1	15411	159	0	0	0	0	-1	-1	-1
+1885	27	3	Con dấu	Vật phẩm sự kiện	1	15412	-1	0	0	0	0	-1	-1	-1
+1886	27	3	Râu bạch tuộc nướng	Vật phẩm sự kiện	1	15413	-1	0	0	0	0	-1	-1	-1
+1887	27	3	Kẹo táo	Vật phẩm sự kiện	1	15414	-1	0	0	0	0	-1	-1	-1
+1888	27	3	Kem que đôi	Vật phẩm sự kiện	1	15415	-1	0	0	0	0	-1	-1	-1
+1889	27	3	Tayaki	Vật phẩm sự kiện	1	15416	-1	0	0	0	0	-1	-1	-1
+1890	27	3	Mì ramen	Vật phẩm sự kiện	1	15417	-1	0	0	0	0	-1	-1	-1
+1891	27	3	Mochi	Vật phẩm sự kiện	1	15418	-1	0	0	0	0	-1	-1	-1
+1892	5	3	Cải trang Cađíc đi biển	Vật phẩm sự kiện	1	15450	1793	0	0	0	0	1793	1794	1795
+1893	5	3	Cải trang Bun ma đi biển	Vật phẩm sự kiện	1	15483	1796	0	0	0	0	1796	1797	1798
+1894	11	3	Đeo lưng ẩm thực	Vật phẩm sự kiện	1	15495	160	0	0	0	0	-1	-1	-1
+1895	5	3	Cải trang Gogeta SSJ Blue	Vật phẩm sự kiện	1	15537	1802	0	0	0	0	1802	1805	1806
+1896	5	3	Cải trang Vegito SSJ Blue	Vật phẩm sự kiện	1	15574	1807	0	0	0	0	1807	1810	1811
+1897	5	3	Cải trang Super Pôcôlô	Vật phẩm sự kiện	1	15611	1812	0	0	0	0	1812	1815	1816
+1898	27	3	Mảnh vỡ bông tai cấp 3	Dùng để nâng cấp bông tai Porata cấp 3	1	15613	-1	0	0	0	0	-1	-1	-1
+1899	19	3	Bông tai Porata	Sử dụng để hợp thể với đệ tử	1	15614	-1	0	15000000	0	0	-1	-1	-1
+1900	5	3	Cải trang Đích Ku SSJ Blue	Vật phẩm sự kiện	1	15622	1817	0	0	0	0	1817	1821	1822
+1901	18	3	Pet Pikachu	Vật phẩm sự kiện	1	15680	-1	0	0	0	0	-1	-1	-1
+1902	18	3	Pet Squirtle	Vật phẩm sự kiện	1	15681	-1	0	0	0	0	-1	-1	-1
+1903	18	3	Pet Charmander	Vật phẩm sự kiện	1	15682	-1	0	0	0	0	-1	-1	-1
+1904	18	3	Pet Bullbasaur	Vật phẩm sự kiện	1	15683	-1	0	0	0	0	-1	-1	-1
+1905	18	3	Pet MewTwo	Vật phẩm sự kiện	1	15684	-1	0	0	0	0	-1	-1	-1
+1906	11	3	Cờ Quả Cầu Pokemon	Vật phẩm sự kiện	1	15685	161	0	0	0	0	-1	-1	-1
+1907	27	3	Vé vàng	Dùng để vào khu riêng tư up bông tai	1	15686	-1	0	0	0	0	-1	-1	-1
+1908	23	3	Thú cưỡi Lugia	Vật phẩm sự kiện	1	15687	58	0	0	0	0	-1	-1	-1
+1909	27	3	Bóng Poke	Vật phẩm sự kiện	1	15688	-1	0	0	0	0	-1	-1	-1
+1910	27	3	Bóng Ultra	Vật phẩm sự kiện	1	15689	-1	0	0	0	0	-1	-1	-1
+1911	27	3	Bóng Master	Vật phẩm sự kiện	1	15690	-1	0	0	0	0	-1	-1	-1
+1912	23	3	Ván bay cá đuối VIP	Vật phẩm sự kiện	1	15691	56	0	0	0	0	-1	-1	-1
+1913	5	3	Cải trang Kochiro	Vật phẩm sự kiện	1	15723	1835	0	0	0	0	1835	1836	1837
+1914	5	3	Cải trang Musashi	Vật phẩm sự kiện	1	15756	1838	0	0	0	0	1838	1839	1840
+1915	18	3	Pet Meowth	Vật phẩm sự kiện	1	15765	-1	0	0	0	0	-1	-1	-1
+1916	27	3	Đổi đệ tử	Đổi đệ tử khác hoàn toàn mới	1	15766	-1	0	0	0	0	-1	-1	-1
+1917	27	3	Đổi đệ tử 2	Đổi đệ tử 2 khác hoàn toàn mới	1	15767	-1	0	0	0	0	-1	-1	-1
+1918	36	3	Phá cỗ trung thu	Cách nhận: Đua Top nhận	1	15768	505	0	0	0	0	-1	-1	-1
+1919	5	3	Cải trang Póc Thỏ Đen	Đi Cùng với Cuội tăng 10% Né.	1	15800	1844	0	0	0	0	1844	1845	1846
+1920	23	3	Ván bay cung trăng	Vật phẩm sự kiện	1	15802	59	0	0	0	0	-1	-1	-1
+1921	11	3	Lồng đèn 2 lon	Vật phẩm sự kiện	1	15803	162	0	0	0	0	-1	-1	-1
+1922	5	3	Cải trang Kirin chú cuội	Đi Cùng với Póc Thỏ Đen tăng 10% Chí Mạng	1	15813	1847	0	0	0	0	1847	1848	1849
+1923	11	3	Thùng rác	Vật phẩm sự kiện	1	15860	163	0	0	0	0	-1	-1	-1
+1924	27	3	Rác	Vật phẩm sự kiện	1	15861	-1	0	0	0	0	-1	-1	-1
+1925	23	3	Thú cưỡi rồng Thiêng	Đi cùng Pet Rồng Nhí tăng 5% Né, 5% chí mạng. Sưu tập đủ 4 thú cưỡi rồng tăng 2% Sức Đánh,KI,HP.	1	15862	60	0	0	0	0	-1	-1	-1
+1926	23	3	Thú cưỡi rồng Băng	Đi cùng Pet Rồng Nhí tăng 5% Né, 5% chí mạng. Sưu tập đủ 4 thú cưỡi rồng tăng 2% Sức Đánh,KI,HP.	1	15863	61	0	0	0	0	-1	-1	-1
+1927	23	3	Thú cưỡi rồng Đen	Đi cùng Pet Rồng Nhí tăng 5% Né, 5% chí mạng. Sưu tập đủ 4 thú cưỡi rồng tăng 2% Sức Đánh,KI,HP.	1	15864	62	0	0	0	0	-1	-1	-1
+1928	23	3	Thú cưỡi rồng Vô Cực	Đi cùng Pet Rồng Nhí tăng 5% Né, 5% chí mạng. Sưu tập đủ 4 thú cưỡi rồng tăng 2% Sức Đánh,KI,HP.	1	15865	63	0	0	0	0	-1	-1	-1
+1929	27	3	Rương Rồng Thần	Vật phẩm sự kiện	1	15866	-1	0	0	0	0	-1	-1	-1
+1930	27	3	Rương Rồng Thần VIP	Vật phẩm sự kiện	1	15867	-1	0	0	0	0	-1	-1	-1
+1931	27	3	Thỏi vàng NRJ	Gặp NPC Santa để bán.	1	15915	-1	0	1500000	0	0	-1	-1	-1
+1932	36	3	Chiến binh sao đen	Cách nhận: Thắng ngọc rồng 1 sao đen tại khu 1 vào ngày chủ nhật.	1	15916	506	0	0	0	0	-1	-1	-1
+1933	5	3	Cải trang Sida	Vật phẩm sự kiện	1	15948	1861	0	0	0	0	1861	1862	1863
+1934	5	3	Cải trang Heles	Vật phẩm sự kiện	1	15977	1861	0	0	0	0	1861	1862	1863
+1935	27	3	Mảnh Cápsule Vỡ	Sưu tầm 999 mảnh để đổi Cápsule Vỡ	1	15979	-1	0	0	0	0	-1	-1	-1
+1936	5	3	Cải trang Rumsshi	Vật phẩm sự kiện	1	16007	1867	0	0	0	0	1867	1868	1869
+1937	5	3	Cải trang Mosco	Vật phẩm sự kiện	1	16009	1867	0	0	0	0	1867	1868	1869
+1938	5	3	Cải trang Black Fide	Vật phẩm sự kiện	1	16064	1873	0	0	0	0	1873	1874	1875
+1939	18	3	Pet Gấu Dâu	Vật phẩm sự kiện	1	16074	-1	0	0	0	0	-1	-1	-1
+1940	5	3	Cải trang Chi Chi Áo Cưới Mới	Vật phẩm sự kiện	1	16102	1879	0	0	0	0	1879	1880	1881
+1941	5	3	Cải trang Pan VIP	Đi chung với SKH Gohan Tăng 20% sức Đánh 50% may mắn.	1	16131	1882	0	0	0	0	1882	1883	1884
+1942	11	3	Đeo lưng Cú con cưng	Đi Cùng Ác Ma Pico tăng 10% Chí Mạng	1	16137	164	0	0	0	0	-1	-1	-1
+1943	23	3	Chổi bay phù thủy	Triệu hồi quái 120% sức đánh, CD 360s.	1	16138	64	0	0	0	0	-1	-1	-1
+1944	27	3	Rương Siêu Hạng	Vật phẩm sự kiện	1	16139	-1	0	0	0	0	-1	-1	-1
+1945	11	3	Bó Hoa Hồng 2 Mới	Vật phẩm sự kiện	1	16144	165	0	0	0	0	-1	-1	-1
+1946	5	3	Cải trang Ác Ma Pico	Đi Cùng Cú con cưng tăng 7% Sức Đánh, HP	1	16172	1885	0	0	0	0	1885	1886	1887
+1947	11	3	Cánh thiên thần sa ngã	Vật phẩm sự kiện	1	16174	166	0	0	0	0	-1	-1	-1
+1948	18	3	Pet Ma tốc độ	Bất tử 3s khi HP dưới 5%, 120s hồi kĩ năng.	1	16187	-1	0	0	0	0	-1	-1	-1
+1949	5	3	Cải trang Janemba	Vật phẩm sự kiện	1	16215	1891	0	0	0	0	1891	1892	1893
+1950	11	3	Cánh thiên thần sa ngã (Đệ)	Vật phẩm sự kiện (chỉ dành cho đệ tử 2)	1	16223	167	0	0	0	0	-1	-1	-1
+1951	5	3	Cải trang Gohan học đường	Đi cùng Balo ngọc rồng tăng 10% Sát thương lên boss	1	16252	1894	0	0	0	0	1894	1895	1896
+1952	5	3	Cải trang Videl học đường	Đi cùng Balo ngọc rồng tăng 10% Sát thương lên boss	1	16280	1897	0	0	0	0	1897	1898	1899
+1953	31	3	Tô phở tái nhiều hành	Vật phẩm sự kiện	1	16282	-1	0	0	0	0	-1	-1	-1
+1954	18	3	Pet cậu vàng	Vật phẩm sự kiện	1	16290	-1	0	0	0	0	-1	-1	-1
+1955	5	3	Cải trang Giáo sư Bunma	Vật phẩm sự kiện	1	16318	1903	0	0	0	0	1903	1904	1905
+1956	31	3	Tô phở tái bò viên	Vật phẩm sự kiện	1	16323	-1	0	0	0	0	-1	-1	-1
+1957	31	3	Tô phở nạm 2 quẩy	Vật phẩm sự kiện	1	16324	-1	0	0	0	0	-1	-1	-1
+1958	27	3	Thòng lọng	Vật phẩm sự kiện	1	16325	-1	0	0	0	0	-1	-1	-1
+1959	11	3	Ba lô ngọc rồng	Đi cùng Bảng đen tăng 10% Chí Mạng	1	16327	168	0	0	0	0	-1	-1	-1
+1960	23	3	Máy bay giấy	Vật phẩm sự kiện	1	16328	65	0	0	0	0	-1	-1	-1
+1961	23	3	Bảng đen	Đi Cùng Balo Ngọc rồng Tăng 7% Sức Đánh, HP	1	16330	67	0	0	0	0	-1	-1	-1
+1962	18	3	Pet ngựa KPI	Cái gì không làm được thì...vừa khóc vừa làm	1	16339	-1	0	0	0	0	-1	-1	-1
+1963	5	3	Cải trang Thiên sư phụ	Tạo ra phân thân gây mù đối phương CD 300 giây	1	16367	1912	0	0	0	0	1912	1913	1914
+1964	27	3	Capsule cải trang HSD	Vật phẩm sự kiện	1	16369	-1	0	0	0	0	-1	-1	-1
+1965	27	3	Capsule cải trang VIP	Mở ra nhận được 1 cải trang vĩnh viễn	1	16370	-1	0	0	0	0	-1	-1	-1
+1966	5	3	Cải trang Kirin tuần lộc	Đi Với Póc 18 Noel Giảm Sát Thương 10%	1	16398	1915	0	0	0	0	1915	1916	1917
+1967	11	3	Đeo lưng bông tuyết	Vật phẩm sự kiện	1	16404	169	0	0	0	0	-1	-1	-1
+1968	23	3	Ván khủng long Noel	Vật phẩm sự kiện	1	16405	68	0	0	0	0	-1	-1	-1
+1969	5	3	Cải trang Póc Noel	Đi Với Kilin Tuần Lộc Tăng Sát Thương Chí Mạng 10%	1	16433	1918	0	0	0	0	1918	1919	1920
+1970	18	3	Pet Bư Noel	Vật phẩm sự kiện	1	16442	-1	0	0	0	0	-1	-1	-1
+1971	23	3	Máy bay NRO	Vật phẩm sự kiện	1	16453	69	0	0	0	0	-1	-1	-1
+1972	31	3	Cacao nóng	Vật phẩm sự kiện	1	16454	-1	0	0	0	0	-1	-1	-1
+1973	5	3	Cải trang Goku GT Kid	Vật phẩm sự kiện	1	16482	1927	0	0	0	0	1927	1928	1929
+1974	38	3	Bóng mờ tuyết rơi	Vật phẩm sự kiện	1	16484	508	0	0	0	0	-1	-1	-1
+1975	18	3	Pet tuần lộc ngố	Đi chung với Cờ Hoa Tuyết Tăng Né 20%	1	16492	-1	0	0	0	0	-1	-1	-1
+1976	5	3	Cải trang Goku GT	Vật phẩm sự kiện	1	16520	1933	0	0	0	0	1933	1934	1935
+1977	33	3	Mảnh hồn khỉ con	Vật phẩm sự kiện	1	16520	-1	0	0	0	0	-1	-1	-1
+1978	27	3	Túi ngọc rồng băng	Vật phẩm sự kiện	1	16522	-1	0	0	0	0	-1	-1	-1
+1979	18	3	Pet ngựa chiến	Đi Cùng Cờ Pháo Hoa NRO Tăng 10% sát thương lên Boss	1	16530	-1	0	0	0	0	-1	-1	-1
+1980	27	3	Bánh sinh nhật 1 sao	Vật phẩm sự kiện	1	16531	-1	0	0	0	0	-1	-1	-1
+1981	11	3	Đeo lưng lồng đèn Tết	Vật phẩm sự kiện	1	16540	170	0	0	0	0	-1	-1	-1
+1982	18	3	Pet Ngựa Thần Tài	Vật phẩm sự kiện	1	16549	-1	0	0	0	0	-1	-1	-1
+1983	11	3	Pháo hoa NRO	Đi Chung Với Tiến Sĩ Buma tăng 50% May Mắn, 10% sát thương chuẩn lên boss	1	16572	171	0	0	0	0	-1	-1	-1
+1984	11	3	Đeo lưng Mãi Dell thành công	Vật phẩm sự kiện	1	16577	172	0	0	0	0	-1	-1	-1
+1985	38	3	Bóng mờ NRO	Đi Chung Với Cờ Pháo Hoa Ngọc Rồng tăng 5% sức đánh lên Boss	1	16578	509	0	0	0	0	-1	-1	-1
+1986	27	3	Bánh sinh nhật 2 sao	Vật phẩm sự kiện	1	16579	-1	0	0	0	0	-1	-1	-1
+1987	30	3	Ngọc rồng xanh 1 sao	Sát Thương Cuối 1%-3%	3	16580	-1	0	1	0	0	-1	-1	-1
+1988	30	3	Ngọc rồng xanh 2 sao	Sức Đánh 3%-10%	3	16581	-1	0	1	0	0	-1	-1	-1
+1989	30	3	Ngọc rồng xanh 3 sao	HP 5%-20%	3	16582	-1	0	1	0	0	-1	-1	-1
+1990	30	3	Ngọc rồng xanh 4 sao	KI 5%-20%	3	16583	-1	0	1	0	0	-1	-1	-1
+1991	30	3	Ngọc rồng xanh 5 sao	Chí Mạng 1%-5%	3	16584	-1	0	1	0	0	-1	-1	-1
+1992	30	3	Ngọc rồng xanh 6 sao	Giảm Sát Thương 3%-10%	3	16585	-1	0	1	0	0	-1	-1	-1
+1993	30	3	Ngọc rồng xanh 7 sao	Biến tấn công thành HP, KI 5%-10%	3	16586	-1	0	1	0	0	-1	-1	-1
+1994	5	3	Cải trang Goku Tết	Vật phẩm sự kiện	1	16614	1942	0	0	0	0	1942	1943	1944
+1995	5	3	Cải trang Chi Chi Tết	Vật phẩm sự kiện	1	16643	1945	0	0	0	0	1945	1946	1947
+1996	18	3	Pet Ngựa Đỏ	Vật phẩm sự kiện	1	16650	-1	0	0	0	0	-1	-1	-1
+1997	18	3	Pet Ngựa Be	Vật phẩm sự kiện	1	16658	-1	0	0	0	0	-1	-1	-1
+1998	18	3	Pet Ngựa Trắng	Vật phẩm sự kiện	1	16666	-1	0	0	0	0	-1	-1	-1
+1999	38	3	Hiệu ứng hoa Tết	Vật phẩm sự kiện	1	16669	510	0	0	0	0	-1	-1	-1
+2000	23	3	Cá chép đồng tiền	Đi Cùng với Pet Ngựa Chiến Tăng Sát Thương chí mạng 8%	1	16670	70	0	0	0	0	-1	-1	-1
+2001	36	3	Danh hiệu Đón Xuân	Vật phẩm sự kiện	1	16671	511	0	0	0	0	-1	-1	-1
+2002	11	3	Đeo lưng Bao lì xì	Vật phẩm sự kiện	1	16700	173	0	0	0	0	-1	-1	-1
+2003	18	3	Pet Kirby	Đi Chung vs Cớt Hồng tăng 10% Giảm Sát Thương	1	16710	-1	0	0	0	0	-1	-1	-1
+2004	11	3	Bư tập tạ	Vật phẩm sự kiện	1	16715	174	0	0	0	0	-1	-1	-1
+2005	11	3	Cờ đeo lưng cớt hồng	Đi Chung Với CT Arale Tăng 5% HP	1	16720	175	0	0	0	0	-1	-1	-1
+2006	11	3	Cờ đeo lưng cớt hồng VIP	Đi Chung Với CT Arale Tăng 5% HP	1	16720	175	0	0	0	0	-1	-1	-1
+2007	5	3	Cải trang Arale	Khi HP còn dưới 20% có 2% Hồi phục 70% HP CD 120s	1	16721	-1	0	0	0	0	-1	-1	-1
+2008	27	3	Bó rơm	Vật phẩm sự kiện	1	16753	-1	0	0	0	0	-1	-1	-1
+2009	11	3	Yêu quái núi lãng lãng	Vật phẩm sự kiện	1	16758	176	0	0	0	0	-1	-1	-1
+2010	27	3	Capsule 8 tháng 3 2026	Vật phẩm sự kiện	1	16759	-1	0	0	0	0	-1	-1	-1
+2011	5	3	Thủy Thủ Mặt Trăng	Vật phẩm sự kiện	1	16761	-1	0	0	0	0	-1	-1	-1
+2012	23	3	Thú cưỡi Sư Tử Đen	Phần thưởng TOP 1 NRO 2026	1	16762	71	0	0	0	0	-1	-1	-1
+2013	5	3	Cải trang Goku giỗ tổ	Vật phẩm sự kiện	1	16788	1968	0	0	0	0	1968	1969	1970
+2014	5	3	Cải trang Chi Chi giỗ tổ	Vật phẩm sự kiện	1	16819	1971	0	0	0	0	1971	1972	1973
+2015	14	3	Đá Linh Hồn	Gặp bà Hạt Mít để sử dụng	0	16826	-1	0	0	0	0	-1	-1	-1
+2016	14	3	Đá Hiện Thực	Gặp bà Hạt Mít để sử dụng	0	16827	-1	0	0	0	0	-1	-1	-1
+2017	14	3	Đá Sức Mạnh	Gặp bà Hạt Mít để sử dụng	0	16828	-1	0	0	0	0	-1	-1	-1
+2018	14	3	Đá Không Gian	Gặp bà Hạt Mít để sử dụng	0	16829	-1	0	0	0	0	-1	-1	-1
+2019	14	3	Đá Thời Gian	Gặp bà Hạt Mít để sử dụng	0	16830	-1	0	0	0	0	-1	-1	-1
+2020	11	3	Cánh hào khí	Vật phẩm sự kiện	1	16835	177	0	0	0	0	-1	-1	-1
+2021	5	3	Cải trang Gohan chiến binh	Đi Cùng Videl Chiến Binh tăng giảm sát thương 5%	1	16862	1974	0	0	0	0	1974	1975	1976
+2022	5	3	Cải trang Videl chiến binh	Đi Cùng Gohan Chiến Binh tăng sát thương chí mạng 10%	1	16891	1977	0	0	0	0	1977	1978	1979
+2023	27	3	Hộp Cá Tháng Tư	Vật phẩm sự kiện	1	16895	-1	0	0	0	0	-1	-1	-1
+2024	27	3	Hộp đá nâng cấp +9	Vật phẩm sự kiện	1	16895	-1	0	0	0	0	-1	-1	-1
+2025	27	3	Hộp Hề	Vật phẩm sự kiện	1	16896	-1	0	0	0	0	-1	-1	-1
+2026	32	3	Giáp tập luyện cấp 5	Khi mặc vào sẽ đánh yếu hơn bình thường 40%, khi cởi ra sẽ tăng sức đánh 50%	1	16897	-1	0	0	0	0	-1	-1	-1
+2027	27	3	Hộp Tháng Tư	Vật phẩm sự kiện	1	16898	-1	0	0	0	0	-1	-1	-1
+2028	27	3	Hộp quà đầu tháng	Vật phẩm sự kiện	1	16899	-1	0	0	0	0	-1	-1	-1
+2029	27	3	Hộp hào khí	Vật phẩm sự kiện	1	16899	-1	0	0	0	0	-1	-1	-1
+2030	23	3	Thần tiễn	Vật phẩm sự kiện	1	16900	72	0	0	0	0	-1	-1	-1
+2031	18	3	Pet hươu	Vật phẩm sự kiện	1	16928	-1	0	0	0	0	-1	-1	-1
+2032	18	3	Pet hổ	Vật phẩm sự kiện	1	16929	-1	0	0	0	0	-1	-1	-1
+2033	18	3	Pet đại bàng	Vật phẩm sự kiện	1	16930	-1	0	0	0	0	-1	-1	-1
+2034	11	3	Bóng WC 2026	Chống Năng Lượng Xấu	1	16935	178	0	0	0	0	-1	-1	-1
+2035	27	3	Lệnh bài thành cổ	Vật phẩm sự kiện	1	16936	-1	0	0	0	0	-1	-1	-1
+2036	18	3	Pet Cửu Vĩ Hồ	Vật phẩm sự kiện	1	16944	-1	0	0	0	0	-1	-1	-1
+2037	5	3	Cải trang Goku cận vô cực	Vật phẩm sự kiện	1	16976	1992	0	0	0	0	1992	1995	1996
+2038	23	3	Ván bay sao băng	Đủ 4 món Mèo thần tài, ván sao băng, bóng ngôi sao, Cờ ngôi sao may mắn +10% vàng rơi	1	16978	73	0	0	0	0	-1	-1	-1
+2039	27	3	Phiếu sao vàng may mắn	Vật phẩm sự kiện	1	16979	-1	0	0	0	0	-1	-1	-1
+2040	38	3	Bóng mờ sao may mắn	Đủ 4 món Mèo thần tài, ván sao băng, bóng ngôi sao, Cờ ngôi sao may mắn +10% vàng rơi	1	16980	513	0	0	0	0	-1	-1	-1
+2041	11	3	Cờ đeo lưng sao may mắn	Đủ 4 món Mèo thần tài, ván sao băng, bóng ngôi sao, Cờ ngôi sao may mắn +10% vàng rơi	1	16981	179	0	0	0	0	-1	-1	-1
+2042	18	3	Pet Mèo thần tài	Đủ 4 món Mèo thần tài, ván sao băng, bóng ngôi sao, Cờ ngôi sao may mắn +10% vàng rơi	1	16995	-1	0	0	0	0	-1	-1	-1
+2043	5	3	Cải trang Tuyền Qua Minh Nhân	Đi cùng Pet Cửu Vĩ Hồ +7% HP	1	17023	2000	0	0	0	0	2000	2001	2002
+2044	5	3	Cải trang Vũ Trí Ba Tá Trợ	Đi cùng Cờ Vạn Hoa Đồng tăng 1% Sát thương cuối	1	17051	2003	0	0	0	0	2003	2004	2005
+2045	11	3	Cờ Vạn Hoa Đồng	Ảo Thuật tăng 50% Sức Đánh, Giảm 50% sát thương nhận vào 3s CD 120s	1	17088	180	0	0	0	0	-1	-1	-1
+2046	11	3	Cờ World Cup 2026	Vật phẩm sự kiện	1	17093	181	0	0	0	0	-1	-1	-1
+2047	5	3	Cải trang chú hề Picolo	Hề Hước : Tăng 5% né cho người xung quanh	1	17121	2006	0	0	0	0	2006	2007	2008
+2048	29	3	Năng lượng E10	Vì một môi trường xanh, đẩy lùi năng lượng tà ác (Giảm 5% HP)	1	17124	-1	0	0	0	0	-1	-1	-1
+2049	18	3	Pet Xên bọ hung MAX	Vật phẩm sự kiện	1	17134	-1	0	0	0	0	-1	-1	-1
+2050	5	3	Cải trang Akatsuki	Vật phẩm sự kiện	1	17161	2012	0	0	0	0	2012	2013	2014
+2051	29	3	Cuồng bạo	Trong vòng tối đa 10 phút +10% chí mạng	1	17164	-1	0	0	0	0	-1	-1	-1
+2052	5	3	Cải trang Pan Trung Thu	Vật phẩm sự kiện	1	17191	2015	0	0	0	0	2015	2016	2017
+2053	27	3	Khóa chì số 1 Bông tai cấp 3	Gặp bà Hạt Mít để sử dụng	1	17195	-1	0	0	0	0	-1	-1	-1
+2054	23	3	Ván bay World Cup 2026	Đi Cùng  Cờ World Cúp  2026  Tăng 7% chí mạng	1	17196	75	0	0	0	0	-1	-1	-1
+2055	27	3	Trứng ve sầu	Vật phẩm sự kiện	1	17197	-1	0	0	0	0	-1	-1	-1
+2056	23	3	Thú cưỡi chim đất	Vật phẩm sự kiện	1	17198	74	0	0	0	0	-1	-1	-1
+2057	27	3	Vé World Cup	Vật phẩm sự kiện	1	17199	-1	0	0	0	0	-1	-1	-1
+2058	5	3	Cải trang N	Vật phẩm sự kiện	1	17200	2012	0	0	0	0	2012	2013	2014
+2059	5	3	Cải trang N	Vật phẩm sự kiện	1	17263	2021	0	0	0	0	2021	2022	2023
+2060	5	3	Cải trang N	Vật phẩm sự kiện	1	17265	2021	0	0	0	0	2021	2022	2023
+2061	5	3	Cải trang N	Vật phẩm sự kiện	1	17297	2024	0	0	0	0	2024	2025	2026
+2062	5	3	Cải trang N	Vật phẩm sự kiện	1	17329	2027	0	0	0	0	2027	2028	2029
+2063	5	3	Cải trang Thượng Huyền Tam	Khi Hp dưới 50% tăng Sức Đánh 100% trong vòng 5s CD 180 s	1	17388	2033	0	0	0	0	2033	2034	2035
+2064	38	3	Bóng mờ trung thu	Vật phẩm sự kiện	1	17390	514	0	0	0	0	-1	-1	-1
+2065	23	3	Thú cưỡi chim đất VIP	Vật phẩm sự kiện	1	17391	74	0	0	0	0	-1	-1	-1
+2066	27	3	Trái cây nhiệt đới	Vật phẩm sự kiện	1	17392	-1	0	0	0	0	-1	-1	-1
+2067	27	3	Trái cây nhiệt đới VIP	Vật phẩm sự kiện	1	17393	-1	0	0	0	0	-1	-1	-1
+2068	18	3	Pet Minion	Vật phẩm sự kiện	1	17403	-1	0	0	0	0	-1	-1	-1
+2069	23	3	Ván Bay Trung Thu 2026	Vật phẩm sự kiện	1	17404	76	0	0	0	0	-1	-1	-1
+2070	11	3	Lồng đèn Hốc trưởng	Vật phẩm sự kiện	1	17409	182	0	0	0	0	-1	-1	-1
+2071	5	3	Cải trang Champa	Vật phẩm sự kiện	1	17410	-1	0	0	0	0	-1	-1	-1
+2072	27	3	Hộp ngọc rồng xanh	Chứa 1 viên ngọc rồng xanh tùy chọn	1	17442	-1	0	0	0	0	-1	-1	-1
+2073	5	3	Cải trang Belmod	Vật phẩm sự kiện	1	17470	2042	0	0	0	0	2042	2043	2044
+2074	27	3	Ngọc rồng Siêu Cấp	Thu thập để ước rồng thần	1	17472	-1	0	0	0	0	-1	-1	-1
+2075	18	3	Pet Ngựa Troy	Vật phẩm sự kiện	1	17488	-1	0	0	0	0	-1	-1	-1
+2076	30	3	Sao pha lê ánh kim	Vàng rơi 10%-25%	3	17489	-1	0	1	0	0	-1	-1	-1
+2077	27	3	Mũi khoan siêu cấp	Dùng để gỡ sao pha lê 10 tại bà Hạt Mít	1	17490	-1	0	0	0	0	-1	-1	-1
+2078	5	3	Cải Trang Nappa Aura	Vật phẩm sự kiện	1	17518	2053	0	0	0	0	2053	2054	2055
+2079	36	3	Danh hiệu Perfect	Vật phẩm sự kiện	1	17520	517	0	0	0	0	-1	-1	-1
+2080	18	3	Pet Cừu đen	Vật phẩm sự kiện	1	17521	-1	0	0	0	0	-1	-1	-1
+2081	36	3	Danh hiệu phá cỗ trung thu VIP	Vật phẩm sự kiện	1	17529	516	0	0	0	0	-1	-1	-1
+2082	27	3	Trứng Xên Vàng	Nở ra pet Xên Bọ Hung chỉ số tối đa	1	17530	-1	0	0	0	0	-1	-1	-1
+2083	5	3	Cải trang Berus	Vật phẩm sự kiện	1	17565	-1	0	0	0	0	-1	-1	-1
+2084	11	3	Lồng đèn Thỏ trắng	Vật phẩm sự kiện	1	17576	183	0	0	0	0	-1	-1	-1

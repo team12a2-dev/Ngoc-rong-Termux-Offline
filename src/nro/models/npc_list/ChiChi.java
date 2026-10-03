@@ -16,14 +16,26 @@ public class ChiChi extends Npc {
     @Override
     public void openBaseMenu(Player player) {
         if (canOpenNpc(player)) {
-            createOtherMenu(
-                    player,
-                    ConstNpc.BASE_MENU,
-                    "Chi sẽ giúp bạn loại bỏ những trang bị có HSD ở hành trang\n(trang bị đang mặc không bị ảnh hưởng)\nHãy đọc kỹ rồi chọn nhé",
-                    "Hủy bỏ\ntrang bị\ncó hsd",
-                    "Thông tin\nsự kiện mới",
-                    "Đóng"
-            );
+            if (nro.models.services.ServerLaunchConfigService.gI().isNpcGiftChiChiActive()) {
+                createOtherMenu(
+                        player,
+                        ConstNpc.BASE_MENU,
+                        "Chi Chi chào bạn! Hiện đang diễn ra sự kiện Khai Mở Máy Chủ.\nBạn có muốn nhận quà tặng máy chủ mới không?",
+                        "Nhận quà\nKhai mở\nServer",
+                        "Hủy bỏ\ntrang bị\ncó hsd",
+                        "Thông tin\nsự kiện mới",
+                        "Đóng"
+                );
+            } else {
+                createOtherMenu(
+                        player,
+                        ConstNpc.BASE_MENU,
+                        "Chi sẽ giúp bạn loại bỏ những trang bị có HSD ở hành trang\n(trang bị đang mặc không bị ảnh hưởng)\nHãy đọc kỹ rồi chọn nhé",
+                        "Hủy bỏ\ntrang bị\ncó hsd",
+                        "Thông tin\nsự kiện mới",
+                        "Đóng"
+                );
+            }
         }
     }
 
@@ -34,16 +46,33 @@ public class ChiChi extends Npc {
         }
 
         if (player.idMark.isBaseMenu()) {
-            switch (select) {
-                case 0:
-                    vutTrangBiHSD(player);
-                    break;
-                case 1:
-                    Service.gI().sendThongBaoOK(player,
-                            "Sự kiện mới sẽ update sau 7 ngày Open Server.");
-                    break;
-                default:
-                    break;
+            if (nro.models.services.ServerLaunchConfigService.gI().isNpcGiftChiChiActive()) {
+                switch (select) {
+                    case 0:
+                        nro.models.services.ServerLaunchConfigService.gI().claimChiChiGift(player);
+                        break;
+                    case 1:
+                        vutTrangBiHSD(player);
+                        break;
+                    case 2:
+                        Service.gI().sendThongBaoOK(player,
+                                "Sự kiện mới sẽ update sau 7 ngày Open Server.");
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                switch (select) {
+                    case 0:
+                        vutTrangBiHSD(player);
+                        break;
+                    case 1:
+                        Service.gI().sendThongBaoOK(player,
+                                "Sự kiện mới sẽ update sau 7 ngày Open Server.");
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }

@@ -20,6 +20,8 @@ import nro.models.utils.Util;
  */
 public final class BrolySpawnGate {
 
+    private static volatile long lastSuperSpawnMs;
+    private static volatile long nextSuperSpawnAllowedMs;
     private static volatile long nextNaturalRollMs;
     private static volatile long superProfileExpiresMs;
     private static volatile int activeSuperConcurrentLimit;
@@ -60,6 +62,17 @@ public final class BrolySpawnGate {
         return activeSuperSlotLimit;
     }
 
+    private static boolean passesSuperInterval(long now) {
+        return now >= nextSuperSpawnAllowedMs;
+    }
+
+    private static void markSuperSpawned(long now) {
+        lastSuperSpawnMs = now;
+        int intervalSec = Util.nextInt(BossSpawnConfig.superBrolyIntervalMinSec,
+                BossSpawnConfig.superBrolyIntervalMaxSec);
+        nextSuperSpawnAllowedMs = now + intervalSec * 1000L;
+    }
+
     public static int[] brolyMaps() {
         return BROLY_MAPS.clone();
     }
@@ -83,7 +96,10 @@ public final class BrolySpawnGate {
         if (broly.nPoint.hpMax < hpThreshold) {
             return false;
         }
-        // Không kiểm tra thời gian tối thiểu để luôn biến hình khi đủ điều kiện
+        if (System.currentTimeMillis() - brolyJoinedAtMs
+                < BossSpawnConfig.superBrolyMinBrolyActiveSec * 1000L) {
+            return false;
+        }
         if (!isWithinSuperWindow()) {
             return false;
         }
@@ -97,6 +113,9 @@ public final class BrolySpawnGate {
         }
         int slot = currentTimeSlot();
         if (countLiveSuperInSlot(slot) >= currentSuperSlotLimit()) {
+            return false;
+        }
+        if (!passesSuperInterval(System.currentTimeMillis())) {
             return false;
         }
         return true;
@@ -152,36 +171,36 @@ public final class BrolySpawnGate {
         return Util.isTrue(chance, 100);
     }
 
-/**
+    /**
      * Roll tự nhiên theo chu kỳ: Super Broly có thể xuất hiện dù không vừa hạ Broly.
      * Mỗi lần roll đều qua lại toàn bộ hard gate để không vượt giới hạn map/khu/slot.
-     * Tần suất do {@code spawn.superbroly.natural.*} điều khiển: mỗi chu kỳ roll
-     * có xác suất ngẫu nhiên để Super Broly xuất hiện.
-     * Nhánh biến hình khi hạ Broly KHÔNG đi qua roll này nên không bị chặn nhầm.
      */
     public static synchronized void tickNaturalSuperBrolySpawn() {
-        if (!BossSpawnConfig.superBrolyNaturalEnabled) {
-            return;
-        }
-        if (!isWithinSuperWindow()) {
-            return;
-        }
         long now = System.currentTimeMillis();
         if (now < nextNaturalRollMs) {
             return;
         }
-        nextNaturalRollMs = now + (long) Util.nextInt(
-                BossSpawnConfig.superBrolyNaturalRollMinSec,
-                BossSpawnConfig.superBrolyNaturalRollMaxSec) * 1000L;
+        nextNaturalRollMs = now + Util.nextInt(
+                BossSpawnConfig.superBrolyNaturalRollMinSec * 1000,
+                BossSpawnConfig.superBrolyNaturalRollMaxSec * 1000);
+        if (!BossSpawnConfig.superBrolyNaturalEnabled || !isWithinSuperWindow()) {
+            return;
+        }
         int limit = currentSuperConcurrentLimit();
         if (limit <= 0 || liveSuperCount() >= limit) {
             return;
         }
-        if (!Util.isTrue(BossSpawnConfig.superBrolyNaturalChancePercent, 100)) {
+        if (!passesSuperInterval(now)) {
             return;
         }
         int slot = currentTimeSlot();
         if (countLiveSuperInSlot(slot) >= currentSuperSlotLimit()) {
+            return;
+        }
+        int chance = BossSpawnConfig.superBrolyNaturalChancePercent;
+        int deficit = Math.max(0, BossSpawnConfig.superBrolyTargetMin - liveSuperCount());
+        chance = Math.min(95, chance + deficit * 4);
+        if (!Util.isTrue(chance, 100)) {
             return;
         }
         int mapId = pickSpreadSuperMapId(BROLY_MAPS);
@@ -245,6 +264,7 @@ public final class BrolySpawnGate {
             int spawnY = y > 0 ? y : map.yPhysicInTop(spawnX, 100);
             SuperBroly superBroly = new SuperBroly(zone, spawnX, spawnY, slot);
             registerSuperSpawn(superBroly, slot);
+            markSuperSpawned(System.currentTimeMillis());
         } catch (Exception ex) {
             Logger.error("spawnSuperBrolyAt map=" + mapId + " zone=" + zoneId + ": " + ex.getMessage());
         }
@@ -263,7 +283,23 @@ public final class BrolySpawnGate {
     }
 
     public static int currentTimeSlot() {
-        return 0; // Luôn slot 0 để không bị giới hạn theo thời gian
+        int hour = ZonedDateTime.now(BossSpawnSchedule.ZONE_VN).getHour();
+        int slots = Math.max(1, BossSpawnConfig.superBrolyTimeSlots);
+        if (slots == 4) {
+            if (hour >= 10 && hour <= 14) {
+                return 0;
+            }
+            if (hour >= 15 && hour <= 19) {
+                return 1;
+            }
+            if (hour >= 20 && hour <= 23) {
+                return 2;
+            }
+            return 3;
+        }
+        int span = 20;
+        int normalized = hour >= 10 ? hour - 10 : hour + 14;
+        return Math.min(slots - 1, normalized * slots / span);
     }
 
     private static int countLiveSuperInSlot(int slot) {
@@ -304,8 +340,7 @@ public final class BrolySpawnGate {
     }
 
     private static boolean isWithinSuperWindow() {
-        return BossSpawnConfig.isSuperBrolyWindow(
-                java.time.ZonedDateTime.now(BossSpawnSchedule.ZONE_VN));
+        return BossSpawnConfig.isSuperBrolyWindow(ZonedDateTime.now(BossSpawnSchedule.ZONE_VN));
     }
 
     public static int countActiveBroly() {
@@ -355,7 +390,7 @@ public final class BrolySpawnGate {
         return pickRandomFreeZone(map) != null;
     }
 
-    /** Chọn ngẫu nhiên khu (zoneId >= 2) chưa có Broly hoặc Super Broly trên map. */
+    /** Chọn ngẫu nhiên khu (zoneId >= 2) chưa có Broly trên map. */
     public static Zone pickRandomFreeZone(nro.models.map.Map map) {
         if (map == null || map.zones.size() <= 2) {
             return null;
@@ -363,7 +398,7 @@ public final class BrolySpawnGate {
         List<Zone> free = new ArrayList<>();
         for (int i = 2; i < map.zones.size(); i++) {
             Zone zone = map.zones.get(i);
-            if (!hasBossInZone(zone)) {
+            if (!hasBrolyInZone(zone)) {
                 free.add(zone);
             }
         }

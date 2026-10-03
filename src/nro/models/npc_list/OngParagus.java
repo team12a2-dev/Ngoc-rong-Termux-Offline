@@ -1,5 +1,6 @@
 package nro.models.npc_list;
 
+import nro.models.consts.ConstNpc;
 import nro.models.npc.Npc;
 import nro.models.player.Player;
 import nro.models.services.NpcService;
@@ -13,21 +14,15 @@ public class OngParagus extends Npc {
 
     @Override
     public void openBaseMenu(Player player) {
-        if (!canOpenNpc(player)) {
-            return;
+        if (canOpenNpc(player)) {
+            if (!TaskService.gI().checkDoneTaskTalkNpc(player, this)) {
+                NpcService.gI().createTutorial(player, this.tempId, this.avartar,
+                        NpcService.gI().getNpcHomeSay(player));
+            }
         }
-
-        // Giữ nguyên các đoạn thoại và tiến độ khi nhiệm vụ yêu cầu nói chuyện với NPC ở nhà.
-        if (TaskService.gI().checkDoneTaskTalkNpc(player, this)) {
-            return;
-        }
-
-        NpcService.gI().createTutorial(player, this.tempId, this.avartar,
-                "Con cố gắng theo Vua Vegeta học thành tài,\nđừng lo lắng cho ta.");
     }
 
     @Override
     public void confirmMenu(Player player, int select) {
-        // NPC ở nhà chỉ có hộp thoại, không có thao tác chức năng.
     }
 }

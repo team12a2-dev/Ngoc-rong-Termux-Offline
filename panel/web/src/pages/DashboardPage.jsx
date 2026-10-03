@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getToken, getServerId, getWsBaseUrl, refreshSession, redirectToLogin } from '../api';
+import { fixMojibake } from '../utils/text';
 import PageHeader from '../components/PageHeader';
 
 const QUICK_LINKS = [
@@ -17,9 +18,9 @@ export default function DashboardPage() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const sid = getServerId();
-    let ws;
-    let retryTimer;
+    let ws = null;
+    let retryTimer = null;
+    let pingTimer = null;
     let cancelled = false;
 
     async function handleAuthFailure() {
@@ -33,76 +34,157 @@ export default function DashboardPage() {
       redirectToLogin();
     }
 
+    function cleanupSocket() {
+      if (pingTimer) {
+        clearInterval(pingTimer);
+        pingTimer = null;
+      }
+      if (ws) {
+        ws.onopen = null;
+        ws.onmessage = null;
+        ws.onerror = null;
+        ws.onclose = null;
+        try {
+          ws.close();
+        } catch {}
+        ws = null;
+      }
+    }
+
     function connect(authToken) {
+      if (cancelled) return;
+      cleanupSocket();
+
       const token = authToken || getToken();
       if (!token) {
         setError('Chưa đăng nhập');
         return;
       }
 
+      const sid = getServerId();
       const qs = new URLSearchParams({ token, serverId: String(sid) });
-      ws = new WebSocket(`${getWsBaseUrl()}/ws/metrics?${qs}`);
+      const wsUrl = `${getWsBaseUrl()}/ws/metrics?${qs}`;
+
+      try {
+        ws = new WebSocket(wsUrl);
+      } catch (e) {
+        setConnected(false);
+        setError('Không thể khởi tạo WebSocket: ' + (e?.message || 'Lỗi mạng'));
+        scheduleRetry();
+        return;
+      }
 
       ws.onopen = () => {
+        if (cancelled) return;
         setConnected(true);
         setError('');
+
+        // Start heartbeat ping
+        if (pingTimer) clearInterval(pingTimer);
+        pingTimer = setInterval(() => {
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            try {
+              ws.send(JSON.stringify({ type: 'ping' }));
+            } catch {}
+          }
+        }, 12000);
       };
 
       ws.onmessage = (ev) => {
-        const msg = JSON.parse(ev.data);
-        if (msg.type === 'metrics') {
-          if (msg.data) {
-            setMetrics(msg.data);
-            setPlayers(msg.players || []);
-            setError('');
-          } else if (msg.agentError) {
-            setMetrics(null);
-            const err = String(msg.agentError);
-            if (/panel_servers|panel_users|panel_/i.test(err)) {
-              setError('Chưa đồng bộ panel DB — chạy: cd panel/api && npm run db:sync');
-            } else if (/fetch failed|ECONNREFUSED|timeout/i.test(err)) {
-              setError('Game Agent chưa kết nối — chạy game server (run.bat) để lấy metrics.');
+        if (cancelled) return;
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'pong') return;
+
+          if (msg.type === 'metrics') {
+            if (msg.data) {
+              setMetrics(msg.data);
+              setPlayers(msg.players || []);
+              setError('');
+            } else if (msg.agentError) {
+              setMetrics(null);
+              const err = String(msg.agentError);
+              if (/panel_servers|panel_users|panel_/i.test(err)) {
+                setError('Chưa đồng bộ panel DB — chạy: cd panel/api && npm run db:sync');
+              } else if (/fetch failed|ECONNREFUSED|timeout/i.test(err)) {
+                setError('Game Agent chưa kết nối — chạy game server (run.bat) để lấy metrics.');
+              } else {
+                setError(`Game Agent: ${err}`);
+              }
             } else {
-              setError(`Game Agent: ${err}`);
+              setMetrics(null);
+              setError('Game Agent chưa kết nối — chạy game server (run.bat) để lấy metrics.');
             }
-          } else {
-            setMetrics(null);
-            setError('Game Agent chưa kết nối — chạy game server (run.bat) để lấy metrics.');
           }
-        }
-        if (msg.type === 'error') setError(msg.error);
+          if (msg.type === 'error') setError(msg.error);
+        } catch {}
       };
 
       ws.onerror = () => {
         if (cancelled) return;
         setConnected(false);
-        setError('Không kết nối được Panel API (port 3001). Chạy panel\\stop-panel.bat rồi run.bat lại.');
       };
 
       ws.onclose = (ev) => {
-        setConnected(false);
         if (cancelled) return;
+        setConnected(false);
+        if (pingTimer) {
+          clearInterval(pingTimer);
+          pingTimer = null;
+        }
+
         if (ev.code === 4001) {
           handleAuthFailure();
           return;
         }
-        if (ev.code !== 1000) {
-          setError('Mất kết nối WebSocket — đang thử lại...');
-          retryTimer = setTimeout(() => connect(getToken()), 3000);
-        }
+
+        setError('Mất kết nối WebSocket — đang tự động thử lại...');
+        scheduleRetry();
       };
+    }
+
+    function scheduleRetry() {
+      if (cancelled) return;
+      if (retryTimer) clearTimeout(retryTimer);
+      retryTimer = setTimeout(() => {
+        if (!cancelled) {
+          connect(getToken());
+        }
+      }, 2500);
     }
 
     connect(getToken());
 
-    const onServerChange = () => ws?.close();
+    const onServerChange = (e) => {
+      const newSid = e?.detail || getServerId();
+      setMetrics(null);
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.send(JSON.stringify({ type: 'change-server', serverId: newSid }));
+          return;
+        } catch {}
+      }
+      connect(getToken());
+    };
+
+    const onVisibilityOrOnline = () => {
+      if (!document.hidden && (!ws || ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
+        connect(getToken());
+      }
+    };
+
     window.addEventListener('server-changed', onServerChange);
+    document.addEventListener('visibilitychange', onVisibilityOrOnline);
+    window.addEventListener('online', onVisibilityOrOnline);
 
     return () => {
       cancelled = true;
-      clearTimeout(retryTimer);
-      ws?.close();
+      if (retryTimer) clearTimeout(retryTimer);
+      if (pingTimer) clearInterval(pingTimer);
       window.removeEventListener('server-changed', onServerChange);
+      document.removeEventListener('visibilitychange', onVisibilityOrOnline);
+      window.removeEventListener('online', onVisibilityOrOnline);
+      cleanupSocket();
     };
   }, []);
 
@@ -187,7 +269,7 @@ export default function DashboardPage() {
           <h3>Trạng thái server</h3>
           <ul className="info-list">
             <li><span>WebSocket</span><strong className={connected ? 'ok-text' : ''}>{connected ? 'Đã kết nối' : 'Chưa kết nối'}</strong></li>
-            <li><span>Server</span><strong>{metrics?.serverName || '—'}</strong></li>
+            <li><span>Server</span><strong>{fixMojibake(metrics?.serverName) || '—'}</strong></li>
             <li><span>Khởi động</span><strong>{metrics?.timeStart || '—'}</strong></li>
             <li><span>Admin-only</span><strong>{metrics?.adminMode ? 'BẬT' : 'Tắt'}</strong></li>
             <li><span>Bảo trì</span><strong>{metrics?.maintenance ? 'Đang chạy' : 'Bình thường'}</strong></li>

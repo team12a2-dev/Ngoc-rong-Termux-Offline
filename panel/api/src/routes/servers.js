@@ -235,8 +235,23 @@ router.post('/:id/boss/spawn', requirePermission('boss.control'), async (req, re
   }
 });
 
+router.post('/:id/reload/all', requirePermission('server.config'), async (req, res) => {
+  const targetSid = sid(req);
+  const types = ['shop', 'giftcode', 'items', 'clan', 'boss-spawn', 'boss-panel', 'drop-config', 'usable-items', 'events', 'god-spin'];
+  const results = {};
+  for (const t of types) {
+    try {
+      results[t] = await agentPost(targetSid, `/reload/${t}`, {});
+    } catch (e) {
+      results[t] = { ok: false, error: e.message };
+    }
+  }
+  await auditLog({ userId: req.user.id, serverId: targetSid, action: 'reload.all', response: results, ip: req.ip });
+  res.json({ ok: true, data: results });
+});
+
 router.post('/:id/reload/:type', requirePermission('server.config'), async (req, res) => {
-  const allowed = ['shop', 'giftcode', 'boss-spawn'];
+  const allowed = ['shop', 'giftcode', 'items', 'clan', 'boss-spawn', 'boss-panel', 'drop-config', 'usable-items', 'events', 'god-spin'];
   if (!allowed.includes(req.params.type)) {
     return res.status(400).json({ ok: false, error: 'Invalid reload type' });
   }

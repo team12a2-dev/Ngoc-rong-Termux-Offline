@@ -17,17 +17,28 @@ public class RongOmega extends Npc {
     @Override
     public void openBaseMenu(Player player) {
         if (canOpenNpc(player)) {
-               if ((this.mapId == 24 || this.mapId == 25 || this.mapId == 26)
-                && player.nPoint.power < 150_000_000) {
+            if (nro.models.services.ServerLaunchConfigService.gI().isBlackBallWarScheduleLocked()) {
+                this.createOtherMenu(
+                        player,
+                        ConstNpc.IGNORE_MENU,
+                        "Giải Ngọc Rồng Sao Đen sẽ chính thức mở từ ngày " + nro.models.services.ServerLaunchConfigService.gI().getBlackBallWarStartDate() + "!",
+                        "Đóng"
+                );
+                return;
+            }
 
-            this.createOtherMenu(
-                    player,
-                    ConstNpc.IGNORE_MENU,
-                    "Ngươi còn quá yếu!\nCần đạt ít nhất 150 triệu sức mạnh\nmới có thể nói chuyện với ta.",
-                    "Đóng"
-            );
-            return;
-        }
+            if (!nro.models.services.ServerLaunchConfigService.gI().isBlackBallWarNo40bLimit()) {
+                if ((this.mapId == 24 || this.mapId == 25 || this.mapId == 26)
+                        && player.nPoint.power < 150_000_000) {
+                    this.createOtherMenu(
+                            player,
+                            ConstNpc.IGNORE_MENU,
+                            "Ngươi còn quá yếu!\nCần đạt ít nhất 150 triệu sức mạnh\nmới có thể nói chuyện với ta.",
+                            "Đóng"
+                    );
+                    return;
+                }
+            }
             if (this.mapId == 24 || this.mapId == 25 || this.mapId == 26) {
                 try {
                     if (TimeUtil.isBlackBallWarOpen()) {
@@ -89,14 +100,18 @@ public class RongOmega extends Npc {
                             int index = 0;
                             for (int i = 0; i < 7; i++) {
                                 if (player.rewardBlackBall.timeOutOfDateReward[i] > System.currentTimeMillis()) {
-                                    optionRewards[index] = "Nhận\nthưởng\n" + (i + 1) + " sao";
+                                    if (i == 3 || i == 6) {
+                                        optionRewards[index] = "Nhận quà\n" + (i + 1) + " sao";
+                                    } else {
+                                        optionRewards[index] = "Xem buff\n" + (i + 1) + " sao";
+                                    }
                                     index++;
                                 }
                             }
                             if (index != 0) {
                                 String[] options = new String[index];
                                 System.arraycopy(optionRewards, 0, options, 0, index);
-                                this.createOtherMenu(player, ConstNpc.MENU_REWARD_BDW, "Ngươi đang có phần thưởng ngọc sao đen, có muốn nhận không?",
+                                this.createOtherMenu(player, ConstNpc.MENU_REWARD_BDW, "Ngươi đang có hiệu lực Ngọc Rồng Sao Đen, hãy chọn để xem hoặc nhận quà:",
                                         options);
                             }
                         }
@@ -112,14 +127,18 @@ public class RongOmega extends Npc {
                         int index = 0;
                         for (int i = 0; i < 7; i++) {
                             if (player.rewardBlackBall.timeOutOfDateReward[i] > System.currentTimeMillis()) {
-                                optionRewards[index] = "Nhận\nthưởng\n" + (i + 1) + " sao";
+                                if (i == 3 || i == 6) {
+                                    optionRewards[index] = "Nhận quà\n" + (i + 1) + " sao";
+                                } else {
+                                    optionRewards[index] = "Xem buff\n" + (i + 1) + " sao";
+                                }
                                 index++;
                             }
                         }
                         if (index != 0) {
                             String[] options = new String[index];
                             System.arraycopy(optionRewards, 0, options, 0, index);
-                            this.createOtherMenu(player, ConstNpc.MENU_REWARD_BDW, "Ngươi đang có phần thưởng ngọc sao đen, có muốn nhận không?",
+                            this.createOtherMenu(player, ConstNpc.MENU_REWARD_BDW, "Ngươi đang có hiệu lực Ngọc Rồng Sao Đen, hãy chọn để xem hoặc nhận quà:",
                                     options);
                         }
                     }

@@ -37,12 +37,18 @@ public class GoldenFrieza extends Boss {
         super(BossID.GOLDEN_FRIEZA, BossesData.GOLDEN_FRIEZA);
     }
 
+    public GoldenFrieza(nro.models.map.Zone zone) throws Exception {
+        super(BossID.GOLDEN_FRIEZA - (zone != null ? zone.zoneId : 0), BossesData.GOLDEN_FRIEZA);
+        this.zoneFinal = zone;
+    }
+
     @Override
     public void reward(Player plKill) {
+        super.reward(plKill);
         int diem = 5;
         plKill.event.addEventPoint(diem);
         Service.gI().sendThongBao(plKill, "+5 Point");
-        ItemMap CaiTrangFideVang = new ItemMap(zone, 629,1, this.location.x + Util.nextInt(-50, 50), this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id);
+        ItemMap CaiTrangFideVang = new ItemMap(zone, 629, 1, this.location.x + Util.nextInt(-50, 50), this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24), plKill.id);
         CaiTrangFideVang.options.add(new Item.ItemOption(30, 1));
         CaiTrangFideVang.options.add(new Item.ItemOption(50, 20));
         CaiTrangFideVang.options.add(new Item.ItemOption(77, 20));
@@ -54,19 +60,6 @@ public class GoldenFrieza extends Boss {
     @Override
     public void active() {
         super.active();
-    }
-
-    /** Spawn ở đầu map Đông Karin, tránh sát biên trái để không bị kẹt địa hình. */
-    @Override
-    protected int getMapSpawnX() {
-        if (this.zone == null || this.zone.map == null) {
-            return 0;
-        }
-        int width = this.zone.map.mapWidth;
-        if (width <= 450) {
-            return Math.max(0, width / 2);
-        }
-        return Util.nextInt(120, Math.min(350, width - 120));
     }
 
     @Override
@@ -99,6 +92,15 @@ public class GoldenFrieza extends Boss {
     }
 
     @Override
+    public void rest() {
+        if (TimeUtil.is21H()) {
+            if (Util.canDoWithTime(this.lastTimeRest, this.secondsRest * 1000L)) {
+                this.changeStatus(BossStatus.RESPAWN);
+            }
+        }
+    }
+
+    @Override
     public void autoLeaveMap() {
         if (!TimeUtil.is21H()) {
             this.leaveMap();
@@ -109,102 +111,118 @@ public class GoldenFrieza extends Boss {
     public void joinMap() {
         if (TimeUtil.is21H()) {
             this.name = this.data[this.currentLevel].getName() + " " + Util.nextInt(1, 100);
-            super.joinMap();
+            if (this.zoneFinal != null) {
+                this.zone = this.zoneFinal;
+            } else if (this.zone == null) {
+                this.zone = getMapJoin();
+            }
             if (this.zone != null) {
+                int x = Util.nextInt(60, 120); // Xuất hiện ở đầu map (phía bên trái)
+                int y = this.zone.map.yPhysicInTop(x, 100);
+                ChangeMapService.gI().changeMap(this, this.zone, x, y);
+                this.notifyJoinMap();
+                this.changeStatus(BossStatus.CHAT_S);
+                this.wakeupAnotherBossWhenAppear();
+                
                 for (Mob mob : this.zone.mobs) {
                     mob.injured(this, 99999999, true);
                 }
                 this.zone.isGoldenFriezaAlive = true;
+                this.lastTimeBomb = System.currentTimeMillis();
+                this.lastTimeCallDeathBeam = System.currentTimeMillis();
             }
         } else {
+            this.lastTimeRest = System.currentTimeMillis();
             this.changeStatus(BossStatus.REST);
         }
     }
+
+    private long lastTimeBomb;
+    private long lastTimeCallDeathBeam;
 
     @Override
     public void attack() {
         if (Util.canDoWithTime(this.lastTimeAttack, 100) && this.typePk == ConstPlayer.PK_ALL) {
             this.lastTimeAttack = System.currentTimeMillis();
 
-            if (Util.canDoWithTime(lastStatusChange, timeChanges)) {
-                callDeathBeam = false;
-                timeChanges = Util.nextInt(5000, 10000);
-                lastStatusChange = System.currentTimeMillis();
-                status = Util.nextInt(3);
-            }
-
             try {
-                switch (status) {
-                    case 0:
-                        setBom();
-                        timeChanges = 5000;
-                        break;
-
-                    case 1:
-                        // Death Beam hiện không được tạo trong BossManager (các case
-                        // tương ứng đang tắt). Nếu không có boss con, phải quay về đánh
-                        // trực tiếp thay vì truy cập phần tử null rồi lặp lỗi mỗi tick.
-                        Boss[] deathBeams = this.bossAppearTogether != null
-                                && this.currentLevel >= 0
-                                && this.currentLevel < this.bossAppearTogether.length
-                                ? this.bossAppearTogether[this.currentLevel] : null;
-                        if (deathBeams == null || Arrays.stream(deathBeams).noneMatch(Objects::nonNull)) {
-                            status = 2;
-                            break;
-                        }
-                        if (callDeathBeam) {
-                            boolean allResting = Arrays.stream(deathBeams)
-                                                       .filter(Objects::nonNull)
-                                                       .allMatch(b -> b.bossStatus == BossStatus.REST);
-                            if (allResting) {
-                                status = 2;
-                                lastStatusChange = System.currentTimeMillis();
-                                timeChanges = 30000;
-                            }
-                            return;
-                        }
-                        callDeathBeam = true;
-                        for (Boss boss : deathBeams) {
+                // 1. Kích hoạt gọi Death Beam định kỳ (hỗ trợ chiến đấu sau mỗi 90s)
+                if (Util.canDoWithTime(lastTimeCallDeathBeam, 90000)) {
+                    lastTimeCallDeathBeam = System.currentTimeMillis();
+                    if (this.bossAppearTogether != null && this.bossAppearTogether[this.currentLevel] != null) {
+                        for (Boss boss : this.bossAppearTogether[this.currentLevel]) {
                             if (boss != null && boss.bossStatus == BossStatus.REST) {
                                 boss.changeStatus(BossStatus.RESPAWN);
                             }
                         }
-                        timeChanges = 15000;
-                        break;
+                    }
+                }
 
-                    default:
-                        timeChanges = 30000;
-                        Player pl = getPlayerAttack();
-                        if (pl == null || pl.isDie()) return;
+                // 2. Kích hoạt chiêu nộ quả cầu hủy diệt / bom nổ định kỳ (sau mỗi 120s)
+                if (Util.canDoWithTime(lastTimeBomb, 120000)) {
+                    lastTimeBomb = System.currentTimeMillis();
+                    setBom();
+                }
 
-                        // Skill đầu tiên là Tái Tạo Năng Lượng, không dùng để tấn công.
-                        int firstAttackSkill = this.playerSkill.skills.size() > 1 ? 1 : 0;
-                        this.playerSkill.skillSelect = this.playerSkill.skills.get(
-                                Util.nextInt(firstAttackSkill, this.playerSkill.skills.size() - 1));
+                // 3. Tìm mục tiêu tấn công dồn dập
+                Player pl = getPlayerAttack();
+                if (pl == null || pl.isDie()) {
+                    if (this.zone != null) {
+                        pl = this.zone.getRandomPlayerInMap();
+                    }
+                }
+                if (pl == null || pl.isDie()) {
+                    return;
+                }
 
-                        if (Util.getDistance(this, pl) <= this.getRangeCanAttackWithSkillSelect()) {
-                            if (Util.isTrue(5, 20)) {
-                                if (SkillUtil.isUseSkillChuong(this)) {
-                                    this.moveTo(pl.location.x + (Util.getOne(-1, 1) * Util.nextInt(20, 200)),
-                                            Util.nextInt(10) % 2 == 0 ? pl.location.y : pl.location.y - Util.nextInt(0, 70));
-                                } else {
-                                    this.moveTo(pl.location.x + (Util.getOne(-1, 1) * Util.nextInt(10, 40)),
-                                            Util.nextInt(10) % 2 == 0 ? pl.location.y : pl.location.y - Util.nextInt(0, 50));
-                                }
-                            }
-                            SkillService.gI().useSkill(this, pl, null, -1, null);
-                            checkPlayerDie(pl);
-                        } else {
-                            if (Util.isTrue(1, 2)) {
-                                this.moveToPlayer(pl);
-                            }
-                        }
-                        break;
+                // Chọn kỹ năng tấn công
+                if (this.playerSkill.skills != null && !this.playerSkill.skills.isEmpty()) {
+                    this.playerSkill.skillSelect = this.playerSkill.skills.get(Util.nextInt(0, this.playerSkill.skills.size() - 1));
+                }
+
+                int dist = Util.getDistance(this, pl);
+                int attackRange = this.getRangeCanAttackWithSkillSelect();
+
+                // Nếu ngoài tầm đánh -> Chủ động bay áp sát mục tiêu cực nhanh
+                if (dist > attackRange) {
+                    moveToPlayer(pl);
+                }
+
+                // Nếu trong tầm đánh -> Tung chiêu ngay lập tức & biến ảo di chuyển né đòn / ép góc
+                if (dist <= attackRange + 100) {
+                    SkillService.gI().useSkill(this, pl, null, -1, null);
+                    checkPlayerDie(pl);
+
+                    // Di chuyển linh hoạt, lướt liên tục quanh người chơi
+                    if (Util.isTrue(7, 10)) {
+                        int targetX = pl.location.x + (Util.getOne(-1, 1) * Util.nextInt(20, 150));
+                        int targetY = (Util.isTrue(1, 2) ? pl.location.y : Math.max(pl.location.y - Util.nextInt(20, 80), 50));
+                        this.moveTo(targetX, targetY);
+                    }
                 }
             } catch (Exception ex) {
-                ex.printStackTrace(); // Logging khi có lỗi
+                ex.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void moveToPlayer(Player pl) {
+        if (pl != null && pl.location != null) {
+            int dir = (this.location.x - pl.location.x < 0 ? 1 : -1);
+            int speed = Util.nextInt(80, 150);
+            int targetX = this.location.x + (dir * speed);
+            int targetY = pl.location.y;
+            this.moveTo(targetX, targetY);
+        }
+    }
+
+    @Override
+    public void moveTo(int x, int y) {
+        if (this.zone != null && this.zone.map != null) {
+            x = Math.max(50, Math.min(x, this.zone.map.mapWidth - 50));
+        }
+        PlayerService.gI().playerMove(this, x, y);
     }
 
     public void setBom() {
@@ -212,6 +230,7 @@ public class GoldenFrieza extends Boss {
 
         this.playerSkill.prepareTuSat = true;
         this.playerSkill.lastTimePrepareTuSat = System.currentTimeMillis();
+        this.chat("Các ngươi hãy nếm thử Quả Cầu Hủy Diệt của ta!");
 
         try {
             Message msg = new Message(-45);
@@ -227,13 +246,19 @@ public class GoldenFrieza extends Boss {
 
         bombScheduler.schedule(() -> {
             this.playerSkill.prepareTuSat = false;
-            List<Player> playersMap = this.zone.getNotBosses();
-            if (!MapService.gI().isMapOffline(this.zone.map.mapId)) {
-                for (Player pl : playersMap) {
-                    if (!this.equals(pl)) {
-                        pl.injured(this, 2_100_000_000, true, false);
-                        PlayerService.gI().sendInfoHpMpMoney(pl);
-                        Service.gI().Send_Info_NV(pl);
+            if (this.zone != null) {
+                List<Player> playersMap = this.zone.getNotBosses();
+                if (!MapService.gI().isMapOffline(this.zone.map.mapId)) {
+                    for (Player pl : playersMap) {
+                        if (!this.equals(pl) && !pl.isDie()) {
+                            long dame = (long) (pl.nPoint.hpMax * 0.7);
+                            if (dame <= 0) {
+                                dame = 500000;
+                            }
+                            pl.injured(this, dame, false, false);
+                            PlayerService.gI().sendInfoHpMpMoney(pl);
+                            Service.gI().Send_Info_NV(pl);
+                        }
                     }
                 }
             }
@@ -242,7 +267,9 @@ public class GoldenFrieza extends Boss {
 
     @Override
     public void leaveMap() {
-        this.zone.isGoldenFriezaAlive = false;
+        if (this.zone != null) {
+            this.zone.isGoldenFriezaAlive = false;
+        }
         ChangeMapService.gI().exitMap(this);
         this.lastZone = null;
         this.lastTimeRest = System.currentTimeMillis();

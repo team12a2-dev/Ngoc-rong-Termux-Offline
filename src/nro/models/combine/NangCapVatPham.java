@@ -209,7 +209,7 @@ public class NangCapVatPham {
                             optionLevel.param++;
                         }
                         if (optionLevel != null && optionLevel.param >= 5) {
-                         //   ChatGlobalService.gI().ThongBaoRoiDo(player, "Chúc mừng " + player.name + " vừa nâng cấp " + "thành công " + itemDo.template.name + " lên +" + optionLevel.param);
+                            ServerNotify.gI().notify("Chúc mừng " + player.name + " vừa nâng cấp thành công " + itemDo.template.name + " lên +" + optionLevel.param);
                         }
                         CombineService.gI().sendEffectSuccessCombine(player);
                         CombineService.gI().baHatMit.npcChat(player, "Chúc mừng con nhé");

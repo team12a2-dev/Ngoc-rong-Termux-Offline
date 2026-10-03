@@ -234,10 +234,10 @@ public final class WorldMartialArtsTournament implements Runnable {
                 int gem = WorldMartialArtsTournamentManager.gI().gem;
                 int gold = WorldMartialArtsTournamentManager.gI().gold;
                 if (gold > 0) {
-                    plWin.inventory.gold++;
-                    Service.gI().sendThongBao(plWin, "Bạn vừa nhận thưởng " + gold + " vàng");
-                } else {
-                    plWin.inventory.gem++;
+                    plWin.inventory.addGold(gold);
+                    Service.gI().sendThongBao(plWin, "Bạn vừa nhận thưởng " + Util.numberToMoney(gold) + " vàng");
+                } else if (gem > 0) {
+                    plWin.inventory.gem += gem;
                     Service.gI().sendThongBao(plWin, "Bạn vừa nhận thưởng " + gem + " ngọc");
                 }
                 Service.gI().sendMoney(plWin);

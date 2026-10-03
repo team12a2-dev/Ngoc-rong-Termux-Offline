@@ -78,6 +78,10 @@ public final class DynamicEventManager {
         return new ArrayList<>(activeEvents.values());
     }
 
+    public static int resolveAvatarFromHead(int head) {
+        return head;
+    }
+
     public EventRuntime find(String eventKey) {
         return activeEvents.get(eventKey);
     }

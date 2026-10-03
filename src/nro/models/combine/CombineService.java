@@ -11,6 +11,7 @@ import nro.models.map.service.NpcManager;
 import nro.models.combine.PhanRaTrangBiKichHoat.PhanRaTrangBi;
 import nro.models.services.InventoryService;
 import nro.models.services.EventProgressService;
+import nro.models.database.PlayerDAO;
 
 /**
  *
@@ -86,8 +87,15 @@ public class CombineService {
         }
         player.combineNew.clearItemCombine();
         if (index.length > 0) {
+            java.util.Set<Integer> uniqueIndices = new java.util.HashSet<>();
             for (int i = 0; i < index.length; i++) {
-                player.combineNew.itemsCombine.add(player.inventory.itemsBag.get(index[i]));
+                int idx = index[i];
+                if (idx >= 0 && idx < player.inventory.itemsBag.size() && uniqueIndices.add(idx)) {
+                    Item item = player.inventory.itemsBag.get(idx);
+                    if (item != null && item.isNotNullItem()) {
+                        player.combineNew.itemsCombine.add(item);
+                    }
+                }
             }
         }
         switch (player.combineNew.typeCombine) {
@@ -162,6 +170,9 @@ public class CombineService {
                 break;
             case DA_MAI:
                 TaoDaMai.showInfoCombine(player);
+                break;
+            case LAM_PHEP_NHAP_DA:
+                LamPhepNhapDa.showInfoCombine(player);
                 break;
         }
     }
@@ -245,12 +256,17 @@ public class CombineService {
             case DA_MAI:
                 TaoDaMai.CheTaoDuiDuc(player);
                 break;
+            case LAM_PHEP_NHAP_DA:
+                LamPhepNhapDa.lamphepnhapda(player);
+                break;
         }
         
         player.idMark.setIndexMenu(ConstNpc.IGNORE_MENU);
         player.combineNew.clearParamCombine();
         player.combineNew.lastTimeCombine = System.currentTimeMillis();
-        
+        try {
+            PlayerDAO.updatePlayer(player);
+        } catch (Exception ignored) {}
     }
     
     public void startCombineVip(Player player, int n) {
@@ -263,7 +279,9 @@ public class CombineService {
         player.idMark.setIndexMenu(ConstNpc.IGNORE_MENU);
         player.combineNew.clearParamCombine();
         player.combineNew.lastTimeCombine = System.currentTimeMillis();
-        
+        try {
+            PlayerDAO.updatePlayer(player);
+        } catch (Exception ignored) {}
     }
 
     /**
@@ -618,9 +636,9 @@ public class CombineService {
             case CHUYEN_HOA_TRANG_BI_VANG:
                 return "Lưu ý trang bị mới\nphải hơn trang bị gốc\n1 bậc";
             case PHAN_RA_TRANG_BI_KH:
-                return "Ta sẽ phù phép\nphân rã thành\n1 Khoáng tái chế cho ngươi";
+                return "Ta sẽ phù phép\nphân rã thành\nkhoáng tái chế cho ngươi";
             case TAI_TAO_CAPSULE_KH:
-                return "Ta sẽ phù phép\nTái chế thành 1 viên\nCapsule tự chọn Set Kích Hoạt";
+                return "Ta sẽ phù phép\nNâng cấp thành 1 viên\nCapsule kích hoạt tự chọn";
             case NHAP_NGOC_RONG:
                 return "Ta sẽ phù phép\ncho 7 viên Ngọc Rồng\nthành 1 viên Ngọc Rồng cấp cao";
             case NANG_CAP_VAT_PHAM:
@@ -676,9 +694,9 @@ public class CombineService {
             case PHA_LE_HOA_TRANG_BI:
                 return "Chọn trang bị\n(Áo, quần, găng, giày hoặc rađa)\nSau đó chọn 'Nâng cấp'";
             case PHAN_RA_TRANG_BI_KH:
-                return "Vào hành trang\nChọn 1 Set Kích Hoạt cần rã\nSau đó chọn 'Phân rã'\nNhận 1 Khoáng tái chế";
+                return "Vào hành trang\nChọn Trang bị kích hoạt cần rã\nSau đó chọn 'Phân rã'\nNhận được 1 đồ thần linh bất kỳ";
             case TAI_TAO_CAPSULE_KH:
-                return "Vào hành trang\nChọn 3 Khoáng tái chế\nCần thêm 1 Capsule vỡ\nvà 500 ngọc xanh\nSau đó chọn 'Nâng cấp'\nNhận 1 Capsule tự chọn\nSet Kích Hoạt (Áo/Quần/Găng/Giày/Rada)";
+                return "Vào hành trang\nChọn 2 đồ thần linh #\nCần thêm 1 Capsule vỡ\nSau đó chọn 'Nâng cấp'\nNhận 1 Capsule Kích Hoạt\n(Mở ra đồ Kích Hoạt Vip)";
             case CHUYEN_HOA_TRANG_BI_NGOC:
             case CHUYEN_HOA_TRANG_BI_VANG:
                 return "Vào hành trang\nChọn trang bị gốc\n(Áo,quần,găng,giày hoặc rada)\ntừ cấp[+4] trở lên\nChọn tiếp trang bị mới\nchưa nâng cấp cần nhập thể\nsau đó chọn 'Nâng cấp'";

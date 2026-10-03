@@ -10,7 +10,6 @@ import nro.models.boss.Android.Pic;
 import nro.models.boss.Android.Poc;
 import nro.models.boss.Black_Goku.BlackGoku;
 import nro.models.boss.Boss;
-import nro.models.boss.BossesData;
 import nro.models.boss.BossID;
 import nro.models.boss.Boss_mini.AnTrom;
 import nro.models.boss.Boss_mini.Odo;
@@ -68,7 +67,24 @@ import nro.models.boss.tieu_doi_sat_thu.SO3;
 import nro.models.boss.tieu_doi_sat_thu.SO4;
 import nro.models.boss.tieu_doi_sat_thu.TDT;
 import nro.models.boss.Tau_PayPay.TaoPaiPai;
-import nro.models.boss.yardrat.YardratBoss;
+import nro.models.boss.yardrat.CHIENBINH0;
+import nro.models.boss.yardrat.CHIENBINH1;
+import nro.models.boss.yardrat.CHIENBINH2;
+import nro.models.boss.yardrat.CHIENBINH3;
+import nro.models.boss.yardrat.CHIENBINH4;
+import nro.models.boss.yardrat.CHIENBINH5;
+import nro.models.boss.yardrat.DOITRUONG5;
+import nro.models.boss.yardrat.TANBINH0;
+import nro.models.boss.yardrat.TANBINH1;
+import nro.models.boss.yardrat.TANBINH2;
+import nro.models.boss.yardrat.TANBINH3;
+import nro.models.boss.yardrat.TANBINH4;
+import nro.models.boss.yardrat.TANBINH5;
+import nro.models.boss.yardrat.TAPSU0;
+import nro.models.boss.yardrat.TAPSU1;
+import nro.models.boss.yardrat.TAPSU2;
+import nro.models.boss.yardrat.TAPSU3;
+import nro.models.boss.yardrat.TAPSU4;
 import nro.models.boss.event.Halloween.BiMa;
 import nro.models.boss.event.Halloween.Doi;
 import nro.models.boss.event.Halloween.MaTroi;
@@ -86,6 +102,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import nro.models.boss.Baby.Baby;
 import nro.models.boss.Baby.B;
 import nro.models.boss.Boss_mini.MatTroi;
@@ -98,7 +115,6 @@ import nro.models.utils.Functions;
 import nro.models.utils.Logger;
 import nro.models.boss.spawn.BossSpawnSchedule;
 import nro.models.boss.spawn.BrolySpawnGate;
-import nro.models.consts.ConstMap;
 
 public class BossManager implements Runnable {
 
@@ -113,11 +129,13 @@ public class BossManager implements Runnable {
     }
 
     public BossManager() {
-        this.bosses = new ArrayList<>();
+        this.bosses = new CopyOnWriteArrayList<>();
     }
 
     protected final List<Boss> bosses;
-    /** Registry dùng chung để scheduler nhìn thấy boss ở mọi manager chuyên biệt. */
+    /**
+     * Registry dùng chung để scheduler nhìn thấy boss ở mọi manager chuyên biệt.
+     */
     private static final Set<Boss> ALL_BOSSES = ConcurrentHashMap.newKeySet();
 
     public static List<Boss> getAllBosses() {
@@ -144,6 +162,18 @@ public class BossManager implements Runnable {
     }
 
     public void loadBoss() {
+        nro.models.map.Map mapFideVang = MapService.gI().getMapById(6);
+        if (mapFideVang != null && mapFideVang.zones != null && !mapFideVang.zones.isEmpty()) {
+            for (Zone z : mapFideVang.zones) {
+                try {
+                    new GoldenFrieza(z);
+                } catch (Exception e) {
+                    Logger.error("Lỗi tạo GoldenFrieza khu " + z.zoneId + ": " + e.getMessage() + "\n");
+                }
+            }
+        } else {
+            this.createBoss(BossID.GOLDEN_FRIEZA);
+        }
         this.createBoss(BossID.TIEU_DOI_TRUONG);
         this.createBoss(BossID.TIEU_DOI_TRUONG_NM);
         this.createBoss(BossID.BOJACK);
@@ -152,7 +182,7 @@ public class BossManager implements Runnable {
         this.createBoss(BossID.XEN_BO_HUNG, 1);
         this.createBoss(BossID.SIEU_BO_HUNG, 1);
         this.createBoss(BossID.KUKU, 2);
-          this.createBoss(BossID.KU, 1);
+        this.createBoss(BossID.KU, 1);
         this.createBoss(BossID.MAP_DAU_DINH, 1);
         this.createBoss(BossID.RAMBO, 1);
         this.createBoss(BossID.FIDE);
@@ -161,32 +191,14 @@ public class BossManager implements Runnable {
         this.createBoss(BossID.CUMBER);
         this.createBoss(BossID.COOLER, 1);
         this.createBoss(BossID.BLACK_GOKU, 2);
-        this.createBoss(BossID.SOI_HEC_QUYN1, 5);
-        this.createBoss(BossID.AN_TROM, 5);
-        // Một instance chỉ có thể đứng ở một map; tạo nhiều instance để mini boss
-        // cùng lúc được phân bổ trên các map khác nhau như các mini boss còn lại.
-        this.createBoss(BossID.THO_DAI_CA, 5);
-        this.createBoss(BossID.O_DO1, 5);
-        this.createBoss(BossID.Virut, 5);
+        this.createBoss(BossID.SOI_HEC_QUYN1, 2);
+        this.createBoss(BossID.AN_TROM, 2);
+        this.createBoss(BossID.O_DO1, 1);
         this.createBoss(BossID.BABY, 1);
-             this.createBoss(BossID.B, 1);
-        this.createBoss(BossID.MAT_TROI, 5);
-        loadGoldenFriezaByZone();
-    }
-
-    /** Fide vàng hoạt động đồng thời ở mọi khu map Đông Karin trong giờ 21h. */
-    private void loadGoldenFriezaByZone() {
-        nro.models.map.Map map = MapService.gI().getMapById(ConstMap.DONG_KARIN);
-        if (map == null || map.zones == null || map.zones.isEmpty()) {
-            createBoss(BossID.GOLDEN_FRIEZA);
-            return;
-        }
-        for (Zone zone : map.zones) {
-            Boss boss = createBoss(BossID.GOLDEN_FRIEZA);
-            if (boss != null) {
-                boss.setPanelSpawnZone(zone);
-            }
-        }
+        this.createBoss(BossID.B, 1);
+        this.createBoss(BossID.MAT_TROI, 2);
+        this.createBoss(BossID.THO_DAI_CA, 2);
+        this.createBoss(BossID.Virut, 2);
     }
 
     public void createBoss(int bossID, int total) {
@@ -202,29 +214,47 @@ public class BossManager implements Runnable {
     public Boss createBoss(int bossID, boolean scheduleInit) {
         Boss boss;
         try {
-            boss = switch (bossID) {               
+            boss = switch (bossID) {
                 case BossID.BROLY ->
                     new Broly();
-                     case BossID.KU ->
+                case BossID.KU ->
                     new Ku();
-                case BossID.TAP_SU_0 -> new YardratBoss(BossID.TAP_SU_0, BossesData.TAP_SU_0);
-                case BossID.TAP_SU_1 -> new YardratBoss(BossID.TAP_SU_1, BossesData.TAP_SU_1);
-                case BossID.TAP_SU_2 -> new YardratBoss(BossID.TAP_SU_2, BossesData.TAP_SU_2);
-                case BossID.TAP_SU_3 -> new YardratBoss(BossID.TAP_SU_3, BossesData.TAP_SU_3);
-                case BossID.TAP_SU_4 -> new YardratBoss(BossID.TAP_SU_4, BossesData.TAP_SU_4);
-                case BossID.TAN_BINH_5 -> new YardratBoss(BossID.TAN_BINH_5, BossesData.TAN_BINH_5);
-                case BossID.TAN_BINH_0 -> new YardratBoss(BossID.TAN_BINH_0, BossesData.TAN_BINH_0);
-                case BossID.TAN_BINH_1 -> new YardratBoss(BossID.TAN_BINH_1, BossesData.TAN_BINH_1);
-                case BossID.TAN_BINH_2 -> new YardratBoss(BossID.TAN_BINH_2, BossesData.TAN_BINH_2);
-                case BossID.TAN_BINH_3 -> new YardratBoss(BossID.TAN_BINH_3, BossesData.TAN_BINH_3);
-                case BossID.TAN_BINH_4 -> new YardratBoss(BossID.TAN_BINH_4, BossesData.TAN_BINH_4);
-                case BossID.CHIEN_BINH_5 -> new YardratBoss(BossID.CHIEN_BINH_5, BossesData.CHIEN_BINH_5);
-                case BossID.CHIEN_BINH_0 -> new YardratBoss(BossID.CHIEN_BINH_0, BossesData.CHIEN_BINH_0);
-                case BossID.CHIEN_BINH_1 -> new YardratBoss(BossID.CHIEN_BINH_1, BossesData.CHIEN_BINH_1);
-                case BossID.CHIEN_BINH_2 -> new YardratBoss(BossID.CHIEN_BINH_2, BossesData.CHIEN_BINH_2);
-                case BossID.CHIEN_BINH_3 -> new YardratBoss(BossID.CHIEN_BINH_3, BossesData.CHIEN_BINH_3);
-                case BossID.CHIEN_BINH_4 -> new YardratBoss(BossID.CHIEN_BINH_4, BossesData.CHIEN_BINH_4);
-                case BossID.DOI_TRUONG_5 -> new YardratBoss(BossID.DOI_TRUONG_5, BossesData.DOI_TRUONG_5);
+                case BossID.TAP_SU_0 ->
+                    new TAPSU0();
+                case BossID.TAP_SU_1 ->
+                    new TAPSU1();
+                case BossID.TAP_SU_2 ->
+                    new TAPSU2();
+                case BossID.TAP_SU_3 ->
+                    new TAPSU3();
+                case BossID.TAP_SU_4 ->
+                    new TAPSU4();
+                case BossID.TAN_BINH_5 ->
+                    new TANBINH5();
+                case BossID.TAN_BINH_0 ->
+                    new TANBINH0();
+                case BossID.TAN_BINH_1 ->
+                    new TANBINH1();
+                case BossID.TAN_BINH_2 ->
+                    new TANBINH2();
+                case BossID.TAN_BINH_3 ->
+                    new TANBINH3();
+                case BossID.TAN_BINH_4 ->
+                    new TANBINH4();
+                case BossID.CHIEN_BINH_5 ->
+                    new CHIENBINH5();
+                case BossID.CHIEN_BINH_0 ->
+                    new CHIENBINH0();
+                case BossID.CHIEN_BINH_1 ->
+                    new CHIENBINH1();
+                case BossID.CHIEN_BINH_2 ->
+                    new CHIENBINH2();
+                case BossID.CHIEN_BINH_3 ->
+                    new CHIENBINH3();
+                case BossID.CHIEN_BINH_4 ->
+                    new CHIENBINH4();
+                case BossID.DOI_TRUONG_5 ->
+                    new DOITRUONG5();
                 case BossID.SO_4 ->
                     new SO4();
                 case BossID.SO_3 ->
@@ -333,16 +363,16 @@ public class BossManager implements Runnable {
                     new NhatThan();
                 case BossID.GOLDEN_FRIEZA ->
                     new GoldenFrieza();
-                // case BossID.DEATH_BEAM_1 ->
-                //     new DeathBeam1();
-                // case BossID.DEATH_BEAM_2 ->
-                //     new DeathBeam2();
-                // case BossID.DEATH_BEAM_3 ->
-                //     new DeathBeam3();
-                // case BossID.DEATH_BEAM_4 ->
-                //     new DeathBeam4();
-                // case BossID.DEATH_BEAM_5 ->
-                //     new DeathBeam5();
+                case BossID.DEATH_BEAM_1 ->
+                    new DeathBeam1();
+                case BossID.DEATH_BEAM_2 ->
+                    new DeathBeam2();
+                case BossID.DEATH_BEAM_3 ->
+                    new DeathBeam3();
+                case BossID.DEATH_BEAM_4 ->
+                    new DeathBeam4();
+                case BossID.DEATH_BEAM_5 ->
+                    new DeathBeam5();
                 case BossID.BIMA ->
                     new BiMa();
                 case BossID.MATROI ->
@@ -365,19 +395,19 @@ public class BossManager implements Runnable {
                     new Virut();
                 case BossID.MAT_TROI ->
                     new MatTroi();
+                case BossID.THO_DAI_CA ->
+                    new ThoDaiCa();
                 case BossID.BLACK_GOKU ->
                     new BlackGoku();
                 case BossID.CUMBER ->
                     new Cumber();
                 case BossID.AN_TROM ->
                     new AnTrom();
-                case BossID.THO_DAI_CA ->
-                    new ThoDaiCa();
                 case BossID.RONG_NHI ->
                     new RongNhi();
                 case BossID.BABY ->
                     new Baby();
-                          case BossID.B ->
+                case BossID.B ->
                     new B();
                 default -> {
                     Logger.error("createBoss: chưa hỗ trợ boss id=" + bossID + "\n");
@@ -415,10 +445,23 @@ public class BossManager implements Runnable {
             msg = new Message(-96);
             msg.writer().writeByte(0);
             msg.writer().writeUTF("Boss");
-            msg.writer().writeByte((int) bosses.stream().filter(boss -> !MapService.gI().isMapBossFinal(boss.data[0].getMapJoin()[0]) && !MapService.gI().isMapHuyDiet(boss.data[0].getMapJoin()[0]) && !MapService.gI().isMapCadic(boss.data[0].getMapJoin()[0]) && !MapService.gI().isMapYardart(boss.data[0].getMapJoin()[0]) && !MapService.gI().isMapMaBu(boss.data[0].getMapJoin()[0]) && !MapService.gI().isMapBlackBallWar(boss.data[0].getMapJoin()[0])).count());
+            msg.writer()
+                    .writeByte((int) bosses.stream()
+                            .filter(boss -> !MapService.gI().isMapBossFinal(boss.data[0].getMapJoin()[0])
+                                    && !MapService.gI().isMapHuyDiet(boss.data[0].getMapJoin()[0])
+                                    && !MapService.gI().isMapCadic(boss.data[0].getMapJoin()[0])
+                                    && !MapService.gI().isMapYardart(boss.data[0].getMapJoin()[0])
+                                    && !MapService.gI().isMapMaBu(boss.data[0].getMapJoin()[0])
+                                    && !MapService.gI().isMapBlackBallWar(boss.data[0].getMapJoin()[0]))
+                            .count());
             for (int i = 0; i < bosses.size(); i++) {
                 Boss boss = this.bosses.get(i);
-                if (MapService.gI().isMapBossFinal(boss.data[0].getMapJoin()[0]) || MapService.gI().isMapCadic(boss.data[0].getMapJoin()[0]) || MapService.gI().isMapYardart(boss.data[0].getMapJoin()[0]) || MapService.gI().isMapHuyDiet(boss.data[0].getMapJoin()[0]) || MapService.gI().isMapMaBu(boss.data[0].getMapJoin()[0]) || MapService.gI().isMapBlackBallWar(boss.data[0].getMapJoin()[0])) {
+                if (MapService.gI().isMapBossFinal(boss.data[0].getMapJoin()[0])
+                        || MapService.gI().isMapCadic(boss.data[0].getMapJoin()[0])
+                        || MapService.gI().isMapYardart(boss.data[0].getMapJoin()[0])
+                        || MapService.gI().isMapHuyDiet(boss.data[0].getMapJoin()[0])
+                        || MapService.gI().isMapMaBu(boss.data[0].getMapJoin()[0])
+                        || MapService.gI().isMapBlackBallWar(boss.data[0].getMapJoin()[0])) {
                     continue;
                 }
                 msg.writer().writeInt(i);
@@ -432,7 +475,8 @@ public class BossManager implements Runnable {
                 msg.writer().writeUTF(boss.data[0].getName());
                 if (boss.zone != null) {
                     msg.writer().writeUTF(boss.bossStatus.toString());
-                    msg.writer().writeUTF(boss.zone.map.mapName + "(" + boss.zone.map.mapId + ") khu " + boss.zone.zoneId + "");
+                    msg.writer().writeUTF(
+                            boss.zone.map.mapName + "(" + boss.zone.map.mapId + ") khu " + boss.zone.zoneId + "");
                 } else {
                     String status = boss.bossStatus.toString();
                     if (boss.bossStatus == nro.models.consts.BossStatus.REST
@@ -459,15 +503,38 @@ public class BossManager implements Runnable {
     }
 
     public boolean checkBosses(Zone zone, int BossID) {
-        return this.bosses.stream().filter(boss -> boss.id == BossID && boss.zone != null && boss.zone.equals(zone) && !boss.isDie()).findFirst().orElse(null) != null;
+        return this.bosses.stream()
+                .filter(boss -> boss.id == BossID && boss.zone != null && boss.zone.equals(zone) && !boss.isDie())
+                .findFirst().orElse(null) != null;
+    }
+
+    public boolean hasBossInZone(Zone zone) {
+        if (zone == null) {
+            return false;
+        }
+        return this.bosses.stream()
+                .anyMatch(boss -> boss != null && boss.zone != null && boss.zone.equals(zone) && !boss.isDie());
+    }
+
+    public boolean hasMiniBossInZone(Zone zone) {
+        if (zone == null) {
+            return false;
+        }
+        return this.bosses.stream()
+                .anyMatch(boss -> boss != null && boss.zone != null && boss.zone.equals(zone) && !boss.isDie()
+                        && (boss.id == BossID.O_DO1 || boss.id == BossID.THO_DAI_CA || boss.id == BossID.SOI_HEC_QUYN1
+                                || boss.id == BossID.AN_TROM || boss.id == BossID.MAT_TROI || boss.id == BossID.Virut || boss.id == BossID.RONG_NHI));
     }
 
     public Player findBossClone(Player player) {
-        return player.zone.getBosses().stream().filter(boss -> boss.id < -100_000_000 && !boss.isDie()).findFirst().orElse(null);
+        return player.zone.getBosses().stream().filter(boss -> boss.id < -100_000_000 && !boss.isDie()).findFirst()
+                .orElse(null);
     }
 
     public Boss getBossById(int bossId, int mapId, int zoneId) {
-        return this.bosses.stream().filter(boss -> boss.id == bossId && boss.zone != null && boss.zone.map.mapId == mapId && boss.zone.zoneId == zoneId && !boss.isDie()).findFirst().orElse(null);
+        return this.bosses.stream().filter(boss -> boss.id == bossId && boss.zone != null
+                && boss.zone.map.mapId == mapId && boss.zone.zoneId == zoneId && !boss.isDie()).findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -476,11 +543,15 @@ public class BossManager implements Runnable {
             try {
                 long st = System.currentTimeMillis();
                 for (Boss boss : this.bosses) {
-                    boss.update();
+                    if (boss != null) {
+                        try {
+                            boss.update();
+                        } catch (Exception e) {
+                            Logger.error("Lỗi cập nhật boss " + boss.name + ": " + e.getMessage() + "\n");
+                        }
+                    }
                 }
-                // Chỉ manager chính quét Super Broly: các manager chuyên biệt kế thừa
-                // run() này và sẽ gọi trùng nếu không chặn.
-                if (this == instance) {
+                if (this instanceof BrolyManager || this.getClass() == BrolyManager.class) {
                     BrolySpawnGate.tickNaturalSuperBrolySpawn();
                 }
                 long sleepTime = 1500 - (System.currentTimeMillis() - st);

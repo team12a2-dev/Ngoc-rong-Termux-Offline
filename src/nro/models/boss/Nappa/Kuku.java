@@ -17,7 +17,7 @@ public class Kuku extends Boss {
     private long st;
 
     public Kuku() throws Exception {
-        super(BossID.KUKU, true, true, BossesData.KUKU);
+        super(BossID.KUKU, true, false, BossesData.KUKU);
     }
 
     @Override
@@ -42,10 +42,9 @@ public class Kuku extends Boss {
     //     }
     // }
     @Override
-public void reward(Player plKill) {
-    // Chỉ check hoàn thành nhiệm vụ, không reward gì thêm
-    TaskService.gI().checkDoneTaskKillBoss(plKill, this);
-}
+    public void reward(Player plKill) {
+        NappaRewardHelper.dropReward(this, plKill, nro.models.consts.ConstItem.CAI_TRANG_KUKU);
+    }
     @Override
     public void autoLeaveMap() {
         if (Util.canDoWithTime(st, 900000)) {

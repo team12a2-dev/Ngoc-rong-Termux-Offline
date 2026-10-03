@@ -27,8 +27,8 @@ import nro.models.services.shenron.SummonDragonNamek;
  * @author By AmodsubVN
  */
 public class Client implements Runnable {
-    private static final long FIRST_AUTO_SAVE_DELAY = 5 * 60 * 1000L;
-    private static final long AUTO_SAVE_INTERVAL = 180 * 1000L;
+    private static final long FIRST_AUTO_SAVE_DELAY = 60 * 1000L;
+    private static final long AUTO_SAVE_INTERVAL = 90 * 1000L;
     private static Client instance;
     private final Map<Long, Player> players_id = new HashMap<>();
     private final Map<Integer, Player> players_userId = new HashMap<>();
@@ -70,7 +70,7 @@ public class Client implements Runnable {
     public void startAutoSave() {
         if (this.nextAutoSaveTime < 0) {
             this.nextAutoSaveTime = System.currentTimeMillis() + FIRST_AUTO_SAVE_DELAY;
-            Logger.success("AUTO SAVE PLAYER WILL START AFTER 5 MINUTES\n");
+            Logger.success("AUTO SAVE PLAYER WILL START AFTER 1 MINUTE\n");
         }
     }
 
@@ -110,6 +110,7 @@ public class Client implements Runnable {
             ChangeMapService.gI().exitMap(player);
             TransactionService.gI().cancelTrade(player);
             if (player.clan != null) {
+                player.setClanMember();
                 player.clan.removeMemberOnline(null, player);
             }
             if (SummonDragon.gI().playerSummonShenron != null && SummonDragon.gI().playerSummonShenron.id == player.id) {

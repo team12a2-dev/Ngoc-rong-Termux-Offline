@@ -32,7 +32,7 @@ public class PetService {
                     player.pet.nPoint.limitPower = limitPower[0];
                 }
                 Thread.sleep(1000);
-                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận tao làm đệ tử");
+                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận con làm đệ tử");
             } catch (Exception e) {
             }
         }).start();
@@ -46,7 +46,7 @@ public class PetService {
                     player.pet.nPoint.limitPower = limitPower[0];
                 }
                 Thread.sleep(1000);
-                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận tao làm đệ tử");
+                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận con làm đệ tử");
             } catch (Exception e) {
             }
         }).start();
@@ -88,7 +88,21 @@ public class PetService {
                     player.pet.nPoint.limitPower = limitPower[0];
                 }
                 Thread.sleep(1000);
-                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận tao làm đệ tử");
+                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận con làm đệ tử");
+            } catch (Exception e) {
+            }
+        }).start();
+    }
+
+    public void createUubPet(Player player, int gender, byte... limitPower) {
+        new Thread(() -> {
+            try {
+                createNewPet(player, false, true, false, false, (byte) gender);
+                if (limitPower != null && limitPower.length == 1) {
+                    player.pet.nPoint.limitPower = limitPower[0];
+                }
+                Thread.sleep(1000);
+                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận con làm đệ tử");
             } catch (Exception e) {
             }
         }).start();
@@ -97,12 +111,26 @@ public class PetService {
     public void createJirenPet(Player player, byte... limitPower) {
         new Thread(() -> {
             try {
-                createNewPet(player, false, false, false,true, (byte) player.gender);
+                createNewPet(player, false, false, false, true, (byte) player.gender);
                 if (limitPower != null && limitPower.length == 1) {
                     player.pet.nPoint.limitPower = limitPower[0];
                 }
                 Thread.sleep(1000);
-                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận tao làm đệ tử");
+                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận con làm đệ tử");
+            } catch (Exception e) {
+            }
+        }).start();
+    }
+
+    public void createJirenPet(Player player, int gender, byte... limitPower) {
+        new Thread(() -> {
+            try {
+                createNewPet(player, false, false, false, true, (byte) gender);
+                if (limitPower != null && limitPower.length == 1) {
+                    player.pet.nPoint.limitPower = limitPower[0];
+                }
+                Thread.sleep(1000);
+                Service.gI().chatJustForMe(player, player.pet, "Xin hãy thu nhận con làm đệ tử");
             } catch (Exception e) {
             }
         }).start();
@@ -122,7 +150,24 @@ public class PetService {
         }).start();
     }
 
+    public void createKidBeerPet(Player player, int gender, byte... limitPower) {
+        new Thread(() -> {
+            try {
+                createNewPet(player, false, false, true, false, (byte) gender);
+                if (limitPower != null && limitPower.length == 1) {
+                    player.pet.nPoint.limitPower = limitPower[0];
+                }
+                Thread.sleep(1000);
+                Service.gI().chatJustForMe(player, player.pet, "Hãy hợp tác với ta, Kakarot!");
+            } catch (Exception e) {
+            }
+        }).start();
+    }
+
     public void changeNormalPet(Player player, int gender) {
+        if (player.pet == null) {
+            return;
+        }
         byte limitPower = player.pet.nPoint.limitPower;
         if (player.fusion.typeFusion != ConstPlayer.NON_FUSION) {
             player.pet.unFusion();
@@ -134,6 +179,9 @@ public class PetService {
     }
 
     public void changeNormalPet(Player player) {
+        if (player.pet == null) {
+            return;
+        }
         byte limitPower = player.pet.nPoint.limitPower;
         if (player.fusion.typeFusion != ConstPlayer.NON_FUSION) {
             player.pet.unFusion();
@@ -145,6 +193,9 @@ public class PetService {
     }
 
     public void changeMabuPet(Player player) {
+        if (player.pet == null) {
+            return;
+        }
         byte limitPower = player.pet.nPoint.limitPower;
         if (player.fusion.typeFusion != ConstPlayer.NON_FUSION) {
             player.pet.unFusion();
@@ -156,39 +207,54 @@ public class PetService {
     }
 
     public void changeUubPet(Player player) {
+        if (player.pet == null) {
+            return;
+        }
         byte limitPower = player.pet.nPoint.limitPower;
+        byte gender = player.pet.gender;
         if (player.fusion.typeFusion != ConstPlayer.NON_FUSION) {
             player.pet.unFusion();
         }
         ChangeMapService.gI().exitMap(player.pet);
         player.pet.dispose();
         player.pet = null;
-        createUubPet(player, player.pet.gender, limitPower);
+        createUubPet(player, gender, limitPower);
     }
 
     public void changeKidBeerPet(Player player) {
+        if (player.pet == null) {
+            return;
+        }
         byte limitPower = player.pet.nPoint.limitPower;
+        byte gender = player.pet.gender;
         if (player.fusion.typeFusion != ConstPlayer.NON_FUSION) {
             player.pet.unFusion();
         }
         ChangeMapService.gI().exitMap(player.pet);
         player.pet.dispose();
         player.pet = null;
-        createKidBeerPet(player, player.pet.gender, limitPower);
+        createKidBeerPet(player, gender, limitPower);
     }
     
     public void changeJirenPet(Player player) {
+        if (player.pet == null) {
+            return;
+        }
         byte limitPower = player.pet.nPoint.limitPower;
+        byte gender = player.pet.gender;
         if (player.fusion.typeFusion != ConstPlayer.NON_FUSION) {
             player.pet.unFusion();
         }
         ChangeMapService.gI().exitMap(player.pet);
         player.pet.dispose();
         player.pet = null;
-        createKidBeerPet(player, player.pet.gender, limitPower);
+        createJirenPet(player, gender, limitPower);
     }
 
     public void changeMabuPet(Player player, int gender) {
+        if (player.pet == null) {
+            return;
+        }
         byte limitPower = player.pet.nPoint.limitPower;
         if (player.fusion.typeFusion != ConstPlayer.NON_FUSION) {
             player.pet.unFusion();

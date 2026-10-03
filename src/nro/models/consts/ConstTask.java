@@ -37,15 +37,6 @@ public class ConstTask {
     public static final byte NPC_SHOP_LANG = -4;
     public static final byte NPC_QUY_LAO = -5;
 public static final int NPC_BO_MONG = 17;
-
-    //id nhiệm vụ chính, dùng khi cần so sánh trực tiếp TaskMain.id
-    //(đánh số riêng vì ConstTask.TASK_N_M = N * 2048 + M * 2, không phải bản thân N)
-    //22 = "Chú bé đến từ tương lai", nhiệm vụ của Calích. Jaco được mở khoá từ đây.
-    public static final int TASK_MAIN_22_CALICH = 22;
-    //hai bước cuối của nhiệm vụ 22: tìm Jaco ở Trạm tàu vũ trụ rồi tới hành tình Potaufeu
-    public static final int TASK_22_STEP_JACO = 6;
-    public static final int TASK_22_STEP_POTAUFEU = 7;
-
     //const change text
     public static final String TEN_LANG = "%1";
     public static final String TEN_NPC_NHA = "%2";

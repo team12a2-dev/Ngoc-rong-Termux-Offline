@@ -4,6 +4,7 @@ import { authMiddleware, requirePermission } from '../middleware/auth.js';
 import { auditLog } from '../services/audit.js';
 import { reloadGodSpin } from '../services/liveSync.js';
 import { getDefaultServerId } from '../services/serverRegistry.js';
+import { generateGodSpinOptionsWithAI } from '../services/aiGodSpinService.js';
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -78,12 +79,22 @@ function normalizeItem(body = {}, index = 0) {
   if (!Array.isArray(options)) throw new Error(`Item #${index + 1}: options phải là mảng.`);
   const hasExpiryOption = options.some((option) => Number(option?.id ?? option?.optionId) === 93);
   if (!isPermanent && (!durationDays || durationDays < 1) && !hasExpiryOption) throw new Error(`Item #${index + 1}: item có thời hạn phải có số ngày >= 1.`);
-  const normalizedOptions = options.slice(0, 50).map((option) => ({
-    id: integer(option?.id ?? option?.optionId, -1, 0, 2147483647),
-    param: integer(option?.param, 0, -2147483647, 2147483647),
-    min: option?.min == null ? undefined : integer(option.min, 0, -2147483647, 2147483647),
-    max: option?.max == null ? undefined : integer(option.max, 0, -2147483647, 2147483647),
-  })).filter((option) => option.id >= 0 && (isPermanent ? option.id !== 93 : true));
+  const normalizedOptions = options.slice(0, 50).map((option) => {
+    const id = integer(option?.id ?? option?.optionId, -1, 0, 2147483647);
+    const hasRange = option?.min != null && option?.min !== '' && option?.max != null && option?.max !== '';
+    const opt = {
+      id,
+      param: integer(option?.param, 0, -2147483647, 2147483647),
+    };
+    if (hasRange) {
+      opt.min = integer(option.min, 0, -2147483647, 2147483647);
+      opt.max = integer(option.max, 0, -2147483647, 2147483647);
+    }
+    if (option?.chancePermanent != null && option?.chancePermanent !== '') {
+      opt.chancePermanent = integer(option.chancePermanent, 0, 0, 100);
+    }
+    return opt;
+  }).filter((option) => option.id >= 0);
   return {
     tempId,
     weight: integer(body.weight, chancePercent == null ? 1 : Math.max(1, Math.round(chancePercent * 10000)), 1, 1000000000),
@@ -164,7 +175,21 @@ async function loadConfig(id, sid) {
 router.get('/catalog', requirePermission('godspin.view'), async (req, res) => {
   try {
     const q = String(req.query.q || '').trim();
-    const limit = Math.min(100, Math.max(1, integer(req.query.limit, 30, 1)));
+    const ids = String(req.query.ids || '').trim();
+    const limit = Math.min(200, Math.max(1, integer(req.query.limit, 30, 1)));
+    if (ids) {
+      const idList = ids.split(/[, \s]+/).map((s) => parseInt(s.trim(), 10)).filter((n) => !isNaN(n) && n >= 0);
+      if (idList.length) {
+        const placeholders = idList.map(() => '?').join(',');
+        const rows = await query(
+          `SELECT id, NAME AS name, icon_id AS iconId, description, level
+           FROM item_template WHERE id IN (${placeholders})
+           ORDER BY FIELD(id, ${placeholders})`, [...idList, ...idList]
+        );
+        return res.json({ ok: true, data: rows });
+      }
+      return res.json({ ok: true, data: [] });
+    }
     const like = `%${q}%`;
     const rows = await query(
       `SELECT id, NAME AS name, icon_id AS iconId, description, level
@@ -342,6 +367,73 @@ router.delete('/:id', requirePermission('godspin.manage'), async (req, res) => {
     await auditLog({ userId: req.user?.id, serverId: sid, action: 'godspin.delete', target: `godspin:${id}`, response: { liveSync }, ip: req.ip });
     res.json({ ok: true, data: { id, liveSync } });
   } catch (error) { res.status(400).json({ ok: false, error: error.message }); }
+});
+
+router.post('/simulate', requirePermission('godspin.manage'), async (req, res) => {
+  try {
+    const { items, runs = 10000, costGold = 0, costGem = 0 } = req.body || {};
+    if (!Array.isArray(items) || !items.length) {
+      return res.status(400).json({ ok: false, error: 'Cần danh sách items để mô phỏng' });
+    }
+    const numRuns = Math.min(Math.max(Number(runs) || 1000, 100), 100000);
+    const validItems = items.filter((it) => (Number(it.chancePercent) || Number(it.weight) || 0) > 0);
+    if (!validItems.length) {
+      return res.status(400).json({ ok: false, error: 'Không có item nào có tỷ lệ > 0' });
+    }
+
+    const totalWeight = validItems.reduce((sum, it) => sum + (Number(it.chancePercent) || Number(it.weight) || 0), 0);
+    const counts = {};
+    validItems.forEach((it) => { counts[it.tempId || it.name] = 0; });
+
+    for (let i = 0; i < numRuns; i++) {
+      let rand = Math.random() * totalWeight;
+      for (const it of validItems) {
+        const w = Number(it.chancePercent) || Number(it.weight) || 0;
+        if (rand <= w) {
+          counts[it.tempId || it.name] = (counts[it.tempId || it.name] || 0) + 1;
+          break;
+        }
+        rand -= w;
+      }
+    }
+
+    const distribution = validItems.map((it) => {
+      const key = it.tempId || it.name;
+      const count = counts[key] || 0;
+      return {
+        tempId: it.tempId,
+        name: it.name,
+        expectedPercent: ((Number(it.chancePercent) || Number(it.weight) || 0) / totalWeight * 100).toFixed(2),
+        actualHits: count,
+        actualPercent: (count / numRuns * 100).toFixed(2),
+      };
+    });
+
+    res.json({
+      ok: true,
+      data: {
+        totalRuns: numRuns,
+        totalGoldCost: numRuns * Number(costGold || 0),
+        totalGemCost: numRuns * Number(costGem || 0),
+        distribution,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+router.post('/ai-generate-options', requirePermission('godspin.manage'), async (req, res) => {
+  try {
+    const { items, prompt, apiKey, model, theme } = req.body || {};
+    if (!Array.isArray(items) || !items.length) {
+      return res.status(400).json({ ok: false, error: 'Cần danh sách items để AI phân tích và gán option.' });
+    }
+    const result = await generateGodSpinOptionsWithAI({ items, prompt, apiKey, model, theme });
+    res.json({ ok: true, data: result });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
 });
 
 export default router;

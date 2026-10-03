@@ -170,13 +170,20 @@ public final class SuperRank implements Runnable {
         Player loser = SuperRankService.gI().loadPlayer(playerWon ? rivalId : playerId);
         winner.superRank.win++;
         loser.superRank.lose++;
-        if (!playerWon && loser.superRank.ticket > 0) {
-            loser.superRank.ticket--;
-        } else if (!playerWon && loser.inventory.getGem() > 0) {
-            loser.inventory.subGem(3);
-            Service.gI().sendMoney(loser);
-        } else if (playerWon && winner.superRank.ticket == 0 && winner.inventory.getGem() > 0) {
-            winner.inventory.subGem(2);
+        if (playerWon) {
+            if (winner.superRank.ticket > 0) {
+                winner.superRank.ticket--;
+            } else if (winner.inventory.getGem() > 0) {
+                winner.inventory.subGem(1);
+                Service.gI().sendMoney(winner);
+            }
+        } else {
+            if (loser.superRank.ticket > 0) {
+                loser.superRank.ticket--;
+            } else if (loser.inventory.getGem() > 0) {
+                loser.inventory.subGem(1);
+                Service.gI().sendMoney(loser);
+            }
         }
         winner.superRank.rank = rankWin;
         loser.superRank.rank = rankLose;
@@ -184,6 +191,10 @@ public final class SuperRank implements Runnable {
         loser.superRank.history("Thua " + winner.name + "[" + rankWin + "]", System.currentTimeMillis());
         SuperRankDAO.updatePlayer(winner);
         SuperRankDAO.updatePlayer(loser);
+        if (player != null && player.superRank != null) {
+            player.superRank.ticket = (playerWon ? winner : loser).superRank.ticket;
+            player.superRank.rank = (playerWon ? rankWin : rankLose);
+        }
         if (playerWon) {
             if (rankWin <= 10) {
                 ServerNotify.gI().notify(ConstSuperRank.TEXT_TOP_10.replaceAll("%1", winner.name).replaceAll("%2", rankWin + ""));

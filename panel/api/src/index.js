@@ -22,7 +22,6 @@ import setupRoutes from './routes/setup.js';
 import alertRoutes from './routes/alerts.js';
 import backupRoutes from './routes/backups.js';
 import assetRoutes from './routes/assets.js';
-import dataAssetRoutes from './routes/dataAssets.js';
 import itemRoutes from './routes/items.js';
 import runtimeRoutes from './routes/runtime.js';
 import dropConfigRoutes from './routes/dropConfig.js';
@@ -31,6 +30,11 @@ import bossConfigRoutes from './routes/bossConfig.js';
 import eventRoutes from './routes/events.js';
 import rechargePromotionRoutes from './routes/rechargePromotions.js';
 import godSpinRoutes from './routes/godSpin.js';
+import quickImportRoutes from './routes/quickImport.js';
+import mapRoutes from './routes/maps.js';
+import badgesRoutes from './routes/badges.js';
+import toolPartRoutes from './routes/toolPart.js';
+import serverLaunchRoutes from './routes/serverLaunches.js';
 
 import { authMiddleware, getMe, getJwtSecret } from './middleware/auth.js';
 import { getMetrics, getOnlinePlayers } from './services/agent.js';
@@ -47,11 +51,19 @@ const WEB_DIST = path.resolve(__dirname, '../../web/dist');
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
-const bindHost = process.env.PANEL_BIND_HOST || '127.0.0.1';
+const bindHost = process.env.PANEL_BIND_HOST || '0.0.0.0';
 const server = createServer(app);
 
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[unhandledRejection]', reason);
+});
+
 app.use(cors());
-app.use(express.json({ limit: '20mb' }));
+app.use(express.json({ limit: '200mb' }));
+app.use(express.urlencoded({ limit: '200mb', extended: true }));
 
 app.get('/api/v1/system/health', async (_req, res) => {
   try {
@@ -63,7 +75,6 @@ app.get('/api/v1/system/health', async (_req, res) => {
 });
 
 app.use('/api/v1/setup', setupRoutes);
-
 app.use('/api/v1/auth', authRoutes);
 app.get('/api/v1/auth/me', authMiddleware, async (req, res) => {
   try {
@@ -87,7 +98,6 @@ app.use('/api/v1/plugins', pluginRoutes);
 app.use('/api/v1/alerts', alertRoutes);
 app.use('/api/v1/backups', backupRoutes);
 app.use('/api/v1/assets', assetRoutes);
-app.use('/api/v1/data-assets', dataAssetRoutes);
 app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/runtime', runtimeRoutes);
 app.use('/api/v1/drop-config', dropConfigRoutes);
@@ -96,6 +106,11 @@ app.use('/api/v1/boss-config', bossConfigRoutes);
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/recharge-promotions', rechargePromotionRoutes);
 app.use('/api/v1/god-spin', godSpinRoutes);
+app.use('/api/v1/quick-import', quickImportRoutes);
+app.use('/api/v1/maps', mapRoutes);
+app.use('/api/v1/badges', badgesRoutes);
+app.use('/api/v1/tool-part', toolPartRoutes);
+app.use('/api/v1/server-launches', serverLaunchRoutes);
 
 // Serve the production React panel from the same origin as the API.
 // This keeps relative /api and /ws URLs working on localhost and LAN devices.
@@ -116,15 +131,36 @@ app.get('*', (req, res, next) => {
   });
 });
 
+app.use((err, _req, res, _next) => {
+  console.error('[express-error]', err);
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ ok: false, error: 'Dung lượng payload quá lớn (Payload Too Large).' });
+  }
+  res.status(err.status || 500).json({ ok: false, error: err.message || 'Lỗi hệ thống nội bộ' });
+});
+
 // WebSocket metrics stream
 const wss = new WebSocketServer({ server, path: '/ws/metrics' });
 const intervalMs = Number(process.env.METRICS_INTERVAL_MS || 5000);
 const playersEveryN = Math.max(1, Number(process.env.PLAYERS_POLL_EVERY_N || 2));
 
 wss.on('connection', (ws, req) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const token = url.searchParams.get('token');
-  const serverIdParam = url.searchParams.get('serverId');
+  ws.on('error', (err) => {
+    console.error('[WebSocket Error]', err?.message || err);
+  });
+
+  let token = null;
+  let currentServerId = null;
+
+  try {
+    const host = req.headers.host || '127.0.0.1';
+    const parsedUrl = new URL(req.url, `http://${host}`);
+    token = parsedUrl.searchParams.get('token');
+    currentServerId = parsedUrl.searchParams.get('serverId');
+  } catch (err) {
+    console.error('[WebSocket URL parse error]', err?.message || err);
+  }
+
   if (!token) {
     ws.close(4001, 'Unauthorized');
     return;
@@ -136,15 +172,17 @@ wss.on('connection', (ws, req) => {
     return;
   }
 
-  let timer;
+  let timer = null;
   let tick = 0;
   let lastPlayers = [];
+  let isPushing = false;
 
   async function pushMetrics() {
-    if (ws.readyState !== ws.OPEN) return;
+    if (ws.readyState !== ws.OPEN || isPushing) return;
+    isPushing = true;
     try {
       tick += 1;
-      const sid = Number(serverIdParam || await getDefaultServerId());
+      const sid = Number(currentServerId || await getDefaultServerId());
       let metrics = null;
       let agentError = null;
       try {
@@ -156,23 +194,48 @@ wss.on('connection', (ws, req) => {
         const playersRes = await getOnlinePlayers(sid).catch(() => null);
         lastPlayers = playersRes?.data ?? lastPlayers;
       }
-      ws.send(JSON.stringify({
-        type: 'metrics',
-        serverId: sid,
-        data: metrics?.data ?? null,
-        players: lastPlayers,
-        agentOnline: Boolean(metrics?.data),
-        agentError,
-      }));
+      if (ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'metrics',
+          serverId: sid,
+          data: metrics?.data ?? null,
+          players: lastPlayers,
+          agentOnline: Boolean(metrics?.data),
+          agentError,
+        }));
+      }
     } catch (e) {
-      ws.send(JSON.stringify({ type: 'error', error: e.message }));
+      if (ws.readyState === ws.OPEN) {
+        try {
+          ws.send(JSON.stringify({ type: 'error', error: e.message }));
+        } catch {}
+      }
+    } finally {
+      isPushing = false;
     }
   }
+
+  ws.on('message', (data) => {
+    try {
+      const msg = JSON.parse(data.toString());
+      if (msg.type === 'ping') {
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({ type: 'pong' }));
+        }
+      } else if (msg.type === 'change-server' && msg.serverId) {
+        currentServerId = msg.serverId;
+        tick = 0;
+        pushMetrics();
+      }
+    } catch {}
+  });
 
   pushMetrics();
   timer = setInterval(pushMetrics, intervalMs);
 
-  ws.on('close', () => clearInterval(timer));
+  ws.on('close', () => {
+    if (timer) clearInterval(timer);
+  });
 });
 
 server.on('error', (err) => {

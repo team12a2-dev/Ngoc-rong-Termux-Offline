@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, getServerId, setServerId } from '../api';
+import { fixMojibake } from '../utils/text';
 
 export default function ServerSelector() {
   const [servers, setServers] = useState([]);
@@ -26,7 +27,7 @@ export default function ServerSelector() {
     return (
       <div className="server-tag">
         <span className="server-tag-dot" aria-hidden="true" />
-        {servers[0].name}
+        {fixMojibake(servers[0].name)}
       </div>
     );
   }
@@ -34,7 +35,7 @@ export default function ServerSelector() {
   return (
     <select className="server-select" value={current} onChange={change}>
       {servers.map((s) => (
-        <option key={s.id} value={s.id}>{s.name} (#{s.id})</option>
+        <option key={s.id} value={s.id}>{fixMojibake(s.name)} (#{s.id})</option>
       ))}
     </select>
   );

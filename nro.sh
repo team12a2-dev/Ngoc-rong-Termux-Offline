@@ -21,7 +21,6 @@ SOURCE_CHECK_FILE="$STATE_DIR/source-check-at"
 SOURCE_UPDATE_LOG="$STATE_DIR/source-update.log"
 SOURCE_COMMIT_URL="${NRO_SOURCE_COMMIT_URL:-https://api.github.com/repos/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main}"
 SOURCE_ARCHIVE_URL="${NRO_SOURCE_ARCHIVE_URL:-https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/archive/refs/heads/main.tar.gz}"
-SOURCE_FEED_URL="${NRO_SOURCE_FEED_URL:-https://github.com/team12a2-dev/Ngoc-rong-Termux-Offline/commits/main.atom}"
 PANEL_ROOT="$ROOT/panel"
 PANEL_API_ROOT="$PANEL_ROOT/api"
 PANEL_WEB_ROOT="$PANEL_ROOT/web"
@@ -56,9 +55,6 @@ lan_addresses() {
   fi
   if [ -z "$out" ] && command -v ifconfig >/dev/null 2>&1; then
     out="$(ifconfig 2>/dev/null | awk '/inet / && $2 !~ /^127\\./ {print $2}' | paste -sd ' ' -)"
-  fi
-  if [ -z "$out" ] && command -v hostname >/dev/null 2>&1; then
-    out="$(hostname -I 2>/dev/null | tr -s ' \t' ' ' | sed 's/^ //;s/ $//')"
   fi
   printf '%s' "${out:-không phát hiện}"
 }
@@ -196,34 +192,26 @@ auto_update_source() {
   [ "${NRO_AUTO_UPDATE:-1}" != "0" ] || return 0
   command -v curl >/dev/null 2>&1 || { warn "Không có curl; bỏ qua kiểm tra cập nhật GitHub."; return 0; }
   ensure_layout
-  local current_sha remote_sha update_dir archive config_backup env_backup download_url now last_check check_interval since_check
+  local current_sha remote_sha update_dir archive config_backup env_backup download_url now last_check check_interval
   current_sha=""
   [ -f "$SOURCE_COMMIT_FILE" ] && current_sha="$(tr -d '[:space:]' < "$SOURCE_COMMIT_FILE")"
   now="$(date +%s)"
   last_check="$(cat "$SOURCE_CHECK_FILE" 2>/dev/null || printf '0')"
   check_interval="${NRO_UPDATE_CHECK_INTERVAL_SEC:-300}"
-  since_check=0
-  [[ "$last_check" =~ ^[0-9]+$ ]] && [ "$last_check" -gt 0 ] && since_check=$((now - last_check))
   if [ "${NRO_FORCE_UPDATE_CHECK:-0}" != "1" ] \
-      && [ "$since_check" -gt 0 ] && [ "$since_check" -lt "$check_interval" ]; then
-    say "Bỏ qua kiểm tra GitHub: lần gần nhất cách ${since_check}s, chu kỳ ${check_interval}s. Ép kiểm tra bằng NRO_FORCE_UPDATE_CHECK=1."
+      && [[ "$last_check" =~ ^[0-9]+$ ]] && [ "$last_check" -gt 0 ] \
+      && [ $((now - last_check)) -lt "$check_interval" ]; then
     return 0
   fi
+  printf '%s\n' "$now" > "$SOURCE_CHECK_FILE"
   : > "$SOURCE_UPDATE_LOG"
   remote_sha="$(curl -fsSL --http1.1 --connect-timeout 10 --max-time 30 \
     -H 'Accept: application/vnd.github+json' "$SOURCE_COMMIT_URL" 2>>"$SOURCE_UPDATE_LOG" \
-    | sed -n 's/^{[^}]*"sha"[[:space:]]*:[[:space:]]*"\([0-9a-fA-F]\{40\}\)".*/\1/p' | head -n 1 || true)"
-  if ! [[ "$remote_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
-    printf '%s\n' "api.github.com không trả commit hợp lệ; thử lại bằng feed commits/main.atom" >>"$SOURCE_UPDATE_LOG"
-    remote_sha="$(curl -fsSL --http1.1 --connect-timeout 10 --max-time 30 \
-      "$SOURCE_FEED_URL" 2>>"$SOURCE_UPDATE_LOG" \
-      | sed -n 's/.*Grit::Commit\/\([0-9a-fA-F]\{40\}\).*/\1/p' | head -n 1 || true)"
-  fi
+    | sed -n 's/.*"sha"[[:space:]]*:[[:space:]]*"\([0-9a-fA-F]\{40\}\)".*/\1/p' | head -n 1 || true)"
   if ! [[ "$remote_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
     warn "Không kiểm tra được commit GitHub; server vẫn tiếp tục với source hiện tại. Log: $SOURCE_UPDATE_LOG"
     return 0
   fi
-  printf '%s\n' "$now" > "$SOURCE_CHECK_FILE"
   if [ "$current_sha" = "$remote_sha" ]; then
     say "Source đã đồng bộ với GitHub commit ${remote_sha:0:12}; bỏ qua tải lại."
     return 0
@@ -292,51 +280,9 @@ mysql_alive() {
   mariadb-admin --protocol=socket --socket="$DB_SOCKET" -uroot ping >/dev/null 2>&1
 }
 
-# Nếu MariaDB thiếu --skip-name-resolve thì nó reverse-DNS client và đối chiếu
-# grant theo tên/IP phân giải được, khiến kết nối tới 127.0.0.1 vẫn bị từ chối
-# với "Host '<IP Wi-Fi>' is not allowed to connect".
-# Trả về: 1 = đang tắt reverse DNS (đúng), 0 = đang bật (sai), rỗng = không đọc được.
-database_resolve_state() {
-  mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse \
-    "SELECT @@global.skip_name_resolve" 2>/dev/null | tr -d '[:space:]' | tr 'A-Z' 'a-z'
-}
-
-stop_database() {
-  if ! mysql_alive; then
-    rm -f "$DB_SOCKET" "$DB_PID"
-    return 0
-  fi
-  say "Dừng MariaDB đang chạy"
-  mariadb-admin --protocol=socket --socket="$DB_SOCKET" -uroot shutdown >/dev/null 2>&1 || true
-  local i
-  for i in $(seq 1 30); do
-    mysql_alive || break
-    sleep 1
-  done
-  if mysql_alive; then
-    [ -f "$DB_PID" ] && kill "$(cat "$DB_PID" 2>/dev/null)" 2>/dev/null || true
-    sleep 2
-  fi
-  rm -f "$DB_SOCKET" "$DB_PID"
-}
-
 start_database() {
   init_database
-  if mysql_alive; then
-    case "$(database_resolve_state)" in
-      1|on|true)
-        return 0
-        ;;
-      0|off|false)
-        say "MariaDB đang chạy thiếu --skip-name-resolve; khởi động lại với cấu hình đúng"
-        stop_database
-        ;;
-      *)
-        warn "Không đọc được @@skip_name_resolve; giữ nguyên MariaDB đang chạy."
-        return 0
-        ;;
-    esac
-  fi
+  if mysql_alive; then return 0; fi
   say "Khởi động MariaDB cục bộ trên socket $DB_SOCKET"
   local server_bin
   server_bin="$(command -v mariadbd || command -v mysqld)"
@@ -380,19 +326,6 @@ ensure_database_user() {
 
   local escaped_password
   escaped_password="$(sql_escape "$password")"
-  # MariaDB đôi khi đối chiếu grant theo IP LAN của chính máy (reverse DNS khi
-  # thiếu --skip-name-resolve), nên cấp quyền cho các IP này luôn. An toàn vì
-  # MariaDB chỉ bind 127.0.0.1 nên không IP nào ngoài máy này tới được.
-  local grants="" host_ip
-  for host_ip in $(lan_addresses); do
-    case "$host_ip" in
-      ''|*[!0-9.]*) continue ;;
-    esac
-    grants="$grants
-CREATE USER IF NOT EXISTS '$DB_USER'@'$host_ip' IDENTIFIED BY '$escaped_password';
-ALTER USER '$DB_USER'@'$host_ip' IDENTIFIED BY '$escaped_password';
-GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'$host_ip';"
-  done
   say "Tạo/cập nhật database $DB_NAME và user nội bộ $DB_USER"
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot <<SQL
 CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -401,7 +334,7 @@ CREATE USER IF NOT EXISTS '$DB_USER'@'127.0.0.1' IDENTIFIED BY '$escaped_passwor
 ALTER USER '$DB_USER'@'localhost' IDENTIFIED BY '$escaped_password';
 ALTER USER '$DB_USER'@'127.0.0.1' IDENTIFIED BY '$escaped_password';
 GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'localhost';
-GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'127.0.0.1';$grants
+GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'127.0.0.1';
 FLUSH PRIVILEGES;
 SQL
 
@@ -412,23 +345,6 @@ SQL
   update_config "database.user" "$DB_USER"
   update_config "database.pass" "$password"
   update_config "server.port" "$GAME_PORT"
-  force_local_db_host
-}
-
-# MariaDB do nro.sh khởi động chỉ bind 127.0.0.1 và chỉ cấp quyền cho
-# 'user'@'localhost' + 'user'@'127.0.0.1'. Nếu database.host trỏ về chính
-# IP LAN của máy thì MariaDB trả lỗi "Host ... is not allowed to connect".
-force_local_db_host() {
-  local host
-  host="$(prop "database.host")"
-  [ -n "$host" ] || return 0
-  case "$host" in
-    localhost|localhost.localdomain|::1|127.*) return 0 ;;
-  esac
-  if printf ' %s ' "$(lan_addresses)" | grep -q " $host "; then
-    warn "database.host=$host là IP LAN của chính máy này; MariaDB chỉ nghe 127.0.0.1 nên sẽ bị từ chối. Đổi về 127.0.0.1."
-    update_config "database.host" "127.0.0.1"
-  fi
 }
 
 update_config() {
@@ -456,27 +372,6 @@ import_database() {
   say "Import schema và dữ liệu mẫu từ sql/ngocrong.sql"
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$SQL_FILE"
   sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
-}
-
-apply_yardart_mob_migration() {
-  local migration="$ROOT/sql/fix_yardart_mobs.sql"
-  [ -f "$migration" ] || die "Thiếu migration $migration."
-  say "Dọn payload mob thường trên map Yardart để dùng chuỗi boss đúng."
-  mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration"
-}
-
-apply_ve_tinh_shop_migration() {
-  local migration="$ROOT/sql/add_ve_tinh_shop.sql"
-  [ -f "$migration" ] || die "Thiếu migration $migration."
-  say "Bổ sung vệ tinh (Trí Lực/Trí Tuệ/Phòng Thủ/Sinh Lực) vào shop Uron."
-  mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration" >/dev/null
-}
-
-apply_bua_shop_migration() {
-  local migration="$ROOT/sql/fix_bua_shop.sql"
-  [ -f "$migration" ] || die "Thiếu migration $migration."
-  say "Đồng bộ shop bùa 1 giờ, 8 giờ và 1 tháng: đủ 10 môn, đúng giá, đúng thứ tự."
-  mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$migration"
 }
 
 backup_database() {
@@ -558,8 +453,7 @@ ensure_panel_admin_password() {
 panel_api_dependencies_ready() {
   [ -d "$PANEL_API_ROOT/node_modules/mysql2" ] \
     && [ -d "$PANEL_API_ROOT/node_modules/express" ] \
-    && [ -d "$PANEL_API_ROOT/node_modules/ws" ] \
-    && [ -d "$PANEL_API_ROOT/node_modules/pngjs" ]
+    && [ -d "$PANEL_API_ROOT/node_modules/ws" ]
 }
 panel_web_dependencies_ready() {
   [ -x "$PANEL_WEB_ROOT/node_modules/.bin/vite" ] \
@@ -840,9 +734,6 @@ start_server() {
   ensure_database_user
   automatic_backup_database
   import_database
-  apply_yardart_mob_migration
-  apply_ve_tinh_shop_migration
-  apply_bua_shop_migration
   build_server
   rm -f "$STATE_DIR/server.ready"
   local jvm_opts cp jar build_time source_commit
@@ -915,9 +806,6 @@ setup() {
   ensure_database_user
   automatic_backup_database
   import_database
-  apply_yardart_mob_migration
-  apply_ve_tinh_shop_migration
-  apply_bua_shop_migration
   build_server
   setup_panel
   if panel_alive; then
@@ -942,7 +830,7 @@ main() {
       fi
       ;;
     lan)
-      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
+      auto_update_source
       if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
         exec bash "$ROOT/nro.sh" "$@"
       fi
@@ -1002,8 +890,7 @@ main() {
       NRO_REBUILD=1 build_server
       ;;
     check-update)
-      [ "${NRO_AUTO_UPDATE:-1}" = "0" ] && warn "NRO_AUTO_UPDATE=0 đang tắt tự cập nhật; bỏ qua kiểm tra."
-      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
+      auto_update_source
       ;;
     panel)
       ensure_layout
@@ -1041,7 +928,7 @@ NRO_BACKUP_DIR, NRO_BACKUP_LOG, NRO_BACKUP_KEEP_DAYS, NRO_BACKUP_JOB_ID,
 NRO_BACKUP_PERIOD_MS, NRO_AUTO_BACKUP=0 nếu cần bỏ qua backup tự động,
 NRO_AUTO_UPDATE=0 nếu cần tắt tự cập nhật, NRO_UPDATE_CHECK_INTERVAL_SEC,
 NRO_SOURCE_COMMIT_URL, NRO_SOURCE_ARCHIVE_URL, JWT_SECRET, NRO_JVM_OPTS, NRO_LAN_IP.
-Mỗi lệnh start/restart/background/lan/check-update đều ép kiểm tra source GitHub; chỉ khi tạo tiến trình mới mới build lại Java.
+Mỗi lệnh start/restart/background/lan đều kiểm tra source GitHub; chỉ khi tạo tiến trình mới mới build lại Java.
 USAGE
       exit 2
       ;;

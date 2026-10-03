@@ -12,6 +12,7 @@ import nro.models.utils.Util;
 import java.util.ArrayList;
 import java.util.List;
 import nro.models.services.EffectSkillService;
+import nro.models.services.ItemTimeService;
 import nro.models.skill.Skill;
 
 /**
@@ -55,6 +56,12 @@ public class EffectSkin {
     public boolean isXChuong;
     public boolean isXDame;
     private long lastTimeTokuda;
+    private long lastTimeWowCrit;
+    private long lastTimeNgau;
+    private long lastTimeHoiHp10s;
+    private long lastTimeCoolBuff;
+    private long lastTimeBienCarot;
+    private long lastTimeBienSocola;
 
     public void update() {
         updateVoHinh();
@@ -68,6 +75,12 @@ public class EffectSkin {
             updateHoaDa();
             updateLamCham();
             updateXChuong();
+            updateWowCrit();
+            updateNgau();
+            updateHoiHp10s();
+            updateCoolBuff();
+            updateBienCarot();
+            updateBienSocola();
         }
 //            updateHalloween();
         if (!this.player.isBoss && !this.player.isPet && !player.isNewPet) {
@@ -305,12 +318,23 @@ public class EffectSkin {
         try {
             if (this.player.nPoint != null && this.player.nPoint.isHoaDa) {
                 if (Util.canDoWithTime(lastTimeHoaDa, 30000)) {
-                    List<Player> playersMap = this.player.zone.getNotBosses();
+                    List<Player> playersMap = this.player.zone.getHumanoids();
+                    boolean hasTarget = false;
                     for (int i = playersMap.size() - 1; i >= 0; i--) {
                         Player pl = playersMap.get(i);
-                        if (pl != null && pl.nPoint != null && !this.player.equals(pl) && !pl.isBoss && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
-                            EffectSkillService.gI().setIsStone(pl, 6000);
+                        if (pl != null && pl.nPoint != null && pl.effectSkill != null && !this.player.equals(pl) && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
+                            if (pl.nPoint.isHoaDa) {
+                                continue; // Miễn nhiễm nếu cũng đang mặc Cải trang Drabura
+                            }
+                            if (!pl.effectSkill.isStone) {
+                                EffectSkillService.gI().setIsStone(pl, 5000); // Chuẩn gốc: Hóa đá 5 giây
+                                Service.gI().chat(pl, "Bị hóa đá rồi!");
+                                hasTarget = true;
+                            }
                         }
+                    }
+                    if (hasTarget) {
+                        Service.gI().chat(this.player, "Phẹt...");
                     }
                     this.lastTimeHoaDa = System.currentTimeMillis();
                 }
@@ -323,16 +347,82 @@ public class EffectSkin {
     private void updateLamCham() {
         try {
             if (this.player.nPoint != null && this.player.nPoint.isLamCham) {
-                if (Util.canDoWithTime(lastTimeLamCham, 10000)) {
-                    List<Player> playersMap = this.player.zone.getNotBosses();
+                int timeLamCham = 5000;
+                int cooldownAfterLamCham = 5000; // Hồi 5 giây sau khi giải làm chậm (tổng 10s/lần)
+                if (Util.canDoWithTime(lastTimeLamCham, timeLamCham + cooldownAfterLamCham)) {
+                    List<Player> playersMap = this.player.zone.getHumanoids();
                     for (int i = playersMap.size() - 1; i >= 0; i--) {
                         Player pl = playersMap.get(i);
-                        if (pl != null && pl.nPoint != null && !this.player.equals(pl) && !pl.isBoss && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
+                        if (pl != null && pl.nPoint != null && pl.effectSkill != null && !this.player.equals(pl) && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
                             Service.gI().chat(pl, "Nặng quá!");
-                            EffectSkillService.gI().setIsLamCham(pl, 5000);
+                            EffectSkillService.gI().setIsLamCham(pl, timeLamCham);
                         }
                     }
                     this.lastTimeLamCham = System.currentTimeMillis();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateBienCarot() {
+        try {
+            if (this.player.nPoint != null && this.player.nPoint.isBienCarot) {
+                int timeCarot = 5000;
+                int cooldownAfterCarot = 25000;
+                if (Util.canDoWithTime(lastTimeBienCarot, timeCarot + cooldownAfterCarot)) {
+                    List<Player> playersMap = this.player.zone.getHumanoids();
+                    boolean hasTarget = false;
+                    for (int i = playersMap.size() - 1; i >= 0; i--) {
+                        Player pl = playersMap.get(i);
+                        if (pl != null && pl.nPoint != null && pl.effectSkill != null && !this.player.equals(pl) && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
+                            if (pl.nPoint.isBienCarot) {
+                                continue;
+                            }
+                            if (!pl.effectSkill.isSocola) {
+                                EffectSkillService.gI().setSocola(pl, System.currentTimeMillis(), timeCarot, 1);
+                                ItemTimeService.gI().sendItemTime(pl, 4082, timeCarot / 1000);
+                                Service.gI().chat(pl, "Củ cà rốt?!");
+                                hasTarget = true;
+                            }
+                        }
+                    }
+                    if (hasTarget) {
+                        Service.gI().chat(this.player, "Biến thành Cà rốt đi!");
+                    }
+                    this.lastTimeBienCarot = System.currentTimeMillis();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateBienSocola() {
+        try {
+            if (this.player.nPoint != null && this.player.nPoint.isBienSocola) {
+                int timeSocola = 30000; // Thời gian biến sôcôla: 30 giây
+                int cooldownAfterSocola = 30000; // Hồi chiêu sau khi giải sôcôla: 30 giây (tổng chu kỳ 60s)
+                if (Util.canDoWithTime(lastTimeBienSocola, timeSocola + cooldownAfterSocola)) {
+                    List<Player> playersMap = this.player.zone.getHumanoids();
+                    boolean hasTarget = false;
+                    for (int i = playersMap.size() - 1; i >= 0; i--) {
+                        Player pl = playersMap.get(i);
+                        if (pl != null && pl.nPoint != null && pl.effectSkill != null && !this.player.equals(pl) && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
+                            if (pl.nPoint.isBienSocola) {
+                                continue;
+                            }
+                            EffectSkillService.gI().setSocola(pl, System.currentTimeMillis(), timeSocola, 0);
+                            ItemTimeService.gI().sendItemTime(pl, 4133, timeSocola / 1000);
+                            Service.gI().chat(pl, "Bị biến thành Sôcôla rồi!");
+                            hasTarget = true;
+                        }
+                    }
+                    if (hasTarget) {
+                        Service.gI().chat(this.player, "Úm ba la Sôcôla!");
+                    }
+                    this.lastTimeBienSocola = System.currentTimeMillis();
                 }
             }
         } catch (Exception e) {
@@ -392,7 +482,7 @@ public class EffectSkin {
     //         e.printStackTrace();
     //     }
     // }
-    //giÃ¡p táº­p luyá»‡n
+    //giáp tập luyện
     private void updateTrainArmor() {
         if (Util.canDoWithTime(lastTimeAddTimeTrainArmor, 60000) && !Util.canDoWithTime(lastTimeAttack, 30000)) {
             if (this.player.nPoint.wearingTrainArmor) {
@@ -454,6 +544,90 @@ public class EffectSkin {
             }
         } else {
             isVoHinh = false;
+        }
+    }
+
+    private void updateWowCrit() {
+        try {
+            if (this.player.nPoint != null && this.player.nPoint.tlCritXQ > 0) {
+                if (Util.canDoWithTime(lastTimeWowCrit, 5000)) {
+                    List<Player> playersMap = this.player.zone.getNotBosses();
+                    for (int i = playersMap.size() - 1; i >= 0; i--) {
+                        Player pl = playersMap.get(i);
+                        if (pl != null && pl.nPoint != null && !pl.isBoss && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
+                            EffectSkillService.gI().setCritBuff(pl, 7000, player.nPoint.tlCritXQ);
+                        }
+                    }
+                    this.lastTimeWowCrit = System.currentTimeMillis();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateNgau() {
+        try {
+            if (this.player.nPoint != null && this.player.nPoint.tlNgauGiamDameXQ > 0) {
+                if (Util.canDoWithTime(lastTimeNgau, 5000)) {
+                    List<Player> playersMap = this.player.zone.getNotBosses();
+                    for (int i = playersMap.size() - 1; i >= 0; i--) {
+                        Player pl = playersMap.get(i);
+                        if (pl != null && pl.nPoint != null && !pl.isBoss && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
+                            EffectSkillService.gI().setGiamDameBuff(pl, 7000, player.nPoint.tlNgauGiamDameXQ);
+                        }
+                    }
+                    this.lastTimeNgau = System.currentTimeMillis();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateHoiHp10s() {
+        try {
+            if (this.player.nPoint != null && this.player.nPoint.tlHoiHp10sDongMinh > 0) {
+                if (Util.canDoWithTime(lastTimeHoiHp10s, 10000)) {
+                    int percent = this.player.nPoint.tlHoiHp10sDongMinh;
+                    if (!this.player.isDie() && this.player.nPoint.hp < this.player.nPoint.hpMax) {
+                        int hpAdd = (int) ((long) this.player.nPoint.hpMax * percent / 100L);
+                        PlayerService.gI().hoiPhuc(this.player, hpAdd, 0);
+                    }
+                    List<Player> playersMap = this.player.zone.getNotBosses();
+                    for (int i = playersMap.size() - 1; i >= 0; i--) {
+                        Player pl = playersMap.get(i);
+                        if (pl != null && pl.nPoint != null && !this.player.equals(pl) && !pl.isBoss && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
+                            if (pl.nPoint.hp < pl.nPoint.hpMax) {
+                                int hpAdd = (int) ((long) pl.nPoint.hpMax * percent / 100L);
+                                PlayerService.gI().hoiPhuc(pl, hpAdd, 0);
+                            }
+                        }
+                    }
+                    this.lastTimeHoiHp10s = System.currentTimeMillis();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateCoolBuff() {
+        try {
+            if (this.player.nPoint != null && this.player.nPoint.tlCoolDame > 0) {
+                if (Util.canDoWithTime(lastTimeCoolBuff, 5000)) {
+                    List<Player> playersMap = this.player.zone.getNotBosses();
+                    for (int i = playersMap.size() - 1; i >= 0; i--) {
+                        Player pl = playersMap.get(i);
+                        if (pl != null && pl.nPoint != null && !this.player.equals(pl) && !pl.isBoss && !pl.isDie() && Util.getDistance(this.player, pl) <= 200) {
+                            EffectSkillService.gI().setDameBuff(pl, 7000, player.nPoint.tlCoolDame);
+                        }
+                    }
+                    this.lastTimeCoolBuff = System.currentTimeMillis();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

@@ -1,0 +1,446 @@
+{
+  "sqlInjectionJava": [
+    {
+      "file": "src\\nro\\models\\database\\AmodsubVN.java",
+      "snippet": "executeUpdate(\"update account set last_time_login = '\" +"
+    },
+    {
+      "file": "src\\nro\\models\\database\\AmodsubVN.java",
+      "snippet": "executeUpdate(\"update account set last_time_login = '\" +"
+    },
+    {
+      "file": "src\\nro\\models\\database\\PlayerDAO.java",
+      "snippet": "executeUpdate(\"insert into player\"\n                    +"
+    },
+    {
+      "file": "src\\nro\\models\\database\\SuperRankDAO.java",
+      "snippet": "executeQuery(\"SELECT * FROM super_rank WHERE player_id = \" +"
+    },
+    {
+      "file": "src\\nro\\models\\database\\SuperRankDAO.java",
+      "snippet": "executeQuery(\"SELECT rank FROM super_rank WHERE player_id = \" +"
+    },
+    {
+      "file": "src\\nro\\models\\database\\SuperRankDAO.java",
+      "snippet": "executeUpdate(\"INSERT INTO `super_rank` (`player_id`, `rank`, `name`, `info`, `last_pk_time`, `last_reward_time`, `ticket`, `win`, `lose`, `history`)\"\n                    +"
+    },
+    {
+      "file": "src\\nro\\models\\database\\SuperRankDAO.java",
+      "snippet": "executeUpdate(\"UPDATE `super_rank` SET `rank` = ?, `name` = ?, `info` = ?,\"\n                    +"
+    }
+  ],
+  "unclosedResources": [],
+  "missingInputValidation": [
+    {
+      "caseName": "case BOTITEM -> {",
+      "lineNum": 151,
+      "code": "int slot = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case BOTITEM -> {",
+      "lineNum": 152,
+      "code": "int idBan = Integer.parseInt(text[1]);"
+    },
+    {
+      "caseName": "case BOTITEM -> {",
+      "lineNum": 153,
+      "code": "int idTraoDoi = Integer.parseInt(text[2]);"
+    },
+    {
+      "caseName": "case BOTITEM -> {",
+      "lineNum": 154,
+      "code": "int slot_TraoDoi = Integer.parseInt(text[3]);"
+    },
+    {
+      "caseName": "case BOTBOSS -> {",
+      "lineNum": 161,
+      "code": "int slot = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case BOTQUAI -> {",
+      "lineNum": 167,
+      "code": "int slot = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case BOTATTACKPLAYER -> {",
+      "lineNum": 174,
+      "code": "int slot = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case SEND_ITEM_OP -> {",
+      "lineNum": 274,
+      "code": "int idItemBuff = Integer.parseInt(text[1]);"
+    },
+    {
+      "caseName": "case SEND_ITEM_OP -> {",
+      "lineNum": 275,
+      "code": "int idOptionBuff = Integer.parseInt(text[2]);"
+    },
+    {
+      "caseName": "case SEND_ITEM_OP -> {",
+      "lineNum": 276,
+      "code": "int slOptionBuff = Integer.parseInt(text[3]);"
+    },
+    {
+      "caseName": "case SEND_ITEM_OP -> {",
+      "lineNum": 277,
+      "code": "int slItemBuff = Integer.parseInt(text[4]);"
+    },
+    {
+      "caseName": "case CON_SO_MAY_MAN_NGOC -> {",
+      "lineNum": 330,
+      "code": "int CSMM2 = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case CON_SO_MAY_MAN_VANG -> {",
+      "lineNum": 339,
+      "code": "int CSMM2 = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case CON_SO_MAY_MAN_GEM_MUC -> {",
+      "lineNum": 348,
+      "code": "int soChon = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case CON_SO_MAY_MAN_GEM_MUC -> {",
+      "lineNum": 349,
+      "code": "long mucCuoc = Long.parseLong(text[1]);"
+    },
+    {
+      "caseName": "case CON_SO_MAY_MAN_VANG_MUC -> {",
+      "lineNum": 360,
+      "code": "int soChon = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case CON_SO_MAY_MAN_VANG_MUC -> {",
+      "lineNum": 361,
+      "code": "long mucCuoc = Long.parseLong(text[1]);"
+    },
+    {
+      "caseName": "case GET_IT -> {",
+      "lineNum": 408,
+      "code": "int id = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case GET_IT -> {",
+      "lineNum": 409,
+      "code": "int op = Integer.parseInt(text[1]);"
+    },
+    {
+      "caseName": "case GET_IT -> {",
+      "lineNum": 410,
+      "code": "int pr = Integer.parseInt(text[2]);"
+    },
+    {
+      "caseName": "case GET_IT -> {",
+      "lineNum": 411,
+      "code": "int q = Integer.parseInt(text[3]);"
+    },
+    {
+      "caseName": "case CHOOSE_LEVEL_BDKB -> {",
+      "lineNum": 544,
+      "code": "int level = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case CHOOSE_LEVEL_KGHD -> {",
+      "lineNum": 557,
+      "code": "int level = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case CHOOSE_LEVEL_CDRD -> {",
+      "lineNum": 568,
+      "code": "int level = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case MBV -> {",
+      "lineNum": 579,
+      "code": "int mbv = Integer.parseInt(text[0]);"
+    },
+    {
+      "caseName": "case MBV -> {",
+      "lineNum": 580,
+      "code": "int nmbv = Integer.parseInt(text[1]);"
+    },
+    {
+      "caseName": "case MBV -> {",
+      "lineNum": 581,
+      "code": "int rembv = Integer.parseInt(text[2]);"
+    }
+  ],
+  "integerOverflowRisks": [
+    {
+      "file": "src\\nro\\models\\mob\\Mob.java:1813",
+      "line": "totalGold += totalGold * goldBonusPercent / 100;"
+    },
+    {
+      "file": "src\\nro\\models\\mob\\Mob.java:1848",
+      "line": "int goldMin = Math.max(5, (int) (root * 5));"
+    },
+    {
+      "file": "src\\nro\\models\\mob\\Mob.java:1849",
+      "line": "int goldMax = Math.max(goldMin + 1, (int) (root * 12));"
+    },
+    {
+      "file": "src\\nro\\models\\npc\\MagicTree.java:192",
+      "line": "int goldRequire = gold * (this.level <= 3 ? 1000 : 1000000);"
+    },
+    {
+      "file": "src\\nro\\models\\npc\\MagicTree.java:207",
+      "line": "int goldReturn = (gold * (this.level <= 3 ? 1000 : 1000000));"
+    },
+    {
+      "file": "src\\nro\\models\\services\\IntrinsicService.java:141",
+      "line": "int goldRequire = COST_OPEN[player.playerIntrinsic.countOpen] * 1000000;"
+    },
+    {
+      "file": "src\\nro\\models\\services_func\\LuckyRound.java:160",
+      "line": "int goldNeed = (count * goldPrice);"
+    },
+    {
+      "file": "src\\nro\\models\\services_func\\UseItem.java:1164",
+      "line": "int goldReward = Util.nextInt(minGold, maxGold) * 10;"
+    },
+    {
+      "file": "src\\nro\\models\\services_func\\UseItem.java:1340",
+      "line": "int goldAmount = baseGoldAmount + (baseGoldAmount * randomFactor / 100);"
+    }
+  ],
+  "concurrencyRisks": [],
+  "panelVulnerabilities": [
+    {
+      "file": "panel\\api\\src\\routes\\giftcodes.js",
+      "snippet": "query(\r\n      `SELECT id, NAME FROM item_template WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\giftcodes.js",
+      "snippet": "query(\r\n          `SELECT id, NAME FROM item_template WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\godSpin.js",
+      "snippet": "execute(`SELECT id FROM item_option_template WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\godSpin.js",
+      "snippet": "query(`SELECT COALESCE(SUM(l.spin_count), 0) AS totalSpins,\n                    COUNT(DISTINCT l.player_id) AS playerCount,\n                    COUNT(DISTINCT l.config_id) AS configCount\n             FROM panel_god_spin_logs l LEFT JOIN player p ON p.id = l.player_id\n             WHERE ${whereSql} AND l.item_id IS NOT NULL`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\godSpin.js",
+      "snippet": "query(`SELECT l.temp_id AS tempId, COALESCE(t.NAME, CONCAT('Item #', l.temp_id)) AS itemName,\n                    COALESCE(SUM(l.spin_count), 0) AS wins\n             FROM panel_god_spin_logs l\n             LEFT JOIN player p ON p.id = l.player_id\n             LEFT JOIN item_template t ON t.id = l.temp_id\n             WHERE ${whereSql} AND l.item_id IS NOT NULL\n             GROUP BY l.temp_id, t.NAME\n             ORDER BY wins DESC, l.temp_id ASC`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\godSpin.js",
+      "snippet": "query(`SELECT COUNT(*) AS total\n             FROM panel_god_spin_logs l LEFT JOIN player p ON p.id = l.player_id\n             WHERE ${whereSql} AND l.item_id IS NOT NULL`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\godSpin.js",
+      "snippet": "query(\n      `SELECT l.id, l.config_id AS configId, c.name AS configName, l.player_id AS playerId,\n              COALESCE(p.name, CONCAT('Player #', l.player_id)) AS playerName,\n              l.temp_id AS tempId, COALESCE(t.NAME, CONCAT('Item #', l.temp_id)) AS itemName,\n              l.spin_count AS spinCount, l.payload, l.created_at AS createdAt\n       FROM panel_god_spin_logs l\n       LEFT JOIN panel_god_spin_configs c ON c.id = l.config_id\n       LEFT JOIN player p ON p.id = l.player_id\n       LEFT JOIN item_template t ON t.id = l.temp_id\n       WHERE ${whereSql} AND l.item_id IS NOT NULL\n       ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\items.js",
+      "snippet": "query(\n      `SELECT COUNT(*) AS total, COALESCE(MAX(id), -1) AS max_id FROM item_template ${whereSql}`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\items.js",
+      "snippet": "query(\n      `SELECT id, type, gender, NAME, description, level, icon_id, part, is_up_to_up,\n              power_require, gold, gem, head, body, leg\n       FROM item_template\n       ${whereSql}\n       ${orderSql}\n       LIMIT ? OFFSET ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\players.js",
+      "snippet": "query(`UPDATE player SET ${sets.join(', ')} WHERE id = ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\players.js",
+      "snippet": "query(`UPDATE player SET ${sets.join(', ')} WHERE id = ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\players.js",
+      "snippet": "query(`UPDATE player SET ${col} = ? WHERE id = ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\quickImport.js",
+      "snippet": "query(\n        `SELECT id, name, type, icon_id, part FROM item_template WHERE id IN (${itemIds.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\quickImport.js",
+      "snippet": "query(\n        `SELECT id, type FROM part WHERE id IN (${partIds.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\quickImport.js",
+      "snippet": "query(\n        `SELECT head_id, avatar_id FROM head_avatar WHERE head_id IN (${headIds.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\quickImport.js",
+      "snippet": "query(\n        `SELECT id, name FROM flag_bag WHERE id IN (${fbIds.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\quickImport.js",
+      "snippet": "execute(\n            `SELECT id FROM item_template WHERE id IN (${itemIds.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\quickImport.js",
+      "snippet": "execute(\n            `SELECT id FROM part WHERE id IN (${partIds.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\quickImport.js",
+      "snippet": "execute(\n            `SELECT head_id FROM head_avatar WHERE head_id IN (${headIds.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\quickImport.js",
+      "snippet": "execute(\n            `SELECT id FROM flag_bag WHERE id IN (${fbIds.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\rankings.js",
+      "snippet": "query(\r\n      `SELECT p.id, p.name, p.clan_id, p.account_id, p.gender,\r\n              CAST(JSON_UNQUOTE(JSON_EXTRACT(p.data_point, '$[1]')) AS UNSIGNED) AS power,\r\n              c.NAME AS clan_name, a.username, a.vip\r\n       FROM player p\r\n       LEFT JOIN clan c ON c.id = p.clan_id\r\n       LEFT JOIN account a ON a.id = p.account_id\r\n       ${where}\r\n       ORDER BY power DESC\r\n       LIMIT ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\rankings.js",
+      "snippet": "query(\r\n      `SELECT p.id, p.name, p.clan_id, p.account_id, p.gender, p.data_point,\r\n              c.NAME AS clan_name, a.username, a.vip\r\n       FROM player p\r\n       LEFT JOIN clan c ON c.id = p.clan_id\r\n       LEFT JOIN account a ON a.id = p.account_id\r\n       ${fallbackWhere}\r\n       ORDER BY p.id DESC\r\n       LIMIT 2000`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\rankings.js",
+      "snippet": "query(\r\n      `SELECT id, username, tongnap, vnd, vip, event_point, last_time_login, ban\r\n       FROM account ${where}\r\n       ORDER BY tongnap DESC, vnd DESC\r\n       LIMIT ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\rankings.js",
+      "snippet": "query(\r\n      `SELECT p.id, p.name, p.account_id, p.clan_id, p.${metric.column} AS score,\r\n              c.NAME AS clan_name, a.username\r\n       FROM player p\r\n       LEFT JOIN clan c ON c.id = p.clan_id\r\n       LEFT JOIN account a ON a.id = p.account_id\r\n       ${where}\r\n       ORDER BY score DESC\r\n       LIMIT ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\rankings.js",
+      "snippet": "query(\r\n      `SELECT id, NAME, NAME_2, slogan, power_point, clan_point, LEVEL, max_member, create_time\r\n       FROM clan ${where}\r\n       ORDER BY ${sort.column} DESC\r\n       LIMIT ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\rankings.js",
+      "snippet": "query(\r\n      `SELECT id, player_id, name, rank, win, lose, ticket, last_pk_time, last_reward_time\r\n       FROM super_rank ${where}\r\n       ORDER BY rank ASC\r\n       LIMIT ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "query(\n    `SELECT id, NAME, icon_id, type, gender, power_require FROM item_template WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "query(\n        `SELECT id, NAME AS name, type, icon_id, gender FROM item_template\n         WHERE (NAME LIKE ? OR id = ? OR CAST(id AS CHAR) LIKE ?)${raceClause.sql}\n         ORDER BY CASE WHEN id = ? THEN 0 WHEN CAST(id AS CHAR) LIKE ? THEN 1 WHEN NAME LIKE ? THEN 2 ELSE 3 END, id\n         LIMIT ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "query(\n      `SELECT id, NAME AS name, type, icon_id, gender FROM item_template WHERE 1=1${raceClause.sql} ORDER BY id LIMIT ? OFFSET ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "query(\n      `SELECT id, NAME AS name, type, icon_id, gender FROM item_template WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "query(\n          `SELECT COUNT(DISTINCT id) AS c FROM item_shop WHERE tab_id IN (${ph}) AND is_sell = 1`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "execute(\n        `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM item_shop WHERE tab_id IN (${ph})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "execute(\n        `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM item_shop WHERE tab_id IN (${ph})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "query(`SELECT * FROM item_shop WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "execute(\n          `UPDATE item_shop SET\n             cost = COALESCE(?, cost),\n             type_sell = COALESCE(?, type_sell),\n             is_sell = COALESCE(?, is_sell),\n             icon_spec = COALESCE(?, icon_spec),\n             is_new = COALESCE(?, is_new)${genderOverride !== undefined ? ', gender_override = ?' : ''}\n           WHERE id = ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\shops.js",
+      "snippet": "execute(\n        `UPDATE item_shop SET\n           cost = COALESCE(?, cost),\n           type_sell = COALESCE(?, type_sell),\n           is_sell = COALESCE(?, is_sell),\n           icon_spec = COALESCE(?, icon_spec),\n           temp_id = COALESCE(?, temp_id),\n           sort_order = COALESCE(?, sort_order),\n           is_new = COALESCE(?, is_new)${genderOverride !== undefined ? ', gender_override = ?' : ''}\n         WHERE id = ?`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\routes\\usableItems.js",
+      "snippet": "query(`SELECT id FROM item_option_template WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\aiGiftcodeService.js",
+      "snippet": "query(\n        `SELECT id, NAME, type, gender, description, level, icon_id\n         FROM item_template WHERE id IN (${defaultIds.join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\aiGiftcodeService.js",
+      "snippet": "query(\n        `SELECT id, NAME, type, gender, description, level, icon_id\n         FROM item_template WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\exportItemService.js",
+      "snippet": "query(\n      `SELECT id, type, data FROM part WHERE id IN (${partIdList.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\exportItemService.js",
+      "snippet": "query(\n      `SELECT head_id, avatar_id FROM head_avatar WHERE head_id IN (${headIdsToCheck.map(() => '?').join(',')})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\exportItemService.js",
+      "snippet": "query(`DELETE FROM part WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\exportItemService.js",
+      "snippet": "query(`DELETE FROM head_avatar WHERE head_id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\exportItemService.js",
+      "snippet": "query(`SELECT * FROM item_template WHERE id IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\exportItemService.js",
+      "snippet": "query(\n      `SELECT id, NAME, part, head, body, leg FROM item_template WHERE id NOT IN (${placeholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\exportItemService.js",
+      "snippet": "query(`DELETE FROM part WHERE id IN (${pPlaceholders})`",
+      "type": "SQL Template Literal Injection"
+    },
+    {
+      "file": "panel\\api\\src\\services\\exportItemService.js",
+      "snippet": "query(`DELETE FROM head_avatar WHERE head_id IN (${hPlaceholders})`",
+      "type": "SQL Template Literal Injection"
+    }
+  ]
+}

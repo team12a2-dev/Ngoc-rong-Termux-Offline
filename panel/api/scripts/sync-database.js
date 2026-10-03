@@ -186,6 +186,35 @@ async function main() {
     console.log('✓ Added time-aware drop item unique index');
   }
 
+  // Migration for spread drop columns
+  const [spreadMinCol] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND column_name = 'spread_count_min'`,
+    [dbConfig.database]
+  );
+  if (Number(spreadMinCol[0].c) === 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items ADD COLUMN spread_count_min INT UNSIGNED NOT NULL DEFAULT 1 AFTER quantity_max');
+    console.log('✓ Added panel_map_drop_items.spread_count_min');
+  }
+  const [spreadMaxCol] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND column_name = 'spread_count_max'`,
+    [dbConfig.database]
+  );
+  if (Number(spreadMaxCol[0].c) === 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items ADD COLUMN spread_count_max INT UNSIGNED NOT NULL DEFAULT 1 AFTER spread_count_min');
+    console.log('✓ Added panel_map_drop_items.spread_count_max');
+  }
+  const [spreadDistCol] = await conn.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = 'panel_map_drop_items' AND column_name = 'spread_distance'`,
+    [dbConfig.database]
+  );
+  if (Number(spreadDistCol[0].c) === 0) {
+    await conn.query('ALTER TABLE panel_map_drop_items ADD COLUMN spread_distance SMALLINT UNSIGNED NOT NULL DEFAULT 25 AFTER spread_count_max');
+    console.log('✓ Added panel_map_drop_items.spread_distance');
+  }
+
   // Backward-compatible migration for the first behavior-based usable-item build.
   const [usableDurationColumn] = await conn.query(
     `SELECT COUNT(*) AS c FROM information_schema.columns

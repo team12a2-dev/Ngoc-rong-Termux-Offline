@@ -652,6 +652,7 @@ public class Controller implements IMessageHandler {
                     break;
                 case -15: // về nhà
                     if (player != null) {
+                        player.reducePowerOnReturnHome();
                         int mapId = MapService.gI().isMapMaBu(player.zone.map.mapId) ? 114 : player.gender + 21;
                         ChangeMapService.gI().changeMapBySpaceShip(player, mapId, 0, -1);
                     }
@@ -932,7 +933,6 @@ public class Controller implements IMessageHandler {
             TaskService.gI().sendTaskMain(player);
             Service.gI().clearMap(player);
             Service.gI().clearMabuWait(player);
-            ClanService.gI().sendMyClan(player);
             PlayerService.gI().sendMaxStamina(player);
             PlayerService.gI().sendCurrentStamina(player);
             Service.gI().sendDanhQuaiNhanNgoc(player);
@@ -949,6 +949,8 @@ public class Controller implements IMessageHandler {
             if (player.pet != null) {
                 player.pet.setClothes.setup();
             }
+            player.setClanMember();
+            ClanService.gI().sendMyClan(player);
             ItemTimeService.gI().sendCanAutoPlay(player);
             player.start();
         } catch (Exception e) {

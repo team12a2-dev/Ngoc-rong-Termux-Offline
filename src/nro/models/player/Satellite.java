@@ -10,8 +10,6 @@ import nro.models.utils.Util;
 
 public class Satellite {
 
-    public boolean isHP;
-    public boolean isMP;
     public boolean isIntelligent;
     public boolean isDefend;
     public long lastHPTime;
@@ -20,12 +18,6 @@ public class Satellite {
     public long lastDefendTime;
 
     public void update() {
-        if (isHP && Util.canDoWithTime(lastHPTime, 3000)) {
-            isHP = false;
-        }
-        if (isMP && Util.canDoWithTime(lastMPTime, 3000)) {
-            isMP = false;
-        }
         if (isIntelligent && Util.canDoWithTime(lastIntelligentTime, 3000)) {
             isIntelligent = false;
         }

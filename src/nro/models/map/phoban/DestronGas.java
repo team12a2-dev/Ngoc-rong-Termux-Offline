@@ -141,17 +141,17 @@ public class DestronGas implements Runnable {
     }
 
     private void init() {
-        //Há»“i sinh quÃ¡i
+        //Hồi sinh quái
         for (Zone zone : this.zones) {
             List<Mob> mobs = zone.mobs;
             for (int i = 0; i < mobs.size(); i++) {
                 Mob mob = mobs.get(i);
-                if ( // QuÃ¡i 76 xuáº¥t hiá»‡n thá»© 1 á»Ÿ Map 147 (Sa máº¡c)
-                // QuÃ¡i 76 xuáº¥t hiá»‡n thá»© 8 á»Ÿ Map 149 (ThÃ nh phá»‘ Santa)
-                // QuÃ¡i 76 xuáº¥t hiá»‡n thá»© 1 á»Ÿ Map 151 (HÃ nh tinh bÃ³ng tá»‘i)
-                ((i == 0) && zone.map.mapId == 147) || ((i == 7) && zone.map.mapId == 149) || ((i == 0) && zone.map.mapId == 151) || ((i == 0) && zone.map.mapId == 152) ||  // QuÃ¡i 76 xuáº¥t hiá»‡n thá»© 1 á»Ÿ Map 152 (VÃ¹ng Ä‘áº¥t bÄƒng giÃ¡)
+                if ( // Quái 76 xuất hiện thứ 1 ở Map 147 (Sa mạc)
+                // Quái 76 xuất hiện thứ 8 ở Map 149 (Thành phố Santa)
+                // Quái 76 xuất hiện thứ 1 ở Map 151 (Hành tinh bóng tối)
+                ((i == 0) && zone.map.mapId == 147) || ((i == 7) && zone.map.mapId == 149) || ((i == 0) && zone.map.mapId == 151) || ((i == 0) && zone.map.mapId == 152) ||  // Quái 76 xuất hiện thứ 1 ở Map 152 (Vùng đất băng giá)
                 ((i == 33) && zone.map.mapId == 152)) {
-                    // QuÃ¡i 76 xuáº¥t hiá»‡n thá»© 34 á»Ÿ Map 152 (VÃ¹ng Ä‘áº¥t bÄƒng giÃ¡)
+                    // Quái 76 xuất hiện thứ 34 ở Map 152 (Vùng đất băng giá)
                     mob.lvMob = 1;
                     mob.point.dame = (int) Math.min((long) level * 31 * 5 * mob.tempId * 10, 2147483647);
                     mob.point.maxHp = (int) Math.min((long) level * 3 * 6700 * mob.tempId * 10, 2147483647);
@@ -169,7 +169,7 @@ public class DestronGas implements Runnable {
         new Thread(this, "Khí Gas Hủy Diệt: " + this.clan.name).start();
     }
 
-    //káº¿t thÃºc khÃ­ gas há»§y diá»‡t
+    //kết thúc khí gas hủy diệt
     public void finish() {
         for (Zone zone : zones) {
             for (int i = zone.getPlayers().size() - 1; i >= 0; i--) {

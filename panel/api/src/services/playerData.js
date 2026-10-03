@@ -10,6 +10,16 @@ export function tryParseJson(v) {
   }
 }
 
+export function asJson(value, fallback = null) {
+  if (value == null || value === '') return fallback;
+  if (typeof value === 'object') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
 export function parseInventory(raw) {
   const arr = tryParseJson(raw);
   if (!Array.isArray(arr)) return {};

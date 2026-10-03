@@ -11,9 +11,9 @@ public class ShopTab {
     private static String expectedIp;
 
     static {
-        try (FileInputStream fis = new FileInputStream("Config.properties")) {
+        try (java.io.InputStreamReader reader = new java.io.InputStreamReader(new FileInputStream("Config.properties"), java.nio.charset.StandardCharsets.UTF_8)) {
             Properties prop = new Properties();
-            prop.load(fis);
+            prop.load(reader);
             expectedIp = prop.getProperty("server.ip", "").trim();
         } catch (IOException e) {
             expectedIp = "";

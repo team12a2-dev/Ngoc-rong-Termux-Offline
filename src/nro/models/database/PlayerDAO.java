@@ -238,9 +238,6 @@ public class PlayerDAO {
             dataArray.add(taskIndex); //id nhiệm vụ
             dataArray.add(0); //index nhiệm vụ con
             dataArray.add(0); //số lượng đã làm
-            dataArray.add(System.currentTimeMillis()); //thời điểm nhiệm vụ
-            dataArray.add(0); //số lần hoàn thành nhanh đã dùng
-            dataArray.add(0); //thời điểm hoàn thành nhanh
             String task = dataArray.toJSONString();
             dataArray.clear();
 
@@ -642,7 +639,7 @@ public class PlayerDAO {
                 dataArray.add((player.itemTime.isUseNuocMia2 ? (ItemTime.TIME_NUOC_MIA2 - (System.currentTimeMillis() - player.itemTime.lastTimeUseNuocMia2)) : 0));
                 dataArray.add((player.itemTime.isUseNuocMia3 ? (ItemTime.TIME_NUOC_MIA3 - (System.currentTimeMillis() - player.itemTime.lastTimeUseNuocMia3)) : 0));
                 dataArray.add((player.itemTime.isUseKilis ? (ItemTime.TIME_KILIS - (System.currentTimeMillis() - player.itemTime.lastTimeUseKilis)) : 0));
-                dataArray.add(0);
+                dataArray.add((player.itemTime.isUseKhauTrang ? (ItemTime.TIME_KHAU_TRANG - (System.currentTimeMillis() - player.itemTime.lastTimeKhauTrang)) : 0));
                 dataArray.add(0);
                 dataArray.add((player.itemTime.isUseUsableItem ? Math.max(0L, player.itemTime.timeLengthUsableItem - (System.currentTimeMillis() - player.itemTime.lastTimeUseUsableItem)) : 0));
                 dataArray.add(player.itemTime.usableItemTemplateId);
@@ -656,16 +653,26 @@ public class PlayerDAO {
                     }
                 }
                 dataArray.add(usableOptions.toJSONString());
+                dataArray.add(player.itemTime.getPhieuSaoVangTimeLeft());
+                dataArray.add(player.itemTime.iconPhieuSaoVang);
                 String itemTime = dataArray.toJSONString();
                 dataArray.clear();
 
                 //data nhiệm vụ
                 dataArray.add(player.playerTask.taskMain.id);
                 dataArray.add(player.playerTask.taskMain.index);
-                dataArray.add(player.playerTask.taskMain.subTasks.get(player.playerTask.taskMain.index).count);
+                int subCount = 0;
+                if (player.playerTask.taskMain.subTasks != null && !player.playerTask.taskMain.subTasks.isEmpty()) {
+                    int safeIdx = player.playerTask.taskMain.index;
+                    if (safeIdx < 0) {
+                        safeIdx = 0;
+                    } else if (safeIdx >= player.playerTask.taskMain.subTasks.size()) {
+                        safeIdx = player.playerTask.taskMain.subTasks.size() - 1;
+                    }
+                    subCount = player.playerTask.taskMain.subTasks.get(safeIdx).count;
+                }
+                dataArray.add(subCount);
                 dataArray.add(player.playerTask.taskMain.lastTime);
-                dataArray.add(player.playerTask.fastMainTask.usedCount);
-                dataArray.add(player.playerTask.fastMainTask.lastTime);
                 String task = dataArray.toJSONString();
                 dataArray.clear();
 

@@ -32,6 +32,8 @@ import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
 import nro.models.services_dungeon.NgocRongNamecService;
 import nro.models.matches.dai_hoi_vo_thuat.DeathOrAliveArenaService;
+import nro.models.boss.tieu_doi_sat_thu.TieuDoiSatThuHelper;
+import nro.models.consts.BossStatus;
 
 public class ChangeMapService {
 
@@ -127,10 +129,6 @@ public class ChangeMapService {
             Service.gI().sendThongBao(pl, MapService.MSG_KARIN_NO_ZONE_CHANGE);
             return;
         }
-        if (MapService.gI().isHome(pl.zone.map.mapId)) {
-            Service.gI().sendThongBao(pl, MapService.MSG_KARIN_NO_ZONE_CHANGE);
-            return;
-        }
         if (MapService.gI().isMapKhiGasHuyDiet(pl.zone.map.mapId)) {
             Service.gI().sendThongBaoOK(pl, "Không thể đổi khu vực trong map Khí Gas Hủy Diệt");
             return;
@@ -189,10 +187,6 @@ public class ChangeMapService {
             return;
         }
         if (MapService.gI().isMapKarinNoZoneChange(pl.zone.map.mapId)) {
-            Service.gI().sendThongBao(pl, MapService.MSG_KARIN_NO_ZONE_CHANGE);
-            return;
-        }
-        if (MapService.gI().isHome(pl.zone.map.mapId)) {
             Service.gI().sendThongBao(pl, MapService.MSG_KARIN_NO_ZONE_CHANGE);
             return;
         }
@@ -576,7 +570,6 @@ public class ChangeMapService {
             EffectSkillService.gI().removeMabuHold(player);
         }
         TaskService.gI().checkDoneTaskGoToMap(player, player.zone);
-        TrainingService.gI().trySpawnTauPayPayQuestBoss(player);
         if (player.isPl() && player.zone != null) {
             TaoPaiPai.onPlayerEnterZone(player.zone);
         }
@@ -831,6 +824,9 @@ public class ChangeMapService {
 
     public void exitMap(Player player) {
         if (player.zone != null) {
+            if (player.isPl()) {
+                TrainingService.gI().removeTauPayPayQuestBoss(player);
+            }
             //xử thua pvp
             if (player.pvp != null) {
                 player.pvp.lose(player, TYPE_LOSE_PVP.RUNS_AWAY);
@@ -908,6 +904,10 @@ public class ChangeMapService {
     }
 
     public void goToPotaufeu(Player player) {
+        if (player.nPoint.power < 1_500_000_000L || TaskService.gI().getIdTask(player) < ConstTask.TASK_21_0) {
+            Service.gI().sendThongBao(player, "Yêu cầu 1.5 tỷ sức mạnh và nhiệm vụ chạm trán Fide đại ca!");
+            return;
+        }
         ChangeMapService.this.changeMapBySpaceShip(player, 139, -1, Util.nextInt(60, 200));
     }
 
@@ -938,8 +938,27 @@ public class ChangeMapService {
             Service.gI().sendThongBao(player, MapService.MSG_DONG_NAM_KARIN_POWER_LIMIT);
             return null;
         }
+        if (MapService.gI().isMapUpVang(zoneJoin.map.mapId)) {
+            if (!player.isAdmin() && (!player.itemTime.isUsePhieuSaoVang || player.itemTime.getPhieuSaoVangTimeLeft() <= 0)) {
+                Service.gI().sendThongBao(player, "Bạn cần có hiệu lực Phiếu sao vàng may mắn mới có thể vào map này!");
+                return null;
+            }
+        }
         if (player.isPet || player.isBoss || player.getSession() != null && player.isAdmin()) {
             return zoneJoin;
+        }
+
+        // Chặn người chơi đã hoàn thành nhiệm vụ 20 vào map khi có Boss TDST trong khung giờ hỗ trợ
+        if (zoneJoin.map.mapId == 79 || zoneJoin.map.mapId == 81 || zoneJoin.map.mapId == 82 || zoneJoin.map.mapId == 83) {
+            if (TieuDoiSatThuHelper.isLimitSupportHour() && zoneJoin.map.zones != null) {
+                boolean hasTDST = zoneJoin.map.zones.stream().anyMatch(z -> z.getBosses().stream().anyMatch(b ->
+                    b != null && b.isBoss && TieuDoiSatThuHelper.isTDSTBossId(b.id) && !b.isDie()
+                ));
+                if (hasTDST && TieuDoiSatThuHelper.hasFinishedTaskTDST(player)) {
+                    Service.gI().sendThongBao(player, "Đang trong khung giờ hỗ trợ tân thủ làm nhiệm vụ, bạn đã hoàn thành nhiệm vụ Tiểu Đội Sát Thủ nên không thể vào map này khi có boss!");
+                    return null;
+                }
+            }
         }
 
         if (zoneJoin != null) {
@@ -1010,7 +1029,7 @@ public class ChangeMapService {
                 case 72: //thung lũng rasphery
                 case 64: //núi dây leo
                 case 65: //núi cây quỷ
-                    if (TaskService.gI().getIdTask(player) < ConstTask.TASK_18_0) {
+                    if (TaskService.gI().getIdTask(player) < ConstTask.TASK_17_0) {
                         return null;
                     }
                     break;
@@ -1071,10 +1090,18 @@ public class ChangeMapService {
                         return null;
                     }
                     break;
+                case 139: //hành tinh potaufeu
+                case 140: //hang động potaufeu
+                    if (player.nPoint.power < 1_500_000_000L || TaskService.gI().getIdTask(player) < ConstTask.TASK_21_0) {
+                        Service.gI().sendThongBao(player, "Yêu cầu 1.5 tỷ sức mạnh và nhiệm vụ chạm trán Fide đại ca!");
+                        return null;
+                    }
+                    break;
                 case 154:
                     if (TaskService.gI().getIdTask(player) < ConstTask.TASK_27_0) {
                         return null;
                     }
+                    break;
             }
         }
         if (zoneJoin != null) {
@@ -1102,6 +1129,12 @@ public class ChangeMapService {
     public Zone checkMapCanJoinByYardart(Player player, Zone zoneJoin) {
         if ((!player.isBoss && !player.isAdmin()) && (zoneJoin.map.mapId == 122 || zoneJoin.map.mapId == 123 || zoneJoin.map.mapId == 124)) {
             return null;
+        }
+        if (MapService.gI().isMapUpVang(zoneJoin.map.mapId)) {
+            if (!player.isAdmin() && (!player.itemTime.isUsePhieuSaoVang || player.itemTime.getPhieuSaoVangTimeLeft() <= 0)) {
+                Service.gI().sendThongBao(player, "Bạn cần có hiệu lực Phiếu sao vàng may mắn mới có thể vào map này!");
+                return null;
+            }
         }
         return zoneJoin;
     }

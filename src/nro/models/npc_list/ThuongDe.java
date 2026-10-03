@@ -1,15 +1,17 @@
 package nro.models.npc_list;
 
 import nro.models.boss.BossID;
-import nro.models.consts.ConstMap;
 import nro.models.consts.ConstNpc;
 import nro.models.item.Item;
+import nro.models.map.service.ChangeMapService;
+import nro.models.map.service.NpcService;
 import nro.models.npc.Npc;
 import nro.models.player.Player;
 import nro.models.server.Client;
 import nro.models.services.InventoryService;
 import nro.models.services.ItemService;
 import nro.models.services.Service;
+import nro.models.services.TaskService;
 import nro.models.services_dungeon.TrainingService;
 import nro.models.services_func.LuckyRound;
 import nro.models.shop.ShopService;
@@ -17,89 +19,214 @@ import nro.models.data.LocalManager;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
- import nro.models.map.service.ChangeMapService;
- import nro.models.map.service.NpcService;
 
 public class ThuongDe extends Npc {
-
-    /** Map Thần điện - nơi đặt NPC Thượng Đế trong dữ liệu map. */
-    private static final int MAP_THAN_DIEN = ConstMap.THAN_DIEN;
-    /** Map Hành tinh Kaio - nơi gặp Thần Vũ Trụ Phương Bắc. */
-    private static final int MAP_HANH_TINH_KAIO = ConstMap.HANH_TINH_KAIO;
 
     public ThuongDe(int mapId, int status, int cx, int cy, int tempId, int avartar) {
         super(mapId, status, cx, cy, tempId, avartar);
     }
 
     // ================= MENU CHÍNH =================
-   @Override
-public void openBaseMenu(Player player) {
-    if (!canOpenNpc(player)) return;
+    @Override
+    public void openBaseMenu(Player player) {
+        if (!canOpenNpc(player)) {
+            return;
+        }
+        if (TaskService.gI().checkDoneTaskTalkNpc(player, this)) {
+            return;
+        }
 
-    // Map 45 - Thần điện: menu dẫn dắt đầy đủ như bản gốc
-    if (player.zone.map.mapId == MAP_THAN_DIEN) {
-        this.createOtherMenu(player, ConstNpc.BASE_MENU,
-                "Con đã mạnh hơn ta, ta sẽ chỉ đường cho con đến Kaio\n"
-                + "để gặp thần Vũ Trụ Phương Bắc\n"
-                + "Ngài là thần cai quản vũ trụ này, hãy theo ngài ấy học võ công.",
-                player.dangKyTapTuDong ? "Hủy đăng ký\ntập tự động" : "Đăng ký\ntập\ntự động",
-                "Tập luyện\nvới\nMr.PôPô",
-                "Tập luyện\nvới\nThượng Đế",
-                "Đến\nKaio",
-                "Quay ngọc\nMay mắn");
-        return;
-    }
+        // Map 5
+        if (player.zone.map.mapId == 5) {
+            this.createOtherMenu(player, ConstNpc.BASE_MENU,
+                    "Chào con, chó là loài vật thật đáng yêu",
+                    "BXH\nQuay Tay",
+                    "Phòng Tập Thời Gian");
+            return;
+        }
 
-    // Check nhiệm vụ Fide
-    if (player.playerTask.taskMain.id < 21) {
-        this.createOtherMenu(player, ConstNpc.IGNORE_MENU,
-                "Hãy hoàn thành nhiệm vụ TĐST",
-                "Đóng");
-        return;
-    }
+        String dangKyTapTuDong = player.dangKyTapTuDong ? "Hủy đăng\nký tập\ntự động" : "Đăng ký\ntập\ntự động";
 
-    // Menu chính
-    this.createOtherMenu(player, ConstNpc.BASE_MENU,
-            "Lưu ý:\n Quay Tay (quay bằng tay) tỉ lệ vật phẩm hiếm cao hơn\n"
-            + "Quay Không Tay (không quay bằng tay) tỉ lệ cũng như trên\n"
-            + "Tích cực quay tay\n"
-            + "Vận may không đến\n"
-            + "Quay Tay nhiều có thể nhận được:\n"
-            + "1. Socola, Thú cưỡi, Đeo Lưng, Pet\n"
-            + "2. Rụng Tóc, Hói Đầu, Suy Thận ...\n",
-            "Quay Tay",
-            "Nhận Quà",
-            "BXH\nQuay Tay",
-            "Rương");
-}
-
-  @Override
-public void confirmMenu(Player player, int select) {
-    if (!canOpenNpc(player)) return;
-
-    // Map 45 - Thần điện
-    if (player.zone.map.mapId == MAP_THAN_DIEN) {
-        confirmThanDienMenu(player, select);
-        return;
-    }
-if (player.playerTask.taskMain.id < 21) {
-    this.createOtherMenu(player, ConstNpc.IGNORE_MENU,
-            "Hãy hoàn thành nhiệm vụ TĐST",
-            "Đóng");
-    return;
-}
-    // ===== MENU CHÍNH =====
-    if (player.idMark.isBaseMenu()) {
-        switch (select) {
-            case 0 -> openLuckyRoundMenu(player);
-            case 1 -> showMilestoneMenu(player);
-            case 2 -> showTopLucky(player);
-            case 3 -> ShopService.gI().opendShop(player, "ITEMS_LUCKY_ROUND", true);
+        switch (player.levelLuyenTap) {
+            case 2 ->
+                this.createOtherMenu(player, ConstNpc.BASE_MENU,
+                        "Ngươi hãy tập luyện với người hầu của ta trước đã",
+                        dangKyTapTuDong, "Tập luyện\nvới\nMr.PôPô", "Thách đấu\nMr.PôPô", "Vòng quay\nMay mắn");
+            case 3 ->
+                this.createOtherMenu(player, ConstNpc.BASE_MENU,
+                        "Con đã thắng được Mr.PôPô, ta sẽ đích thân chỉ dạy cho con",
+                        dangKyTapTuDong, "Tập luyện\nvới\nMr.PôPô", "Tập luyện\nvới\nThượng Đế", "Thách đấu\nThượng Đế", "Vòng quay\nMay mắn");
+            default ->
+                this.createOtherMenu(player, ConstNpc.BASE_MENU,
+                        "Con đã mạnh hơn ta, ta sẽ chỉ đường cho con đến Kaio\nđể gặp thần Vũ Trụ Phương Bắc\nNgài là thần cai quản vũ trụ này, hãy theo ngài ấy học võ công.",
+                        dangKyTapTuDong, "Tập luyện\nvới\nMr.PôPô", "Tập luyện\nvới\nThượng Đế", "Đến\nKaio", "Vòng quay\nMay mắn");
         }
     }
 
-    // ===== MENU NHẬN MỐC =====
-    else if (player.idMark.getIndexMenu() == 5000) {
+    private void openLuckyRoundMenu(Player player) {
+        int countItem = player.inventory.itemsBoxCrackBall != null ? player.inventory.itemsBoxCrackBall.size() : 0;
+        String message = "Con có thể chọn từ 1 đến 7 viên\ngiá mỗi viên là 4 ngọc hoặc 5 triệu vàng.\nƯu tiên dùng vé quay trước.";
+        if (countItem > 0) {
+            this.createOtherMenu(player, 2006, message,
+                    "Vòng quay\nVàng",
+                    "Vòng quay\nMay mắn",
+                    "Vòng quay\nVàng\nSự kiện",
+                    "Vòng quay\nĐặc biệt\nSự kiện",
+                    "Rương phụ\nĐang có " + countItem + " món",
+                    "Đóng");
+        } else {
+            this.createOtherMenu(player, 2006, message,
+                    "Vòng quay\nVàng",
+                    "Vòng quay\nMay mắn",
+                    "Vòng quay\nVàng\nSự kiện",
+                    "Vòng quay\nĐặc biệt\nSự kiện",
+                    "Đóng");
+        }
+    }
+
+    @Override
+    public void confirmMenu(Player player, int select) {
+        if (!canOpenNpc(player)) {
+            return;
+        }
+
+        // Map 5
+        if (player.zone.map.mapId == 5) {
+            if (player.idMark.isBaseMenu()) {
+                switch (select) {
+                    case 0 -> showTopLucky(player);
+                    case 1 -> ChangeMapService.gI().changeMapNonSpaceship(player, 49, 300, 360);
+                }
+            }
+            return;
+        }
+
+        // ===== MENU CHÍNH =====
+        if (player.idMark.isBaseMenu()) {
+            switch (player.levelLuyenTap) {
+                case 2 -> {
+                    switch (select) {
+                        case 0 -> {
+                            if (player.dangKyTapTuDong) {
+                                player.dangKyTapTuDong = false;
+                                NpcService.gI().createTutorial(player, tempId, avartar, "Con đã hủy thành công đăng ký tập tự động\ntừ giờ con muốn tập Offline hãy tự đến đây trước");
+                                return;
+                            }
+                            this.createOtherMenu(player, 2001, "Đăng ký để mỗi khi Offline quá 30 phút, con sẽ được tự động luyện tập với tốc độ 1280 sức mạnh mỗi phút",
+                                    "Hướng\ndẫn\nthêm", "Đồng ý\n1 ngọc\nmỗi lần", "Không\nđồng ý");
+                        }
+                        case 1 ->
+                            this.createOtherMenu(player, 2002, "Con có chắc muốn tập luyện ?\nTập luyện với Mr.PôPô sẽ tăng 80 sức mỗi phút",
+                                    "Đồng ý\nluyện tập", "Không\nđồng ý");
+                        case 2 ->
+                            this.createOtherMenu(player, 2003, "Con có chắc muốn thách đấu ?\nNếu thắng Mr.PôPô sẽ được tập với ta, tăng 160 sức mạnh mỗi phút",
+                                    "Đồng ý\ngiao đấu", "Không\nđồng ý");
+                        case 3 ->
+                            openLuckyRoundMenu(player);
+                    }
+                }
+                case 3 -> {
+                    switch (select) {
+                        case 0 -> {
+                            if (player.dangKyTapTuDong) {
+                                player.dangKyTapTuDong = false;
+                                NpcService.gI().createTutorial(player, tempId, avartar, "Con đã hủy thành công đăng ký tập tự động\ntừ giờ con muốn tập Offline hãy tự đến đây trước");
+                                return;
+                            }
+                            this.createOtherMenu(player, 2001, "Đăng ký để mỗi khi Offline quá 30 phút, con sẽ được tự động luyện tập với tốc độ 1280 sức mạnh mỗi phút",
+                                    "Hướng\ndẫn\nthêm", "Đồng ý\n1 ngọc\nmỗi lần", "Không\nđồng ý");
+                        }
+                        case 1 ->
+                            this.createOtherMenu(player, 2002, "Con có chắc muốn tập luyện ?\nTập luyện với Mr.PôPô sẽ tăng 80 sức mỗi phút",
+                                    "Đồng ý\nluyện tập", "Không\nđồng ý");
+                        case 2 ->
+                            this.createOtherMenu(player, 2004, "Con có chắc muốn tập luyện ?\nTập luyện với ta sẽ tăng 160 sức mỗi phút",
+                                    "Đồng ý\nluyện tập", "Không\nđồng ý");
+                        case 3 ->
+                            this.createOtherMenu(player, 2005, "Con có chắc muốn thách đấu ?\nNếu thắng ta con sẽ được đến Kaio gặp Thần Vũ Trụ Phương Bắc",
+                                    "Đồng ý\ngiao đấu", "Không\nđồng ý");
+                        case 4 ->
+                            openLuckyRoundMenu(player);
+                    }
+                }
+                default -> {
+                    switch (select) {
+                        case 0 -> {
+                            if (player.dangKyTapTuDong) {
+                                player.dangKyTapTuDong = false;
+                                NpcService.gI().createTutorial(player, tempId, avartar, "Con đã hủy thành công đăng ký tập tự động\ntừ giờ con muốn tập Offline hãy tự đến đây trước");
+                                return;
+                            }
+                            this.createOtherMenu(player, 2001, "Đăng ký để mỗi khi Offline quá 30 phút, con sẽ được tự động luyện tập với tốc độ 1280 sức mạnh mỗi phút",
+                                    "Hướng\ndẫn\nthêm", "Đồng ý\n1 ngọc\nmỗi lần", "Không\nđồng ý");
+                        }
+                        case 1 ->
+                            this.createOtherMenu(player, 2002, "Con có chắc muốn tập luyện ?\nTập luyện với Mr.PôPô sẽ tăng 80 sức mỗi phút",
+                                    "Đồng ý\nluyện tập", "Không\nđồng ý");
+                        case 2 ->
+                            this.createOtherMenu(player, 2004, "Con có chắc muốn tập luyện ?\nTập luyện với ta sẽ tăng 160 sức mỗi phút",
+                                    "Đồng ý\nluyện tập", "Không\nđồng ý");
+                        case 3 ->
+                            ChangeMapService.gI().changeMapBySpaceShip(player, 48, -1, 354);
+                        case 4 ->
+                            openLuckyRoundMenu(player);
+                    }
+                }
+            }
+        } else if (player.idMark.getIndexMenu() == 2001) {
+            switch (select) {
+                case 0 ->
+                    NpcService.gI().createTutorial(player, tempId, avartar, ConstNpc.TAP_TU_DONG);
+                case 1 -> {
+                    player.mapIdDangTapTuDong = mapId;
+                    player.dangKyTapTuDong = true;
+                    NpcService.gI().createTutorial(player, tempId, avartar, "Từ giờ, quá 30 phút Offline con sẽ được tự động luyện tập");
+                }
+            }
+        } else if (player.idMark.getIndexMenu() == 2002) {
+            if (select == 0) {
+                TrainingService.gI().callBoss(player, BossID.MRPOPO, false);
+            }
+        } else if (player.idMark.getIndexMenu() == 2003) {
+            if (select == 0) {
+                TrainingService.gI().callBoss(player, BossID.MRPOPO, true);
+            }
+        } else if (player.idMark.getIndexMenu() == 2004) {
+            if (select == 0) {
+                TrainingService.gI().callBoss(player, BossID.THUONG_DE, false);
+            }
+        } else if (player.idMark.getIndexMenu() == 2005) {
+            if (select == 0) {
+                TrainingService.gI().callBoss(player, BossID.THUONG_DE, true);
+            }
+        } else if (player.idMark.getIndexMenu() == 2006) {
+            int countItem = player.inventory.itemsBoxCrackBall != null ? player.inventory.itemsBoxCrackBall.size() : 0;
+            switch (select) {
+                case 0 -> {
+                    if (nro.models.services.ServerLaunchConfigService.gI().isDisableGodNormalSpin()) {
+                        Service.gI().sendThongBao(player, "Vòng quay thường tại NPC Thượng Đế đang tạm đóng trong suốt thời gian đua top!");
+                        return;
+                    }
+                    LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GOLD);
+                }
+                case 1 -> {
+                    if (nro.models.services.ServerLaunchConfigService.gI().isDisableGodNormalSpin()) {
+                        Service.gI().sendThongBao(player, "Vòng quay thường tại NPC Thượng Đế đang tạm đóng trong suốt thời gian đua top!");
+                        return;
+                    }
+                    LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GEM);
+                }
+                case 2 -> LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GOLD);
+                case 3 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_GEM);
+                case 4 -> {
+                    if (countItem > 0) {
+                        ShopService.gI().opendShop(player, "ITEMS_LUCKY_ROUND", false);
+                    }
+                }
+            }
+        }
+        // ===== MENU NHẬN MỐC =====
+        else if (player.idMark.getIndexMenu() == 5000) {
 
         int point = player.luckyRoundPoint;
 
@@ -171,96 +298,7 @@ if (player.playerTask.taskMain.id < 21) {
             }
         }
     }
-    }
-
-    // ================= MENU ĐẢO KAME =================
-    private void confirmThanDienMenu(Player player, int select) {
-        if (player.idMark.isBaseMenu()) {
-            switch (select) {
-                case 0 -> {
-                    if (player.dangKyTapTuDong) {
-                        player.dangKyTapTuDong = false;
-                        NpcService.gI().createTutorial(player, tempId, avartar,
-                                "Con đã hủy thành công đăng ký tập tự động\ntừ giờ con muốn tập Offline hãy tự đến đây trước");
-                        return;
-                    }
-                    this.createOtherMenu(player, 2001,
-                            "Đăng ký để mỗi khi Offline quá 30 phút, con sẽ được tự động luyện tập",
-                            "Hướng\ndẫn\nthêm", "Đồng ý\n1 ngọc\nmỗi lần", "Không\nđồng ý");
-                }
-                case 1 ->
-                    this.createOtherMenu(player, 2002,
-                            "Con có chắc muốn tập luyện ?\nTập luyện với Mr.PôPô sẽ tăng 320 sức mạnh mỗi phút",
-                            "Đồng ý\nluyện tập", "Không\nđồng ý");
-                case 2 ->
-                    this.createOtherMenu(player, 2003,
-                            "Con có chắc muốn tập luyện ?\nTập luyện với ta sẽ tăng 640 sức mạnh mỗi phút",
-                            "Đồng ý\nluyện tập", "Không\nđồng ý");
-                case 3 ->
-                    ChangeMapService.gI().changeMapBySpaceShip(player, MAP_HANH_TINH_KAIO, -1, 354);
-                case 4 ->
-                    openLuckyRoundMenu(player);
-            }
-            return;
-        }
-
-        switch (player.idMark.getIndexMenu()) {
-            case 2001 -> {
-                switch (select) {
-                    case 0 ->
-                        NpcService.gI().createTutorial(player, tempId, avartar, ConstNpc.TAP_TU_DONG);
-                    case 1 -> {
-                        player.mapIdDangTapTuDong = mapId;
-                        player.dangKyTapTuDong = true;
-                        NpcService.gI().createTutorial(player, tempId, avartar,
-                                "Từ giờ, quá 30 phút Offline con sẽ được tự động luyện tập");
-                    }
-                }
-            }
-            case 2002 -> {
-                if (select == 0) {
-                    TrainingService.gI().callBoss(player, BossID.MRPOPO, false);
-                }
-            }
-            case 2003 -> {
-                if (select == 0) {
-                    TrainingService.gI().callBoss(player, BossID.THUONG_DE, false);
-                }
-            }
-            case ConstNpc.MENU_CHOOSE_LUCKY_ROUND -> {
-                switch (select) {
-                    case 0 -> LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GOLD);
-                    case 1 -> LuckyRound.gI().openCrackBallUI(player, LuckyRound.USING_GEM);
-                    case 2 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_GOLD);
-                    case 3 -> LuckyRound.gI().openCrackBallVipUI(player, LuckyRound.USING_GEM);
-                    case 4 -> {
-                        if (!player.inventory.itemsBoxCrackBall.isEmpty()) {
-                            ShopService.gI().opendShop(player, "ITEMS_LUCKY_ROUND", true);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    private void openLuckyRoundMenu(Player player) {
-        String message = "Con có thể chọn từ 1 đến 7 viên\n"
-                + "giá mỗi viên là 4 ngọc hoặc 5 triệu vàng.\n"
-                + "Ưu tiên dùng vé quay trước.";
-        String[] spinOptions = {
-            "Vòng quay\nVàng",
-            "Vòng quay\nMay mắn",
-            "Vòng quay\nVàng\nSự kiện",
-            "Vòng quay\nĐặc biệt\nSự kiện"
-        };
-        if (player.inventory.itemsBoxCrackBall.isEmpty()) {
-            this.createOtherMenu(player, ConstNpc.MENU_CHOOSE_LUCKY_ROUND,
-                    message, spinOptions[0], spinOptions[1], spinOptions[2], spinOptions[3], "Đóng");
-        } else {
-            this.createOtherMenu(player, ConstNpc.MENU_CHOOSE_LUCKY_ROUND,
-                    message, spinOptions[0], spinOptions[1], spinOptions[2], spinOptions[3],
-                    "Rương phụ (" + player.inventory.itemsBoxCrackBall.size() + " món)", "Đóng");
-        }
-    }
+}
     // ================= MENU MỐC ĐIỂM =================
    private void showMilestoneMenu(Player player) {
 
@@ -369,5 +407,5 @@ case 1000 -> {
     }
 
     this.createOtherMenu(player, ConstNpc.IGNORE_MENU, text.toString(), "Đóng");
-}
-}
+}}
+

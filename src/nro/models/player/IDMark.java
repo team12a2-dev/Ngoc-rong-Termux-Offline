@@ -10,19 +10,20 @@ import nro.models.map.Zone;
  */
 public class IDMark {
     private int idItemUpTop;
-    private int typeChangeMap; //capsule, ngá»c rá»“ng Ä‘en...
-    private int indexMenu; //menu npc
-    private int typeInput; //input
-    private byte typeLuckyRound; //type lucky round
-    private long idPlayThachDau; //id ngÆ°á»i chÆ¡i Ä‘Æ°á»£c má»i thÃ¡ch Ä‘áº¥u
-    private int goldThachDau; //vÃ ng thÃ¡ch Ä‘áº¥u
+    private int typeChangeMap; // capsule, ngá»c rồng đen...
+    private int indexMenu; // menu npc
+    private int typeInput; // input
+    private byte typeLuckyRound; // type lucky round
+    private long idPlayThachDau; // id ngưá»i chơi được má»i thách đấu
+    private int goldThachDau; // vàng thách đấu
     private long killCharId = -9999;
-    private long idEnemy; //id káº» thÃ¹ - tráº£ thÃ¹
-    private Shop shopOpen; //shop ngÆ°á»i chÆ¡i Ä‘ang má»Ÿ
-    private String tagNameShop; //tháº» tÃªn shop Ä‘ang má»Ÿ
+    private long idEnemy; // id kẻ thù - trả thù
+    private Shop shopOpen; // shop ngưá»i chơi đang mở
+    private String tagNameShop; // thẻ tên shop đang mở
     /**
-     * loáº¡i tÃ u váº­n chuyá»ƒn dÃ¹ng ;0 - KhÃ´ng dÃ¹ng ;1 - TÃ u vÅ© trá»¥ ;2 - Dá»‹ch chuyá»ƒn
-     * tá»©c thá»i ;3 - TÃ u tenis
+     * loại tàu vận chuyển dùng ;0 - Không dùng ;1 - Tàu vũ trụ ;2 -
+     * Dịch chuyển
+     * tức thá»i ;3 - Tàu tenis
      */
     private byte idSpaceShip;
     private int mbv;
@@ -31,7 +32,7 @@ public class IDMark {
     private long lastTimeBan;
     private boolean isBan;
     private int ott;
-    //giao dá»‹ch
+    // giao dịch
     private int playerTradeId = -1;
     private Player playerTrade;
     private long lastTimeTrade;
@@ -41,22 +42,22 @@ public class IDMark {
     private boolean holdBlackBall;
     private int tempIdNamecBallHold = -1;
     private boolean holdNamecBall;
-    private boolean loadedAllDataPlayer; //load thÃ nh cÃ´ng dá»¯ liá»‡u ngÆ°á»i chÆ¡i tá»« database
+    private boolean loadedAllDataPlayer; // load thành công dữ liệu ngưá»i chơi từ database
     private long lastTimeChangeFlag;
-    //xoc dia
+    // xoc dia
     private int typeDatXD;
     private int slDatXD;
     private Npc npcXD;
-    //Tai Xiu
+    // Tai Xiu
     private int typeDatTX;
     private Npc npcTX;
-    //Bau cua
+    // Bau cua
     private int typeDatBC;
     private Npc npcBC;
-    //tá»›i tÆ°Æ¡ng lai
+    // tới tương lai
     private boolean gotoFuture;
     private long lastTimeGoToFuture;
-    //ChangeMap Khi gas
+    // ChangeMap Khi gas
     private Zone zoneKhiGasHuyDiet;
     private int xMapKhiGasHuyDiet;
     private int yMapKhiGasHuyDiet;
@@ -70,8 +71,8 @@ public class IDMark {
     private long lastTimeGoToBDKB;
     private long lastTimeAnXienTrapBDKB;
     private int shenronType = -1;
-    private Npc npcChose; //npc má»Ÿ
-    private byte loaiThe; //loáº¡i tháº» náº¡p
+    private Npc npcChose; // npc mở
+    private byte loaiThe; // loại thẻ nạp
     private boolean acpTrade;
     private boolean isGemCSMM;
     private int damePST;
@@ -85,7 +86,25 @@ public class IDMark {
     private boolean transactionWP;
     private boolean transactionWVP;
     private long lastTimeCombine;
+    private int whereThrow = -1;
+    private int indexThrow = -1;
     public long tempId;
+
+    public int getWhereThrow() {
+        return this.whereThrow;
+    }
+
+    public void setWhereThrow(int whereThrow) {
+        this.whereThrow = whereThrow;
+    }
+
+    public int getIndexThrow() {
+        return this.indexThrow;
+    }
+
+    public void setIndexThrow(int indexThrow) {
+        this.indexThrow = indexThrow;
+    }
 
     public boolean isBaseMenu() {
         return this.indexMenu == ConstNpc.BASE_MENU;
@@ -165,8 +184,9 @@ public class IDMark {
     }
 
     /**
-     * loáº¡i tÃ u váº­n chuyá»ƒn dÃ¹ng ;0 - KhÃ´ng dÃ¹ng ;1 - TÃ u vÅ© trá»¥ ;2 - Dá»‹ch chuyá»ƒn
-     * tá»©c thá»i ;3 - TÃ u tenis
+     * loại tàu vận chuyển dùng ;0 - Không dùng ;1 - Tàu vũ trụ ;2 -
+     * Dịch chuyển
+     * tức thá»i ;3 - Tàu tenis
      */
     @java.lang.SuppressWarnings("all")
     public byte getIdSpaceShip() {
@@ -504,8 +524,9 @@ public class IDMark {
     }
 
     /**
-     * loáº¡i tÃ u váº­n chuyá»ƒn dÃ¹ng ;0 - KhÃ´ng dÃ¹ng ;1 - TÃ u vÅ© trá»¥ ;2 - Dá»‹ch chuyá»ƒn
-     * tá»©c thá»i ;3 - TÃ u tenis
+     * loại tàu vận chuyển dùng ;0 - Không dùng ;1 - Tàu vũ trụ ;2 -
+     * Dịch chuyển
+     * tức thá»i ;3 - Tàu tenis
      */
     @java.lang.SuppressWarnings("all")
     public void setIdSpaceShip(final byte idSpaceShip) {
@@ -790,95 +811,166 @@ public class IDMark {
     @java.lang.Override
     @java.lang.SuppressWarnings("all")
     public boolean equals(final java.lang.Object o) {
-        if (o == this) return true;
-        if (!(o instanceof IDMark)) return false;
+        if (o == this)
+            return true;
+        if (!(o instanceof IDMark))
+            return false;
         final IDMark other = (IDMark) o;
-        if (!other.canEqual((java.lang.Object) this)) return false;
-        if (this.getIdItemUpTop() != other.getIdItemUpTop()) return false;
-        if (this.getTypeChangeMap() != other.getTypeChangeMap()) return false;
-        if (this.getIndexMenu() != other.getIndexMenu()) return false;
-        if (this.getTypeInput() != other.getTypeInput()) return false;
-        if (this.getTypeLuckyRound() != other.getTypeLuckyRound()) return false;
-        if (this.getIdPlayThachDau() != other.getIdPlayThachDau()) return false;
-        if (this.getGoldThachDau() != other.getGoldThachDau()) return false;
-        if (this.getKillCharId() != other.getKillCharId()) return false;
-        if (this.getIdEnemy() != other.getIdEnemy()) return false;
-        if (this.getIdSpaceShip() != other.getIdSpaceShip()) return false;
-        if (this.getMbv() != other.getMbv()) return false;
-        if (this.getRecaptcha() != other.getRecaptcha()) return false;
-        if (this.getLastTimeBan() != other.getLastTimeBan()) return false;
-        if (this.isBan() != other.isBan()) return false;
-        if (this.getOtt() != other.getOtt()) return false;
-        if (this.getPlayerTradeId() != other.getPlayerTradeId()) return false;
-        if (this.getLastTimeTrade() != other.getLastTimeTrade()) return false;
-        if (this.getLastTimeNotifyTimeHoldBlackBall() != other.getLastTimeNotifyTimeHoldBlackBall()) return false;
-        if (this.getLastTimeHoldBlackBall() != other.getLastTimeHoldBlackBall()) return false;
-        if (this.getTempIdBlackBallHold() != other.getTempIdBlackBallHold()) return false;
-        if (this.isHoldBlackBall() != other.isHoldBlackBall()) return false;
-        if (this.getTempIdNamecBallHold() != other.getTempIdNamecBallHold()) return false;
-        if (this.isHoldNamecBall() != other.isHoldNamecBall()) return false;
-        if (this.isLoadedAllDataPlayer() != other.isLoadedAllDataPlayer()) return false;
-        if (this.getLastTimeChangeFlag() != other.getLastTimeChangeFlag()) return false;
-        if (this.getTypeDatXD() != other.getTypeDatXD()) return false;
-        if (this.getSlDatXD() != other.getSlDatXD()) return false;
-        if (this.getTypeDatTX() != other.getTypeDatTX()) return false;
-        if (this.getTypeDatBC() != other.getTypeDatBC()) return false;
-        if (this.isGotoFuture() != other.isGotoFuture()) return false;
-        if (this.getLastTimeGoToFuture() != other.getLastTimeGoToFuture()) return false;
-        if (this.getXMapKhiGasHuyDiet() != other.getXMapKhiGasHuyDiet()) return false;
-        if (this.getYMapKhiGasHuyDiet() != other.getYMapKhiGasHuyDiet()) return false;
-        if (this.isGoToKGHD() != other.isGoToKGHD()) return false;
-        if (this.getLastTimeGoToKGHD() != other.getLastTimeGoToKGHD()) return false;
-        if (this.getLastTimeChangeZone() != other.getLastTimeChangeZone()) return false;
-        if (this.getLastTimeChatGlobal() != other.getLastTimeChatGlobal()) return false;
-        if (this.getLastTimeChatPrivate() != other.getLastTimeChatPrivate()) return false;
-        if (this.getLastTimePickItem() != other.getLastTimePickItem()) return false;
-        if (this.isGoToBDKB() != other.isGoToBDKB()) return false;
-        if (this.getLastTimeGoToBDKB() != other.getLastTimeGoToBDKB()) return false;
-        if (this.getLastTimeAnXienTrapBDKB() != other.getLastTimeAnXienTrapBDKB()) return false;
-        if (this.getShenronType() != other.getShenronType()) return false;
-        if (this.getLoaiThe() != other.getLoaiThe()) return false;
-        if (this.isAcpTrade() != other.isAcpTrade()) return false;
-        if (this.isGemCSMM() != other.isGemCSMM()) return false;
-        if (this.getDamePST() != other.getDamePST()) return false;
-        if (this.getMoneyKeoBuaBao() != other.getMoneyKeoBuaBao()) return false;
-        if (this.getTimePlayKeoBuaBao() != other.getTimePlayKeoBuaBao()) return false;
-        if (this.getKeoBuaBaoPlayer() != other.getKeoBuaBaoPlayer()) return false;
-        if (this.getKeoBuaBaoServer() != other.getKeoBuaBaoServer()) return false;
-        if (this.getLastTimeRevenge() != other.getLastTimeRevenge()) return false;
-        if (this.getMenuType() != other.getMenuType()) return false;
-        if (this.getTangHoaType() != other.getTangHoaType()) return false;
-        if (this.isTransactionWP() != other.isTransactionWP()) return false;
-        if (this.isTransactionWVP() != other.isTransactionWVP()) return false;
-        if (this.getLastTimeCombine() != other.getLastTimeCombine()) return false;
-        if (this.getTempId() != other.getTempId()) return false;
+        if (!other.canEqual((java.lang.Object) this))
+            return false;
+        if (this.getIdItemUpTop() != other.getIdItemUpTop())
+            return false;
+        if (this.getTypeChangeMap() != other.getTypeChangeMap())
+            return false;
+        if (this.getIndexMenu() != other.getIndexMenu())
+            return false;
+        if (this.getTypeInput() != other.getTypeInput())
+            return false;
+        if (this.getTypeLuckyRound() != other.getTypeLuckyRound())
+            return false;
+        if (this.getIdPlayThachDau() != other.getIdPlayThachDau())
+            return false;
+        if (this.getGoldThachDau() != other.getGoldThachDau())
+            return false;
+        if (this.getKillCharId() != other.getKillCharId())
+            return false;
+        if (this.getIdEnemy() != other.getIdEnemy())
+            return false;
+        if (this.getIdSpaceShip() != other.getIdSpaceShip())
+            return false;
+        if (this.getMbv() != other.getMbv())
+            return false;
+        if (this.getRecaptcha() != other.getRecaptcha())
+            return false;
+        if (this.getLastTimeBan() != other.getLastTimeBan())
+            return false;
+        if (this.isBan() != other.isBan())
+            return false;
+        if (this.getOtt() != other.getOtt())
+            return false;
+        if (this.getPlayerTradeId() != other.getPlayerTradeId())
+            return false;
+        if (this.getLastTimeTrade() != other.getLastTimeTrade())
+            return false;
+        if (this.getLastTimeNotifyTimeHoldBlackBall() != other.getLastTimeNotifyTimeHoldBlackBall())
+            return false;
+        if (this.getLastTimeHoldBlackBall() != other.getLastTimeHoldBlackBall())
+            return false;
+        if (this.getTempIdBlackBallHold() != other.getTempIdBlackBallHold())
+            return false;
+        if (this.isHoldBlackBall() != other.isHoldBlackBall())
+            return false;
+        if (this.getTempIdNamecBallHold() != other.getTempIdNamecBallHold())
+            return false;
+        if (this.isHoldNamecBall() != other.isHoldNamecBall())
+            return false;
+        if (this.isLoadedAllDataPlayer() != other.isLoadedAllDataPlayer())
+            return false;
+        if (this.getLastTimeChangeFlag() != other.getLastTimeChangeFlag())
+            return false;
+        if (this.getTypeDatXD() != other.getTypeDatXD())
+            return false;
+        if (this.getSlDatXD() != other.getSlDatXD())
+            return false;
+        if (this.getTypeDatTX() != other.getTypeDatTX())
+            return false;
+        if (this.getTypeDatBC() != other.getTypeDatBC())
+            return false;
+        if (this.isGotoFuture() != other.isGotoFuture())
+            return false;
+        if (this.getLastTimeGoToFuture() != other.getLastTimeGoToFuture())
+            return false;
+        if (this.getXMapKhiGasHuyDiet() != other.getXMapKhiGasHuyDiet())
+            return false;
+        if (this.getYMapKhiGasHuyDiet() != other.getYMapKhiGasHuyDiet())
+            return false;
+        if (this.isGoToKGHD() != other.isGoToKGHD())
+            return false;
+        if (this.getLastTimeGoToKGHD() != other.getLastTimeGoToKGHD())
+            return false;
+        if (this.getLastTimeChangeZone() != other.getLastTimeChangeZone())
+            return false;
+        if (this.getLastTimeChatGlobal() != other.getLastTimeChatGlobal())
+            return false;
+        if (this.getLastTimeChatPrivate() != other.getLastTimeChatPrivate())
+            return false;
+        if (this.getLastTimePickItem() != other.getLastTimePickItem())
+            return false;
+        if (this.isGoToBDKB() != other.isGoToBDKB())
+            return false;
+        if (this.getLastTimeGoToBDKB() != other.getLastTimeGoToBDKB())
+            return false;
+        if (this.getLastTimeAnXienTrapBDKB() != other.getLastTimeAnXienTrapBDKB())
+            return false;
+        if (this.getShenronType() != other.getShenronType())
+            return false;
+        if (this.getLoaiThe() != other.getLoaiThe())
+            return false;
+        if (this.isAcpTrade() != other.isAcpTrade())
+            return false;
+        if (this.isGemCSMM() != other.isGemCSMM())
+            return false;
+        if (this.getDamePST() != other.getDamePST())
+            return false;
+        if (this.getMoneyKeoBuaBao() != other.getMoneyKeoBuaBao())
+            return false;
+        if (this.getTimePlayKeoBuaBao() != other.getTimePlayKeoBuaBao())
+            return false;
+        if (this.getKeoBuaBaoPlayer() != other.getKeoBuaBaoPlayer())
+            return false;
+        if (this.getKeoBuaBaoServer() != other.getKeoBuaBaoServer())
+            return false;
+        if (this.getLastTimeRevenge() != other.getLastTimeRevenge())
+            return false;
+        if (this.getMenuType() != other.getMenuType())
+            return false;
+        if (this.getTangHoaType() != other.getTangHoaType())
+            return false;
+        if (this.isTransactionWP() != other.isTransactionWP())
+            return false;
+        if (this.isTransactionWVP() != other.isTransactionWVP())
+            return false;
+        if (this.getLastTimeCombine() != other.getLastTimeCombine())
+            return false;
+        if (this.getTempId() != other.getTempId())
+            return false;
         final java.lang.Object this$shopOpen = this.getShopOpen();
         final java.lang.Object other$shopOpen = other.getShopOpen();
-        if (this$shopOpen == null ? other$shopOpen != null : !this$shopOpen.equals(other$shopOpen)) return false;
+        if (this$shopOpen == null ? other$shopOpen != null : !this$shopOpen.equals(other$shopOpen))
+            return false;
         final java.lang.Object this$tagNameShop = this.getTagNameShop();
         final java.lang.Object other$tagNameShop = other.getTagNameShop();
-        if (this$tagNameShop == null ? other$tagNameShop != null : !this$tagNameShop.equals(other$tagNameShop)) return false;
+        if (this$tagNameShop == null ? other$tagNameShop != null : !this$tagNameShop.equals(other$tagNameShop))
+            return false;
         final java.lang.Object this$captcha = this.getCaptcha();
         final java.lang.Object other$captcha = other.getCaptcha();
-        if (this$captcha == null ? other$captcha != null : !this$captcha.equals(other$captcha)) return false;
+        if (this$captcha == null ? other$captcha != null : !this$captcha.equals(other$captcha))
+            return false;
         final java.lang.Object this$playerTrade = this.getPlayerTrade();
         final java.lang.Object other$playerTrade = other.getPlayerTrade();
-        if (this$playerTrade == null ? other$playerTrade != null : !this$playerTrade.equals(other$playerTrade)) return false;
+        if (this$playerTrade == null ? other$playerTrade != null : !this$playerTrade.equals(other$playerTrade))
+            return false;
         final java.lang.Object this$npcXD = this.getNpcXD();
         final java.lang.Object other$npcXD = other.getNpcXD();
-        if (this$npcXD == null ? other$npcXD != null : !this$npcXD.equals(other$npcXD)) return false;
+        if (this$npcXD == null ? other$npcXD != null : !this$npcXD.equals(other$npcXD))
+            return false;
         final java.lang.Object this$npcTX = this.getNpcTX();
         final java.lang.Object other$npcTX = other.getNpcTX();
-        if (this$npcTX == null ? other$npcTX != null : !this$npcTX.equals(other$npcTX)) return false;
+        if (this$npcTX == null ? other$npcTX != null : !this$npcTX.equals(other$npcTX))
+            return false;
         final java.lang.Object this$npcBC = this.getNpcBC();
         final java.lang.Object other$npcBC = other.getNpcBC();
-        if (this$npcBC == null ? other$npcBC != null : !this$npcBC.equals(other$npcBC)) return false;
+        if (this$npcBC == null ? other$npcBC != null : !this$npcBC.equals(other$npcBC))
+            return false;
         final java.lang.Object this$zoneKhiGasHuyDiet = this.getZoneKhiGasHuyDiet();
         final java.lang.Object other$zoneKhiGasHuyDiet = other.getZoneKhiGasHuyDiet();
-        if (this$zoneKhiGasHuyDiet == null ? other$zoneKhiGasHuyDiet != null : !this$zoneKhiGasHuyDiet.equals(other$zoneKhiGasHuyDiet)) return false;
+        if (this$zoneKhiGasHuyDiet == null ? other$zoneKhiGasHuyDiet != null
+                : !this$zoneKhiGasHuyDiet.equals(other$zoneKhiGasHuyDiet))
+            return false;
         final java.lang.Object this$npcChose = this.getNpcChose();
         final java.lang.Object other$npcChose = other.getNpcChose();
-        if (this$npcChose == null ? other$npcChose != null : !this$npcChose.equals(other$npcChose)) return false;
+        if (this$npcChose == null ? other$npcChose != null : !this$npcChose.equals(other$npcChose))
+            return false;
         return true;
     }
 
@@ -995,6 +1087,38 @@ public class IDMark {
     @java.lang.Override
     @java.lang.SuppressWarnings("all")
     public java.lang.String toString() {
-        return "IDMark(idItemUpTop=" + this.getIdItemUpTop() + ", typeChangeMap=" + this.getTypeChangeMap() + ", indexMenu=" + this.getIndexMenu() + ", typeInput=" + this.getTypeInput() + ", typeLuckyRound=" + this.getTypeLuckyRound() + ", idPlayThachDau=" + this.getIdPlayThachDau() + ", goldThachDau=" + this.getGoldThachDau() + ", killCharId=" + this.getKillCharId() + ", idEnemy=" + this.getIdEnemy() + ", shopOpen=" + this.getShopOpen() + ", tagNameShop=" + this.getTagNameShop() + ", idSpaceShip=" + this.getIdSpaceShip() + ", mbv=" + this.getMbv() + ", captcha=" + this.getCaptcha() + ", recaptcha=" + this.getRecaptcha() + ", lastTimeBan=" + this.getLastTimeBan() + ", isBan=" + this.isBan() + ", ott=" + this.getOtt() + ", playerTradeId=" + this.getPlayerTradeId() + ", playerTrade=" + this.getPlayerTrade() + ", lastTimeTrade=" + this.getLastTimeTrade() + ", lastTimeNotifyTimeHoldBlackBall=" + this.getLastTimeNotifyTimeHoldBlackBall() + ", lastTimeHoldBlackBall=" + this.getLastTimeHoldBlackBall() + ", tempIdBlackBallHold=" + this.getTempIdBlackBallHold() + ", holdBlackBall=" + this.isHoldBlackBall() + ", tempIdNamecBallHold=" + this.getTempIdNamecBallHold() + ", holdNamecBall=" + this.isHoldNamecBall() + ", loadedAllDataPlayer=" + this.isLoadedAllDataPlayer() + ", lastTimeChangeFlag=" + this.getLastTimeChangeFlag() + ", typeDatXD=" + this.getTypeDatXD() + ", slDatXD=" + this.getSlDatXD() + ", npcXD=" + this.getNpcXD() + ", typeDatTX=" + this.getTypeDatTX() + ", npcTX=" + this.getNpcTX() + ", typeDatBC=" + this.getTypeDatBC() + ", npcBC=" + this.getNpcBC() + ", gotoFuture=" + this.isGotoFuture() + ", lastTimeGoToFuture=" + this.getLastTimeGoToFuture() + ", zoneKhiGasHuyDiet=" + this.getZoneKhiGasHuyDiet() + ", xMapKhiGasHuyDiet=" + this.getXMapKhiGasHuyDiet() + ", yMapKhiGasHuyDiet=" + this.getYMapKhiGasHuyDiet() + ", goToKGHD=" + this.isGoToKGHD() + ", lastTimeGoToKGHD=" + this.getLastTimeGoToKGHD() + ", lastTimeChangeZone=" + this.getLastTimeChangeZone() + ", lastTimeChatGlobal=" + this.getLastTimeChatGlobal() + ", lastTimeChatPrivate=" + this.getLastTimeChatPrivate() + ", lastTimePickItem=" + this.getLastTimePickItem() + ", goToBDKB=" + this.isGoToBDKB() + ", lastTimeGoToBDKB=" + this.getLastTimeGoToBDKB() + ", lastTimeAnXienTrapBDKB=" + this.getLastTimeAnXienTrapBDKB() + ", shenronType=" + this.getShenronType() + ", npcChose=" + this.getNpcChose() + ", loaiThe=" + this.getLoaiThe() + ", acpTrade=" + this.isAcpTrade() + ", isGemCSMM=" + this.isGemCSMM() + ", damePST=" + this.getDamePST() + ", moneyKeoBuaBao=" + this.getMoneyKeoBuaBao() + ", timePlayKeoBuaBao=" + this.getTimePlayKeoBuaBao() + ", keoBuaBaoPlayer=" + this.getKeoBuaBaoPlayer() + ", keoBuaBaoServer=" + this.getKeoBuaBaoServer() + ", lastTimeRevenge=" + this.getLastTimeRevenge() + ", menuType=" + this.getMenuType() + ", tangHoaType=" + this.getTangHoaType() + ", transactionWP=" + this.isTransactionWP() + ", transactionWVP=" + this.isTransactionWVP() + ", lastTimeCombine=" + this.getLastTimeCombine() + ", tempId=" + this.getTempId() + ")";
+        return "IDMark(idItemUpTop=" + this.getIdItemUpTop() + ", typeChangeMap=" + this.getTypeChangeMap()
+                + ", indexMenu=" + this.getIndexMenu() + ", typeInput=" + this.getTypeInput() + ", typeLuckyRound="
+                + this.getTypeLuckyRound() + ", idPlayThachDau=" + this.getIdPlayThachDau() + ", goldThachDau="
+                + this.getGoldThachDau() + ", killCharId=" + this.getKillCharId() + ", idEnemy=" + this.getIdEnemy()
+                + ", shopOpen=" + this.getShopOpen() + ", tagNameShop=" + this.getTagNameShop() + ", idSpaceShip="
+                + this.getIdSpaceShip() + ", mbv=" + this.getMbv() + ", captcha=" + this.getCaptcha() + ", recaptcha="
+                + this.getRecaptcha() + ", lastTimeBan=" + this.getLastTimeBan() + ", isBan=" + this.isBan() + ", ott="
+                + this.getOtt() + ", playerTradeId=" + this.getPlayerTradeId() + ", playerTrade="
+                + this.getPlayerTrade() + ", lastTimeTrade=" + this.getLastTimeTrade()
+                + ", lastTimeNotifyTimeHoldBlackBall=" + this.getLastTimeNotifyTimeHoldBlackBall()
+                + ", lastTimeHoldBlackBall=" + this.getLastTimeHoldBlackBall() + ", tempIdBlackBallHold="
+                + this.getTempIdBlackBallHold() + ", holdBlackBall=" + this.isHoldBlackBall() + ", tempIdNamecBallHold="
+                + this.getTempIdNamecBallHold() + ", holdNamecBall=" + this.isHoldNamecBall() + ", loadedAllDataPlayer="
+                + this.isLoadedAllDataPlayer() + ", lastTimeChangeFlag=" + this.getLastTimeChangeFlag() + ", typeDatXD="
+                + this.getTypeDatXD() + ", slDatXD=" + this.getSlDatXD() + ", npcXD=" + this.getNpcXD() + ", typeDatTX="
+                + this.getTypeDatTX() + ", npcTX=" + this.getNpcTX() + ", typeDatBC=" + this.getTypeDatBC() + ", npcBC="
+                + this.getNpcBC() + ", gotoFuture=" + this.isGotoFuture() + ", lastTimeGoToFuture="
+                + this.getLastTimeGoToFuture() + ", zoneKhiGasHuyDiet=" + this.getZoneKhiGasHuyDiet()
+                + ", xMapKhiGasHuyDiet=" + this.getXMapKhiGasHuyDiet() + ", yMapKhiGasHuyDiet="
+                + this.getYMapKhiGasHuyDiet() + ", goToKGHD=" + this.isGoToKGHD() + ", lastTimeGoToKGHD="
+                + this.getLastTimeGoToKGHD() + ", lastTimeChangeZone=" + this.getLastTimeChangeZone()
+                + ", lastTimeChatGlobal=" + this.getLastTimeChatGlobal() + ", lastTimeChatPrivate="
+                + this.getLastTimeChatPrivate() + ", lastTimePickItem=" + this.getLastTimePickItem() + ", goToBDKB="
+                + this.isGoToBDKB() + ", lastTimeGoToBDKB=" + this.getLastTimeGoToBDKB() + ", lastTimeAnXienTrapBDKB="
+                + this.getLastTimeAnXienTrapBDKB() + ", shenronType=" + this.getShenronType() + ", npcChose="
+                + this.getNpcChose() + ", loaiThe=" + this.getLoaiThe() + ", acpTrade=" + this.isAcpTrade()
+                + ", isGemCSMM=" + this.isGemCSMM() + ", damePST=" + this.getDamePST() + ", moneyKeoBuaBao="
+                + this.getMoneyKeoBuaBao() + ", timePlayKeoBuaBao=" + this.getTimePlayKeoBuaBao() + ", keoBuaBaoPlayer="
+                + this.getKeoBuaBaoPlayer() + ", keoBuaBaoServer=" + this.getKeoBuaBaoServer() + ", lastTimeRevenge="
+                + this.getLastTimeRevenge() + ", menuType=" + this.getMenuType() + ", tangHoaType="
+                + this.getTangHoaType() + ", transactionWP=" + this.isTransactionWP() + ", transactionWVP="
+                + this.isTransactionWVP() + ", lastTimeCombine=" + this.getLastTimeCombine() + ", tempId="
+                + this.getTempId() + ")";
     }
 }

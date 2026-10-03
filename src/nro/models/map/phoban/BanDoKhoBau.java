@@ -16,6 +16,7 @@ import nro.models.utils.Util;
 import java.util.ArrayList;
 import java.util.List;
 import nro.models.server.Maintenance;
+import nro.models.consts.ConstMob;
 import nro.models.map.service.ItemMapService;
 import nro.models.utils.TimeUtil;
 
@@ -144,41 +145,52 @@ public class BanDoKhoBau implements Runnable {
     }
 
     private void init() {
-        //Há»“i sinh quÃ¡i
+        // Hồi sinh và thiết lập chỉ số quái theo cấp độ phó bản
         for (Zone zone : this.zones) {
             for (TrapMap trap : zone.trapMaps) {
-                trap.dame = this.level * 100000;
+                trap.dame = (int) Math.min((long) this.level * 10000L, 2000000L);
             }
-            if (zone.map.mapId == 135 || zone.map.mapId == 136 || zone.map.mapId == 137) {
-                List<Mob> mobs = zone.mobs;
-                for (int i = 0; i < mobs.size(); i++) {
-                    Mob mob = mobs.get(i);
-                    if (((i == 5 || i == 10) && zone.map.mapId == 135) || (i == 5 && zone.map.mapId == 136) || (i == 5 && zone.map.mapId == 137)) {
-                        mob.lvMob = 1;
-                        mob.point.dame = (int) Math.min((long) level * 600 * mob.tempId * 10, 2147483647);
-                        mob.point.maxHp = (int) Math.min((long) level * 469799 * mob.tempId, 2147483647);
-                        mob.hoiSinh();
-                        mob.hoiSinhMobPhoBan();
-                    } else {
-                        mob.lvMob = 0;
-                        mob.point.dame = (int) Math.min((long) level * 200 * mob.tempId, 2147483647);
-                        mob.point.maxHp = (int) Math.min((long) level * 469799 * mob.tempId, 2147483647);
-                        mob.hoiSinh();
-                        mob.hoiSinhMobPhoBan();
-                    }
-                }
-            } else {
-                for (Mob mob : zone.mobs) {
-                    mob.point.dame = (int) Math.min((long) level * 31 * 50 * mob.tempId, 2147483647);
-                    mob.point.maxHp = (int) Math.min((long) level * 310799 * 50 * mob.tempId, 2147483647);
-                    mob.hoiSinh();
+            List<Mob> mobs = zone.mobs;
+            for (int i = 0; i < mobs.size(); i++) {
+                Mob mob = mobs.get(i);
+                mob.hoiSinh();
+                long baseHp = mob.point.maxHpGoc > 0 ? mob.point.maxHpGoc : 35000L;
+                if (mob.tempId == ConstMob.VUA_BACH_TUOC || mob.tempId == ConstMob.ROBOT_BAO_VE) {
+                    // Mini Boss (Vua Bạch Tuộc map 136, Robot Bảo Vệ map 138)
+                    mob.lvMob = 1;
+                    mob.point.dame = (int) Math.min((long) level * 2000L + Util.nextInt(-100, 100), 200000000L);
+                    long hp = (long) level * 5000000L + Util.nextInt(100000, 999999);
+                    int finalHp = (int) Math.min(hp, 2000000000L);
+                    mob.point.setHpFull(finalHp);
+                    mob.point.hp = finalHp;
+                    mob.hoiSinhMobPhoBan();
+                } else if (((i == 5 || i == 10) && zone.map.mapId == 135)
+                        || (i == 5 && zone.map.mapId == 136)
+                        || (i == 5 && zone.map.mapId == 137)
+                        || (i == 3 && zone.map.mapId == 138)) {
+                    // Siêu quái (máu ~x10-x12 quái thường: cấp 110 trong khoảng 440tr - 480tr)
+                    mob.lvMob = 1;
+                    mob.point.dame = (int) Math.min((long) level * 1500L + Util.nextInt(-50, 50), 200000000L);
+                    long hp = (baseHp > 100000 ? baseHp : baseHp * 10L) * (long) level * 10L + Util.nextInt(-5000 * level, 5000 * level);
+                    int finalHp = (int) Math.min(Math.max(100000L, hp), 2000000000L);
+                    mob.point.setHpFull(finalHp);
+                    mob.point.hp = finalHp;
+                    mob.hoiSinhMobPhoBan();
+                } else {
+                    // Quái thường (tính theo baseHp gốc của từng loại quái, cấp 110 trong khoảng 37tr - 45tr máu với số lẻ tự nhiên)
+                    mob.lvMob = 0;
+                    mob.point.dame = (int) Math.min((long) level * 500L + Util.nextInt(-20, 20), 200000000L);
+                    long hp = (baseHp > 100000 ? baseHp / 10L : baseHp) * (long) level * 10L + Util.nextInt(-500 * level, 500 * level);
+                    int finalHp = (int) Math.min(Math.max(10000L, hp), 2000000000L);
+                    mob.point.setHpFull(finalHp);
+                    mob.point.hp = finalHp;
                     mob.hoiSinhMobPhoBan();
                 }
             }
             if (zone.map.mapId == 137) {
                 try {
-                    long bossDamage = (200000 * level);
-                    long bossMaxHealth = (20000000 * level);
+                    long bossDamage = (long) level * 3000L + Util.nextInt(-100, 100);
+                    long bossMaxHealth = (long) level * 10000000L + Util.nextInt(100000, 999999);
                     bossDamage = Math.min(bossDamage, 200000000L);
                     bossMaxHealth = Math.min(bossMaxHealth, 2000000000L);
                     boss = new TrungUyXanhLo(zone, level, (int) bossDamage, (int) bossMaxHealth);

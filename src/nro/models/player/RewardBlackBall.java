@@ -132,17 +132,29 @@ public class RewardBlackBall {
         return;
     }
 
-    // ===== CÁC SAO KHÁC =====
-    switch (star) {
-        case 1:
-        case 2:
-        case 3:
-        case 5:
-        case 6:
-            Service.gI().sendThongBao(player, "Chỉ số đã được cộng");
-            Service.gI().point(player);
-            break;
-    }
+        // ===== CÁC SAO KHÁC (Buff chỉ số tự động) =====
+        switch (star) {
+            case 1 -> {
+                Service.gI().sendThongBao(player, "Ngọc 1 Sao Đen: Đang tự động tăng +15% Sức đánh");
+                Service.gI().point(player);
+            }
+            case 2 -> {
+                Service.gI().sendThongBao(player, "Ngọc 2 Sao Đen: Đang tự động tăng +20% HP Tối đa");
+                Service.gI().point(player);
+            }
+            case 3 -> {
+                Service.gI().sendThongBao(player, "Ngọc 3 Sao Đen: Đang tự động tăng +20% KI/MP Tối đa");
+                Service.gI().point(player);
+            }
+            case 5 -> {
+                Service.gI().sendThongBao(player, "Ngọc 5 Sao Đen: Đang tự động tăng +15% Hút HP khi tấn công");
+                Service.gI().point(player);
+            }
+            case 6 -> {
+                Service.gI().sendThongBao(player, "Ngọc 6 Sao Đen: Đang tự động tăng +15% Hút MP/KI khi tấn công");
+                Service.gI().point(player);
+            }
+        }
 }
     public void dispose() {
         this.player = null;

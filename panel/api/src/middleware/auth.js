@@ -102,9 +102,15 @@ export async function getMe(userId) {
   };
 }
 
-// Dev fallback when panel_users table missing
+// Dev fallback when panel_users table missing - only allowed if explicitly enabled
 export async function devLogin(username, password) {
-  if (username === 'admin' && password === 'admin123') {
+  const allowDev = process.env.ALLOW_DEV_LOGIN === 'true' || process.env.NODE_ENV === 'development';
+  if (!allowDev) {
+    return null;
+  }
+  const devPass = process.env.DEV_PANEL_PASS || 'admin123';
+  if (username === 'admin' && password === devPass) {
+    console.warn('[SECURITY WARNING] Logging in using devLogin fallback! Please setup panel_users table for production.');
     const permissions = ['*'];
     const token = signUserToken({ id: 0, username: 'admin', role: 'owner', permissions });
     return { token, user: { id: 0, username: 'admin', role: 'owner', permissions } };

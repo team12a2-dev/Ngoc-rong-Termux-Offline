@@ -18,12 +18,14 @@ function httpToWs(url) {
   return url.replace(/^http:\/\//i, 'ws://').replace(/^https:\/\//i, 'wss://');
 }
 
-/** WebSocket base URL — dev connects directly to Panel API (avoids Vite WS proxy issues). */
+/** WebSocket base URL — dynamic for localhost, LAN IPs, and custom domains. */
 export function getWsBaseUrl() {
   const apiUrl = import.meta.env.VITE_API_URL;
   if (apiUrl) return httpToWs(apiUrl);
-  if (import.meta.env.DEV) return 'ws://127.0.0.1:3001';
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  if (location.port === '5173') {
+    return `${proto}://${location.hostname}:3001`;
+  }
   return `${proto}://${location.host}`;
 }
 
@@ -105,3 +107,28 @@ export async function api(path, options = {}, retried = false) {
   }
   return json;
 }
+
+export async function apiGet(path) {
+  const cleanPath = path.startsWith('/api/v1') ? path.slice(7) : path;
+  return api(cleanPath, { method: 'GET' });
+}
+
+export async function apiPost(path, body) {
+  const cleanPath = path.startsWith('/api/v1') ? path.slice(7) : path;
+  return api(cleanPath, { method: 'POST', body: JSON.stringify(body) });
+}
+
+export async function apiPut(path, body) {
+  const cleanPath = path.startsWith('/api/v1') ? path.slice(7) : path;
+  return api(cleanPath, { method: 'PUT', body: JSON.stringify(body) });
+}
+
+export async function apiDelete(path) {
+  const cleanPath = path.startsWith('/api/v1') ? path.slice(7) : path;
+  return api(cleanPath, { method: 'DELETE' });
+}
+
+api.get = apiGet;
+api.post = apiPost;
+api.put = apiPut;
+api.delete = apiDelete;

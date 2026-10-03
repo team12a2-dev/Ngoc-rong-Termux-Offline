@@ -1,6 +1,5 @@
 package nro.models.boss.spawn;
 
-import nro.models.boss.Boss;
 import nro.models.utils.Util;
 
 /**
@@ -50,25 +49,15 @@ public enum BossSpawnTier {
         return (Util.nextInt(min, max) + Util.nextInt(min, max)) / 2;
     }
 
-    /**
-     * Trễ lần spawn đầu tiên sau khi mở server.
-     * Trải theo identity của từng instance: 75 bản sao của cùng một boss (Broly) sẽ
-     * không còn nhận đúng một độ trễ, nên không dồn về một thời điểm.
-     */
-    public long rollInitialStaggerMs(Boss boss) {
+    public long rollInitialStaggerMs(int bossId) {
         long min = BossSpawnConfig.staggerMinMs(this);
         long max = BossSpawnConfig.staggerMaxMs(this);
-        long spread = Math.max(0L, max - min);
-        if (spread == 0L) {
-            return min;
-        }
-        // 61 ô là nguyên tố: đủ dải cho 75 instance mà vẫn phân bố đều.
-        int buckets = 61;
-        int instanceSlot = Math.floorMod(System.identityHashCode(boss), buckets);
-        long offset = spread * instanceSlot / buckets;
-        long jitter = Util.nextInt(0, (int) Math.min(Math.max(spread / 3, 1), 180_000));
+        long spread = max - min;
+        int slot = Math.abs(bossId) % 23;
+        long offset = spread * slot / 23;
+        long jitter = Util.nextInt(0, (int) Math.min(spread / 3, 180_000));
         long daySeed = java.time.ZonedDateTime.now(BossSpawnSchedule.ZONE_VN).toLocalDate().toEpochDay();
-        long dayJitter = Math.floorMod(boss.id * 31L + daySeed + instanceSlot, 100L) * spread / 200L;
+        long dayJitter = (Math.abs(bossId * 31 + (int) daySeed) % 100) * spread / 200;
         return min + offset + jitter + dayJitter;
     }
 }

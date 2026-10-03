@@ -42,71 +42,50 @@ public class BuiBui2 extends Boss {
         MajinBuuService.gI().armBossForPlayerCombat(this);
     }
 
-@Override
-public void reward(Player plKill) {
+    @Override
+    public void reward(Player plKill) {
+        int x = this.location.x;
+        int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
 
-    int x = this.location.x;
-    int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
-
-    // ================== 10% RƠI NHÓM 1 (BOSS) ==================
-    if (Util.isTrue(20, 100)) {
-
-        int[] dropItems = {
-            241, 253, 265, 277,
-            233, 245, 257, 269,
-            237, 249, 261, 273,
-            281
-        };
-        int itemId = dropItems[Util.nextInt(dropItems.length)];
-
-        // Chỉ người hạ boss nhặt được
-        ItemMap it = new ItemMap(zone, itemId, 1, x, y, plKill.id);
-
-        // Option 107 random 0–2
-        it.options.add(new Item.ItemOption(107, Util.nextInt(0, 3)));
-
-        // Option theo nhóm item
-        switch (itemId) {
-            case 241:
-            case 233:
-            case 237:
-                it.options.add(new Item.ItemOption(47, Util.nextInt(400, 550)));
-                break;
-
-            case 253:
-            case 245:
-            case 249:
-                it.options.add(new Item.ItemOption(6, Util.nextInt(22000, 27000)));
-                it.options.add(new Item.ItemOption(27, Util.nextInt(3000, 5000)));
-                break;
-
-            case 265:
-            case 261:
-            case 257:
-                it.options.add(new Item.ItemOption(0, Util.nextInt(2100, 2400)));
-                break;
-
-            case 277:
-            case 269:
-            case 273:
-                it.options.add(new Item.ItemOption(7, Util.nextInt(22000, 26000)));
-                it.options.add(new Item.ItemOption(28, Util.nextInt(4000, 6000)));
-                break;
-
-            case 281:
-                it.options.add(new Item.ItemOption(14, Util.nextInt(11, 13)));
-                break;
+        // 10% rơi Đồ Thần Linh (0 - 2 sao)
+        if (Util.isTrue(10, 100)) {
+            int[] dropItems = {241, 253, 265, 277, 233, 245, 257, 269, 237, 249, 261, 273, 281};
+            int itemId = dropItems[Util.nextInt(dropItems.length)];
+            ItemMap it = new ItemMap(zone, itemId, 1, x, y, plKill.id);
+            it.options.add(new Item.ItemOption(107, Util.nextInt(0, 2)));
+            switch (itemId) {
+                case 241, 233, 237 -> it.options.add(new Item.ItemOption(47, Util.nextInt(400, 550)));
+                case 253, 245, 249 -> {
+                    it.options.add(new Item.ItemOption(6, Util.nextInt(22000, 27000)));
+                    it.options.add(new Item.ItemOption(27, Util.nextInt(3000, 5000)));
+                }
+                case 265, 257, 261 -> it.options.add(new Item.ItemOption(0, Util.nextInt(2100, 2400)));
+                case 277, 269, 273 -> {
+                    it.options.add(new Item.ItemOption(7, Util.nextInt(22000, 26000)));
+                    it.options.add(new Item.ItemOption(28, Util.nextInt(4000, 6000)));
+                }
+                case 281 -> it.options.add(new Item.ItemOption(14, Util.nextInt(11, 13)));
+            }
+            Service.gI().dropItemMap(zone, it);
         }
 
-        Service.gI().dropItemMap(zone, it);
-    }
+        // 40% rơi Ngọc Rồng 3 - 5 sao
+        if (Util.isTrue(40, 100)) {
+            int nrId = Util.nextInt(16, 18); // 16: 3 sao, 17: 4 sao, 18: 5 sao
+            ItemMap it = new ItemMap(zone, nrId, 1, x + 10, y, plKill.id);
+            Service.gI().dropItemMap(zone, it);
+        }
 
-    // ================== 10% RƠI ITEM 16 / 17 (x1) ==================
-    if (Util.isTrue(20, 100)) {
-        int itemId = Util.isTrue(50, 100) ? 16 : 17;
-        ItemMap it = new ItemMap(zone, itemId, 1, x + 10, y, plKill.id);
-        Service.gI().dropItemMap(zone, it);
-    }
+        // 30% rơi Đá Nâng Cấp cấp 3 - 4
+        if (Util.isTrue(30, 100)) {
+            int daId = Util.nextInt(1076, 1077);
+            ItemMap it = new ItemMap(zone, daId, 1, x - 10, y, plKill.id);
+            Service.gI().dropItemMap(zone, it);
+        }
+
+        // Vàng rơi tự do trên sàn đấu
+        ItemMap gold = new ItemMap(zone, 190, Util.nextInt(50000, 100000), x + 20, y, -1);
+        Service.gI().dropItemMap(zone, gold);
 
         plKill.fightMabu.changePoint((byte) 10, this.name);
         TaskService.gI().checkDoneTaskKillBoss(plKill, this);

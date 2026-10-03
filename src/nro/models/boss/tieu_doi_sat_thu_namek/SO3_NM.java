@@ -28,30 +28,29 @@ public class SO3_NM extends Boss {
         super.moveTo(x, y);
     }
 
-  @Override
-public void reward(Player plKill) {
+    @Override
+    public void reward(Player plKill) {
 
-    short itemId = 77;
+        short itemId = 77;
 
-    for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 20; i++) {
 
-        int x = this.location.x + Util.nextInt(-60, 60);
-        int y = this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24);
+            int x = this.location.x + Util.nextInt(-60, 60);
+            int y = this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24);
 
-        ItemMap item = new ItemMap(
-                this.zone,
-                itemId,
-                1,
-                x,
-                y,
-                -1 // ai cũng nhặt được
-        );
+            ItemMap item = new ItemMap(
+                    this.zone,
+                    itemId,
+                    1,
+                    x,
+                    y,
+                    -1 // ai cũng nhặt được
+            );
 
-        Service.gI().dropItemMap(this.zone, item);
+            Service.gI().dropItemMap(this.zone, item);
+        }
+
     }
-
-  
-}
 
     @Override
     protected void notifyJoinMap() {
@@ -74,8 +73,16 @@ public void reward(Player plKill) {
 
     @Override
     public void autoLeaveMap() {
-        if (Util.canDoWithTime(st, 900000)) {
+        if (this.parentBoss != null && (this.parentBoss.zone == null || this.parentBoss.bossStatus == BossStatus.REST)) {
             this.leaveMapNew();
+            return;
+        }
+        if (Util.canDoWithTime(st, 900000)) {
+            if (this.parentBoss != null) {
+                this.parentBoss.leaveMapNew();
+            } else {
+                this.leaveMapNew();
+            }
         }
         if (this.zone != null && this.zone.getNumOfPlayers() > 0) {
             st = System.currentTimeMillis();
@@ -91,7 +98,7 @@ public void reward(Player plKill) {
         for (Boss boss : this.parentBoss.bossAppearTogether[this.parentBoss.currentLevel]) {
             if ((boss.id == BossID.SO_2_NM || boss.id == BossID.SO_1_NM) && !boss.isDie()) {
                 boss.changeStatus(BossStatus.ACTIVE);
-//                break;
+                // break;
             }
         }
     }

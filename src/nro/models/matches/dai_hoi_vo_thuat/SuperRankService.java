@@ -189,13 +189,19 @@ public class SuperRankService {
     public String textReward(int rank) {
         String text = "";
         if (rank == 1) {
-            text = "+1 ngọc/ ngày";
-        } else if (rank >= 2 && rank <= 10) {
-            text = "+1 ngọc/ ngày";
-        } else if (rank >= 11 && rank <= 100) {
-            text = "+1 ngọc/ ngày";
-        } else if (rank >= 101 && rank <= 1000) {
-            text = "+1 ngọc/ ngày";
+            text = "+100 ngọc & 50Tr vàng/ngày";
+        } else if (rank >= 2 && rank <= 3) {
+            text = "+50 ngọc & 30Tr vàng/ngày";
+        } else if (rank >= 4 && rank <= 10) {
+            text = "+30 ngọc & 20Tr vàng/ngày";
+        } else if (rank >= 11 && rank <= 50) {
+            text = "+15 ngọc & 10Tr vàng/ngày";
+        } else if (rank >= 51 && rank <= 100) {
+            text = "+10 ngọc & 5Tr vàng/ngày";
+        } else if (rank >= 101 && rank <= 500) {
+            text = "+5 ngọc & 2Tr vàng/ngày";
+        } else if (rank >= 501 && rank <= 1000) {
+            text = "+2 ngọc & 1Tr vàng/ngày";
         }
         return text;
     }
@@ -203,13 +209,39 @@ public class SuperRankService {
     public int reward(int rank) {
         int rw = -1;
         if (rank == 1) {
-            rw = 1;
-        } else if (rank >= 2 && rank <= 10) {
-            rw = 1;
-        } else if (rank >= 11 && rank <= 100) {
-            rw = 1;
-        } else if (rank >= 101 && rank <= 1000) {
-            rw = 1;
+            rw = 100;
+        } else if (rank >= 2 && rank <= 3) {
+            rw = 50;
+        } else if (rank >= 4 && rank <= 10) {
+            rw = 30;
+        } else if (rank >= 11 && rank <= 50) {
+            rw = 15;
+        } else if (rank >= 51 && rank <= 100) {
+            rw = 10;
+        } else if (rank >= 101 && rank <= 500) {
+            rw = 5;
+        } else if (rank >= 501 && rank <= 1000) {
+            rw = 2;
+        }
+        return rw;
+    }
+
+    public long rewardGold(int rank) {
+        long rw = 0;
+        if (rank == 1) {
+            rw = 50_000_000L;
+        } else if (rank >= 2 && rank <= 3) {
+            rw = 30_000_000L;
+        } else if (rank >= 4 && rank <= 10) {
+            rw = 20_000_000L;
+        } else if (rank >= 11 && rank <= 50) {
+            rw = 10_000_000L;
+        } else if (rank >= 51 && rank <= 100) {
+            rw = 5_000_000L;
+        } else if (rank >= 101 && rank <= 500) {
+            rw = 2_000_000L;
+        } else if (rank >= 501 && rank <= 1000) {
+            rw = 1_000_000L;
         }
         return rw;
     }

@@ -10,6 +10,7 @@ import static nro.models.consts.BossType.PHOBANDT;
 import nro.models.consts.ConstRatio;
 import nro.models.map.ItemMap;
 import nro.models.map.Zone;
+import nro.models.player.Pet;
 import nro.models.player.Player;
 import nro.models.skill.Skill;
 import nro.models.services.EffectSkillService;
@@ -46,77 +47,42 @@ public class TrungUyThep extends Boss {
 
         this.zone = zone;
     }
-@Override
-public void reward(Player plKill) {
 
-  
-    if (Util.isTrue(30, 100)) {
-        // 30% rơi item 17
+    @Override
+    public void reward(Player plKill) {
+        if (plKill == null) {
+            return;
+        }
+        Player realPlayer = plKill.isPet ? ((Pet) plKill).master : plKill;
+        long ownerId = (realPlayer != null) ? realPlayer.id : plKill.id;
+
+        // 100% rơi Ngọc Rồng 4-7 sao theo độ hiếm tăng dần (7s: 50%, 6s: 30%, 5s: 15%, 4s: 5%)
+        int rand = Util.nextInt(1, 100);
+        int nrId;
+        if (rand <= 50) {
+            nrId = 20; // 7 sao
+        } else if (rand <= 80) {
+            nrId = 19; // 6 sao
+        } else if (rand <= 95) {
+            nrId = 18; // 5 sao
+        } else {
+            nrId = 17; // 4 sao
+        }
+
+        int dropY = this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24);
+        if (dropY <= 0) {
+            dropY = this.location.y;
+        }
         ItemMap it = new ItemMap(
                 this.zone,
-                17,
+                nrId,
                 1,
                 this.location.x,
-                this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24),
-                plKill.id
-        );
-        Service.gI().dropItemMap(this.zone, it);
-    } else {
-        // 70% rơi 190 x50000
-        ItemMap it = new ItemMap(
-                this.zone,
-                190,
-                50000,
-                this.location.x,
-                this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24),
-                plKill.id
+                dropY,
+                ownerId
         );
         Service.gI().dropItemMap(this.zone, it);
     }
-
-
-}
-    // @Override
-    // public void reward(Player plKill) {
-    //     int diem = 5;
-    //     plKill.event.addEventPoint(diem);
-    //     Service.gI().sendThongBao(plKill, "+5 Point");
-    //     // Xác suất rơi item 1560 (50%)
-    //     if (Util.isTrue(50, 100)) {
-    //         ItemMap it = new ItemMap(
-    //                 this.zone,
-    //                 17,
-    //                 1,
-    //                 this.location.x,
-    //                 this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24),
-    //                 plKill.id
-    //         );
-    //         Service.gI().dropItemMap(this.zone, it);
-    //     }
-
-    //     // Xác suất rơi item 611 (30%)
-    //     if (Util.isTrue(30, 100)) {
-    //         ItemMap it = new ItemMap(
-    //                 this.zone,
-    //                 611,
-    //                 Util.nextInt(1, 2),
-    //                 this.location.x,
-    //                 this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24),
-    //                 plKill.id
-    //         );
-    //         Service.gI().dropItemMap(this.zone, it);
-    //     }
-    //     // 100% rơi item 1824
-    //     ItemMap it = new ItemMap(
-    //             this.zone,
-    //             1824,
-    //             1,
-    //             this.location.x,
-    //             this.zone.map.yPhysicInTop(this.location.x, this.location.y - 24),
-    //             plKill.id
-    //     );
-    //     Service.gI().dropItemMap(this.zone, it);
-    // }
 
     @Override
     public void active() {

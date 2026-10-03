@@ -25,7 +25,7 @@ import nro.models.services_dungeon.MajinBuuService;
 import nro.models.services_dungeon.NgocRongNamecService;
 import nro.models.utils.Logger;
 import nro.models.utils.TimeUtil;
-import java.util.*; 
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -78,7 +78,7 @@ public class ServerManager {
                 + ", items=" + Manager.ITEM_TEMPLATES.size()
                 + ", mobs=" + Manager.MOB_TEMPLATES.size()
                 + ", npcs=" + Manager.NPCS.size());
-        //TaskService.gI().loadTask();
+        // TaskService.gI().loadTask();
         HistoryTransactionDAO.deleteHistory();
     }
 
@@ -92,10 +92,19 @@ public class ServerManager {
 
     public static void main(String[] args) {
         try {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("[SHUTDOWN HOOK] Tiến trình nhận tín hiệu dừng. Bắt đầu lưu khẩn cấp...");
+                try {
+                    ServerManager.gI().emergencySave();
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            }, "Server-ShutdownHook"));
+
             timeStart = TimeUtil.getTimeNow("dd/MM/yyyy HH:mm:ss");
             clearReadyMarker();
             System.out.println("[NRO][STARTING] Server bắt đầu khởi động lúc " + timeStart);
-            //ShopTab.loadItem();
+            // ShopTab.loadItem();
             new Thread(() -> {
                 try {
                     ServerManager.gI().run();
@@ -148,9 +157,7 @@ public class ServerManager {
             new Thread(The23rdMartialArtCongressManager.gI(), "Update DHVT23").start();
             new Thread(DeathOrAliveArenaManager.gI(), "Update Võ Đài Sinh Tử").start();
             new Thread(WorldMartialArtsTournamentManager.gI(), "Update WMAT").start();
-            // new Thread(AutoMaintenance.gI(), "Update Bảo Trì Tự Động").start();
-            // AutoMaintenance.AutoMaintenance = true;
-            // AutoMaintenance.gI().start();
+            AutoMaintenance.gI().start();
             new Thread(ShenronEventManager.gI(), "Update Shenron").start();
 
             try {
@@ -320,19 +327,38 @@ public class ServerManager {
         }
     }
 
-    public void close() {
+    private static volatile boolean isSavedOnClose = false;
+
+    public synchronized void emergencySave() {
+        if (isSavedOnClose) {
+            return;
+        }
+        isSavedOnClose = true;
         isRunning = false;
+        clearReadyMarker();
+        System.out.println("[EMERGENCY SAVE] Bắt đầu lưu Clan, Shop Ký Gửi và Tất Cả Người Chơi...");
         try {
             ClanService.gI().close();
+            System.out.println("[EMERGENCY SAVE] Đã lưu dữ liệu Bang Hội.");
         } catch (Exception e) {
-            Logger.error("Lỗi save clan!\n");
+            Logger.error("Lỗi save clan: " + e.getMessage() + "\n");
         }
         try {
             ConsignShopManager.gI().save();
+            System.out.println("[EMERGENCY SAVE] Đã lưu dữ liệu Shop Ký Gửi.");
         } catch (Exception e) {
-            Logger.error("Lỗi save shop ký gửi!\n");
+            Logger.error("Lỗi save shop ký gửi: " + e.getMessage() + "\n");
         }
-        Client.gI().close();
+        try {
+            Client.gI().close();
+            System.out.println("[EMERGENCY SAVE] Đã lưu dữ liệu và ngắt kết nối Người Chơi.");
+        } catch (Exception e) {
+            Logger.error("Lỗi save Client: " + e.getMessage() + "\n");
+        }
+    }
+
+    public void close() {
+        emergencySave();
         Logger.success("SUCCESSFULLY MAINTENANCE!\n");
 
         try {
@@ -360,15 +386,15 @@ public class ServerManager {
                     System.out.println("Đã tắt chế độ bảo trì tự động.");
                     break;
                 case "run":
-                try {
-                    ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "run.bat");
-                    pb.inheritIO();
-                    pb.start();
-                    System.out.println("Đã chạy run.bat");
-                } catch (IOException e) {
-                    System.out.println("Lỗi khi chạy run.bat: " + e.getMessage());
-                }
-                break;
+                    try {
+                        ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "run.bat");
+                        pb.inheritIO();
+                        pb.start();
+                        System.out.println("Đã chạy run.bat");
+                    } catch (IOException e) {
+                        System.out.println("Lỗi khi chạy run.bat: " + e.getMessage());
+                    }
+                    break;
                 default:
                     System.out.println("Lệnh không hợp lệ.");
                     break;

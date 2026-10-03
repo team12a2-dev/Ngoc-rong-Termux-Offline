@@ -1,11 +1,5 @@
 package nro.models.services;
 
-import nro.models.boss.Boss;
-import nro.models.boss.BossID;
-import nro.models.consts.BossStatus;
-import nro.models.consts.ConstItem;
-import nro.models.item.Item;
-import nro.models.map.Zone;
 import nro.models.mob.Mob;
 import nro.models.player.Player;
 import nro.models.skill.Skill;
@@ -15,7 +9,6 @@ import nro.models.map.service.MapService;
 import nro.models.utils.SkillUtil;
 import java.util.List;
 import nro.models.services.ItemTimeService;
-import nro.models.utils.Logger;
 import nro.models.utils.Util;
 import nro.models.map.MaBuHold;
 
@@ -37,24 +30,6 @@ public class EffectSkillService {
     public static final byte BLIND_EFFECT = 40;
     public static final byte SLEEP_EFFECT = 41;
     public static final byte STONE_EFFECT = 42;
-    /** Icon dùng làm biểu tượng đếm ngược cho trạng thái biến cà rốt (icon_id của item Củ cà rốt). */
-    public static final int CARROT_ITEM_TIME_ID = 4083;
-    /** Thời gian bị biến cà rốt (5 phút). */
-    public static final int CARROT_DURATION = 5 * 60 * 1000;
-    /** Bán kính chạm theo trục ngang, khớp bán kính nhặt vật phẩm rơi trong Zone.pickItem. */
-    public static final int CARROT_TOUCH_X = 60;
-    /**
-     * Dung sai cao độ tối đa vẫn coi là chạm, tính bằng pixel (1 ô tile = 24).
-     *
-     * <p>Phải tách khỏi {@link Util#getDistance} vì hàm đó đo Euclid 2 chiều trên (x, y) nên chênh
-     * lệch cao độ ăn vào bán kính. Đo lại tile thật: {@code Boss.getMapSpawnY} gọi
-     * {@code yPhysicInTop(x, 100)} trả hàng sàn đầu tiên dò từ dưới lên, nên cao độ spawn trên các
-     * map của {@code MINI_BOSS_MAPS} trải từ y=100 tới y=792 và chênh nhau hàng trăm pixel giữa các
-     * bậc sàn. Dùng chung bán kính 60 cho cả hai trục thì người chơi đứng dưới một bậc cao hơn sẽ
-     * không bao giờ chạm được boss dù đang đứng sát bên cạnh.
-     */
-    public static final int CARROT_TOUCH_Y = 40;
-    private static final java.util.Map<Long, Long> lastCarrotChatMs = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static EffectSkillService instance;
 
@@ -191,189 +166,21 @@ public class EffectSkillService {
     }
 
     public void setSocola(Player player, long lastTimeSocola, int timeSocola) {
+        setSocola(player, lastTimeSocola, timeSocola, 0);
+    }
+
+    public void setSocola(Player player, long lastTimeSocola, int timeSocola, int typeSocola) {
         player.effectSkill.lastTimeSocola = lastTimeSocola;
         player.effectSkill.timeSocola = timeSocola;
         player.effectSkill.isSocola = true;
+        player.effectSkill.typeSocola = typeSocola;
         player.effectSkill.countPem1hp = 0;
+        Service.gI().Send_Caitrang(player);
     }
 
     public void removeSocola(Player player) {
         player.effectSkill.isSocola = false;
-        Service.gI().Send_Caitrang(player);
-    }
-
-    /**
-     * Quét cảm ứng biến cà rốt, chạy từ phía người chơi mỗi nhịp update của {@link Zone#update()}.
-     *
-     * <p>Cố tình không quét từ {@code Boss.update()}: nhịp đó chỉ chạy cho boss nằm trong danh sách
-     * của {@code BossManager}, mọi ngoại lệ đều bị {@code catch (Exception ignored)} nuốt và làm hỏng
-     * luôn vòng update của các boss còn lại. Còn {@code Zone.update()} do
-     * {@code Manager.initMap} hẹn giờ 1 giây một lần cho từng khu nên luôn chắc chắn chạy.
-     */
-    public void scanCarrotTouch(Zone zone) {
-        if (zone == null || zone.map == null) {
-            return;
-        }
-        scanRabbitCostumeTouch(zone);
-        Boss rabbit = null;
-        List<Player> bosses;
-        try {
-            bosses = new java.util.ArrayList<>(zone.getBosses());
-        } catch (Exception e) {
-            Logger.logException(EffectSkillService.class, e);
-            return;
-        }
-        for (Player p : bosses) {
-            if (p.id == BossID.THO_DAI_CA) {
-                rabbit = (Boss) p;
-                break;
-            }
-        }
-        long now = System.currentTimeMillis();
-        if (rabbit == null) {
-            if (now - lastLogMs.getOrDefault(zone.map.mapId + "_noboss", 0L) > 10000) {
-                lastLogMs.put(zone.map.mapId + "_noboss", now);
-                Logger.warningln("[CaRot] map=" + zone.map.mapId + " zone=" + zone.zoneId + " bosses=" + bosses.size() + " - khong thay tho dai ca");
-            }
-            return;
-        }
-        String bossKey = zone.map.mapId + "_" + zone.zoneId + "_boss";
-        if (now - lastLogMs.getOrDefault(bossKey, 0L) > 5000) {
-            lastLogMs.put(bossKey, now);
-            Logger.warningln("[CaRot] boss status=" + rabbit.bossStatus + " die=" + rabbit.isDie() + " loc=" + (rabbit.location != null ? rabbit.location.x + "," + rabbit.location.y : "null") + " bossesInZone=" + bosses.size());
-        }
-        if (rabbit.isDie() || rabbit.location == null
-                || rabbit.bossStatus != BossStatus.ACTIVE) {
-            return;
-        }
-        List<Player> targets;
-        try {
-            targets = new java.util.ArrayList<>(zone.getNotBosses());
-        } catch (Exception e) {
-            Logger.logException(EffectSkillService.class, e);
-            return;
-        }
-        if (targets.isEmpty()) {
-            return;
-        }
-        for (Player player : targets) {
-            StringBuilder skip = new StringBuilder();
-            if (player == null) skip.append("null;");
-            if (!player.isPl()) skip.append("!isPl;");
-            if (player.isDie()) skip.append("die;");
-            if (player.location == null) skip.append("noLoc;");
-            if (player.effectSkill == null) skip.append("noEff;");
-            if (player.effectSkill != null && player.effectSkill.isCarrot) skip.append("alreadyCarrot;");
-            int dx = player.location != null ? Math.abs(rabbit.location.x - player.location.x) : 999;
-            int dy = player.location != null ? Math.abs(rabbit.location.y - player.location.y) : 999;
-            if (dx > CARROT_TOUCH_X) skip.append("dx=").append(dx).append(">60;");
-            if (dy > CARROT_TOUCH_Y) skip.append("dy=").append(dy).append(">40;");
-            if (isWearingRabbitDisguise(player)) skip.append("disguise;");
-            if (skip.length() > 0) {
-                continue;
-            }
-            if (setCarrot(player, CARROT_DURATION)) {
-                Logger.warningln("[CaRot] bien " + player.name + " thanh ca rot - map="
-                        + zone.map.mapId + " zone=" + zone.zoneId
-                        + " dx=" + dx + " dy=" + dy);
-                long now2 = System.currentTimeMillis();
-                Long last = lastCarrotChatMs.get(rabbit.id);
-                if (last == null || now2 - last > 5000) {
-                    lastCarrotChatMs.put(rabbit.id, now2);
-                    rabbit.chat("Biến thành cà rốt nào!");
-                }
-            }
-        }
-    }
-    private final java.util.Map<String, Long> lastLogMs = new java.util.concurrent.ConcurrentHashMap<>();
-
-    private boolean isValidCarrotTarget(Boss rabbit, Player player) {
-        if (player == null || !player.isPl() || player.isDie() || player.location == null
-                || player.effectSkill == null || player.effectSkill.isCarrot) {
-            return false;
-        }
-        int dx = Math.abs(rabbit.location.x - player.location.x);
-        int dy = Math.abs(rabbit.location.y - player.location.y);
-        if (dx > CARROT_TOUCH_X || dy > CARROT_TOUCH_Y) {
-            return false;
-        }
-        return !isWearingRabbitDisguise(player);
-    }
-
-    private boolean isWearingRabbitDisguise(Player player) {
-        if (player.inventory == null || player.inventory.itemsBody == null
-                || player.inventory.itemsBody.size() <= 5) {
-            return false;
-        }
-        Item costume = player.inventory.itemsBody.get(5);
-        if (costume == null || !costume.isNotNullItem() || costume.template == null) {
-            return false;
-        }
-        int itemId = costume.template.id;
-        return itemId == ConstItem.CAI_TRANG_THO_DAI_CA
-                || itemId == ConstItem.CAI_TRANG_THO_BUNMA
-                || itemId == ConstItem.CAI_TRANG_THO_BUNMA_2;
-    }
-
-    /** Cải trang hiếm của Thỏ Đại Ca có thể biến người chơi đứng gần thành cà rốt. */
-    public boolean isWearingThoDaiCaCostume(Player player) {
-        if (player == null || player.inventory == null || player.inventory.itemsBody == null
-                || player.inventory.itemsBody.size() <= 5) {
-            return false;
-        }
-        Item costume = player.inventory.itemsBody.get(5);
-        return costume != null && costume.isNotNullItem() && costume.template != null
-                && costume.template.id == ConstItem.CAI_TRANG_THO_DAI_CA;
-    }
-
-    private void scanRabbitCostumeTouch(Zone zone) {
-        List<Player> players;
-        try {
-            players = new java.util.ArrayList<>(zone.getNotBosses());
-        } catch (Exception e) {
-            Logger.logException(EffectSkillService.class, e);
-            return;
-        }
-        for (Player caster : players) {
-            if (!isWearingThoDaiCaCostume(caster) || caster.isDie() || caster.location == null) {
-                continue;
-            }
-            for (Player target : players) {
-                if (target == null || target == caster || !target.isPl() || target.isDie()
-                        || target.location == null || target.effectSkill == null
-                        || target.effectSkill.isCarrot) {
-                    continue;
-                }
-                int dx = Math.abs(caster.location.x - target.location.x);
-                int dy = Math.abs(caster.location.y - target.location.y);
-                if (dx <= CARROT_TOUCH_X && dy <= CARROT_TOUCH_Y && setCarrot(target, CARROT_DURATION)) {
-                    Service.gI().sendThongBao(caster,
-                            "Bạn đã biến " + target.name + " thành cà rốt!");
-                }
-            }
-        }
-    }
-
-    public boolean setCarrot(Player target, int durationMs) {
-        if (target == null || target.effectSkill == null || target.effectSkill.isCarrot || durationMs <= 0) {
-            return false;
-        }
-        target.effectSkill.isCarrot = true;
-        target.effectSkill.lastTimeCarrot = System.currentTimeMillis();
-        target.effectSkill.timeCarrot = durationMs;
-        ItemTimeService.gI().sendItemTime(target, CARROT_ITEM_TIME_ID, Math.max(1, (durationMs + 999) / 1000));
-        Service.gI().Send_Caitrang(target);
-        Service.gI().sendThongBao(target,
-                "Bạn bị biến thành cà rốt! Sức đánh giảm 15% trong 5 phút.");
-        return true;
-    }
-
-    public void removeCarrot(Player player) {
-        if (player == null || player.effectSkill == null || !player.effectSkill.isCarrot) {
-            return;
-        }
-        player.effectSkill.isCarrot = false;
-        ItemTimeService.gI().removeItemTime(player, CARROT_ITEM_TIME_ID);
+        player.effectSkill.typeSocola = 0;
         Service.gI().Send_Caitrang(player);
     }
 
@@ -561,6 +368,15 @@ public class EffectSkillService {
             PlayerService.gI().sendInfoHp(player);
             Service.gI().Send_Info_NV(player);
         }
+        if (player.effectSkill.useTroi) {
+            removeUseTroi(player);
+        }
+        if (player.effectSkill.isCharging) {
+            stopCharge(player);
+        }
+        if (player.newSkill != null) {
+            player.newSkill.closeSkillSpecial();
+        }
         player.effectSkill.isStone = true;
         player.effectSkill.timeStone = time;
         player.effectSkill.lastTimeStone = System.currentTimeMillis();
@@ -576,20 +392,22 @@ public class EffectSkillService {
     }
 
     public void setIsLamCham(Player player, int time) {
-        player.nPoint.speed = 1;
-        Service.gI().point(player);
-        Service.gI().sendSpeedPlayer(player, -1);
         player.effectSkill.isLamCham = true;
         player.effectSkill.timeLamCham = time;
         player.effectSkill.lastTimeLamCham = System.currentTimeMillis();
+        player.nPoint.speed = 1;
+        Service.gI().point(player);
+        Service.gI().sendSpeedPlayer(player, -1);
     }
 
     public void removeLamCham(Player player) {
-        player.nPoint.speed = 8;
+        player.effectSkill.isLamCham = false;
+        if (player.nPoint != null) {
+            player.nPoint.calPoint();
+        }
         Service.gI().point(player);
         Service.gI().sendSpeedPlayer(player, -1);
         Service.gI().chat(player, "Nhẹ lại rồi!");
-        player.effectSkill.isLamCham = false;
     }
 
     public void setIsTanHinh(Player player, int time) {
@@ -613,6 +431,40 @@ public class EffectSkillService {
 
     public void removeDameBuff(Player player) {
         player.effectSkill.isDameBuff = false;
+    }
+
+    public void setCritBuff(Player player, int time, int tiLe) {
+        player.effectSkill.isCritBuff = true;
+        player.effectSkill.timeCritBuff = time;
+        player.effectSkill.tileCritBuff = tiLe;
+        player.effectSkill.lastTimeCritBuff = System.currentTimeMillis();
+        Service.gI().point(player);
+    }
+
+    public void removeCritBuff(Player player) {
+        player.effectSkill.isCritBuff = false;
+        Service.gI().point(player);
+    }
+
+    public void setGiamDameBuff(Player player, int time, int tiLe) {
+        player.effectSkill.isGiamDameBuff = true;
+        player.effectSkill.timeGiamDameBuff = time;
+        player.effectSkill.tileGiamDameBuff = tiLe;
+        player.effectSkill.lastTimeGiamDameBuff = System.currentTimeMillis();
+    }
+
+    public void removeGiamDameBuff(Player player) {
+        player.effectSkill.isGiamDameBuff = false;
+    }
+
+    public void setChongLanhBuff(Player player, int time) {
+        player.effectSkill.isChongLanhBuff = true;
+        player.effectSkill.timeChongLanhBuff = time;
+        player.effectSkill.lastTimeChongLanhBuff = System.currentTimeMillis();
+    }
+
+    public void removeChongLanhBuff(Player player) {
+        player.effectSkill.isChongLanhBuff = false;
     }
 
     public void setMabuHold(Player player, MaBuHold MabuHold) {
@@ -661,24 +513,36 @@ public class EffectSkillService {
         player.effectSkill.isChibi = true;
         player.effectSkill.timeChibi = time;
         player.typeChibi = Util.nextInt(0, 3);
+        player.nPoint.calPoint();
         if (player.typeChibi == 3) {
-            player.nPoint.calPoint();
             player.nPoint.setHp((int) player.nPoint.hpMax);
-            Service.gI().point(player);
-            Service.gI().Send_Info_NV(player);
         }
+        Service.gI().point(player);
+        Service.gI().Send_Info_NV(player);
         player.effectSkill.lastTimeChibi = System.currentTimeMillis();
         ItemTimeService.gI().sendItemTime(player, 433, time / 1000);
         Service.gI().sendChibi(player);
         Service.gI().sendHaveChibiFollowToAllMap(player);
+        String nameChibi = switch (player.typeChibi) {
+            case 0 -> "Bé Chibi Chiến Binh (+20% Sức Đánh)";
+            case 1 -> "Bé Chibi Trí Tuệ (Hồi 10% MP/s)";
+            case 2 -> "Bé Chibi May Mắn (x3 Tiềm Năng Sức Mạnh)";
+            case 3 -> "Bé Chibi Thần Lực (x2 HP Max & Hồi 10% HP/s)";
+            default -> "Bé Chibi";
+        };
+        Service.gI().sendThongBao(player, nameChibi + " đã xuất hiện đi theo bạn!");
     }
 
     public void removeChibi(Player player) {
         player.effectSkill.isChibi = false;
         player.typeChibi = -1;
+        player.nPoint.calPoint();
+        Service.gI().point(player);
+        Service.gI().Send_Info_NV(player);
         ItemTimeService.gI().sendItemTime(player, 433, 0);
         Service.gI().sendChibi(player);
         Service.gI().sendHaveChibiFollowToAllMap(player);
+        Service.gI().sendThongBao(player, "Bé Chibi đã rời đi!");
     }
 
     //**************************************************************************
@@ -700,13 +564,16 @@ public class EffectSkillService {
     public void setStartShield(Player player) {
         player.effectSkill.isShielding = true;
         player.effectSkill.lastTimeShieldUp = System.currentTimeMillis();
-        player.effectSkill.timeShield = SkillUtil.getTimeShield(player.playerSkill.skillSelect.point);
+        int point = (player.playerSkill != null && player.playerSkill.skillSelect != null) ? player.playerSkill.skillSelect.point : 1;
+        player.effectSkill.levelShield = (byte) Math.max(1, point);
+        player.effectSkill.timeShield = SkillUtil.getTimeShield(player.effectSkill.levelShield);
         sendEffectPlayer(player, player, TURN_ON_EFFECT, SHIELD_EFFECT);
         ItemTimeService.gI().sendItemTime(player, 3784, player.effectSkill.timeShield / 1000);
     }
 
     public void removeShield(Player player) {
         player.effectSkill.isShielding = false;
+        player.effectSkill.levelShield = 0;
         sendEffectPlayer(player, player, TURN_OFF_EFFECT, SHIELD_EFFECT);
         ItemTimeService.gI().removeItemTime(player, 3784);
     }

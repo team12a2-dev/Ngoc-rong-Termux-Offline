@@ -730,6 +730,7 @@ public class ConstItem {
     public static final int URON = 716;
     public static final int BAO_LI_XI = 717;
     public static final int VE_TANG_NGOC = 718;
+    public static final int VE_TANG_NGOC_1974 = 1974;
     public static final int CAI_TRANG_URON = 719;
     public static final int MANH_CAI_TRANG = 720;
     public static final int PHIEU_GIAM_GIA_VIP = 721;
@@ -1237,7 +1238,8 @@ public class ConstItem {
     public static final int HAC_VO_THUONG = 1401;
     public static final int BACH_VO_THUONG = 1402;
     public static final int GIAP_TAP_LUYEN_CAP_4 = 1716;
-        public static final int GIAP_TAP_LUYEN_CAP_5 = 1869;
+    public static final int GIAP_TAP_LUYEN_CAP_5 = 1869;
+    public static final int PHIEU_SAO_VANG_MAY_MAN = 1959;
 //    public static final int[] LIST_ITEM_NLSK_TET_2023 = {2027, 2028, 2029, 2030, 2030, 2037, 2038};
     public static final int[][][] LIST_ITEM_CLOTHES = {
         {{0, 33, 3, 34, 136, 137, 138, 139, 230, 231, 232, 233, 555}, {6, 35, 9, 36, 140, 141, 142, 143, 242, 243, 244, 245, 556}, {21, 24, 37, 38, 144, 145, 146, 147, 254, 255, 256, 257, 562}, {27, 30, 39, 40, 148, 149, 150, 151, 266, 267, 268, 269, 563}, {12, 57, 58, 59, 184, 185, 186, 187, 278, 279, 280, 281, 561}},
@@ -1263,4 +1265,6 @@ public class ConstItem {
     public static final short[][][] TrangBiKichHoat = {{Ao_TraiDat, Ao_Namek, Ao_Xayda,}, {Quan_TraiDat, Quan_Namek, Quan_Xayda},
     {Gang_TraiDat, Gang_Namek, Gang_Xayda}, {Giay_TraiDat, Giay_Namek, Giay_Xayda}, {Rada_Gender, Rada_Gender, Rada_Gender, Rada_Gender}};
 
+    // ======================== OPTION TEMPLATE IDS ========================
+    public static final int OPTION_DROP_NGOC_XANH = 251;
 }

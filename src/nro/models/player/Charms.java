@@ -83,12 +83,24 @@ public class Charms {
                 tdDeTu += min * 60 * 1000L;
                 break;
             case 671:
+                if (nro.models.services.ServerLaunchConfigService.gI().isBlockTnsmCharmsX3X4()) {
+                    if (this.player != null) {
+                        nro.models.services.Service.gI().sendThongBao(this.player, "Bùa x3 TNSM đang tạm khóa trong thời gian đua top!");
+                    }
+                    break;
+                }
                 if (tdTriTue3 < System.currentTimeMillis()) {
                     tdTriTue3 = System.currentTimeMillis();
                 }
                 tdTriTue3 += min * 60 * 1000L;
                 break;
             case 672:
+                if (nro.models.services.ServerLaunchConfigService.gI().isBlockTnsmCharmsX3X4()) {
+                    if (this.player != null) {
+                        nro.models.services.Service.gI().sendThongBao(this.player, "Bùa x4 TNSM đang tạm khóa trong thời gian đua top!");
+                    }
+                    break;
+                }
                 if (tdTriTue4 < System.currentTimeMillis()) {
                     tdTriTue4 = System.currentTimeMillis();
                 }

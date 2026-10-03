@@ -292,6 +292,7 @@ public class PlayerService {
                     Service.gI().sendMoney(player);
                     Service.gI().hsChar(player, player.nPoint.hpMax, player.nPoint.mpMax);
                     player.powerReduced = false;
+                    player.isKilledByMob = false;
                 }
             }
         }
@@ -322,6 +323,7 @@ public class PlayerService {
             if (canHs) {
                 Service.gI().sendMoney(player);
                 Service.gI().hsChar(player, player.nPoint.hpMax, player.nPoint.mpMax);
+                player.isKilledByMob = false;
             }
         }
     }

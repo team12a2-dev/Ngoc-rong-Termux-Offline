@@ -58,8 +58,8 @@ import nro.models.server.Manager;
  */
 public class Service {
 
-    public static final int[] flagTempId = {363, 364, 365, 366, 367, 368, 369, 370, 371, 519, 520, 747};
-    public static final int[] flagIconId = {2761, 2330, 2323, 2327, 2326, 2324, 2329, 2328, 2331, 4386, 4385, 2325};
+    public static final int[] flagTempId = { 363, 364, 365, 366, 367, 368, 369, 370, 371, 519, 520, 747 };
+    public static final int[] flagIconId = { 2761, 2330, 2323, 2327, 2326, 2324, 2329, 2328, 2331, 4386, 4385, 2325 };
 
     private static Service instance;
 
@@ -118,7 +118,7 @@ public class Service {
                 msg.writer().writeByte(1);
                 msg.writer().writeShort(smallId);
                 msg.writer().writeByte(1);
-                int[] fr = new int[]{0, 1, 2, 3, 4, 5, 6, 7};
+                int[] fr = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
                 msg.writer().writeByte(fr.length);
                 for (int i = 0; i < fr.length; i++) {
                     msg.writer().writeByte(fr[i]);
@@ -142,6 +142,7 @@ public class Service {
             msg.writer().writeByte(sec);
             msg.writer().writeShort(idImg);
             player.sendMessage(msg);
+            sendMessAllPlayerInMap(player, msg);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -167,7 +168,7 @@ public class Service {
                 msg.writer().writeByte(1);
                 msg.writer().writeShort(smallId);
                 msg.writer().writeByte(1);
-                int[] fr = new int[]{0, 1, 2};
+                int[] fr = new int[] { 0, 1, 2 };
                 msg.writer().writeByte(fr.length);
                 for (int i = 0; i < fr.length; i++) {
                     msg.writer().writeByte(fr[i]);
@@ -216,7 +217,7 @@ public class Service {
             msg.writer().writeByte(1);
             msg.writer().writeShort(smallId);
             msg.writer().writeByte(1);
-            int[] fr = new int[]{0, 1, 2};
+            int[] fr = new int[] { 0, 1, 2 };
             msg.writer().writeByte(fr.length);
             for (int i = 0; i < fr.length; i++) {
                 msg.writer().writeByte(fr[i]);
@@ -396,7 +397,8 @@ public class Service {
                 msg.writer().writeShort(pl.getBody());
                 msg.writer().writeShort(pl.getLeg());
                 msg.writer().writeUTF(pl.nameClan);
-                msg.writer().writeUTF("Lv: " + pl.levelBDKBDone + " (" + Util.convertSecondsToTime(pl.lastTimeUpdateTopBDKB) + ")");
+                msg.writer().writeUTF(
+                        "Lv: " + pl.levelBDKBDone + " (" + Util.convertSecondsToTime(pl.lastTimeUpdateTopBDKB) + ")");
                 msg.writer().writeUTF("Bang chủ " + pl.name + "\n[" + Util.convertMilliseconds(pl.timeBDKBDone) + "]");
             }
             player.sendMessage(msg);
@@ -425,7 +427,8 @@ public class Service {
                 msg.writer().writeShort(pl.getBody());
                 msg.writer().writeShort(pl.getLeg());
                 msg.writer().writeUTF(pl.nameClan);
-                msg.writer().writeUTF("Lv: " + pl.levelBDKBDone + " (" + Util.convertSecondsToTime(pl.lastTimeUpdateTopBDKB) + ")");
+                msg.writer().writeUTF(
+                        "Lv: " + pl.levelBDKBDone + " (" + Util.convertSecondsToTime(pl.lastTimeUpdateTopBDKB) + ")");
                 msg.writer().writeUTF("Bang chủ: " + pl.name + "\n[" + Util.convertMilliseconds(pl.timeBDKBDone) + "]");
             }
             player.sendMessage(msg);
@@ -454,8 +457,10 @@ public class Service {
                 msg.writer().writeShort(pl.getBody());
                 msg.writer().writeShort(pl.getLeg());
                 msg.writer().writeUTF(pl.nameClan);
-                msg.writer().writeUTF("Lv: " + pl.levelKhiGasDone + " (" + Util.convertSecondsToTime(pl.lastTimeUpdateTopKhiGas) + ")");
-                msg.writer().writeUTF("Bang chủ " + pl.name + "\n[" + Util.convertMilliseconds(pl.timeKhiGasDone) + "]");
+                msg.writer().writeUTF("Lv: " + pl.levelKhiGasDone + " ("
+                        + Util.convertSecondsToTime(pl.lastTimeUpdateTopKhiGas) + ")");
+                msg.writer()
+                        .writeUTF("Bang chủ " + pl.name + "\n[" + Util.convertMilliseconds(pl.timeKhiGasDone) + "]");
             }
             player.sendMessage(msg);
             msg.cleanup();
@@ -483,7 +488,8 @@ public class Service {
                 msg.writer().writeShort(pl.getBody());
                 msg.writer().writeShort(pl.getLeg());
                 msg.writer().writeUTF(pl.nameClan);
-                msg.writer().writeUTF("Lv: " + pl.levelCDRDDone + " (" + Util.convertSecondsToTime(pl.lastTimeUpdateTopCDRD) + ")");
+                msg.writer().writeUTF(
+                        "Lv: " + pl.levelCDRDDone + " (" + Util.convertSecondsToTime(pl.lastTimeUpdateTopCDRD) + ")");
                 msg.writer().writeUTF("Bang chủ " + pl.name + "\n[" + Util.convertMilliseconds(pl.timeCDRDDone) + "]");
             }
             player.sendMessage(msg);
@@ -534,7 +540,8 @@ public class Service {
                 }
                 for (int i = 0; i < players.size(); i++) {
                     Player pl = players.get(i);
-                    if (pl != null && (player instanceof NonInteractiveNPC || ((TrainingBoss) player).playerAtt.equals(pl))) {
+                    if (pl != null
+                            && (player instanceof NonInteractiveNPC || ((TrainingBoss) player).playerAtt.equals(pl))) {
                         pl.sendMessage(msg);
                     }
                 }
@@ -571,7 +578,8 @@ public class Service {
                 }
                 for (int i = 0; i < players.size(); i++) {
                     Player pl = players.get(i);
-                    if (pl != null && !pl.equals(player) && (player instanceof NonInteractiveNPC || ((TrainingBoss) player).playerAtt.equals(pl))) {
+                    if (pl != null && !pl.equals(player)
+                            && (player instanceof NonInteractiveNPC || ((TrainingBoss) player).playerAtt.equals(pl))) {
                         pl.sendMessage(msg);
                     }
                 }
@@ -595,10 +603,10 @@ public class Service {
     public void Send_Info_NV(Player pl) {
         Message msg;
         try {
-            msg = Service.gI().messageSubCommand((byte) 14);//Cập nhật máu
+            msg = Service.gI().messageSubCommand((byte) 14);// Cập nhật máu
             msg.writer().writeInt((int) pl.id);
             msg.writer().writeInt(pl.nPoint.hp);
-            msg.writer().writeByte(0);//Hiệu ứng Ăn Đậu
+            msg.writer().writeByte(0);// Hiệu ứng Ăn Đậu
             msg.writer().writeInt(pl.nPoint.hpMax);
             sendMessAnotherNotMeInMap(pl, msg);
             msg.cleanup();
@@ -611,7 +619,7 @@ public class Service {
     public void Send_Info_NV_do_Injure(Player pl) {
         Message msg;
         try {
-            msg = Service.gI().messageSubCommand((byte) 14);//Cập nhật máu
+            msg = Service.gI().messageSubCommand((byte) 14);// Cập nhật máu
             msg.writer().writeInt((int) pl.id);
             msg.writer().writeInt(pl.nPoint.hp);
             msg.writer().writeByte(2);
@@ -839,9 +847,9 @@ public class Service {
             msg.writer().writeInt((int) pl.id);
             msg.writer().writeByte(pl.playerTask.taskMain.id);
             msg.writer().writeByte(pl.gender);
-            msg.writer().writeShort(pl.head);
+            msg.writer().writeShort(pl.getHead());
             msg.writer().writeUTF(pl.name);
-            msg.writer().writeByte(0); //cPK
+            msg.writer().writeByte(0); // cPK
             msg.writer().writeByte(pl.typePk);
             msg.writer().writeLong(pl.nPoint.power);
             msg.writer().writeShort(0);
@@ -874,7 +882,7 @@ public class Service {
                     List<ItemOption> itemOptions = item.itemOptions;
                     msg.writer().writeByte(itemOptions.size());
                     for (ItemOption itemOption : itemOptions) {
-                        msg.writer().writeByte(itemOption.optionTemplate.id);
+                        msg.writer().writeShort(itemOption.optionTemplate.id);
                         msg.writer().writeShort(itemOption.param);
                     }
                 }
@@ -894,7 +902,7 @@ public class Service {
                     List<ItemOption> itemOptions = item.itemOptions;
                     msg.writer().writeByte(itemOptions.size());
                     for (ItemOption itemOption : itemOptions) {
-                        msg.writer().writeByte(itemOption.optionTemplate.id);
+                        msg.writer().writeShort(itemOption.optionTemplate.id);
                         msg.writer().writeShort(itemOption.param);
                     }
                 }
@@ -914,7 +922,7 @@ public class Service {
                     List<ItemOption> itemOptions = item.itemOptions;
                     msg.writer().writeByte(itemOptions.size());
                     for (ItemOption itemOption : itemOptions) {
-                        msg.writer().writeByte(itemOption.optionTemplate.id);
+                        msg.writer().writeShort(itemOption.optionTemplate.id);
                         msg.writer().writeShort(itemOption.param);
                     }
                 }
@@ -960,26 +968,43 @@ public class Service {
         }
 
         if (player.isPet) {
+            long maxPowerPet = player.nPoint.getPowerLimit();
+            if (maxPowerPet <= 0) {
+                maxPowerPet = 17999999999L;
+            }
+
+            if (player.nPoint.power >= maxPowerPet) {
+                return;
+            }
+
+            if (player.nPoint.power + param > maxPowerPet) {
+                long powerAdd = maxPowerPet - player.nPoint.power;
+                if (powerAdd > 0) {
+                    player.nPoint.powerUp(powerAdd);
+                    player.nPoint.tiemNangUp(powerAdd);
+                    Player master = ((Pet) player).master;
+                    if (master != null && master.nPoint != null) {
+                        long masterParam = (long) (powerAdd * 0.5);
+                        masterParam = master.nPoint.calSubTNSM(masterParam);
+                        if (masterParam > 0) {
+                            addSMTN(master, type, masterParam, true);
+                        }
+                    }
+                }
+                return;
+            }
+
             player.nPoint.powerUp(param);
             player.nPoint.tiemNangUp(param);
 
             Player master = ((Pet) player).master;
-
-            long masterParam = (long) (param * 0.5);
-            masterParam = master.nPoint.calSubTNSM(masterParam);
-
-            long maxPower = master.nPoint.getPowerLimit();
-            if (master.nPoint.power >= maxPower) {
-                return;
+            if (master != null && master.nPoint != null) {
+                long masterParam = (long) (param * 0.5);
+                masterParam = master.nPoint.calSubTNSM(masterParam);
+                if (masterParam > 0) {
+                    addSMTN(master, type, masterParam, true);
+                }
             }
-            if (master.nPoint.power + masterParam > maxPower) {
-                masterParam = maxPower - master.nPoint.power;
-            }
-
-            master.nPoint.powerUp(masterParam);
-            master.nPoint.tiemNangUp(masterParam);
-
-            addSMTN(master, type, masterParam, true);
 
         } else if (player.isBot) {
             player.nPoint.power += param;
@@ -987,21 +1012,47 @@ public class Service {
 
         } else {
             long maxPower = player.nPoint.getPowerLimit();
+            if (maxPower <= 0) {
+                maxPower = 17999999999L;
+            }
+            if (param <= 0) {
+                param = 1;
+            }
 
             if (player.nPoint.power >= maxPower) {
+                if (Util.canDoWithTime(player.lastTimeNoticeMaxPower, 60000)) {
+                    player.lastTimeNoticeMaxPower = System.currentTimeMillis();
+                    Service.gI().sendThongBao(player, "Sức mạnh đã đạt giới hạn. Hãy mở giới hạn sức mạnh để tiếp tục nhận kinh nghiệm!");
+                }
                 return;
             }
+
+            if (type == 1) { // Chỉ cộng tiềm năng (ví dụ nhận từ clan)
+                player.nPoint.tiemNangUp(param);
+                PlayerService.gI().sendTNSM(player, type, param);
+                return;
+            }
+
             if (player.nPoint.power + param > maxPower) {
-                param = maxPower - player.nPoint.power;
-                if (param <= 0) {
-                    return;
+                long powerAdd = maxPower - player.nPoint.power;
+                if (powerAdd > 0) {
+                    player.nPoint.powerUp(powerAdd);
+                    if (type == 2) {
+                        player.nPoint.tiemNangUp(powerAdd);
+                    }
+                    PlayerService.gI().sendTNSM(player, type, powerAdd);
+                    if (isOri && player.clan != null) {
+                        player.clan.addSMTNClan(player, powerAdd);
+                    }
                 }
+                if (Util.canDoWithTime(player.lastTimeNoticeMaxPower, 60000)) {
+                    player.lastTimeNoticeMaxPower = System.currentTimeMillis();
+                    Service.gI().sendThongBao(player, "Sức mạnh đã đạt giới hạn. Hãy mở giới hạn sức mạnh để tiếp tục nhận kinh nghiệm!");
+                }
+                return;
             }
 
             switch (type) {
-                case 1:
-                    player.nPoint.tiemNangUp(param);
-                    break;
                 case 2:
                     player.nPoint.powerUp(param);
                     player.nPoint.tiemNangUp(param);
@@ -1137,6 +1188,7 @@ public class Service {
 
             Send_Info_NV(pl);
             PlayerService.gI().sendInfoHpMp(pl);
+            Send_Caitrang(pl);
             AchievementService.gI().checkDoneTask(pl, ConstAchievement.THANH_HOI_SINH);
         } catch (Exception e) {
             Logger.logException(Service.class, e);
@@ -1162,7 +1214,7 @@ public class Service {
             msg = new Message(-8);
             msg.writer().writeShort((int) pl.id);
             int cPk = 0;
-            msg.writer().writeByte(cPk); //cpk
+            msg.writer().writeByte(cPk); // cpk
             msg.writer().writeShort(pl.location.x);
             msg.writer().writeShort(pl.location.y);
             sendMessAnotherNotMeInMap(pl, msg);
@@ -1201,15 +1253,15 @@ public class Service {
             try {
                 msg = new Message(-90);
                 msg.writer().writeByte(1);// check type
-                msg.writer().writeInt((int) player.id); //id player
+                msg.writer().writeInt((int) player.id); // id player
                 short head = player.getHead();
                 short body = player.getBody();
                 short leg = player.getLeg();
 
-                msg.writer().writeShort(head);//set head
-                msg.writer().writeShort(body);//setbody
-                msg.writer().writeShort(leg);//set leg
-                msg.writer().writeByte(player.effectSkill.isMonkey ? 1 : 0);//set khỉ
+                msg.writer().writeShort(head);// set head
+                msg.writer().writeShort(body);// setbody
+                msg.writer().writeShort(leg);// set leg
+                msg.writer().writeByte(player.effectSkill.isMonkey ? 1 : 0);// set khỉ
                 sendMessAllPlayerInMap(player, msg);
                 msg.cleanup();
             } catch (Exception e) {
@@ -1297,6 +1349,117 @@ public class Service {
         }
     }
 
+    public void sendBigMessageAllPlayer(int iconId, String text) {
+        try {
+            Message msg = new Message(-70);
+            msg.writer().writeShort(iconId);
+            msg.writer().writeUTF(text);
+            msg.writer().writeByte(0);
+            this.sendMessAllPlayer(msg);
+            msg.cleanup();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String getSetNameKichHoat(List<ItemOption> options) {
+        if (options == null) {
+            return "Set kích hoạt";
+        }
+        for (ItemOption option : options) {
+            if (option == null || option.optionTemplate == null) {
+                continue;
+            }
+            int id = option.optionTemplate.id;
+            switch (id) {
+                case 127, 139 -> {
+                    return "Set Songoku";
+                }
+                case 128, 140 -> {
+                    return "Set Kirin";
+                }
+                case 129, 141 -> {
+                    return "Set Yamcha";
+                }
+                case 130, 142 -> {
+                    return "Set Picolo";
+                }
+                case 131, 143 -> {
+                    return "Set Ốc Tiêu";
+                }
+                case 132, 144 -> {
+                    return "Set Pikkoro";
+                }
+                case 133, 136 -> {
+                    return "Set Kakarot";
+                }
+                case 134, 137 -> {
+                    return "Set Cađic";
+                }
+                case 135, 138 -> {
+                    return "Set Nappa";
+                }
+                case 233, 234 -> {
+                    return "Set Kaioken";
+                }
+                case 237, 238, 239, 240 -> {
+                    return "Set Namec VIP";
+                }
+                case 241, 242, 243, 244 -> {
+                    return "Set Xayda VIP";
+                }
+                case 245, 246, 247, 248 -> {
+                    return "Set Trái Đất VIP";
+                }
+            }
+        }
+        return "Set kích hoạt";
+    }
+
+    public static boolean isSetKichHoat(List<ItemOption> options) {
+        if (options == null) {
+            return false;
+        }
+        for (ItemOption option : options) {
+            if (option == null || option.optionTemplate == null) {
+                continue;
+            }
+            int id = option.optionTemplate.id;
+            if ((id >= 127 && id <= 144) || (id >= 233 && id <= 248)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void sendThongBaoSKH(Player player, ItemMap itemMap) {
+        if (player == null || itemMap == null) {
+            return;
+        }
+        if (itemMap.isNotifiedSKH) {
+            return;
+        }
+        itemMap.isNotifiedSKH = true;
+        String setName = getSetNameKichHoat(itemMap.options);
+        sendThongBaoSKH(player, setName, itemMap.itemTemplate != null ? itemMap.itemTemplate.name : "");
+    }
+
+    public void sendThongBaoSKH(Player player, Item item) {
+        if (player == null || item == null) {
+            return;
+        }
+        String setName = getSetNameKichHoat(item.itemOptions);
+        sendThongBaoSKH(player, setName, item.template != null ? item.template.name : "");
+    }
+
+    public void sendThongBaoSKH(Player player, String setName, String itemName) {
+        if (player == null) {
+            return;
+        }
+        String body = "[HT] " + player.name + " vừa đánh quái may mắn nhận được 1 trang bị Set kích hoạt " + setName;
+        ChatGlobalService.gI().ThongBaoRoiDo(player, body);
+    }
+
     public void sendThongBaoFromAdmin(Player player, String text) {
         sendBigMessage(player, 1139, text);
     }
@@ -1375,15 +1538,15 @@ public class Service {
                 msg.writer().writeByte(1);
                 switch (flagTempId[i]) {
                     case 363:
-                        msg.writer().writeByte(73);
+                        msg.writer().writeShort(73);
                         msg.writer().writeShort(0);
                         break;
                     case 371:
-                        msg.writer().writeByte(88);
+                        msg.writer().writeShort(88);
                         msg.writer().writeShort(10);
                         break;
                     default:
-                        msg.writer().writeByte(88);
+                        msg.writer().writeShort(88);
                         msg.writer().writeShort(5);
                         break;
                 }
@@ -1460,7 +1623,8 @@ public class Service {
         if (Util.canDoWithTime(pl.idMark.getLastTimeChangeFlag(), 60000)) {
             changeFlag(pl, index);
         } else {
-            sendThongBao(pl, "Chỉ được đổi cờ sau " + TimeUtil.getTimeLeft(pl.idMark.getLastTimeChangeFlag(), 60) + " nữa");
+            sendThongBao(pl,
+                    "Chỉ được đổi cờ sau " + TimeUtil.getTimeLeft(pl.idMark.getLastTimeChangeFlag(), 60) + " nữa");
         }
     }
 
@@ -1538,7 +1702,26 @@ public class Service {
         }
     }
 
+    public void sendTimeSkill(Player pl, Skill skill, int timeLeft) {
+        Message msg;
+        try {
+            msg = new Message(-94);
+            msg.writer().writeShort(skill.skillId);
+            if (timeLeft < 0) {
+                timeLeft = 0;
+            }
+            msg.writer().writeInt(timeLeft);
+            pl.sendMessage(msg);
+            msg.cleanup();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void releaseCooldownSkill(Player pl, Skill skill) {
+        if (pl == null || skill == null) {
+            return;
+        }
         Message msg;
         try {
             msg = new Message(-94);
@@ -1547,8 +1730,6 @@ public class Service {
             int leftTime = 0;
             msg.writer().writeInt(leftTime);
             pl.sendMessage(msg);
-            pl.nPoint.setMp(pl.nPoint.mpMax);
-            PlayerService.gI().sendInfoHpMpMoney(pl);
             msg.cleanup();
         } catch (Exception e) {
             e.printStackTrace();
@@ -1609,28 +1790,28 @@ public class Service {
                         int countOption = item.itemOptions.size();
                         msg.writer().writeByte(countOption);
                         for (ItemOption iop : item.itemOptions) {
-                            msg.writer().writeByte(iop.optionTemplate.id);
+                            msg.writer().writeShort(iop.optionTemplate.id);
                             msg.writer().writeShort(iop.param);
                         }
                     }
                 }
 
-                msg.writer().writeInt(pl.pet.nPoint.hp); //hp
-                msg.writer().writeInt(pl.pet.nPoint.hpMax); //hpfull
-                msg.writer().writeInt(pl.pet.nPoint.mp); //mp
-                msg.writer().writeInt(pl.pet.nPoint.mpMax); //mpfull
-                msg.writer().writeInt(pl.pet.nPoint.dame); //damefull
-                msg.writer().writeUTF(pl.pet.name); //name
-                msg.writer().writeUTF(getCurrStrLevel(pl.pet)); //curr level
-                msg.writer().writeLong(pl.pet.nPoint.power); //power
-                msg.writer().writeLong(pl.pet.nPoint.tiemNang); //tiềm năng
-                msg.writer().writeByte(pl.pet.getStatus()); //status
-                msg.writer().writeShort(pl.pet.nPoint.stamina); //stamina
-                msg.writer().writeShort(pl.pet.nPoint.maxStamina); //stamina full
-                msg.writer().writeByte(pl.pet.nPoint.crit); //crit
-                msg.writer().writeShort(pl.pet.nPoint.def); //def
+                msg.writer().writeInt(pl.pet.nPoint.hp); // hp
+                msg.writer().writeInt(pl.pet.nPoint.hpMax); // hpfull
+                msg.writer().writeInt(pl.pet.nPoint.mp); // mp
+                msg.writer().writeInt(pl.pet.nPoint.mpMax); // mpfull
+                msg.writer().writeInt(pl.pet.nPoint.dame); // damefull
+                msg.writer().writeUTF(pl.pet.name); // name
+                msg.writer().writeUTF(getCurrStrLevel(pl.pet)); // curr level
+                msg.writer().writeLong(pl.pet.nPoint.power); // power
+                msg.writer().writeLong(pl.pet.nPoint.tiemNang); // tiềm năng
+                msg.writer().writeByte(pl.pet.getStatus()); // status
+                msg.writer().writeShort(pl.pet.nPoint.stamina); // stamina
+                msg.writer().writeShort(pl.pet.nPoint.maxStamina); // stamina full
+                msg.writer().writeByte(pl.pet.nPoint.crit); // crit
+                msg.writer().writeShort(pl.pet.nPoint.def); // def
                 int sizeSkill = Math.min(pl.pet.playerSkill.skills.size(), 5);
-                msg.writer().writeByte(sizeSkill); //count pet skill
+                msg.writer().writeByte(sizeSkill); // count pet skill
                 for (int i = 0; i < sizeSkill; i++) {
                     if (pl.pet.playerSkill.skills.get(i).skillId != -1) {
                         msg.writer().writeShort(pl.pet.playerSkill.skills.get(i).skillId);
@@ -1758,7 +1939,7 @@ public class Service {
                 player.idMark.setAcpTrade(false);
                 return;
             }
-//            SubMenuService.gI().showMenu(player);
+            // SubMenuService.gI().showMenu(player);
         } catch (Exception e) {
             Logger.logException(Service.class, e);
         }
@@ -1946,13 +2127,13 @@ public class Service {
 
     public void setClientType(MySession session, Message msg) {
         try {
-            session.typeClient = (msg.reader().readByte());//client_type
-            session.zoomLevel = msg.reader().readByte();//zoom_level
-            msg.reader().readBoolean();//is_gprs
-            msg.reader().readInt();//width
-            msg.reader().readInt();//height
-            msg.reader().readBoolean();//is_qwerty
-            msg.reader().readBoolean();//is_touch
+            session.typeClient = (msg.reader().readByte());// client_type
+            session.zoomLevel = msg.reader().readByte();// zoom_level
+            msg.reader().readBoolean();// is_gprs
+            msg.reader().readInt();// width
+            msg.reader().readInt();// height
+            msg.reader().readBoolean();// is_qwerty
+            msg.reader().readBoolean();// is_touch
             String platform = msg.reader().readUTF();
             String[] arrPlatform = platform.split("\\|");
             session.version = Integer.parseInt(arrPlatform[1].replaceAll("\\.", ""));
@@ -1965,12 +2146,15 @@ public class Service {
     }
 
     public void dropSatellite(Player pl, Item item, Zone map, int x, int y) {
+        if (map != null && map.map != null && MapService.gI().isHome(map.map.mapId)) {
+            sendThongBaoOK(pl, "Không thể đặt Vệ Tinh trong nhà");
+            return;
+        }
         ItemMap itemMap = new ItemMap(map, item.template, item.quantity, x, y, pl.id);
         itemMap.options = item.itemOptions;
         if (pl.clan != null) {
             itemMap.clanId = pl.clan.id;
         }
-        map.addItem(itemMap);
         Message msg = null;
         try {
             msg = new Message(68);
@@ -1996,14 +2180,19 @@ public class Service {
             Service.gI().sendThongBaoOK(player, "Mã bảo vệ phải có độ dài là 6 số.");
         } else if (player.mbv == 0) {
             player.idMark.setMbv(mbv);
-            NpcService.gI().createMenuConMeo(player, ConstNpc.MA_BAO_VE, -1, "Bạn chưa từng kích hoạt chức năng mã bảo vệ để kích hoạt bạn cần có 30K vàng, mật khẩu của bạn là: " + mbv, "Đồng ý", "Từ chối");
+            NpcService.gI().createMenuConMeo(player, ConstNpc.MA_BAO_VE, -1,
+                    "Bạn chưa từng kích hoạt chức năng mã bảo vệ để kích hoạt bạn cần có 30K vàng, mật khẩu của bạn là: "
+                            + mbv,
+                    "Đồng ý", "Từ chối");
         } else if (player.mbv != mbv) {
             Service.gI().sendThongBao(player, "Mật khẩu không đúng. Vui lòng kiểm tra lại");
         } else {
             if (player.baovetaikhoan) {
-                NpcService.gI().createMenuConMeo(player, ConstNpc.MA_BAO_VE, -1, "Tài khoản đang được bảo vệ\nBạn có muốn tắt bảo vệ không?", "Đồng ý", "Từ chối");
+                NpcService.gI().createMenuConMeo(player, ConstNpc.MA_BAO_VE, -1,
+                        "Tài khoản đang được bảo vệ\nBạn có muốn tắt bảo vệ không?", "Đồng ý", "Từ chối");
             } else {
-                NpcService.gI().createMenuConMeo(player, ConstNpc.MA_BAO_VE, -1, "Tài khoản không được bảo vệ\nBạn muốn bật chứ năng bảo vệ tài khoản?", "Đồng ý", "Từ chối");
+                NpcService.gI().createMenuConMeo(player, ConstNpc.MA_BAO_VE, -1,
+                        "Tài khoản không được bảo vệ\nBạn muốn bật chứ năng bảo vệ tài khoản?", "Đồng ý", "Từ chối");
             }
         }
     }
@@ -2065,7 +2254,7 @@ public class Service {
                 return;
         }
 
-        int[] effIds = {headEffId, bodyEffId, legEffId};
+        int[] effIds = { headEffId, bodyEffId, legEffId };
 
         try {
             for (int i = 0; i < effIds.length; i++) {
@@ -2116,7 +2305,7 @@ public class Service {
     }
 
     public void sendEffPlayer(Player pl) {
-        if (pl.isPl()) {
+        if (pl.isPl() && pl.setClothes != null) {
             if (pl.setClothes.songoku >= 5
                     || pl.setClothes.kaioken >= 5
                     || pl.setClothes.kirin >= 5
@@ -2124,15 +2313,20 @@ public class Service {
                 Service.gI().sendEffAllPlayer(pl, 1200, 1, -1, 1);
             } else if (pl.setClothes.ocTieu >= 5
                     || pl.setClothes.pikkoroDaimao >= 5
-                    || pl.setClothes.picolo >= 5) {
+                    || pl.setClothes.picolo >= 5
+                    || pl.setClothes.nail >= 5) {
                 Service.gI().sendEffAllPlayer(pl, 10277, 1, -1, 1);
             } else if (pl.setClothes.thanVuTruKaio >= 5) {
                 Service.gI().sendEffAllPlayer(pl, 10277, 1, -1, 1);
                 Service.gI().sendEffAllPlayer(pl, 5017, 1, -1, 1);
             } else if (pl.setClothes.kakarot >= 5
                     || pl.setClothes.nappa >= 5
-                    || pl.setClothes.cadic >= 5) {
+                    || pl.setClothes.cadic >= 5
+                    || pl.setClothes.cadicM >= 5) {
                 Service.gI().sendEffAllPlayer(pl, 1202, 1, -1, 1);
+            } else if (pl.setClothes.setBossHunter >= 5) {
+                Service.gI().sendEffAllPlayer(pl, 1200, 1, -1, 1);
+                Service.gI().sendEffAllPlayer(pl, 5017, 1, -1, 1);
             }
         }
     }
@@ -2155,7 +2349,7 @@ public class Service {
             msg.writer().writeByte(type);
             msg.writer().writeByte(mob.id);
             if (type == 1) {
-                msg.writer().writeShort(idIcon);//set body
+                msg.writer().writeShort(idIcon);// set body
             }
             sendMessAllPlayerInMap(mob.zone, msg);
         } catch (Exception e) {
@@ -2174,8 +2368,8 @@ public class Service {
             pVS1.typePk = type;
             msg = new Message(-30);
             msg.writer().writeByte((byte) 35);
-            msg.writer().writeInt((int) pVS1.id); //ID PLAYER
-            msg.writer().writeByte(type); //TYPE PK
+            msg.writer().writeInt((int) pVS1.id); // ID PLAYER
+            msg.writer().writeByte(type); // TYPE PK
             pVS1.sendMessage(msg);
             if (pVS2.isPl()) {
                 pVS2.sendMessage(msg);
@@ -2275,12 +2469,16 @@ public class Service {
         }
     }
 
-    /** Client map 12h: "Xin chờ ((100 - byte) * 60)s". byte=100 → 0s (ẩn màn hình chờ). */
+    /**
+     * Client map 12h: "Xin chờ ((100 - byte) * 60)s". byte=100 → 0s (ẩn màn hình
+     * chờ).
+     */
     public void SendMabu(Zone zone, int clientByte) {
         Message msg = null;
         try {
             msg = new Message(-117);
-            // Code cũ gửi % hồi sinh (0–100) làm client hiển thị hàng nghìn giây — luôn gỡ chờ.
+            // Code cũ gửi % hồi sinh (0–100) làm client hiển thị hàng nghìn giây — luôn gỡ
+            // chờ.
             msg.writer().writeByte(100);
             sendMessAllPlayerInMap(zone, msg);
         } catch (Exception e) {
@@ -2292,7 +2490,9 @@ public class Service {
         }
     }
 
-    /** Gỡ màn hình "Xin chờ" Mabư map 12h cho một người chơi (đăng nhập / rời map). */
+    /**
+     * Gỡ màn hình "Xin chờ" Mabư map 12h cho một người chơi (đăng nhập / rời map).
+     */
     public void clearMabuWait(Player player) {
         if (player == null) {
             return;
@@ -2337,16 +2537,16 @@ public class Service {
         BossData bossDataClone = new BossData(
                 player.name,
                 player.gender,
-                new short[]{player.getHead(), player.getBody(), player.getLeg(), player.getFlagBag(), player.getAura(), player.getEffFront()},
+                new short[] { player.getHead(), player.getBody(), player.getLeg(), player.getFlagBag(),
+                        player.getAura(), player.getEffFront() },
                 Functions.maxint(player.nPoint.dame * 10L),
-                new int[]{Functions.maxint(player.nPoint.hpMax * 10L)},
-                new int[]{140},
+                new int[] { Functions.maxint(player.nPoint.hpMax * 10L) },
+                new int[] { 140 },
                 skillTemp,
-                new String[]{"|-2|Boss nhân bản đã xuất hiện rồi"}, //text chat 1
-                new String[]{"|-1|Ta sẽ thay thế ngươi, haha"}, //text chat 2
-                new String[]{"|-1|Lần khác ta sẽ xử đẹp ngươi"}, //text chat 3
-                60
-        );
+                new String[] { "|-2|Boss nhân bản đã xuất hiện rồi" }, // text chat 1
+                new String[] { "|-1|Ta sẽ thay thế ngươi, haha" }, // text chat 2
+                new String[] { "|-1|Lần khác ta sẽ xử đẹp ngươi" }, // text chat 3
+                60);
 
         try {
             new NhanBan(player, bossDataClone);
@@ -2492,7 +2692,8 @@ public class Service {
                     if (plTarget.effectSkill != null && !plTarget.effectSkill.isShielding) {
                         EffectSkillService.gI().setMabuHold(plTarget, mabuHold);
                         Functions.sleep(1500);
-                        if (plTarget.fusion != null && plTarget.pet != null && plTarget.fusion.typeFusion != ConstPlayer.NON_FUSION) {
+                        if (plTarget.fusion != null && plTarget.pet != null
+                                && plTarget.fusion.typeFusion != ConstPlayer.NON_FUSION) {
                             plTarget.pet.unFusion();
                         }
                     }
@@ -2504,7 +2705,7 @@ public class Service {
     public void sendMabuAttackSkill(Player player) {
         Message msg;
         try {
-            int skillId[] = {0, 1, 3};
+            int skillId[] = { 0, 1, 3 };
             int skill = skillId[Util.nextInt(3)];
             if (Util.isTrue(1, 10)) {
                 skill = 2;
@@ -2527,7 +2728,7 @@ public class Service {
         }
     }
 
-    //========================READ OPT========================
+    // ========================READ OPT========================
     public Message messageReadOpt(byte command) throws IOException {
         Message ms = new Message(24);
         ms.writer().writeByte(command);
@@ -2649,16 +2850,17 @@ public class Service {
                         flagbag = 205;
                 }
             }
-            msg.writer().writeByte(flagbag); //bag
+            msg.writer().writeByte(flagbag); // bag
             msg.writer().writeByte(-1);
             msg.writer().writeShort(pl.location.x);
             msg.writer().writeShort(pl.location.y);
             msg.writer().writeShort(0);
             msg.writer().writeShort(0);
             msg.writer().writeByte(0);
-            msg.writer().writeShort(pl.getAura()); //idauraeff
-            msg.writer().writeByte(pl.getEffFront()); //seteff
-            msg.writer().writeShort(pl.getHat()); //id hat
+            msg.writer().writeShort(pl.getAura()); // idauraeff
+            msg.writer().writeByte(pl.getEffFront()); // seteff
+            msg.writer().writeShort(pl.getHat()); // id hat
+            msg.writer().writeByte(pl.isNewMember ? 1 : 0);
             plR.sendMessage(msg);
         } catch (IOException e) {
         } finally {
@@ -2681,7 +2883,7 @@ public class Service {
         }
     }
 
-    public void stealMoney(Player pl, int stealMoney) {//danh cho boss an trom
+    public void stealMoney(Player pl, int stealMoney) {// danh cho boss an trom
         Message msg;
         try {
             msg = new Message(95);
@@ -2819,19 +3021,18 @@ public class Service {
         }
     }
 
-  public static void sendIcon(MySession session, int iconId) {
-    try {
-        Message msg = new Message((byte) -122);
-        msg.writer().writeShort(5427); // ID icon
-        msg.writer().writeByte(0);       // action: show
-        msg.writer().writeByte(0);       // position: 0 = trên đầu
-        session.sendMessage(msg);
-        msg.cleanup();
-    } catch (Exception e) {
-        Logger.logException(DataGame.class, e);
+    public static void sendIcon(MySession session, int iconId) {
+        try {
+            Message msg = new Message((byte) -122);
+            msg.writer().writeShort(5427); // ID icon
+            msg.writer().writeByte(0); // action: show
+            msg.writer().writeByte(0); // position: 0 = trên đầu
+            session.sendMessage(msg);
+            msg.cleanup();
+        } catch (Exception e) {
+            Logger.logException(DataGame.class, e);
+        }
     }
-}
-
 
     public void sendInfoCharMoiToMe(Player plReceive, BotAttackplayer bot) {
         if (plReceive == null || plReceive.session == null || bot == null) {
@@ -2887,6 +3088,7 @@ public class Service {
             msg.writer().writeByte(bot.getEffFront());
 
             msg.writer().writeShort(bot.getHat());
+            msg.writer().writeByte(0);
 
             plReceive.sendMessage(msg);
 

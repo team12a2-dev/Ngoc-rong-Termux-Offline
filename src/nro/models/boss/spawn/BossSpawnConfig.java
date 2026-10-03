@@ -10,6 +10,12 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import nro.models.player.Player;
+import nro.models.server.Client;
 import nro.models.utils.Logger;
 /**
  * Đọc {@code boss_spawn.properties} — chỉnh không cần sửa code.
@@ -26,79 +32,97 @@ public final class BossSpawnConfig {
     public static int maxNormalConcurrent = 12;
 
     public static boolean distributionEnabled = true;
-    /** Chẩn đoán: ghi log map/khu/x/y mỗi lần boss vào map (tắt mặc định để không spam) */
-    public static boolean spawnDebugLog = false;
     public static int maxBossesPerMap = 2;
-    public static int eliteMinGapSec = 90;
-    public static int worldMinGapSec = 1800;
-    public static int normalMinGapSec = 30;
+    public static int eliteMinGapSec = 15;
+    public static int worldMinGapSec = 60;
+    public static int normalMinGapSec = 10;
     public static boolean fairnessEnabled = true;
     /** ELITE: false = bỏ hàng đợi FIFO (khuyến nghị khi nhiều boss ELITE). true = xoay vòng theo lần spawn gần nhất */
     public static boolean fairnessEliteEnabled = true;
+
+    /** Co giãn giới hạn boss theo số player thực đang online. */
+    public static boolean populationAdaptiveEnabled = false;
+    public static int normalPlayersPerBoss = 6;
+    public static int elitePlayersPerBoss = 12;
+    public static int worldPlayersPerBoss = 25;
+    public static int brolyPlayersPerBoss = 5;
+    public static int superBrolyPlayersPerBoss = 20;
+    public static int superBrolyMinPlayers = 0;
+    public static int normalMinPlayers = 0;
+    public static int eliteMinPlayers = 0;
+    public static int worldMinPlayers = 0;
+    public static int brolyMinPlayers = 0;
+    private static volatile long onlinePlayersCacheAt;
+    private static volatile int onlinePlayersCache;
 
     public static boolean dailyBonusEnabled = true;
     public static int dailyBonusDurationHours = 2;
     public static boolean dailyBonusNormal = true;
     public static boolean dailyBonusElite = true;
 
-    public static boolean softWindowEnabled = true;
-    public static int softWindowSpawnChance = 88;
-    public static int softWindowDeferMinSec = 45;
-    public static int softWindowDeferMaxSec = 180;
+    public static boolean softWindowEnabled = false;
+    public static int softWindowSpawnChance = 100;
+    public static int softWindowDeferMinSec = 10;
+    public static int softWindowDeferMaxSec = 30;
 
     /** Căn cooldown kết thúc vào khung giờ hợp lệ — tránh chờ thêm sau khi hết nghỉ */
-    public static boolean windowAlignEnabled = true;
+    public static boolean windowAlignEnabled = false;
     /** Phút trải đều trong khung (tránh dồn ở đầu giờ) */
-    public static int intraWindowSpreadMinSec = 30;
-    public static int intraWindowSpreadMaxSec = 900;
+    public static int intraWindowSpreadMinSec = 0;
+    public static int intraWindowSpreadMaxSec = 0;
 
     /** Bonus ngày ưu tiên giờ ngoài khung cố định NORMAL/ELITE */
     public static boolean dailyBonusPreferGap = true;
 
     /** Khoảng cách tối thiểu giữa spawn ELITE và WORLD */
-    public static int crossTierGapSec = 120;
+    public static int crossTierGapSec = 0;
 
     /** Tăng gap khi nhiều boss cùng tier sẵn sàng spawn */
-    public static boolean adaptiveGapEnabled = true;
-    public static int adaptiveGapPerReadySec = 20;
+    public static boolean adaptiveGapEnabled = false;
+    public static int adaptiveGapPerReadySec = 0;
 
     /** Boss chờ lâu trong khung giờ được ưu tiên spawn (soft window) */
     public static boolean waitBoostEnabled = true;
-    public static int waitBoostAfterSec = 240;
-    public static int waitBoostChance = 96;
+    public static int waitBoostAfterSec = 60;
+    public static int waitBoostChance = 100;
 
     private static HourWindows miniHours = HourWindows.allDay();
-    private static HourWindows normalWeekday = HourWindows.parse("9-12,14-17,19-23");
-    private static HourWindows normalWeekend = HourWindows.parse("9-12,12-14,14-17,19-23");
-    private static HourWindows eliteWeekday = HourWindows.parse("10-15,18-23");
-    private static HourWindows eliteWeekend = HourWindows.parse("10-23");
-    private static HourWindows worldWeekday = HourWindows.parse("20-22");
-    private static HourWindows worldWeekend = HourWindows.parse("19-23");
+    private static HourWindows normalWeekday = HourWindows.allDay();
+    private static HourWindows normalWeekend = HourWindows.allDay();
+    private static HourWindows eliteWeekday = HourWindows.allDay();
+    private static HourWindows eliteWeekend = HourWindows.allDay();
+    private static HourWindows worldWeekday = HourWindows.allDay();
+    private static HourWindows worldWeekend = HourWindows.allDay();
 
-    private static int[] jitterMini = {60, 140};
-    private static int[] jitterNormal = {75, 125};
+    public static boolean tdstScheduled = true;
+    public static int tdstRestMinSec = 900;
+    public static int tdstRestMaxSec = 1200;
+    public static int tdstNmRestMinSec = 1500;
+    public static int tdstNmRestMaxSec = 2100;
+    private static HourWindows tdstHoursWeekday = HourWindows.allDay();
+    private static HourWindows tdstHoursWeekend = HourWindows.allDay();
+    public static boolean tdstSupportHourEnabled = false;
+    private static HourWindows tdstSupportHours = HourWindows.parse("1,14");
+
+    private static int[] jitterMini = {80, 120};
+    private static int[] jitterNormal = {80, 120};
     private static int[] jitterElite = {85, 115};
     private static int[] jitterWorld = {90, 110};
 
-    private static long[] staggerMiniSec = {15, 180};
-    private static long[] staggerNormalSec = {60, 600};
-    private static long[] staggerEliteSec = {300, 1800};
-    private static long[] staggerWorldSec = {900, 3600};
+    private static long[] staggerMiniSec = {5, 20};
+    private static long[] staggerNormalSec = {10, 30};
+    private static long[] staggerEliteSec = {15, 60};
+    private static long[] staggerWorldSec = {30, 120};
 
     /** Số Broly spawn lúc mở server (Default event) — 15 map × 5 khu */
     public static int brolyInitialCount = 75;
-    /** Khởi động: thời gian tối đa để Broly đầu tiên xuất hiện, không dùng stagger NORMAL vài phút. */
-    public static int brolyInitialStaggerMinSec = 1;
-    public static int brolyInitialStaggerMaxSec = 10;
     /** Thời gian nghỉ cơ bản giữa các lần Broly xuất hiện (giây) */
     public static int brolyRestSec = 180;
     /** Tối đa Broly đang hoạt động cùng lúc */
     public static int brolyMaxConcurrent = 75;
-    /** Tối đa Broly trên một map — mỗi khu một boss (khác khu) */
+    /** Tối đa Broly trên một map (mỗi khu một boss) */
     public static int brolyMaxPerMap = 5;
-    /** Broly có nhóm lịch riêng: khoảng cách spawn tối thiểu toàn server (giây) */
-    public static int brolyMinGapSec = 8;
-    /** Khung giờ Broly — mặc định all (24/7) */
+    /** Khung giờ Broly — 24/7 */
     private static HourWindows brolyHoursWeekday = HourWindows.allDay();
     private static HourWindows brolyHoursWeekend = HourWindows.allDay();
     public static boolean superBrolyEnabled = true;
@@ -110,9 +134,9 @@ public final class BossSpawnConfig {
     /** Mục tiêu tối thiểu — tăng tỉ lệ biến hình khi dưới ngưỡng này */
     public static int superBrolyTargetMin = 3;
     /** Tối thiểu giây giữa hai lần Super Broly xuất hiện (toàn server) */
-    public static int superBrolyMinIntervalSec = 480;
+    public static int superBrolyMinIntervalSec = 180;
     /** Broly phải sống trên map tối thiểu (giây) trước khi có thể biến hình */
-    public static int superBrolyMinBrolyActiveSec = 120;
+    public static int superBrolyMinBrolyActiveSec = 60;
     /** Ngưỡng HP cố định (legacy) — dùng khi min/max bằng nhau */
     public static int superBrolyHpThreshold = 1_000_000;
     /** Ngưỡng HP ngẫu nhiên mỗi Broly khi chết — min/max */
@@ -122,11 +146,11 @@ public final class BossSpawnConfig {
     public static long superBrolyDeathHpMin = 1_500L;
     public static long superBrolyDeathHpMax = 100_000_000L;
     /** Tỉ lệ % Super Broly khi Broly bị tiêu diệt (min @ HP thấp, max @ HP cao) */
-    public static int superBrolyTransformChanceMin = 8;
+    public static int superBrolyTransformChanceMin = 15;
     public static int superBrolyTransformChanceMax = 85;
     /** Trễ ngẫu nhiên trước khi Super Broly xuất hiện sau khi roll trúng (giây) */
-    public static int superBrolySpawnDelayMinSec = 60;
-    public static int superBrolySpawnDelayMaxSec = 120;
+    public static int superBrolySpawnDelayMinSec = 15;
+    public static int superBrolySpawnDelayMaxSec = 60;
     /** Số khung giờ con trong ngày — mỗi khung tối đa 1 Super Broly */
     public static int superBrolyTimeSlots = 4;
     public static int superBrolyMaxPerSlot = 1;
@@ -137,7 +161,7 @@ public final class BossSpawnConfig {
     /** Cho phép Super Broly tự spawn, không cần hạ Broly. */
     public static boolean superBrolyNaturalEnabled = true;
     /** Xác suất mỗi lần roll tự spawn, sau khi đã qua các hard gate. */
-    public static int superBrolyNaturalChancePercent = 15;
+    public static int superBrolyNaturalChancePercent = 4;
     /** Khoảng giữa hai lần roll tự spawn (giây). */
     public static int superBrolyNaturalRollMinSec = 120;
     public static int superBrolyNaturalRollMaxSec = 300;
@@ -150,7 +174,7 @@ public final class BossSpawnConfig {
     /** Khoảng thời gian giữ một profile random trước khi roll lại. */
     public static int superBrolyProfileMinSec = 180;
     public static int superBrolyProfileMaxSec = 600;
-    /** Khung giờ Super Broly — mặc định all (24/7) */
+    /** Khung giờ Super Broly: 10h–5h sáng hôm sau */
     private static HourWindows superBrolyHoursWeekday = HourWindows.allDay();
     private static HourWindows superBrolyHoursWeekend = HourWindows.allDay();
 
@@ -169,8 +193,9 @@ public final class BossSpawnConfig {
             Logger.log("Không tìm thấy " + FILE_PATH + " — dùng cấu hình mặc định (copy file từ project vào thư mục chạy server)");
             return;
         }
-        try (FileInputStream in = new FileInputStream(file)) {
-            p.load(in);
+        try (FileInputStream in = new FileInputStream(file);
+             java.io.InputStreamReader reader = new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)) {
+            p.load(reader);
         } catch (IOException e) {
             Logger.error("Không đọc được " + FILE_PATH + ": " + e.getMessage());
             applyDefaults();
@@ -178,74 +203,97 @@ public final class BossSpawnConfig {
         }
         enabled = parseBool(p, "spawn.enabled", true);
         eliteWarnEnabled = parseBool(p, "spawn.elite.warn.enabled", false);
-        eliteWarnMinutes = parseInt(p, "spawn.elite.warn.minutes", 5, 1, 30);
-        maxEliteConcurrent = parseInt(p, "spawn.elite.max.concurrent", 5, 1, 20);
-        maxWorldConcurrent = parseInt(p, "spawn.world.max.concurrent", 1, 0, 10);
-        maxNormalConcurrent = parseInt(p, "spawn.normal.max.concurrent", 12, 0, 50);
-
         distributionEnabled = parseBool(p, "spawn.distribution.enabled", true);
-        spawnDebugLog = parseBool(p, "spawn.debug.log.enabled", false);
         maxBossesPerMap = parseInt(p, "spawn.map.max.per.map", 2, 0, 10);
-        eliteMinGapSec = parseInt(p, "spawn.elite.min.gap.sec", 90, 0, 3600);
-        worldMinGapSec = parseInt(p, "spawn.world.min.gap.sec", 1800, 0, 86400);
-        normalMinGapSec = parseInt(p, "spawn.normal.min.gap.sec", 30, 0, 600);
-                fairnessEnabled = parseBool(p, "spawn.fairness.enabled", true);
+        eliteMinGapSec = parseInt(p, "spawn.elite.min.gap.sec", 15, 0, 3600);
+        worldMinGapSec = parseInt(p, "spawn.world.min.gap.sec", 60, 0, 86400);
+        normalMinGapSec = parseInt(p, "spawn.normal.min.gap.sec", 10, 0, 600);
+        fairnessEnabled = parseBool(p, "spawn.fairness.enabled", true);
         fairnessEliteEnabled = parseBool(p, "spawn.fairness.elite.enabled", true);
+
+        populationAdaptiveEnabled = parseBool(p, "spawn.population.adaptive.enabled", false);
+        normalPlayersPerBoss = parseInt(p, "spawn.population.normal.players.per.boss", 6, 1, 1000);
+        elitePlayersPerBoss = parseInt(p, "spawn.population.elite.players.per.boss", 12, 1, 1000);
+        worldPlayersPerBoss = parseInt(p, "spawn.population.world.players.per.boss", 25, 1, 1000);
+        brolyPlayersPerBoss = parseInt(p, "spawn.population.broly.players.per.boss", 5, 1, 1000);
+        superBrolyPlayersPerBoss = parseInt(p, "spawn.population.superbroly.players.per.boss", 20, 1, 1000);
+        superBrolyMinPlayers = parseInt(p, "spawn.population.superbroly.min.players", 0, 0, 1000);
+        normalMinPlayers = parseInt(p, "spawn.population.normal.min.players", 0, 0, 1000);
+        eliteMinPlayers = parseInt(p, "spawn.population.elite.min.players", 0, 0, 1000);
+        worldMinPlayers = parseInt(p, "spawn.population.world.min.players", 0, 0, 1000);
+        brolyMinPlayers = parseInt(p, "spawn.population.broly.min.players", 0, 0, 1000);
+        onlinePlayersCacheAt = 0L;
 
         dailyBonusEnabled = parseBool(p, "spawn.daily.bonus.enabled", true);
         dailyBonusDurationHours = parseInt(p, "spawn.daily.bonus.hours", 2, 1, 6);
         dailyBonusNormal = parseBool(p, "spawn.daily.bonus.normal", true);
         dailyBonusElite = parseBool(p, "spawn.daily.bonus.elite", true);
 
-        softWindowEnabled = parseBool(p, "spawn.soft.window.enabled", true);
-        softWindowSpawnChance = parseInt(p, "spawn.soft.window.spawn.chance", 88, 1, 100);
-        softWindowDeferMinSec = parseInt(p, "spawn.soft.window.defer.min.sec", 45, 5, 600);
-        softWindowDeferMaxSec = parseInt(p, "spawn.soft.window.defer.max.sec", 180, 10, 1800);
+        softWindowEnabled = parseBool(p, "spawn.soft.window.enabled", false);
+        softWindowSpawnChance = parseInt(p, "spawn.soft.window.spawn.chance", 100, 1, 100);
+        softWindowDeferMinSec = parseInt(p, "spawn.soft.window.defer.min.sec", 10, 1, 600);
+        softWindowDeferMaxSec = parseInt(p, "spawn.soft.window.defer.max.sec", 30, 1, 1800);
 
-        windowAlignEnabled = parseBool(p, "spawn.window.align.enabled", true);
-        intraWindowSpreadMinSec = parseInt(p, "spawn.intra.window.spread.min.sec", 30, 0, 3600);
-        intraWindowSpreadMaxSec = parseInt(p, "spawn.intra.window.spread.max.sec", 900, 0, 3600);
+        windowAlignEnabled = parseBool(p, "spawn.window.align.enabled", false);
+        intraWindowSpreadMinSec = parseInt(p, "spawn.intra.window.spread.min.sec", 0, 0, 3600);
+        intraWindowSpreadMaxSec = parseInt(p, "spawn.intra.window.spread.max.sec", 0, 0, 3600);
         if (intraWindowSpreadMaxSec < intraWindowSpreadMinSec) {
             intraWindowSpreadMaxSec = intraWindowSpreadMinSec;
         }
 
         dailyBonusPreferGap = parseBool(p, "spawn.daily.bonus.prefer.gap", true);
-        crossTierGapSec = parseInt(p, "spawn.cross.tier.gap.sec", 120, 0, 3600);
-        adaptiveGapEnabled = parseBool(p, "spawn.adaptive.gap.enabled", true);
-        adaptiveGapPerReadySec = parseInt(p, "spawn.adaptive.gap.per.ready.sec", 20, 0, 300);
+        crossTierGapSec = parseInt(p, "spawn.cross.tier.gap.sec", 0, 0, 3600);
+        adaptiveGapEnabled = parseBool(p, "spawn.adaptive.gap.enabled", false);
+        adaptiveGapPerReadySec = parseInt(p, "spawn.adaptive.gap.per.ready.sec", 0, 0, 300);
         waitBoostEnabled = parseBool(p, "spawn.wait.boost.enabled", true);
-        waitBoostAfterSec = parseInt(p, "spawn.wait.boost.after.sec", 240, 30, 3600);
-        waitBoostChance = parseInt(p, "spawn.wait.boost.chance", 96, 50, 100);
+        waitBoostAfterSec = parseInt(p, "spawn.wait.boost.after.sec", 60, 10, 3600);
+        waitBoostChance = parseInt(p, "spawn.wait.boost.chance", 100, 50, 100);
 
         String miniSpec = p.getProperty("spawn.mini.hours", "all");
         miniHours = "all".equalsIgnoreCase(miniSpec.trim()) ? HourWindows.allDay() : HourWindows.parse(miniSpec);
-        normalWeekday = HourWindows.parse(p.getProperty("spawn.normal.hours.weekday", "9-12,14-17,19-23"));
-        normalWeekend = HourWindows.parse(p.getProperty("spawn.normal.hours.weekend", "9-12,12-14,14-17,19-23"));
-        eliteWeekday = HourWindows.parse(p.getProperty("spawn.elite.hours.weekday", "10-15,18-23"));
-        eliteWeekend = HourWindows.parse(p.getProperty("spawn.elite.hours.weekend", "10-23"));
-        worldWeekday = HourWindows.parse(p.getProperty("spawn.world.hours.weekday", "20-22"));
-        worldWeekend = HourWindows.parse(p.getProperty("spawn.world.hours.weekend", "19-23"));
+        normalWeekday = HourWindows.parse(p.getProperty("spawn.normal.hours.weekday", "all"));
+        normalWeekend = HourWindows.parse(p.getProperty("spawn.normal.hours.weekend", "all"));
+        eliteWeekday = HourWindows.parse(p.getProperty("spawn.elite.hours.weekday", "all"));
+        eliteWeekend = HourWindows.parse(p.getProperty("spawn.elite.hours.weekend", "all"));
+        worldWeekday = HourWindows.parse(p.getProperty("spawn.world.hours.weekday", "all"));
+        worldWeekend = HourWindows.parse(p.getProperty("spawn.world.hours.weekend", "all"));
 
-        jitterMini = parseRange(p, "spawn.jitter.mini", 60, 140);
-        jitterNormal = parseRange(p, "spawn.jitter.normal", 75, 125);
+        tdstScheduled = parseBool(p, "spawn.tdst.scheduled", true);
+        tdstRestMinSec = parseInt(p, "spawn.tdst.rest.min.sec", 900, 30, 86400);
+        tdstRestMaxSec = parseInt(p, "spawn.tdst.rest.max.sec", 1200, 30, 86400);
+        if (tdstRestMaxSec < tdstRestMinSec) {
+            tdstRestMaxSec = tdstRestMinSec;
+        }
+        tdstNmRestMinSec = parseInt(p, "spawn.tdst.nm.rest.min.sec", 1500, 30, 86400);
+        tdstNmRestMaxSec = parseInt(p, "spawn.tdst.nm.rest.max.sec", 2100, 30, 86400);
+        if (tdstNmRestMaxSec < tdstNmRestMinSec) {
+            tdstNmRestMaxSec = tdstNmRestMinSec;
+        }
+        String tdstWeekdaySpec = p.getProperty("spawn.tdst.hours.weekday", "all");
+        tdstHoursWeekday = "all".equalsIgnoreCase(tdstWeekdaySpec.trim())
+                ? HourWindows.allDay() : HourWindows.parse(tdstWeekdaySpec);
+        String tdstWeekendSpec = p.getProperty("spawn.tdst.hours.weekend", "all");
+        tdstHoursWeekend = "all".equalsIgnoreCase(tdstWeekendSpec.trim())
+                ? HourWindows.allDay() : HourWindows.parse(tdstWeekendSpec);
+        tdstSupportHourEnabled = parseBool(p, "spawn.tdst.support.hour.enabled", false);
+        String tdstSupportSpec = p.getProperty("spawn.tdst.support.hours", "1,14");
+        tdstSupportHours = "none".equalsIgnoreCase(tdstSupportSpec.trim())
+                ? HourWindows.empty() : HourWindows.parse(tdstSupportSpec);
+
+        jitterMini = parseRange(p, "spawn.jitter.mini", 80, 120);
+        jitterNormal = parseRange(p, "spawn.jitter.normal", 80, 120);
         jitterElite = parseRange(p, "spawn.jitter.elite", 85, 115);
         jitterWorld = parseRange(p, "spawn.jitter.world", 90, 110);
 
-        staggerMiniSec = parseRangeLong(p, "spawn.stagger.mini.sec", 15, 180);
-        staggerNormalSec = parseRangeLong(p, "spawn.stagger.normal.sec", 60, 600);
-        staggerEliteSec = parseRangeLong(p, "spawn.stagger.elite.sec", 300, 1800);
-        staggerWorldSec = parseRangeLong(p, "spawn.stagger.world.sec", 900, 3600);
+        staggerMiniSec = parseRangeLong(p, "spawn.stagger.mini.sec", 5, 20);
+        staggerNormalSec = parseRangeLong(p, "spawn.stagger.normal.sec", 10, 30);
+        staggerEliteSec = parseRangeLong(p, "spawn.stagger.elite.sec", 15, 60);
+        staggerWorldSec = parseRangeLong(p, "spawn.stagger.world.sec", 30, 120);
 
         brolyInitialCount = parseInt(p, "spawn.broly.initial.count", 75, 1, 100);
-        brolyInitialStaggerMinSec = parseInt(p, "spawn.broly.initial.stagger.min.sec", 1, 0, 3600);
-        brolyInitialStaggerMaxSec = parseInt(p, "spawn.broly.initial.stagger.max.sec", 10, 0, 3600);
-        if (brolyInitialStaggerMaxSec < brolyInitialStaggerMinSec) {
-            brolyInitialStaggerMaxSec = brolyInitialStaggerMinSec;
-        }
         brolyRestSec = parseInt(p, "spawn.broly.rest.sec", 180, 60, 3600);
         brolyMaxConcurrent = parseInt(p, "spawn.broly.max.concurrent", 75, 1, 100);
         brolyMaxPerMap = parseInt(p, "spawn.broly.max.per.map", 5, 1, 10);
-        brolyMinGapSec = parseInt(p, "spawn.broly.min.gap.sec", 8, 0, 3600);
         String brolyWeekdaySpec = p.getProperty("spawn.broly.hours.weekday", "all");
         brolyHoursWeekday = "all".equalsIgnoreCase(brolyWeekdaySpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(brolyWeekdaySpec);
@@ -253,7 +301,7 @@ public final class BossSpawnConfig {
         brolyHoursWeekend = "all".equalsIgnoreCase(brolyWeekendSpec.trim())
                 ? HourWindows.allDay() : HourWindows.parse(brolyWeekendSpec);
         superBrolyEnabled = parseBool(p, "spawn.superbroly.enabled", true);
-                superBrolyMaxConcurrent = parseInt(p, "spawn.superbroly.max.concurrent", 6, 1, 20);
+        superBrolyMaxConcurrent = parseInt(p, "spawn.superbroly.max.concurrent", 6, 1, 20);
         superBrolyConcurrentMin = parseInt(p, "spawn.superbroly.concurrent.min", 1, 1, 20);
         superBrolyConcurrentMax = parseInt(p, "spawn.superbroly.concurrent.max", superBrolyMaxConcurrent, 1, 20);
         if (superBrolyConcurrentMax < superBrolyConcurrentMin) {
@@ -261,8 +309,8 @@ public final class BossSpawnConfig {
         }
         superBrolyMaxConcurrent = superBrolyConcurrentMax;
         superBrolyTargetMin = parseInt(p, "spawn.superbroly.target.min", 3, 1, 10);
-        superBrolyMinIntervalSec = parseInt(p, "spawn.superbroly.min.interval.sec", 480, 60, 86400);
-        superBrolyMinBrolyActiveSec = parseInt(p, "spawn.superbroly.broly.min.active.sec", 120, 30, 3600);
+        superBrolyMinIntervalSec = parseInt(p, "spawn.superbroly.min.interval.sec", 180, 10, 86400);
+        superBrolyMinBrolyActiveSec = parseInt(p, "spawn.superbroly.broly.min.active.sec", 60, 10, 3600);
         superBrolyHpThreshold = parseInt(p, "spawn.superbroly.hp.threshold", 1_000_000, 100_000, 20_000_000);
         superBrolyHpThresholdMin = parseInt(p, "spawn.superbroly.hp.threshold.min", 1_500, 100, 100_000_000);
         superBrolyHpThresholdMax = parseInt(p, "spawn.superbroly.hp.threshold.max", 150_000, 100, 100_000_000);
@@ -274,18 +322,18 @@ public final class BossSpawnConfig {
         if (superBrolyDeathHpMax < superBrolyDeathHpMin) {
             superBrolyDeathHpMax = superBrolyDeathHpMin;
         }
-        superBrolyTransformChanceMin = parseInt(p, "spawn.superbroly.transform.chance.min", 8, 1, 99);
+        superBrolyTransformChanceMin = parseInt(p, "spawn.superbroly.transform.chance.min", 15, 1, 99);
         superBrolyTransformChanceMax = parseInt(p, "spawn.superbroly.transform.chance.max", 85, 1, 99);
         if (superBrolyTransformChanceMax < superBrolyTransformChanceMin) {
             superBrolyTransformChanceMax = superBrolyTransformChanceMin;
         }
-        superBrolySpawnDelayMinSec = parseInt(p, "spawn.superbroly.spawn.delay.min.sec", 60, 10, 600);
-        superBrolySpawnDelayMaxSec = parseInt(p, "spawn.superbroly.spawn.delay.max.sec", 120, 10, 900);
+        superBrolySpawnDelayMinSec = parseInt(p, "spawn.superbroly.spawn.delay.min.sec", 15, 5, 600);
+        superBrolySpawnDelayMaxSec = parseInt(p, "spawn.superbroly.spawn.delay.max.sec", 60, 5, 900);
         if (superBrolySpawnDelayMaxSec < superBrolySpawnDelayMinSec) {
             superBrolySpawnDelayMaxSec = superBrolySpawnDelayMinSec;
         }
         superBrolyTimeSlots = parseInt(p, "spawn.superbroly.time.slots", 4, 1, 8);
-                superBrolyMaxPerSlot = parseInt(p, "spawn.superbroly.max.per.slot", 1, 1, 4);
+        superBrolyMaxPerSlot = parseInt(p, "spawn.superbroly.max.per.slot", 1, 1, 4);
         superBrolyMaxPerMap = parseInt(p, "spawn.superbroly.max.per.map", 5, 1, 10);
         superBrolyMapMin = parseInt(p, "spawn.superbroly.map.min", 1, 1, 10);
         superBrolyMapMax = parseInt(p, "spawn.superbroly.map.max", superBrolyMaxPerMap, 1, 10);
@@ -295,8 +343,8 @@ public final class BossSpawnConfig {
         superBrolyMaxPerMap = superBrolyMapMax;
         superBrolyNaturalEnabled = parseBool(p, "spawn.superbroly.natural.enabled", true);
         superBrolyNaturalChancePercent = parseInt(p, "spawn.superbroly.natural.chance.percent", 15, 1, 100);
-        superBrolyNaturalRollMinSec = parseInt(p, "spawn.superbroly.natural.roll.min.sec", 120, 30, 3600);
-        superBrolyNaturalRollMaxSec = parseInt(p, "spawn.superbroly.natural.roll.max.sec", 300, 60, 7200);
+        superBrolyNaturalRollMinSec = parseInt(p, "spawn.superbroly.natural.roll.min.sec", 60, 10, 3600);
+        superBrolyNaturalRollMaxSec = parseInt(p, "spawn.superbroly.natural.roll.max.sec", 180, 20, 7200);
         if (superBrolyNaturalRollMaxSec < superBrolyNaturalRollMinSec) {
             superBrolyNaturalRollMaxSec = superBrolyNaturalRollMinSec;
         }
@@ -305,8 +353,8 @@ public final class BossSpawnConfig {
         if (superBrolySlotMax < superBrolySlotMin) {
             superBrolySlotMax = superBrolySlotMin;
         }
-        superBrolyIntervalMinSec = parseInt(p, "spawn.superbroly.interval.min.sec", 240, 30, 86400);
-        superBrolyIntervalMaxSec = parseInt(p, "spawn.superbroly.interval.max.sec", 900, 60, 172800);
+        superBrolyIntervalMinSec = parseInt(p, "spawn.superbroly.interval.min.sec", 120, 10, 86400);
+        superBrolyIntervalMaxSec = parseInt(p, "spawn.superbroly.interval.max.sec", 600, 30, 172800);
         if (superBrolyIntervalMaxSec < superBrolyIntervalMinSec) {
             superBrolyIntervalMaxSec = superBrolyIntervalMinSec;
         }
@@ -327,18 +375,83 @@ public final class BossSpawnConfig {
                 + ", phân bổ=" + (distributionEnabled ? "bật" : "tắt"));
     }
 
-    /** Mọi tier dùng trần cấu hình cố định; không đổi theo số người chơi online. */
+    /** Số player thật đang online, cache tối đa 5 giây để không quét danh sách ở mỗi boss tick. */
+    public static int onlinePlayerCount() {
+        long now = System.currentTimeMillis();
+        if (now - onlinePlayersCacheAt < 5_000L) {
+            return onlinePlayersCache;
+        }
+        int count = 0;
+        List<Player> players = Client.gI().getPlayers();
+        synchronized (players) {
+            for (Player player : players) {
+                if (player != null && player.isPl()) {
+                    count++;
+                }
+            }
+        }
+        onlinePlayersCache = count;
+        onlinePlayersCacheAt = now;
+        return count;
+    }
+
+    /**
+     * Giới hạn động: không vượt trần cấu hình, nhưng tự giảm khi server vắng.
+     * Trả 0 khi chưa đủ người chơi tối thiểu cho tier đó.
+     */
     public static int effectiveConcurrentLimit(BossSpawnTier tier, int configuredLimit) {
-        return Math.max(0, configuredLimit);
+        if (configuredLimit <= 0 || !populationAdaptiveEnabled) {
+            return configuredLimit;
+        }
+        int players = onlinePlayerCount();
+        int minPlayers;
+        int playersPerBoss;
+        switch (tier) {
+            case ELITE -> {
+                minPlayers = eliteMinPlayers;
+                playersPerBoss = elitePlayersPerBoss;
+            }
+            case WORLD -> {
+                minPlayers = worldMinPlayers;
+                playersPerBoss = worldPlayersPerBoss;
+            }
+            case NORMAL -> {
+                minPlayers = normalMinPlayers;
+                playersPerBoss = normalPlayersPerBoss;
+            }
+            default -> {
+                return configuredLimit;
+            }
+        }
+        if (players < minPlayers) {
+            return 0;
+        }
+        int dynamicLimit = Math.max(1, (players + playersPerBoss - 1) / playersPerBoss);
+        return Math.min(configuredLimit, dynamicLimit);
     }
 
     public static int effectiveBrolyLimit() {
-        // Broly có trần cố định theo cấu hình server; population chỉ áp dụng cho tier khác.
-        return Math.max(0, brolyMaxConcurrent);
+        if (!populationAdaptiveEnabled || brolyMaxConcurrent <= 0) {
+            return brolyMaxConcurrent;
+        }
+        int players = onlinePlayerCount();
+        if (players < brolyMinPlayers) {
+            return 0;
+        }
+        int dynamicLimit = Math.max(1, (players + brolyPlayersPerBoss - 1) / brolyPlayersPerBoss);
+        return Math.min(brolyMaxConcurrent, dynamicLimit);
     }
 
     public static int effectiveSuperBrolyLimit() {
-        return Math.max(0, superBrolyMaxConcurrent);
+        if (!populationAdaptiveEnabled || superBrolyMaxConcurrent <= 0) {
+            return superBrolyMaxConcurrent;
+        }
+        int players = onlinePlayerCount();
+        if (players < superBrolyMinPlayers) {
+            return 0;
+        }
+        int dynamicLimit = Math.max(1, (players + superBrolyPlayersPerBoss - 1) / superBrolyPlayersPerBoss);
+        return Math.min(superBrolyMaxConcurrent, dynamicLimit);
     }
 
     public static HourWindows windowsFor(BossSpawnTier tier, boolean weekend) {
@@ -354,31 +467,42 @@ public final class BossSpawnConfig {
         return weekend ? superBrolyHoursWeekend : superBrolyHoursWeekday;
     }
 
+    public static boolean isSuperBrolyWindow(ZonedDateTime moment) {
+        if (moment == null) return false;
+        boolean weekend = isWeekend(moment);
+        return superBrolyWindowsFor(weekend).contains(moment.getHour());
+    }
+
+    public static HourWindows tdstWindowsFor(boolean weekend) {
+        return weekend ? tdstHoursWeekend : tdstHoursWeekday;
+    }
+
+    public static HourWindows tdstSupportHours() {
+        return tdstSupportHours;
+    }
+
+    public static boolean isTDSTSupportHour(ZonedDateTime moment) {
+        if (!tdstSupportHourEnabled || moment == null) {
+            return false;
+        }
+        return tdstSupportHours.contains(moment.getHour());
+    }
+
+    public static boolean isTDSTWindow(ZonedDateTime moment) {
+        if (moment == null) return false;
+        boolean weekend = isWeekend(moment);
+        return tdstWindowsFor(weekend).contains(moment.getHour());
+    }
+
     public static HourWindows brolyWindowsFor(boolean weekend) {
         return weekend ? brolyHoursWeekend : brolyHoursWeekday;
     }
 
-/**
-     * Khung giờ của cả nhóm Broly/Super Broly (giờ Việt Nam). Mặc định {@code all} = 24/7.
-     * Cho phép nếu MỘT trong hai khung đang mở, để Broly không bị chặn chỉ vì khung
-     * của nhánh còn lại bị cấu hình hẹp.
-     */
+    /** Khung Broly/Super Broly: kiểm tra theo cấu hình giờ */
     public static boolean isBrolyFamilyWindow(ZonedDateTime moment) {
-        if (moment == null) {
-            return false;
-        }
+        if (moment == null) return false;
         boolean weekend = isWeekend(moment);
-        int hour = moment.getHour();
-        return brolyWindowsFor(weekend).contains(hour)
-                || superBrolyWindowsFor(weekend).contains(hour);
-    }
-
-    /** Khung giờ riêng của Super Broly — dùng cho cổng spawn Super Broly. */
-    public static boolean isSuperBrolyWindow(ZonedDateTime moment) {
-        if (moment == null) {
-            return false;
-        }
-        return superBrolyWindowsFor(isWeekend(moment)).contains(moment.getHour());
+        return brolyWindowsFor(weekend).contains(moment.getHour());
     }
 
     public static int jitterMin(BossSpawnTier tier) {
@@ -419,6 +543,14 @@ public final class BossSpawnConfig {
         return sec * 1000L;
     }
 
+    public static long minStaggerMs(BossSpawnTier tier) {
+        return staggerMinMs(tier);
+    }
+
+    public static long maxStaggerMs(BossSpawnTier tier) {
+        return staggerMaxMs(tier);
+    }
+
     public static boolean isWeekend(ZonedDateTime time) {
         DayOfWeek d = time.getDayOfWeek();
         return d == DayOfWeek.SATURDAY || d == DayOfWeek.SUNDAY;
@@ -432,38 +564,71 @@ public final class BossSpawnConfig {
         maxWorldConcurrent = 1;
         maxNormalConcurrent = 12;
         distributionEnabled = true;
-        spawnDebugLog = false;
         maxBossesPerMap = 2;
-        eliteMinGapSec = 90;
-        worldMinGapSec = 1800;
-        normalMinGapSec = 30;
+        eliteMinGapSec = 15;
+        worldMinGapSec = 60;
+        normalMinGapSec = 10;
         fairnessEnabled = true;
         fairnessEliteEnabled = true;
+        populationAdaptiveEnabled = false;
+        normalPlayersPerBoss = 6;
+        elitePlayersPerBoss = 12;
+        worldPlayersPerBoss = 25;
+        brolyPlayersPerBoss = 5;
+        superBrolyPlayersPerBoss = 20;
+        superBrolyMinPlayers = 0;
+        normalMinPlayers = 0;
+        eliteMinPlayers = 0;
+        worldMinPlayers = 0;
+        brolyMinPlayers = 0;
+        onlinePlayersCacheAt = 0L;
+        onlinePlayersCache = 0;
         dailyBonusEnabled = true;
         dailyBonusDurationHours = 2;
         dailyBonusNormal = true;
         dailyBonusElite = true;
-        softWindowEnabled = true;
-        softWindowSpawnChance = 88;
-        softWindowDeferMinSec = 45;
-        softWindowDeferMaxSec = 180;
-        windowAlignEnabled = true;
-        intraWindowSpreadMinSec = 30;
-        intraWindowSpreadMaxSec = 900;
+        softWindowEnabled = false;
+        softWindowSpawnChance = 100;
+        softWindowDeferMinSec = 10;
+        softWindowDeferMaxSec = 30;
+        windowAlignEnabled = false;
+        intraWindowSpreadMinSec = 0;
+        intraWindowSpreadMaxSec = 0;
         dailyBonusPreferGap = true;
-        crossTierGapSec = 120;
-        adaptiveGapEnabled = true;
-        adaptiveGapPerReadySec = 20;
+        crossTierGapSec = 0;
+        adaptiveGapEnabled = false;
+        adaptiveGapPerReadySec = 0;
         waitBoostEnabled = true;
-        waitBoostAfterSec = 240;
-        waitBoostChance = 96;
+        waitBoostAfterSec = 60;
+        waitBoostChance = 100;
+        miniHours = HourWindows.allDay();
+        normalWeekday = HourWindows.allDay();
+        normalWeekend = HourWindows.allDay();
+        eliteWeekday = HourWindows.allDay();
+        eliteWeekend = HourWindows.allDay();
+        worldWeekday = HourWindows.allDay();
+        worldWeekend = HourWindows.allDay();
+        tdstScheduled = true;
+        tdstRestMinSec = 900;
+        tdstRestMaxSec = 1200;
+        tdstNmRestMinSec = 1500;
+        tdstNmRestMaxSec = 2100;
+        tdstHoursWeekday = HourWindows.allDay();
+        tdstHoursWeekend = HourWindows.allDay();
+        tdstSupportHourEnabled = false;
+        tdstSupportHours = HourWindows.parse("1,14");
+        jitterMini = new int[]{80, 120};
+        jitterNormal = new int[]{80, 120};
+        jitterElite = new int[]{85, 115};
+        jitterWorld = new int[]{90, 110};
+        staggerMiniSec = new long[]{5, 20};
+        staggerNormalSec = new long[]{10, 30};
+        staggerEliteSec = new long[]{15, 60};
+        staggerWorldSec = new long[]{30, 120};
         brolyInitialCount = 75;
-        brolyInitialStaggerMinSec = 1;
-        brolyInitialStaggerMaxSec = 10;
         brolyRestSec = 180;
         brolyMaxConcurrent = 75;
         brolyMaxPerMap = 5;
-        brolyMinGapSec = 8;
         brolyHoursWeekday = HourWindows.allDay();
         brolyHoursWeekend = HourWindows.allDay();
         superBrolyEnabled = true;
@@ -471,17 +636,17 @@ public final class BossSpawnConfig {
         superBrolyConcurrentMin = 1;
         superBrolyConcurrentMax = 6;
         superBrolyTargetMin = 3;
-        superBrolyMinIntervalSec = 480;
-        superBrolyMinBrolyActiveSec = 120;
+        superBrolyMinIntervalSec = 180;
+        superBrolyMinBrolyActiveSec = 60;
         superBrolyHpThreshold = 1_000_000;
         superBrolyHpThresholdMin = 1_500;
         superBrolyHpThresholdMax = 150_000;
         superBrolyDeathHpMin = 1_500L;
         superBrolyDeathHpMax = 100_000_000L;
-        superBrolyTransformChanceMin = 8;
+        superBrolyTransformChanceMin = 15;
         superBrolyTransformChanceMax = 85;
-        superBrolySpawnDelayMinSec = 60;
-        superBrolySpawnDelayMaxSec = 120;
+        superBrolySpawnDelayMinSec = 15;
+        superBrolySpawnDelayMaxSec = 60;
         superBrolyTimeSlots = 4;
         superBrolyMaxPerSlot = 1;
         superBrolyMaxPerMap = 5;
@@ -489,14 +654,14 @@ public final class BossSpawnConfig {
         superBrolyMapMax = 5;
         superBrolyNaturalEnabled = true;
         superBrolyNaturalChancePercent = 15;
-        superBrolyNaturalRollMinSec = 120;
-        superBrolyNaturalRollMaxSec = 300;
+        superBrolyNaturalRollMinSec = 60;
+        superBrolyNaturalRollMaxSec = 180;
         superBrolySlotMin = 1;
         superBrolySlotMax = 2;
-        superBrolyIntervalMinSec = 240;
-        superBrolyIntervalMaxSec = 900;
+        superBrolyIntervalMinSec = 120;
+        superBrolyIntervalMaxSec = 600;
         superBrolyProfileMinSec = 180;
-superBrolyProfileMaxSec = 600;
+        superBrolyProfileMaxSec = 600;
         superBrolyHoursWeekday = HourWindows.allDay();
         superBrolyHoursWeekend = HourWindows.allDay();
     }
@@ -578,8 +743,11 @@ superBrolyProfileMaxSec = 600;
         private final List<int[]> ranges;
 
         public HourWindows(List<int[]> ranges) {
-            this.ranges = ranges == null || ranges.isEmpty()
-                    ? List.of(new int[]{0, 23}) : ranges;
+            this.ranges = ranges == null ? java.util.Collections.emptyList() : ranges;
+        }
+
+        public static HourWindows empty() {
+            return new HourWindows(java.util.Collections.emptyList());
         }
 
         public static HourWindows allDay() {
@@ -587,10 +755,16 @@ superBrolyProfileMaxSec = 600;
         }
 
         public static HourWindows parse(String spec) {
-            List<int[]> list = new ArrayList<>();
             if (spec == null || spec.isBlank()) {
                 return allDay();
             }
+            if ("none".equalsIgnoreCase(spec.trim()) || "empty".equalsIgnoreCase(spec.trim())) {
+                return empty();
+            }
+            if ("all".equalsIgnoreCase(spec.trim())) {
+                return allDay();
+            }
+            List<int[]> list = new ArrayList<>();
             for (String part : spec.split(",")) {
                 part = part.trim();
                 if (part.isEmpty()) {
@@ -601,6 +775,9 @@ superBrolyProfileMaxSec = 600;
                     int a = Integer.parseInt(se[0].trim());
                     int b = Integer.parseInt(se[1].trim());
                     list.add(new int[]{a, b});
+                } else if (se.length == 1) {
+                    int a = Integer.parseInt(se[0].trim());
+                    list.add(new int[]{a, a});
                 }
             }
             return list.isEmpty() ? allDay() : new HourWindows(list);

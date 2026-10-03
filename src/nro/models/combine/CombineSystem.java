@@ -59,79 +59,19 @@ public class CombineSystem {
     }
 
     public static int getOptionDaPhaLe(Item daPhaLe) {
-        if (daPhaLe.template.type == 30) {
-            return daPhaLe.itemOptions.get(0).optionTemplate.id;
+        if (daPhaLe == null) {
+            return -1;
         }
-        return switch (daPhaLe.template.id) {
-            case 20 ->
-                77;
-            case 19 ->
-                103;
-            case 18 ->
-                80;
-            case 17 ->
-                81;
-            case 16 ->
-                50;
-            case 15 ->
-                94;
-            case 14 ->
-                108;
-            case 441 ->
-                95;
-            case 442 ->
-                96;
-            case 443 ->
-                97;
-            case 444 ->
-                98;
-            case 445 ->
-                99;
-            case 446 ->
-                100;
-            case 447 ->
-                101;
-            default ->
-                -1;
-        };
+        Item.ItemOption opt = daPhaLe.getOptionDaPhaLe();
+        return (opt != null && opt.optionTemplate != null) ? opt.optionTemplate.id : -1;
     }
 
     public static int getParamDaPhaLe(Item daPhaLe) {
-        if (daPhaLe.template.type == 30) {
-            return daPhaLe.itemOptions.get(0).param;
+        if (daPhaLe == null) {
+            return -1;
         }
-        return switch (daPhaLe.template.id) {
-            case 20 ->
-                5;
-            case 19 ->
-                5;
-            case 18 ->
-                5;
-            case 17 ->
-                5;
-            case 16 ->
-                3;
-            case 15 ->
-                2;
-            case 14 ->
-                2;
-            case 441 ->
-                5;
-            case 442 ->
-                5;
-            case 443 ->
-                5;
-            case 444 ->
-                3;
-            case 445 ->
-                3;
-            case 446 ->
-                5;
-            case 447 ->
-                5;
-            default ->
-                -1;
-        };
+        Item.ItemOption opt = daPhaLe.getOptionDaPhaLe();
+        return opt != null ? opt.param : -1;
     }
 
     public static int getGoldPhaLeHoa(int star) {

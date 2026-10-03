@@ -78,7 +78,10 @@ public final class Manager {
     public static int MAX_PLAYER = 2000;
     /** Địa chỉ bind socket; 0.0.0.0 cho phép thiết bị khác trong LAN kết nối. */
     public static String SERVER_BIND_HOST = "0.0.0.0";
-    /** @deprecated Dùng {@link ServerExpRate#RATE_EXP_SERVER}; giữ getter/setter để code panel/command không đổi. */
+    /**
+     * @deprecated Dùng {@link ServerExpRate#RATE_EXP_SERVER}; giữ getter/setter để
+     *             code panel/command không đổi.
+     */
     @Deprecated
     public static byte RATE_EXP_SERVER = 1;
 
@@ -90,6 +93,7 @@ public final class Manager {
         ServerExpRate.set(rate);
         RATE_EXP_SERVER = ServerExpRate.RATE_EXP_SERVER;
     }
+
     public static boolean LOCAL = false;
     public static boolean TEST = false;
     public static boolean DAO_AUTO_UPDATER = false;
@@ -104,6 +108,11 @@ public final class Manager {
     public static final List<ArrHead2Frames> ARR_HEAD_2_FRAMES = new ArrayList<>();
     public static final Map<String, Byte> IMAGES_BY_NAME = new HashMap<>();
     public static final List<ItemTemplate> ITEM_TEMPLATES = new ArrayList<>();
+    public static final Map<Integer, Part> PARTS = new ConcurrentHashMap<>();
+
+    public static Part getPart(int id) {
+        return PARTS.get(id);
+    }
     public static final List<MobTemplate> MOB_TEMPLATES = new ArrayList<>();
     public static final List<NpcTemplate> NPC_TEMPLATES = new ArrayList<>();
     public static final List<TaskMain> TASKS = new ArrayList<>();
@@ -196,6 +205,7 @@ public final class Manager {
         NpcFactory.createNpcConMeo();
         NpcFactory.createNpcRongThieng();
         this.initMap();
+        nro.models.services.ServerLaunchConfigService.gI().reload();
     }
 
     private void initMap() {
@@ -262,6 +272,14 @@ public final class Manager {
     /** Bổ sung NPC quan trọng nếu map_template thiếu cấu hình. */
     private void ensureCriticalNpcSpawn(nro.models.map.Map map) {
         switch (map.mapId) {
+            case ConstMap.TRAM_TAU_VU_TRU ->
+                ensureNpcOnMap(map, ConstNpc.JACO, 99, 336, "Jaco");
+            case ConstMap.TRAM_TAU_VU_TRU_25 ->
+                ensureNpcOnMap(map, ConstNpc.JACO, 180, 336, "Jaco");
+            case ConstMap.TRAM_TAU_VU_TRU_26 ->
+                ensureNpcOnMap(map, ConstNpc.JACO, 120, 336, "Jaco");
+            case ConstMap.HANH_TINH_POTAUFEU ->
+                ensureNpcOnMap(map, ConstNpc.JACO, 134, 408, "Jaco");
             case ConstMap.DAO_KAME ->
                 ensureNpcOnMap(map, ConstNpc.LY_TIEU_NUONG, 1322, 411, "Ly Tieu Nuong");
             case ConstMap.RUNG_THONG_XAYDA ->
@@ -294,12 +312,10 @@ public final class Manager {
     }
 
     public static void loadPart() {
-        JSONValue jv = new JSONValue();
         JSONArray dataArray = null;
-        JSONObject dataObject = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
-        try (Connection con = LocalManager.getConnection();) {
+        try (Connection con = LocalManager.getConnection()) {
             // load part
             ps = con.prepareStatement("select * from part");
             rs = ps.executeQuery();
@@ -308,48 +324,53 @@ public final class Manager {
                 Part part = new Part();
                 part.id = rs.getShort("id");
                 part.type = rs.getByte("type");
-                dataArray = (JSONArray) jv.parse(rs.getString("data").replaceAll("\\\"", ""));
-                for (int j = 0; j < dataArray.size(); j++) {
-                    JSONArray pd = (JSONArray) jv.parse(String.valueOf(dataArray.get(j)));
-                    part.partDetails.add(new PartDetail(Short.parseShort(String.valueOf(pd.get(0))),
-                            Byte.parseByte(String.valueOf(pd.get(1))),
-                            Byte.parseByte(String.valueOf(pd.get(2)))));
-                    pd.clear();
+                String dataStr = rs.getString("data");
+                if (dataStr != null && !dataStr.trim().isEmpty()) {
+                    try {
+                        dataArray = (JSONArray) JSONValue.parse(dataStr.replaceAll("\\\"", ""));
+                        if (dataArray != null) {
+                            for (int j = 0; j < dataArray.size(); j++) {
+                                JSONArray pd = (JSONArray) JSONValue.parse(String.valueOf(dataArray.get(j)));
+                                if (pd != null && pd.size() >= 3) {
+                                    part.partDetails.add(new PartDetail(Short.parseShort(String.valueOf(pd.get(0))),
+                                            Byte.parseByte(String.valueOf(pd.get(1))),
+                                            Byte.parseByte(String.valueOf(pd.get(2)))));
+                                    pd.clear();
+                                }
+                            }
+                            dataArray.clear();
+                        }
+                    } catch (Exception e) {
+                        Logger.warning("Lỗi parse data Part id " + part.id + ": " + e.getMessage() + "\n");
+                    }
+                }
+                if (part.partDetails.isEmpty()) {
+                    int defaultCount = part.type == 0 ? 3 : part.type == 1 ? 17 : part.type == 2 ? 14 : 2;
+                    for (int k = 0; k < defaultCount; k++) {
+                        part.partDetails.add(new PartDetail(2955, (byte) 0, (byte) 0));
+                    }
                 }
                 parts.add(part);
-                dataArray.clear();
             }
-            DataOutputStream dos = new DataOutputStream(new FileOutputStream("data/update_data/part"));
-            dos.writeShort(parts.size());
-            for (Part part : parts) {
-                dos.writeByte(part.type);
-                for (PartDetail partDetail : part.partDetails) {
-                    dos.writeShort(partDetail.iconId);
-                    dos.writeByte(partDetail.dx);
-                    dos.writeByte(partDetail.dy);
+            PARTS.clear();
+            for (Part p : parts) {
+                PARTS.put((int) p.id, p);
+            }
+            try (DataOutputStream dos = new DataOutputStream(new FileOutputStream("data/update_data/part"))) {
+                dos.writeShort(parts.size());
+                for (Part part : parts) {
+                    dos.writeByte(part.type);
+                    for (PartDetail partDetail : part.partDetails) {
+                        dos.writeShort(partDetail.iconId);
+                        dos.writeByte(partDetail.dx);
+                        dos.writeByte(partDetail.dy);
+                    }
                 }
+                dos.flush();
             }
-            dos.flush();
-            dos.close();
+            Logger.success(Logger.PURPLE + "Successfully loaded part (" + parts.size() + ")\n");
         } catch (Exception e) {
-            System.err.print("\nError at 299\n");
-            e.printStackTrace();
-        }
-    }
-
-    private void syncEventItemDescriptions(Connection connection) {
-        String sql = "UPDATE item_template SET description = "
-                + "REPLACE(REPLACE(description, 'VPSK', 'Vật phẩm sự kiện'), "
-                + "'vpsk', 'Vật phẩm sự kiện') "
-                + "WHERE LOWER(description) LIKE '%vpsk%'";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            int updated = statement.executeUpdate();
-            if (updated > 0) {
-                Logger.success(Logger.PURPLE + "Đã đồng bộ mô tả Vật phẩm sự kiện cho "
-                        + updated + " vật phẩm\n");
-            }
-        } catch (SQLException e) {
-            Logger.error("Không thể đồng bộ mô tả vật phẩm VPSK: " + e.getMessage());
+            Logger.logException(Manager.class, e);
         }
     }
 
@@ -361,36 +382,7 @@ public final class Manager {
         ResultSet rs = null;
         try (Connection ConnectionDatabase = LocalManager.getConnection()) {
             // load part
-            ps = ConnectionDatabase.prepareStatement("select * from part");
-            rs = ps.executeQuery();
-            List<Part> parts = new ArrayList<>();
-            while (rs.next()) {
-                Part part = new Part();
-                part.id = rs.getShort("id");
-                part.type = rs.getByte("type");
-                dataArray = (JSONArray) JSONValue.parse(rs.getString("data").replaceAll("\\\"", ""));
-                for (int j = 0; j < dataArray.size(); j++) {
-                    JSONArray pd = (JSONArray) JSONValue.parse(String.valueOf(dataArray.get(j)));
-                    part.partDetails.add(new PartDetail(Short.parseShort(String.valueOf(pd.get(0))),
-                            Byte.parseByte(String.valueOf(pd.get(1))),
-                            Byte.parseByte(String.valueOf(pd.get(2)))));
-                    pd.clear();
-                }
-                parts.add(part);
-                dataArray.clear();
-            }
-            DataOutputStream dos = new DataOutputStream(new FileOutputStream("data/update_data/part"));
-            dos.writeShort(parts.size());
-            for (Part part : parts) {
-                dos.writeByte(part.type);
-                for (PartDetail partDetail : part.partDetails) {
-                    dos.writeShort(partDetail.iconId);
-                    dos.writeByte(partDetail.dx);
-                    dos.writeByte(partDetail.dy);
-                }
-            }
-            dos.flush();
-            Logger.success(Logger.PURPLE + "Successfully loaded part (" + parts.size() + ")\n");
+            loadPart();
 
             // load bg item template
             ps = ConnectionDatabase.prepareStatement("select * from bg_item_template");
@@ -540,18 +532,18 @@ public final class Manager {
             ps = ConnectionDatabase.prepareStatement("SELECT id, task_main_template.name, detail, "
                     + "task_sub_template.name AS 'sub_name', max_count, notify, npc_id, map "
                     + "FROM task_main_template JOIN task_sub_template ON task_main_template.id = "
-                    + "task_sub_template.task_main_id");
+                    + "task_sub_template.task_main_id ORDER BY task_main_template.id ASC, task_sub_template.ducvupro ASC");
             rs = ps.executeQuery();
-            int taskId = -1;
-            TaskMain task = null;
+            Map<Integer, TaskMain> mapTasks = new LinkedHashMap<>();
             while (rs.next()) {
                 int id = rs.getInt("id");
-                if (id != taskId) {
-                    taskId = id;
+                TaskMain task = mapTasks.get(id);
+                if (task == null) {
                     task = new TaskMain();
-                    task.id = taskId;
+                    task.id = id;
                     task.name = rs.getString("name");
                     task.detail = rs.getString("detail");
+                    mapTasks.put(id, task);
                     TASKS.add(task);
                 }
                 SubTaskMain subTask = new SubTaskMain();
@@ -638,8 +630,6 @@ public final class Manager {
             }
             Logger.success(Logger.PURPLE + "Successfully loaded achievement (" + ACHIEVEMENT_TEMPLATE.size() + ")\n");
 
-            syncEventItemDescriptions(ConnectionDatabase);
-
             int batchSize = 750;
             int offset = 0;
 
@@ -678,6 +668,8 @@ public final class Manager {
                 Logger.success(
                         Logger.RED + "Successfully loaded map item template (" + ITEM_TEMPLATES.size() + " items)\n");
 
+                autoDetectMultiHeadFrames();
+
             } catch (SQLException e) {
                 Logger.error("Error loading item templates: " + e.getMessage());
             } finally {
@@ -694,12 +686,20 @@ public final class Manager {
             }
 
             // load item option template
-            ps = ConnectionDatabase.prepareStatement("select id, name from item_option_template");
+            ps = ConnectionDatabase.prepareStatement("select id, name from item_option_template order by id asc");
             rs = ps.executeQuery();
             while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                while (ITEM_OPTION_TEMPLATES.size() < id) {
+                    ItemOptionTemplate empty = new ItemOptionTemplate();
+                    empty.id = ITEM_OPTION_TEMPLATES.size();
+                    empty.name = "";
+                    ITEM_OPTION_TEMPLATES.add(empty);
+                }
                 ItemOptionTemplate optionTemp = new ItemOptionTemplate();
-                optionTemp.id = rs.getInt("id");
-                optionTemp.name = rs.getString("name");
+                optionTemp.id = id;
+                optionTemp.name = name;
                 ITEM_OPTION_TEMPLATES.add(optionTemp);
             }
             Logger.success(Logger.PURPLE + "Successfully loaded map item option template ("
@@ -830,6 +830,9 @@ public final class Manager {
                     mapTemplate.id = mapId;
                     mapTemplate.name = mapName;
                     mapTemplate.type = rs.getByte("type");
+                    if (mapId == ConstMap.RUNG_KARIN) {
+                        mapTemplate.type = ConstMap.MAP_OFFLINE;
+                    }
                     mapTemplate.planetId = rs.getByte("planet_id");
                     mapTemplate.bgType = rs.getByte("bg_type");
                     mapTemplate.tileId = rs.getByte("tile_id");
@@ -1054,7 +1057,9 @@ public final class Manager {
 
     public void loadProperties() throws IOException {
         Properties properties = new Properties();
-        properties.load(new FileInputStream("Config.properties"));
+        try (java.io.InputStreamReader reader = new java.io.InputStreamReader(new FileInputStream("Config.properties"), java.nio.charset.StandardCharsets.UTF_8)) {
+            properties.load(reader);
+        }
         Object value;
         if ((value = properties.get("server.sv")) != null) {
             SERVER = Byte.parseByte(String.valueOf(value));
@@ -1068,7 +1073,8 @@ public final class Manager {
         }
         if ((value = properties.get("server.listen.host")) != null) {
             SERVER_BIND_HOST = String.valueOf(value).trim();
-            if (SERVER_BIND_HOST.isEmpty()) SERVER_BIND_HOST = "0.0.0.0";
+            if (SERVER_BIND_HOST.isEmpty())
+                SERVER_BIND_HOST = "0.0.0.0";
         }
         String linkServer = "";
         if ((value = properties.get("server.ip")) != null) {
@@ -1078,7 +1084,14 @@ public final class Manager {
         for (int i = 1; i <= 10; i++) {
             value = properties.get("server.sv" + i);
             if (value != null) {
-                linkServer += String.valueOf(value) + ":0,";
+                String sv = String.valueOf(value).trim();
+                if (sv.endsWith(":0,0,0")) {
+                    sv = sv.substring(0, sv.length() - 6);
+                }
+                if (!sv.endsWith(":0")) {
+                    sv += ":0";
+                }
+                linkServer += sv + ",";
             }
         }
         DataGame.LINK_IP_PORT = linkServer.substring(0, linkServer.length() - 1);
@@ -1229,7 +1242,8 @@ public final class Manager {
             }
         }
         try (Connection con = LocalManager.getConnection();
-                PreparedStatement optionPs = con.prepareStatement("SELECT id, name FROM item_option_template ORDER BY id");
+                PreparedStatement optionPs = con
+                        .prepareStatement("SELECT id, name FROM item_option_template ORDER BY id");
                 ResultSet optionRs = optionPs.executeQuery()) {
             while (optionRs.next()) {
                 ItemOptionTemplate option = new ItemOptionTemplate();
@@ -1259,13 +1273,39 @@ public final class Manager {
         return result;
     }
 
-    public static synchronized void reloadClans() throws Exception {
-        CLANS.clear();
-        try (Connection con = LocalManager.getConnection()) {
-            CLANS.addAll(ClanDAO.loadClans(con));
-            Clan.NEXT_ID = ClanDAO.getNextClanId(con);
+    public static void autoDetectMultiHeadFrames() {
+        int added = 0;
+        for (ItemTemplate item : ITEM_TEMPLATES) {
+            if (item.head > 0 && item.body > 0 && item.head < item.body) {
+                List<Integer> headFrames = new ArrayList<>();
+                for (int pId = item.head; pId < item.body; pId++) {
+                    Part p = getPart(pId);
+                    if (p != null && p.type == 0) {
+                        headFrames.add(pId);
+                    } else {
+                        break;
+                    }
+                }
+                if (headFrames.size() > 1) {
+                    boolean existed = false;
+                    for (ArrHead2Frames arr : ARR_HEAD_2_FRAMES) {
+                        if (arr.frames.contains(item.head)) {
+                            existed = true;
+                            break;
+                        }
+                    }
+                    if (!existed) {
+                        ArrHead2Frames arrHead = new ArrHead2Frames();
+                        arrHead.frames.addAll(headFrames);
+                        ARR_HEAD_2_FRAMES.add(arrHead);
+                        added++;
+                    }
+                }
+            }
         }
-        Logger.success("Reload clans: " + CLANS.size() + ", next id: " + Clan.NEXT_ID);
+        if (added > 0) {
+            Logger.success(Logger.PURPLE + "Auto detected & registered multi-head frames (" + added + " items, total arr head: " + ARR_HEAD_2_FRAMES.size() + ")\n");
+        }
     }
 
 }

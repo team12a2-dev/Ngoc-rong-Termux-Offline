@@ -305,6 +305,9 @@ public class Clan {
             Player pl = Client.gI().getPlayer(cm.id);
             if (pl != null) {
                 cm.powerPoint = pl.nPoint.power;
+                cm.head = pl.getHead();
+                cm.body = pl.getBody();
+                cm.leg = pl.getLeg();
             }
         }
     }
@@ -371,6 +374,7 @@ public class Clan {
     }
 
     public void update() {
+        reloadClanMember();
         JSONArray dataArray = new JSONArray();
         JSONObject dataObject = new JSONObject();
         for (ClanMember cm : this.members) {

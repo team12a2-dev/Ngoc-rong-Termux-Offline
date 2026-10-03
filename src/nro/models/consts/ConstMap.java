@@ -1,9 +1,10 @@
 package nro.models.consts;
+
 public class ConstMap {
 
     public static final int TILE_TOP = 2;
 
-    //type map
+    // type map
     public static final byte MAP_NORMAL = 0;
     public static final byte MAP_OFFLINE = 1;
     public static final byte MAP_DOANH_TRAI = 2;
@@ -14,7 +15,7 @@ public class ConstMap {
     public static final byte MAP_KHI_GAS_HUY_DIET = 7;
     public static final byte MAP_TAY_KARIN = 8;
     public static final byte MAP_MABU_14H = 9;
-// DataMap
+    // DataMap
     public static final int LANG_ARU = 0;
     public static final int DOI_HOA_CUC = 1;
     public static final int THUNG_LUNG_TRE = 2;
@@ -156,15 +157,15 @@ public class ConstMap {
     public static final int HOANG_MAC = 144;
     public static final int VO_DAI_SIEU_CAP = 145;
     public static final int TAY_KARIN = 146;
-    /** Lãnh địa Bang Hội: map sự kiện, đăng nhập lại sẽ đưa người chơi về Đảo Kame. */
-    public static final int LANH_DIA_BANG_HOI = 153;
     public static final int HANH_TINH_BILL = 154;
     public static final int HANH_TINH_NGUC_TU = 155;
     public static final int KHU_HANG_DONG = 160;
     public static final int BIA_RUNG_NGUYEN_THUY = 161;
     public static final int RUNG_NGUYEN_THUY = 162;
     public static final int LANG_PLANT_NGUYEN_THUY = 163;
-    //type change map
+    public static final int MAP_UP_VANG_134 = 134;
+    public static final int MAP_UP_VANG_186 = 186;
+    // type change map
     public static final int CHANGE_CAPSULE = 500;
     public static final int CHANGE_BLACK_BALL = 501;
     public static final int CHANGE_MAP_MA_BU = 502;

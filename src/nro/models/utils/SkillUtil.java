@@ -15,54 +15,69 @@ import nro.models.server.Manager;
 
 public class SkillUtil {
 
-    private final static NClass nClassTD;
-    private final static NClass nClassNM;
-    private final static NClass nClassXD;
-
-    static {
-        nClassTD = Manager.NCLASS.get(0);
-        nClassNM = Manager.NCLASS.get(1);
-        nClassXD = Manager.NCLASS.get(2);
-    }
-
     public static Skill createSkill(int tempId, int level) {
         Skill skill = null;
         SkillTemplate template = findSkillTemplate(tempId);
         if (template != null) {
             List<Skill> skills = template.skillss;
-            if (skills != null && level >= 1 && level <= skills.size()) {
-                skill = skills.get(level - 1);
+            if (skills != null && !skills.isEmpty()) {
+                if (level >= 1 && level <= skills.size()) {
+                    skill = skills.get(level - 1);
+                } else if (level > skills.size()) {
+                    skill = skills.get(skills.size() - 1);
+                } else {
+                    skill = skills.get(0);
+                }
             }
         }
-        return skill != null ? new Skill(skill) : null;
+        if (skill != null) {
+            return new Skill(skill);
+        }
+        // Fallback tao Skill mac dinh tranh NullPointerException
+        Skill fallback = new Skill();
+        fallback.skillId = (short) tempId;
+        fallback.point = Math.max(1, level);
+        fallback.coolDown = 1000;
+        if (template != null) {
+            fallback.template = template;
+        } else {
+            fallback.template = new SkillTemplate();
+            fallback.template.id = (byte) tempId;
+            fallback.template.name = "Skill " + tempId;
+        }
+        return fallback;
     }
 
     public static SkillTemplate findSkillTemplate(int tempId) {
-        SkillTemplate template = nClassTD.getSkillTemplate(tempId);
-        if (template == null) {
-            template = nClassNM.getSkillTemplate(tempId);
+        if (Manager.NCLASS != null) {
+            for (NClass nClass : Manager.NCLASS) {
+                if (nClass != null) {
+                    SkillTemplate template = nClass.getSkillTemplate(tempId);
+                    if (template != null) {
+                        return template;
+                    }
+                }
+            }
         }
-        if (template == null) {
-            template = nClassXD.getSkillTemplate(tempId);
-        }
-        return template;
+        return null;
     }
 
     public static List<Skill> findSkills(int tempId) {
-        List skills = nClassTD.getSkills(tempId);
-        if (skills == null) {
-            skills = nClassNM.getSkills(tempId);
+        if (Manager.NCLASS != null) {
+            for (NClass nClass : Manager.NCLASS) {
+                if (nClass != null) {
+                    List<Skill> skills = nClass.getSkills(tempId);
+                    if (skills != null) {
+                        return skills;
+                    }
+                }
+            }
         }
-        if (skills == null) {
-            skills = nClassXD.getSkills(tempId);
-        }
-        return skills;
+        return null;
     }
 
     public static List<Skill> findPointSkill(int skillId) {
-        List skills = nClassTD.getSkills(skillId);
-
-        return skills;
+        return findSkills(skillId);
     }
 
     public static Skill createEmptySkill() {

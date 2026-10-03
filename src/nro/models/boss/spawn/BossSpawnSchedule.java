@@ -1,21 +1,16 @@
 package nro.models.boss.spawn;
 
 import java.time.ZonedDateTime;
-
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
 import nro.models.boss.spawn.BossSpawnTier;
 import nro.models.services.BossPanelConfigService;
 import nro.models.boss.Boss_Manager.BossManager;
-
 import nro.models.consts.AppearType;
 import nro.models.consts.BossStatus;
 import static nro.models.consts.AppearType.DEFAULT_APPEAR;
 import nro.models.utils.Util;
 
-/**
- * Lịch spawn: jitter, khung giờ, giới hạn đồng thời, phân bổ thông minh.
- */
 public final class BossSpawnSchedule {
 
     public static final java.time.ZoneId ZONE_VN = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
@@ -31,11 +26,23 @@ public final class BossSpawnSchedule {
         if (!isEnabled() || boss == null) {
             return false;
         }
-        // Fide vàng có lịch riêng 21:00–21:59 và được tạo theo từng khu map 6.
-        if ((int) boss.id == BossID.GOLDEN_FRIEZA) {
+        if (boss.getParentBoss() != null || boss.zoneFinal != null) {
             return false;
         }
-        if (boss.getParentBoss() != null || boss.zoneFinal != null) {
+        // Miễn trừ toàn bộ Boss phó bản (Doanh Trại, BĐKB, CDRĐ, KGHD,...)
+        if (boss.bossType != null && (boss.bossType == nro.models.consts.BossType.PHOBANDT
+                || boss.bossType == nro.models.consts.BossType.PHOBANBDKB
+                || boss.bossType == nro.models.consts.BossType.PHOBANCDRD
+                || boss.bossType == nro.models.consts.BossType.PHOBANKGHD
+                || boss.bossType == nro.models.consts.BossType.PHOBAN
+                || boss.bossType == nro.models.consts.BossType.SKILLSUMMONED)) {
+            return false;
+        }
+        // Boss nhiệm vụ (Kuku, Mập Đầu Đinh, Rambo) và Boss sự kiện giờ cố định (Fide Vàng 21h) spawn độc lập
+        if (boss.id == BossID.KUKU || boss.id == BossID.MAP_DAU_DINH || boss.id == BossID.RAMBO || boss.id == BossID.GOLDEN_FRIEZA) {
+            return false;
+        }
+        if (!BossSpawnConfig.tdstScheduled && (boss.id == BossID.TIEU_DOI_TRUONG || boss.id == BossID.TIEU_DOI_TRUONG_NM)) {
             return false;
         }
         return boss.getSecondsRest() >= 5;
@@ -60,10 +67,10 @@ public final class BossSpawnSchedule {
                     BossID.CUMBER, BossID.ANDROID_14, BossID.DR_KORE, BossID.ANDROID_13,
                     BossID.ANDROID_15, BossID.PIC, BossID.POC, BossID.KING_KONG ->
                 BossSpawnTier.ELITE;
-            case BossID.BROLY, BossID.SUPER_BROLY, BossID.KUKU, BossID.KU,
-                    BossID.MAP_DAU_DINH, BossID.RAMBO, BossID.ANDROID_19 ->
+            case BossID.BROLY, BossID.SUPER_BROLY, BossID.KU,
+                    BossID.ANDROID_19 ->
                 BossSpawnTier.NORMAL;
-            case BossID.SOI_HEC_QUYN1, BossID.AN_TROM, BossID.THO_DAI_CA, BossID.MAT_TROI, BossID.O_DO1,
+            case BossID.SOI_HEC_QUYN1, BossID.AN_TROM, BossID.MAT_TROI, BossID.O_DO1,
                     BossID.BABY, BossID.B, BossID.Virut ->
                 BossSpawnTier.MINI;
             default ->
@@ -73,41 +80,65 @@ public final class BossSpawnSchedule {
 
     public static void initOnCreate(Boss boss) {
         if (!appliesTo(boss)) {
-            boss.setNextRestDelayMs(boss.getSecondsRest() * 1000L);
+            if (boss.id == BossID.TIEU_DOI_TRUONG) {
+                // Giãn cách mở server: 30 - 60 giây
+                boss.setNextRestDelayMs(Util.nextInt(30, 60) * 1000L);
+                boss.setLastTimeRest(System.currentTimeMillis());
+                return;
+            }
+            if (boss.id == BossID.TIEU_DOI_TRUONG_NM) {
+                // Giãn cách mở server: 120 - 180 giây (lệch hoàn toàn so với TDST Trái Đất)
+                boss.setNextRestDelayMs(Util.nextInt(120, 180) * 1000L);
+                boss.setLastTimeRest(System.currentTimeMillis());
+                return;
+            }
+            boss.setNextRestDelayMs(0);
+            boss.setLastTimeRest(0);
             return;
         }
         BossSpawnTier tier = resolveTier(boss);
         long delayMs;
-        long scheduled;
-        if ((int) boss.id == BossID.BROLY) {
-            int minSec = BossSpawnConfig.brolyInitialStaggerMinSec;
-            int maxSec = Math.max(minSec, BossSpawnConfig.brolyInitialStaggerMaxSec);
-            int span = maxSec - minSec + 1;
-            int staggerSec = minSec + Math.floorMod(System.identityHashCode(boss), span);
-            delayMs = staggerSec * 1000L;
-            scheduled = delayMs;
+        if (boss.id == BossID.TIEU_DOI_TRUONG) {
+            delayMs = Util.nextInt(30, 60) * 1000L;
+        } else if (boss.id == BossID.TIEU_DOI_TRUONG_NM) {
+            delayMs = Util.nextInt(60, 120) * 1000L;
         } else {
-            delayMs = tier.rollInitialStaggerMs(boss);
-            scheduled = computeScheduledDelayMs(boss, tier, delayMs);
+            delayMs = tier.rollInitialStaggerMs((int) boss.id);
         }
+        long scheduled = computeScheduledDelayMs(boss, tier, delayMs);
         boss.setNextRestDelayMs(BossPanelConfigService.gI().overrideRestDelayMs(boss, scheduled));
-
         boss.setLastTimeRest(System.currentTimeMillis());
     }
 
     public static void onEnterRest(Boss boss) {
         if (!appliesTo(boss)) {
-            boss.setNextRestDelayMs(Math.max(boss.getSecondsRest(), 1) * 1000L);
+            long delayMs;
+            if (boss.id == BossID.KUKU || boss.id == BossID.MAP_DAU_DINH || boss.id == BossID.RAMBO) {
+                delayMs = Util.nextInt(600, 900) * 1000L;
+            } else if (boss.id == BossID.TIEU_DOI_TRUONG) {
+                delayMs = Util.nextInt(BossSpawnConfig.tdstRestMinSec, BossSpawnConfig.tdstRestMaxSec) * 1000L;
+            } else if (boss.id == BossID.TIEU_DOI_TRUONG_NM) {
+                delayMs = Util.nextInt(BossSpawnConfig.tdstNmRestMinSec, BossSpawnConfig.tdstNmRestMaxSec) * 1000L;
+            } else {
+                delayMs = Math.max(boss.getSecondsRest(), 1) * 1000L;
+            }
+            boss.setNextRestDelayMs(delayMs);
             return;
         }
         BossSpawnTier tier = resolveTier(boss);
-        long baseDelayMs = tier.rollRestDelayMs(boss.getSecondsRest());
-                long scheduled = computeScheduledDelayMs(boss, tier, baseDelayMs);
+        long baseDelayMs;
+        if (boss.id == BossID.TIEU_DOI_TRUONG) {
+            baseDelayMs = Util.nextInt(BossSpawnConfig.tdstRestMinSec, BossSpawnConfig.tdstRestMaxSec) * 1000L;
+        } else if (boss.id == BossID.TIEU_DOI_TRUONG_NM) {
+            baseDelayMs = Util.nextInt(BossSpawnConfig.tdstNmRestMinSec, BossSpawnConfig.tdstNmRestMaxSec) * 1000L;
+        } else {
+            baseDelayMs = tier.rollRestDelayMs(boss.getSecondsRest());
+        }
+        long scheduled = computeScheduledDelayMs(boss, tier, baseDelayMs);
         boss.setNextRestDelayMs(BossPanelConfigService.gI().overrideRestDelayMs(boss, scheduled));
-
     }
 
-    /** Căn thời điểm hết cooldown vào khung giờ hợp lệ + trải đều trong khung */
+    /** Căn thá»i điểm hết cooldown vào khung giá» hợp lệ + trải đá»u trong khung */
     private static long computeScheduledDelayMs(Boss boss, BossSpawnTier tier, long baseDelayMs) {
         if (!BossSpawnConfig.windowAlignEnabled || tier == BossSpawnTier.MINI) {
             return baseDelayMs + rollIntraWindowSpreadMs(boss, tier);
@@ -118,8 +149,7 @@ public final class BossSpawnSchedule {
         boolean weekend = BossSpawnConfig.isWeekend(ready);
         long spreadMs = rollIntraWindowSpreadMs(boss, tier);
 
-                if (isMomentAllowed(boss, ready, tier, weekend)) {
-
+        if (isMomentAllowed(boss, ready, tier, weekend)) {
             return baseDelayMs + spreadMs;
         }
         int waitMin = minutesUntilAllowed(boss, ready, tier, weekend);
@@ -135,11 +165,8 @@ public final class BossSpawnSchedule {
         if (maxSec <= minSec) {
             return minSec * 1000L;
         }
-        // Phải trộn thêm identity của từng instance: 75 Broly cùng boss.id sẽ nhận
-        // đúng một giá trị spread nếu chỉ dùng id, khiến tất cả dồn về một thời điểm.
-        long span = maxSec - minSec + 1L;
-        long seed = boss.id * 31L + tier.ordinal() * 17L + System.identityHashCode(boss);
-        int slot = (int) Math.floorMod(seed, span);
+        int span = maxSec - minSec;
+        int slot = Math.abs((int) (boss.id * 31L + tier.ordinal() * 17L)) % (span + 1);
         return (minSec + slot) * 1000L;
     }
 
@@ -168,7 +195,7 @@ public final class BossSpawnSchedule {
         if (boss.data[spawnLevel].getTypeAppear() != DEFAULT_APPEAR) {
             return false;
         }
-        long delay = appliesTo(boss) ? boss.getNextRestDelayMs() : boss.getSecondsRest() * 1000L;
+        long delay = (boss.getNextRestDelayMs() > 0) ? boss.getNextRestDelayMs() : (boss.getSecondsRest() * 1000L);
         if (!Util.canDoWithTime(boss.getLastTimeRest(), delay)) {
             return false;
         }
@@ -178,12 +205,7 @@ public final class BossSpawnSchedule {
         if (!isWithinSpawnWindow(boss)) {
             return false;
         }
-        // Broly có nhóm lịch riêng (không dùng chung bộ đếm gap của tier NORMAL).
-        if ((int) boss.id == BossID.BROLY) {
-            if (!BossSpawnOrchestrator.passesBrolyGap()) {
-                return false;
-            }
-        } else if (!BossSpawnOrchestrator.passesGlobalGap(boss)) {
+        if (!BossSpawnOrchestrator.passesGlobalGap(boss)) {
             return false;
         }
         if (!BossSpawnOrchestrator.passesCrossTierGap(boss)) {
@@ -240,7 +262,7 @@ public final class BossSpawnSchedule {
                 if (isMomentAllowed(boss, now, tier, weekend)) {
             return true;
         }
-        if (isBrolyFamily(boss)) {
+        if (isBrolyFamily(boss) || isTDSTFamily(boss)) {
             return false;
         }
         if (BossSpawnOrchestrator.dailyBonusAppliesTo(tier)
@@ -279,9 +301,6 @@ public final class BossSpawnSchedule {
         }
 
         sec = Math.max(sec, BossSpawnOrchestrator.secondsUntilGlobalGap(boss));
-        if ((int) boss.id == BossID.BROLY) {
-            sec = Math.max(sec, BossSpawnOrchestrator.secondsUntilBrolyGap());
-        }
         sec = Math.max(sec, BossSpawnOrchestrator.secondsUntilCrossTierGap(boss));
         return sec;
     }
@@ -311,22 +330,13 @@ public final class BossSpawnSchedule {
             }
             return "chờ khung giờ";
         }
-        if ((int) boss.id == BossID.BROLY) {
-            if (!BossSpawnOrchestrator.passesBrolyGap()) {
-                return "khoảng cách spawn Broly ("
-                        + BossSpawnOrchestrator.secondsUntilBrolyGap() + "s)";
-            }
-        } else if (!BossSpawnOrchestrator.passesGlobalGap(boss)) {
+        if (!BossSpawnOrchestrator.passesGlobalGap(boss)) {
             return "khoảng cách spawn tier (" + BossSpawnOrchestrator.secondsUntilGlobalGap(boss) + "s)";
         }
         if (!BossSpawnOrchestrator.passesCrossTierGap(boss)) {
             return "khoảng cách ELITE/WORLD (" + BossSpawnOrchestrator.secondsUntilCrossTierGap(boss) + "s)";
         }
         int spawnLevel = resolveRestSpawnLevel(boss);
-        if (BossPanelConfigService.gI().hasEnabledRule(boss)
-                && !BossPanelConfigService.gI().hasAvailableConfiguredZone(boss)) {
-            return "cấu hình panel không có map/khu trống hợp lệ";
-        }
         if (!BossSpawnOrchestrator.passesMapDensity(boss, spawnLevel)) {
             if ((int) boss.id == BossID.BROLY) {
                 return "map đầy (max " + BossSpawnConfig.brolyMaxPerMap + " Broly/map)";
@@ -337,7 +347,8 @@ public final class BossSpawnSchedule {
             BossSpawnTier tier = resolveTier(boss);
             if ((int) boss.id == BossID.BROLY) {
                 return "giới hạn BROLY (" + BrolySpawnGate.countActiveBroly() + "/"
-                        + BossSpawnConfig.effectiveBrolyLimit() + ", trần cố định)";
+                        + BossSpawnConfig.effectiveBrolyLimit() + ", online="
+                        + BossSpawnConfig.onlinePlayerCount() + ")";
             }
             int configuredLimit = switch (tier) {
                 case ELITE -> BossSpawnConfig.maxEliteConcurrent;
@@ -347,20 +358,17 @@ public final class BossSpawnSchedule {
             };
             int effectiveLimit = BossSpawnConfig.effectiveConcurrentLimit(tier, configuredLimit);
             if (tier == BossSpawnTier.ELITE) {
-                return "giới hạn ELITE (" + countActiveElite() + "/" + effectiveLimit + ", trần cố định)";
+                return "giới hạn ELITE (" + countActiveElite() + "/" + effectiveLimit + ", online="
+                        + BossSpawnConfig.onlinePlayerCount() + ")";
             }
             if (tier == BossSpawnTier.WORLD) {
-                return "giới hạn WORLD (" + countActiveWorld() + "/" + effectiveLimit + ", trần cố định)";
+                return "giới hạn WORLD (" + countActiveWorld() + "/" + effectiveLimit + ", online="
+                        + BossSpawnConfig.onlinePlayerCount() + ")";
             }
             if (tier == BossSpawnTier.NORMAL) {
-                return "giới hạn NORMAL (" + countActiveNormal() + "/" + effectiveLimit + ", trần cố định)";
+                return "giới hạn NORMAL (" + countActiveNormal() + "/" + effectiveLimit + ", online="
+                        + BossSpawnConfig.onlinePlayerCount() + ")";
             }
-        }
-        if (!BossPanelConfigService.gI().passesActiveLimit(boss)) {
-            return "đạt giới hạn boss trong cấu hình panel";
-        }
-        if (boss.getPanelSpawnRetryAt() > System.currentTimeMillis()) {
-            return "đang chờ lượt theo xác suất spawn panel";
         }
         if (!BossSpawnOrchestrator.passesFairnessQueue(boss)) {
             if (resolveTier(boss) == BossSpawnTier.ELITE && BossSpawnConfig.fairnessEliteEnabled) {
@@ -459,16 +467,31 @@ public final class BossSpawnSchedule {
         if (isBrolyFamily(boss)) {
             return BossSpawnConfig.isBrolyFamilyWindow(moment);
         }
+        if (isTDSTFamily(boss)) {
+            return BossSpawnConfig.isTDSTWindow(moment);
+        }
         return isHourAllowed(boss, moment.getHour(), tier, weekend);
     }
 
-    public static boolean isBrolyFamily(Boss boss) {
+    private static boolean isBrolyFamily(Boss boss) {
         if (boss == null) return false;
         int id = (int) boss.id;
         return id == BossID.BROLY || id == BossID.SUPER_BROLY;
     }
 
+    private static boolean isTDSTFamily(Boss boss) {
+        if (boss == null) return false;
+        int id = (int) boss.id;
+        return id == BossID.TIEU_DOI_TRUONG || id == BossID.TIEU_DOI_TRUONG_NM
+                || id == BossID.SO_4 || id == BossID.SO_3 || id == BossID.SO_2 || id == BossID.SO_1
+                || id == BossID.SO_4_NM || id == BossID.SO_3_NM || id == BossID.SO_2_NM || id == BossID.SO_1_NM;
+    }
+
     private static boolean isHourAllowed(Boss boss, int hour, BossSpawnTier tier, boolean weekend) {
+
+        if ((int) boss.id == BossID.BROLY) {
+            return BossSpawnConfig.brolyWindowsFor(weekend).contains(hour);
+        }
         if (BossSpawnConfig.windowsFor(tier, weekend).contains(hour)) {
             return true;
         }

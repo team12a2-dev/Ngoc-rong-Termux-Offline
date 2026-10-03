@@ -47,81 +47,57 @@ public void die(Player plKill) {
     this.changeStatus(BossStatus.LEAVE_MAP);
 }
 
-@Override
-public void reward(Player plKill) {
-    Player killer = FightMabu.resolveOwner(plKill);
-    if (killer == null) {
-        return;
-    }
-
-    int x = this.location.x;
-    int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
-
-    // ================== 10% RƠI NHÓM 1 (BOSS) ==================
-    if (Util.isTrue(20, 100)) {
-
-        int[] dropItems = {
-            241, 253, 265, 277,
-            233, 245, 257, 269,
-            237, 249, 261, 273,
-            281
-        };
-        int itemId = dropItems[Util.nextInt(dropItems.length)];
-
-        // Chỉ người hạ boss nhặt được
-        ItemMap it = new ItemMap(zone, itemId, 1, x, y, killer.id);
-
-        // Option 107 random 0–2
-        it.options.add(new Item.ItemOption(107, Util.nextInt(0, 3)));
-
-        // Option theo nhóm item
-        switch (itemId) {
-            case 241:
-            case 233:
-            case 237:
-                it.options.add(new Item.ItemOption(47, Util.nextInt(400, 550)));
-                break;
-
-            case 253:
-            case 245:
-            case 249:
-                it.options.add(new Item.ItemOption(6, Util.nextInt(22000, 27000)));
-                it.options.add(new Item.ItemOption(27, Util.nextInt(3000, 5000)));
-                break;
-
-            case 265:
-            case 261:
-            case 257:
-                it.options.add(new Item.ItemOption(0, Util.nextInt(2100, 2400)));
-                break;
-
-            case 277:
-            case 269:
-            case 273:
-                it.options.add(new Item.ItemOption(7, Util.nextInt(22000, 26000)));
-                it.options.add(new Item.ItemOption(28, Util.nextInt(4000, 6000)));
-                break;
-
-            case 281:
-                it.options.add(new Item.ItemOption(14, Util.nextInt(11, 13)));
-                break;
+    @Override
+    public void reward(Player plKill) {
+        Player killer = FightMabu.resolveOwner(plKill);
+        if (killer == null) {
+            return;
         }
 
-        Service.gI().dropItemMap(zone, it);
-    }
+        int x = this.location.x;
+        int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
 
-    // ================== 10% RƠI ITEM 16 / 17 (x1) ==================
-    if (Util.isTrue(20, 100)) {
-        int itemId = Util.isTrue(50, 100) ? 16 : 17;
-        ItemMap it = new ItemMap(zone, itemId, 1, x + 10, y, killer.id);
-        Service.gI().dropItemMap(zone, it);
-    }
+        // 35% rơi Đồ Thần Linh VIP (2 - 5 sao, chỉ số cao)
+        if (Util.isTrue(35, 100)) {
+            int[] dropItems = {241, 253, 265, 277, 233, 245, 257, 269, 237, 249, 261, 273, 281};
+            int itemId = dropItems[Util.nextInt(dropItems.length)];
+            ItemMap it = new ItemMap(zone, itemId, 1, x, y, killer.id);
+            it.options.add(new Item.ItemOption(107, Util.nextInt(2, 5)));
+            switch (itemId) {
+                case 241, 233, 237 -> it.options.add(new Item.ItemOption(47, Util.nextInt(450, 600)));
+                case 253, 245, 249 -> {
+                    it.options.add(new Item.ItemOption(6, Util.nextInt(24000, 30000)));
+                    it.options.add(new Item.ItemOption(27, Util.nextInt(4000, 6000)));
+                }
+                case 265, 257, 261 -> it.options.add(new Item.ItemOption(0, Util.nextInt(2200, 2600)));
+                case 277, 269, 273 -> {
+                    it.options.add(new Item.ItemOption(7, Util.nextInt(24000, 30000)));
+                    it.options.add(new Item.ItemOption(28, Util.nextInt(5000, 7000)));
+                }
+                case 281 -> it.options.add(new Item.ItemOption(14, Util.nextInt(12, 15)));
+            }
+            Service.gI().dropItemMap(zone, it);
+        }
 
-    ItemMap egg = new ItemMap(zone, ConstItem.QUA_TRUNG, 1, x + 20, y, killer.id);
-    Service.gI().dropItemMap(zone, egg);
-    Service.gI().sendThongBao(killer, "Mabư đã rơi quả trứng! Hãy nhặt và về nhà ấp trứng Mabư.");
+        // 60% rơi Ngọc Rồng 1 - 2 sao
+        if (Util.isTrue(60, 100)) {
+            int nrId = Util.nextInt(14, 15); // 14: 1 sao, 15: 2 sao
+            ItemMap it = new ItemMap(zone, nrId, 1, x + 10, y, killer.id);
+            Service.gI().dropItemMap(zone, it);
+        }
 
-    TaskService.gI().checkDoneTaskKillBoss(killer, this);
+        // 100% Rơi Quả Trứng Mabư cho người kết liễu
+        ItemMap egg = new ItemMap(zone, ConstItem.QUA_TRUNG, 1, x + 20, y, killer.id);
+        Service.gI().dropItemMap(zone, egg);
+        Service.gI().sendThongBao(killer, "Mabư đã rơi quả trứng! Hãy nhặt và về nhà ấp trứng Mabư.");
+
+        // Mưa vàng rơi tự do trên sàn đấu
+        for (int i = -40; i <= 40; i += 20) {
+            ItemMap gold = new ItemMap(zone, 190, Util.nextInt(100000, 250000), x + i, y, -1);
+            Service.gI().dropItemMap(zone, gold);
+        }
+
+        TaskService.gI().checkDoneTaskKillBoss(killer, this);
     }
 
     @Override

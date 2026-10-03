@@ -16,6 +16,7 @@ import nro.models.data.LocalManager;
 import nro.models.item.Item;
 import nro.models.player.Player;
 import nro.models.utils.Logger;
+import nro.models.utils.Util;
 
 /** SQL-backed configuration and draw engine for the Thượng Đế lucky round. */
 public final class GodSpinConfigService {
@@ -38,7 +39,8 @@ public final class GodSpinConfigService {
         boolean configured = false;
         try (Connection con = LocalManager.getConnection()) {
             con.setAutoCommit(false);
-            Config config = loadConfig(con);
+            byte type = (byte) (vip ? 7 : 0);
+            Config config = loadConfig(con, type);
             configured = config != null;
             if (config == null) {
                 con.rollback();
@@ -86,14 +88,14 @@ public final class GodSpinConfigService {
             con.commit();
             return result;
         } catch (Exception e) {
-            Logger.warning("GodSpin SQL error: " + e.getMessage() + "\\n");
+            Logger.warning("GodSpin SQL error: " + e.getMessage() + "\n");
             return configured ? new ArrayList<>() : null;
         }
     }
 
     public boolean isActiveConfig() {
         try (Connection con = LocalManager.getConnection()) {
-            return loadConfig(con) != null;
+            return loadConfig(con, null) != null;
         } catch (Exception e) {
             return false;
         }
@@ -101,44 +103,48 @@ public final class GodSpinConfigService {
 
     public Integer configuredCost(byte type) {
         try (Connection con = LocalManager.getConnection()) {
-            Config config = loadConfig(con);
+            Config config = loadConfig(con, type);
             if (config == null) return null;
             if (type == 7 && "gold".equals(config.currencyMode())) return -1;
             if (type == 0 && "gem".equals(config.currencyMode())) return -1;
             if (type == 1) return config.costTicket() > 0 && config.ticketTempId() != null ? config.costTicket() : -1;
             return type == 7 ? config.costGem() : config.costGold();
         } catch (Exception e) {
-            Logger.warning("Không thể đọc giá GodSpin SQL: " + e.getMessage() + "\\n");
+            Logger.warning("Không thể đọc giá GodSpin SQL: " + e.getMessage() + "\n");
             return null;
         }
     }
 
     public Integer configuredTicketTempId() {
         try (Connection con = LocalManager.getConnection()) {
-            Config config = loadConfig(con);
+            Config config = loadConfig(con, (byte) 1);
             return config == null ? null : config.ticketTempId();
         } catch (Exception e) {
-            Logger.warning("Không thể đọc vé GodSpin SQL: " + e.getMessage() + "\\n");
+            Logger.warning("Không thể đọc vé GodSpin SQL: " + e.getMessage() + "\n");
             return null;
         }
     }
 
     public Map<String, Object> reload() {
         try (Connection con = LocalManager.getConnection()) {
-            Config config = loadConfig(con);
+            Config config = loadConfig(con, null);
             if (config == null) return Map.of("ok", true, "configured", false, "items", 0);
             int items = loadItems(con, config.id(), true).size();
             return Map.of("ok", true, "configured", true, "configId", config.id(), "items", items);
         } catch (Exception e) {
-            Logger.warning("Không thể reload GodSpin SQL: " + e.getMessage() + "\\n");
+            Logger.warning("Không thể reload GodSpin SQL: " + e.getMessage() + "\n");
             return Map.of("ok", false, "error", e.getMessage() == null ? "unknown" : e.getMessage());
         }
     }
 
     public List<Integer> previewIconIds() {
+        return previewIconIds((byte) 7);
+    }
+
+    public List<Integer> previewIconIds(byte type) {
         List<Integer> ids = new ArrayList<>();
         try (Connection con = LocalManager.getConnection()) {
-            Config config = loadConfig(con);
+            Config config = loadConfig(con, type);
             if (config == null) return ids;
             for (SpinItem item : loadItems(con, config.id(), true)) {
                 if (ids.size() >= 7) break;
@@ -154,18 +160,32 @@ public final class GodSpinConfigService {
         return ids;
     }
 
-    private Config loadConfig(Connection con) throws Exception {
+    private Config loadConfig(Connection con, Byte type) throws Exception {
+        String modeCondition = "";
+        if (type != null) {
+            if (type == 0) {
+                modeCondition = " AND (currency_mode = 'gold' OR spin_key IN ('gold', 'event_gold'))";
+            } else if (type == 7) {
+                modeCondition = " AND (currency_mode = 'gem' OR spin_key IN ('default', 'event_special') OR currency_mode = 'both')";
+            }
+        }
         String sql = "SELECT id, daily_limit, currency_mode, cost_gem, cost_gold, cost_ticket, ticket_temp_id FROM panel_god_spin_configs WHERE server_id = ? AND enabled = 1 "
                 + "AND status IN ('scheduled','active') AND (starts_at IS NULL OR starts_at <= NOW()) "
-                + "AND (ends_at IS NULL OR ends_at > NOW()) ORDER BY id DESC LIMIT 1";
+                + "AND (ends_at IS NULL OR ends_at > NOW()) " + modeCondition + " ORDER BY id DESC LIMIT 1";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, DEFAULT_SERVER_ID);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? new Config(rs.getLong("id"), Math.max(1, rs.getInt("daily_limit")), rs.getString("currency_mode"),
-                        Math.max(0, rs.getInt("cost_gem")), Math.max(0, rs.getInt("cost_gold")), Math.max(0, rs.getInt("cost_ticket")),
-                        rs.getObject("ticket_temp_id") == null ? null : rs.getInt("ticket_temp_id")) : null;
+                if (rs.next()) {
+                    return new Config(rs.getLong("id"), Math.max(1, rs.getInt("daily_limit")), rs.getString("currency_mode"),
+                            Math.max(0, rs.getInt("cost_gem")), Math.max(0, rs.getInt("cost_gold")), Math.max(0, rs.getInt("cost_ticket")),
+                            rs.getObject("ticket_temp_id") == null ? null : rs.getInt("ticket_temp_id"));
+                }
             }
         }
+        if (type != null) {
+            return loadConfig(con, null);
+        }
+        return null;
     }
 
     private List<SpinItem> loadItems(Connection con, long configId, boolean vip) throws Exception {
@@ -270,18 +290,41 @@ public final class GodSpinConfigService {
                 : (int) ThreadLocalRandom.current().nextLong(source.quantityMin(), source.quantityMax() + 1);
         Item item = ItemService.gI().createNewItem((short) source.tempId(), quantity);
         item.itemOptions.clear();
+        boolean forcePermanent = false;
+        Integer calculatedExpiryDays = null;
+
         try {
             if (source.optionsJson() != null && !source.optionsJson().isBlank()) {
                 JsonArray options = new JsonParser().parse(source.optionsJson()).getAsJsonArray();
                 for (JsonElement element : options) {
                     if (!element.isJsonObject()) continue;
-                    int id = element.getAsJsonObject().has("id") ? element.getAsJsonObject().get("id").getAsInt() : -1;
+                    com.google.gson.JsonObject obj = element.getAsJsonObject();
+                    int id = obj.has("id") ? obj.get("id").getAsInt() : -1;
                     if (id < 0) continue;
+
+                    if (id == 93) {
+                        int chancePerm = obj.has("chancePermanent") ? obj.get("chancePermanent").getAsInt() : 0;
+                        if (chancePerm > 0 && Util.isTrue(chancePerm, 100)) {
+                            forcePermanent = true;
+                            continue;
+                        }
+                        int min = obj.has("min") ? obj.get("min").getAsInt() : (obj.has("param") ? obj.get("param").getAsInt() : 1);
+                        int max = obj.has("max") ? obj.get("max").getAsInt() : min;
+                        calculatedExpiryDays = min == max ? min : ThreadLocalRandom.current().nextInt(Math.min(min, max), Math.max(min, max) + 1);
+                        item.itemOptions.add(new Item.ItemOption(93, calculatedExpiryDays));
+                        continue;
+                    }
+
                     int param;
-                    if (element.getAsJsonObject().has("param")) param = element.getAsJsonObject().get("param").getAsInt();
-                    else {
-                        int min = element.getAsJsonObject().has("min") ? element.getAsJsonObject().get("min").getAsInt() : 0;
-                        int max = element.getAsJsonObject().has("max") ? element.getAsJsonObject().get("max").getAsInt() : min;
+                    if (obj.has("min") && obj.has("max")) {
+                        int min = obj.get("min").getAsInt();
+                        int max = obj.get("max").getAsInt();
+                        param = min == max ? min : ThreadLocalRandom.current().nextInt(Math.min(min, max), Math.max(min, max) + 1);
+                    } else if (obj.has("param")) {
+                        param = obj.get("param").getAsInt();
+                    } else {
+                        int min = obj.has("min") ? obj.get("min").getAsInt() : 0;
+                        int max = obj.has("max") ? obj.get("max").getAsInt() : min;
                         param = min == max ? min : ThreadLocalRandom.current().nextInt(Math.min(min, max), Math.max(min, max) + 1);
                     }
                     item.itemOptions.add(new Item.ItemOption(id, param));
@@ -290,8 +333,11 @@ public final class GodSpinConfigService {
         } catch (Exception e) {
             Logger.warning("Option GodSpin không hợp lệ item " + source.tempId() + ": " + e.getMessage() + "\n");
         }
-        if (source.isPermanent()) {
+
+        if (forcePermanent || source.isPermanent()) {
             item.itemOptions.removeIf(option -> option.optionTemplate != null && option.optionTemplate.id == 93);
+        } else if (calculatedExpiryDays != null) {
+            // Already added random option 93
         } else if (source.durationDays() != null && source.durationDays() > 0) {
             item.itemOptions.removeIf(option -> option.optionTemplate != null && option.optionTemplate.id == 93);
             item.itemOptions.add(new Item.ItemOption(93, source.durationDays()));

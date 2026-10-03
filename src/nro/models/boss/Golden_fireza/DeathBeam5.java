@@ -11,6 +11,7 @@ import java.util.List;
 import nro.models.map.ItemMap;
 import nro.models.player.Player;
 import nro.models.services.ItemService;
+import nro.models.services.PlayerService;
 import nro.models.map.service.MapService;
 import nro.models.services.Service;
 import nro.models.services.TaskService;
@@ -150,7 +151,14 @@ public class DeathBeam5 extends Boss {
 
     @Override
     public void setDie() {
-//        playerAtt.setDie();
-        playerAtt.injured(this.playerUseSkill, 2_100_000_000, true, false);
+        if (playerAtt != null && !playerAtt.isDie()) {
+            long dame = (long) (playerAtt.nPoint.hpMax * 0.4);
+            if (dame <= 0) {
+                dame = 200000;
+            }
+            playerAtt.injured(this.playerUseSkill != null ? this.playerUseSkill : this, dame, false, false);
+            PlayerService.gI().sendInfoHpMpMoney(playerAtt);
+            Service.gI().Send_Info_NV(playerAtt);
+        }
     }
 }

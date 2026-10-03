@@ -26,6 +26,7 @@ const navGroups = [
     label: 'Game & Server',
     items: [
       { to: '/server', label: 'Server Control', icon: 'control' },
+      { to: '/server-launch', label: '🚀 Khai Mở Server', icon: 'servers' },
             { to: '/boss', label: 'Boss Monitor', icon: 'boss' },
       { to: '/boss-management', label: 'Boss Management', icon: 'boss' },
       { to: '/events', label: 'Quản lý sự kiện', icon: 'giftcode' },
@@ -33,10 +34,14 @@ const navGroups = [
 
       { to: '/giftcodes', label: 'Giftcodes', icon: 'giftcode' },
       { to: '/items', label: 'Item Templates', icon: 'giftcode' },
-      { to: '/data-assets', label: 'Data Assets (icon/img)', icon: 'giftcode' },
+      { to: '/quick-import', label: 'Nhập nhanh Item & Part', icon: 'plugin' },
+      { to: '/tool-part', label: 'Tool Part & Cờ', icon: 'part' },
+      { to: '/icon-resizer', label: 'Điều chỉnh Icon', icon: 'resizer' },
       { to: '/shops', label: 'Cửa hàng', icon: 'shop' },
+      { to: '/map-editor', label: 'Quản lý Bản đồ', icon: 'map' },
       { to: '/drop-config', label: 'Drop theo Map', icon: 'giftcode' },
       { to: '/usable-items', label: 'Item bổ trợ', icon: 'giftcode' },
+      { to: '/badges', label: 'Danh hiệu', icon: 'badge' },
       { to: '/clans', label: 'Clans', icon: 'clan' },
       { to: '/rankings', label: 'Bảng xếp hạng', icon: 'ranking' },
             { to: '/economy', label: 'Kinh tế', icon: 'economy' },

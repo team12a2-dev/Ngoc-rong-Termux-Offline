@@ -32,14 +32,14 @@ import nro.models.player_system.Template.BgItem;
 
 public class DataGame {
 
-    public static byte vsData = 9;
-    public static byte vsMap = 2;
+    public static byte vsData = 12;
+    public static byte vsMap = 6;
     public static byte vsSkill = 1;
-    public static byte vsItem = 9;
-    public static int vsRes = 1;
+    public static byte vsItem = 13;
+    public static int vsRes = 6;
     public static short maxSmallVersion = 32767;
 
-    public static String LINK_IP_PORT = "NRO 2024:127.0.0.1:14445:0";
+    public static String LINK_IP_PORT = "Local:127.0.0.1:14445:0,NRO Làng Xì Mi:103.69.96.139:14445:0";
     public static Map<Object, Object> MAP_MOUNT_NUM = new HashMap<>();
 
     public static void sendVersionGame(MySession session) {
@@ -243,7 +243,10 @@ public class DataGame {
         Message msg = null;
         try {
             final byte[] effData = FileIO.readFile("data/effdata/DataEffect_" + idT);
-            final byte[] effImg = FileIO.readFile("data/effect/x" + session.zoomLevel + "/ImgEffect_" + idT + ".png");
+            byte[] effImg = FileIO.readFile("data/effect/x" + session.zoomLevel + "/ImgEffect_" + idT + ".png");
+            if (effImg == null) {
+                effImg = FileIO.readFile("data/effect/x" + session.zoomLevel + "/ImageEffect_" + idT + ".png");
+            }
             if (effData == null || effImg == null) {
                 return;
             }
