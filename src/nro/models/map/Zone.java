@@ -229,6 +229,7 @@ public class Zone {
                 this.notBosses.get(i).update();
             }
         }
+        nro.models.services.EffectSkillService.gI().scanCarrotTouch(this);
     }
 
     public void removePlayer(Player player) {
