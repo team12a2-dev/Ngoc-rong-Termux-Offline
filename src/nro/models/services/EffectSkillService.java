@@ -214,6 +214,7 @@ public class EffectSkillService {
         if (zone == null || zone.map == null) {
             return;
         }
+        scanRabbitCostumeTouch(zone);
         Boss rabbit = null;
         List<Player> bosses;
         try {
@@ -314,6 +315,45 @@ public class EffectSkillService {
                 || itemId == ConstItem.CAI_TRANG_THO_BUNMA_2;
     }
 
+    /** Cải trang hiếm của Thỏ Đại Ca có thể biến người chơi đứng gần thành cà rốt. */
+    public boolean isWearingThoDaiCaCostume(Player player) {
+        if (player == null || player.inventory == null || player.inventory.itemsBody == null
+                || player.inventory.itemsBody.size() <= 5) {
+            return false;
+        }
+        Item costume = player.inventory.itemsBody.get(5);
+        return costume != null && costume.isNotNullItem() && costume.template != null
+                && costume.template.id == ConstItem.CAI_TRANG_THO_DAI_CA;
+    }
+
+    private void scanRabbitCostumeTouch(Zone zone) {
+        List<Player> players;
+        try {
+            players = new java.util.ArrayList<>(zone.getNotBosses());
+        } catch (Exception e) {
+            Logger.logException(EffectSkillService.class, e);
+            return;
+        }
+        for (Player caster : players) {
+            if (!isWearingThoDaiCaCostume(caster) || caster.isDie() || caster.location == null) {
+                continue;
+            }
+            for (Player target : players) {
+                if (target == null || target == caster || !target.isPl() || target.isDie()
+                        || target.location == null || target.effectSkill == null
+                        || target.effectSkill.isCarrot) {
+                    continue;
+                }
+                int dx = Math.abs(caster.location.x - target.location.x);
+                int dy = Math.abs(caster.location.y - target.location.y);
+                if (dx <= CARROT_TOUCH_X && dy <= CARROT_TOUCH_Y && setCarrot(target, CARROT_DURATION)) {
+                    Service.gI().sendThongBao(caster,
+                            "Bạn đã biến " + target.name + " thành cà rốt!");
+                }
+            }
+        }
+    }
+
     public boolean setCarrot(Player target, int durationMs) {
         if (target == null || target.effectSkill == null || target.effectSkill.isCarrot || durationMs <= 0) {
             return false;
@@ -324,7 +364,7 @@ public class EffectSkillService {
         ItemTimeService.gI().sendItemTime(target, CARROT_ITEM_TIME_ID, Math.max(1, (durationMs + 999) / 1000));
         Service.gI().Send_Caitrang(target);
         Service.gI().sendThongBao(target,
-                "Bạn bị Thỏ Đại Ca biến thành cà rốt! Sức đánh giảm 15% trong 5 phút.");
+                "Bạn bị biến thành cà rốt! Sức đánh giảm 15% trong 5 phút.");
         return true;
     }
 

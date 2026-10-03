@@ -1,24 +1,31 @@
 package nro.models.boss.Boss_mini;
 
+import nro.models.consts.ConstItem;
 import nro.models.boss.Boss;
 import nro.models.boss.BossID;
 import nro.models.boss.BossesData;
+import nro.models.item.Item;
+import nro.models.map.ItemMap;
 import nro.models.player.Player;
 import nro.models.services.PlayerService;
+import nro.models.services.Service;
 import nro.models.utils.Util;
 
 /** Mini boss Thỏ Đại Ca: biến người chơi chạm vào thành cà rốt. */
 public class ThoDaiCa extends Boss {
-    /** Ngưỡng bắt đầu giảm dần sát thương đòn thường. */
-    private static final int NORMAL_DAMAGE_SOFT_CAP_PERCENT = 2;
-    /** Ngưỡng bắt đầu giảm dần sát thương đòn xuyên giáp. */
-    private static final int PIERCING_DAMAGE_SOFT_CAP_PERCENT = 3;
-    /** Trần an toàn cuối cùng cho đòn thường sau khi đã giảm dần. */
-    private static final int NORMAL_DAMAGE_HARD_CAP_PERCENT = 5;
-    /** Trần an toàn cuối cùng cho đòn xuyên giáp sau khi đã giảm dần. */
-    private static final int PIERCING_DAMAGE_HARD_CAP_PERCENT = 7;
-    /** Hệ số nén phần sát thương vượt soft-cap; càng lớn càng giữ lại nhiều lực đánh. */
-    private static final double DAMAGE_COMPRESSION = 2.0D;
+    private static final int COSTUME_DROP_CHANCE_PERCENT = 20;
+    private static final int PERMANENT_COSTUME_CHANCE_PERCENT = 2;
+    private static final int TEMP_COSTUME_MIN_DAYS = 1;
+    private static final int TEMP_COSTUME_MAX_DAYS = 7;
+    private static final int CARROT_ITEM_ID = 462;
+    private static final int GOLD_MIN = 10_000;
+    private static final int GOLD_MAX = 50_000;
+    /** Khoảng sát thương chuẩn hóa cho đòn thường, tính theo HP tối đa của boss. */
+    private static final int NORMAL_DAMAGE_MIN_PERCENT = 1;
+    private static final int NORMAL_DAMAGE_MAX_PERCENT = 2;
+    /** Đòn xuyên giáp được ưu tiên hơn nhưng vẫn nằm trong khoảng kiểm soát. */
+    private static final int PIERCING_DAMAGE_MIN_PERCENT = 1;
+    private static final int PIERCING_DAMAGE_MAX_PERCENT = 3;
 
     public ThoDaiCa() throws Exception {
         super(BossID.THO_DAI_CA, BossesData.THO_DAI_CA);
@@ -64,27 +71,86 @@ public class ThoDaiCa extends Boss {
     }
 
     /**
-     * Giữ nguyên đòn trong ngưỡng hợp lý; phần vượt ngưỡng bị nén theo log thay vì bị ép
-     * thành cùng một con số. Nhờ vậy đòn 2.1%, 3%, 5% và 20% HP vẫn cho kết quả khác nhau,
-     * nhưng đòn cực lớn không thể kết liễu boss trong một packet.
+     * Giữ đòn nhỏ theo sát thương thực tế; với packet quá lớn, boss dùng một giới hạn ngẫu nhiên
+     * theo HP tối đa thay vì cho sát thương tăng tuyến tính theo chỉ số người chơi.
      */
     private long balanceDamage(long damage, boolean piercing) {
         if (damage <= 0) {
             return damage;
         }
-        int softCapPercent = piercing
-                ? PIERCING_DAMAGE_SOFT_CAP_PERCENT : NORMAL_DAMAGE_SOFT_CAP_PERCENT;
-        int hardCapPercent = piercing
-                ? PIERCING_DAMAGE_HARD_CAP_PERCENT : NORMAL_DAMAGE_HARD_CAP_PERCENT;
-        long softCap = Math.max(1L, this.nPoint.hpMax * softCapPercent / 100L);
-        long hardCap = Math.max(softCap, this.nPoint.hpMax * hardCapPercent / 100L);
-        if (damage <= softCap) {
-            return damage;
+        int minPercent = piercing ? PIERCING_DAMAGE_MIN_PERCENT : NORMAL_DAMAGE_MIN_PERCENT;
+        int maxPercent = piercing ? PIERCING_DAMAGE_MAX_PERCENT : NORMAL_DAMAGE_MAX_PERCENT;
+        // Sát thương vượt khoảng chuẩn hóa không còn tăng tuyến tính theo chỉ số người chơi.
+        // Mỗi packet lớn được lấy một ngưỡng ngẫu nhiên trong khoảng vừa phải, tránh one-shot
+        // nhưng vẫn tạo cảm giác các đòn đánh không bị đóng đinh vào cùng một con số.
+        long normalizedLimit = this.nPoint.hpMax * Util.nextInt(minPercent, maxPercent) / 100L;
+        return Math.min(damage, Math.max(1L, normalizedLimit));
+    }
+
+    @Override
+    public void reward(Player plKill) {
+        super.reward(plKill);
+        if (this.zone == null || this.location == null) {
+            return;
+        }
+        if (plKill != null && !plKill.isBot && Util.isTrue(COSTUME_DROP_CHANCE_PERCENT, 100)) {
+            dropRabbitCostume(plKill);
+        }
+        dropCarrotsAndGold();
+    }
+
+    private void dropRabbitCostume(Player player) {
+        Item costume = ItemServiceHolder.createCostume();
+        if (costume == null) {
+            return;
+        }
+        costume.itemOptions.add(new Item.ItemOption(116, 1)); // Kháng Thái Dương Hạ San
+        costume.itemOptions.add(new Item.ItemOption(114, 25)); // Tốc độ chạy +25%
+        costume.itemOptions.add(new Item.ItemOption(30, 0)); // Không thể giao dịch
+        if (Util.isTrue(PERMANENT_COSTUME_CHANCE_PERCENT, 100)) {
+            costume.itemOptions.add(new Item.ItemOption(73, 0)); // Vĩnh viễn
+        } else {
+            costume.itemOptions.add(new Item.ItemOption(93,
+                    Util.nextInt(TEMP_COSTUME_MIN_DAYS, TEMP_COSTUME_MAX_DAYS)));
+        }
+        ItemMap itemMap = new ItemMap(this.zone, costume.template, 1,
+                this.location.x, groundY(this.location.x), player.id);
+        itemMap.options.addAll(costume.itemOptions);
+        Service.gI().dropItemMap(this.zone, itemMap);
+    }
+
+    private void dropCarrotsAndGold() {
+        int carrotCount = Util.nextInt(1, 5);
+        for (int i = 0; i < carrotCount; i++) {
+            int x = this.location.x + (i - carrotCount / 2) * 28 + Util.nextInt(-8, 8);
+            Service.gI().dropItemMap(this.zone,
+                    new ItemMap(this.zone, CARROT_ITEM_ID, 1, x, groundY(x), -1));
         }
 
-        double overflowRatio = (double) (damage - softCap) / softCap;
-        long compressedOverflow = Math.round(softCap
-                * Math.log1p(overflowRatio) / DAMAGE_COMPRESSION);
-        return Math.min(hardCap, softCap + Math.max(1L, compressedOverflow));
+        int totalGold = Util.nextInt(GOLD_MIN, GOLD_MAX);
+        int piles = Util.nextInt(8, 12);
+        int remaining = totalGold;
+        for (int i = 0; i < piles; i++) {
+            int pilesLeft = piles - i;
+            int amount = i == piles - 1
+                    ? remaining
+                    : Util.nextInt(1, Math.max(1, remaining - (pilesLeft - 1)));
+            remaining -= amount;
+            int x = this.location.x + (i - piles / 2) * 20 + Util.nextInt(-6, 6);
+            Service.gI().dropItemMap(this.zone,
+                    new ItemMap(this.zone, 189, amount, x, groundY(x), -1));
+        }
+    }
+
+    private int groundY(int x) {
+        int y = this.zone.map.yPhysicInTop(x, this.location.y - 24);
+        return y > 0 ? y : this.location.y;
+    }
+
+    private static final class ItemServiceHolder {
+        private static Item createCostume() {
+            return nro.models.services.ItemService.gI().createNewItem(
+                    (short) ConstItem.CAI_TRANG_THO_DAI_CA);
+        }
     }
 }
