@@ -722,12 +722,12 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
                             this.lastZone = null;
                             return;
                         }
-                        int x = this.zone.map.mapWidth > 100 ? Util.nextInt(100, this.zone.map.mapWidth - 100) : Util.nextInt(100);
-                        int y = this.zone.map.yPhysicInTop(x, 100);
+                        int x = getMapSpawnX();
+                        int y = getMapSpawnY(x);
                         ChangeMapService.gI().changeMap(this, this.zone, x, y);
                     } else {
-                        int x = this.parentBoss.location.x - (this.lv + 1) * 30;
-                        int y = this.zone.map.yPhysicInTop(x, 100);
+                        int x = getGroupMemberSpawnX();
+                        int y = getMapSpawnY(x);
                         ChangeMapService.gI().changeMap(this, this.zone, x, y);
                     }
                     if (this.parentBoss == null) {
@@ -751,6 +751,23 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         } else {
             this.changeStatus(BossStatus.RESPAWN);
         }
+    }
+
+    /** Hook cho boss đặc biệt tùy biến vị trí spawn trên bản đồ. */
+    protected int getMapSpawnX() {
+        return this.zone.map.mapWidth > 100
+                ? Util.nextInt(100, this.zone.map.mapWidth - 100)
+                : Util.nextInt(100);
+    }
+
+    /** Hook cho boss con tùy biến vị trí theo boss cha. */
+    protected int getGroupMemberSpawnX() {
+        return this.parentBoss.location.x - (this.lv + 1) * 30;
+    }
+
+    /** Hook tính độ cao đứng hợp lệ; mặc định giữ hành vi spawn cũ. */
+    protected int getMapSpawnY(int x) {
+        return this.zone.map.yPhysicInTop(x, 100);
     }
 
     public void joinMapByZone(Zone zone) {

@@ -167,6 +167,10 @@ public class ConstNpc {
         public static final int ORTHER_MENU1 = 23505;
         public static final int ORTHER_MENU2 = 53906;
 
+        // index menu học kỹ năng
+        public static final int MENU_LEARN_SKILL = 12;
+        public static final int MENU_CANCEL_LEARN_SKILL = 13;
+
         // index quy lão kamê
         public static final int MENU_OPEN_DBKB = 500;
         public static final int MENU_OPENED_DBKB = 501;

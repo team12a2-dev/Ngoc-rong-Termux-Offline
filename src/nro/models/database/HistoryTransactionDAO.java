@@ -12,6 +12,20 @@ import java.util.List;
 
 public class HistoryTransactionDAO {
 
+    /**
+     * Đảm bảo schema cũ có cột trạng thái dùng bởi màn hình kiểm tra giao dịch.
+     * ALTER thất bại khi cột đã tồn tại hoặc tài khoản không có quyền đổi schema
+     * được bỏ qua để không làm dừng server khởi động.
+     */
+    public static void ensureStatusColumn() {
+        try {
+            LocalManager.executeUpdate(
+                    "ALTER TABLE history_transaction ADD COLUMN status TINYINT NOT NULL DEFAULT 1");
+        } catch (Exception ex) {
+            // Idempotent: schema đã có cột hoặc DB chưa sẵn sàng.
+        }
+    }
+
     public static void insert(Player pl1, Player pl2,
             int goldP1, int goldP2, List<Item> itemP1, List<Item> itemP2,
             List<Item> bag1Before, List<Item> bag2Before,
