@@ -17,3 +17,14 @@
 Thư mục `Library`, `Logs` và `UserSettings` không được đưa lên GitHub vì đây là cache/trạng thái máy phát triển; Unity sẽ tự tạo lại khi mở project.
 
 Client đã được cấu hình mặc định tới `127.0.0.1:14445`, tương thích với `server.listen.host=0.0.0.0` và `server.port=14445` của server Java. Địa chỉ này chỉ đúng khi client và server chạy trên cùng thiết bị. Nếu chạy client trên thiết bị khác trong LAN, đổi `Management.IpServer` sang IP LAN của Termux rồi build lại client.
+
+## Build APK bằng GitHub Actions
+
+Workflow nằm tại `.github/workflows/build-unity-android.yml` và dùng Unity `2022.3.62f2`. Trên GitHub bằng điện thoại:
+
+1. Vào repository → **Settings → Secrets and variables → Actions**.
+2. Tạo ba **Repository secrets**: `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`.
+3. Vào tab **Actions** → chọn **Build Unity Android APK** → **Run workflow**.
+4. Chờ workflow hoàn tất, mở run thành công và tải artifact `NgocRongLocal-APK`.
+
+Workflow chỉ sử dụng secrets trong GitHub Actions; không ghi thông tin Unity vào source code. Nếu Unity chưa được kích hoạt hoặc secrets chưa đúng, run sẽ dừng ở bước Unity activation.

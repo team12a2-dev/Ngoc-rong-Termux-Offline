@@ -1,0 +1,39 @@
+name: Build Unity Android APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    name: Build Ngoc Rong APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Android APK with Unity
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: client/PRJ_2Tab_550K
+          unityVersion: 2022.3.62f2
+          targetPlatform: Android
+          buildMethod: BuildAndroid.Build
+          buildPath: build/NgocRongLocal.apk
+          customParameters: -nographics
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NgocRongLocal-APK
+          path: client/PRJ_2Tab_550K/build/*.apk
+          if-no-files-found: error
+          retention-days: 14
