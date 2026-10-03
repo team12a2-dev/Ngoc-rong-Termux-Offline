@@ -7,12 +7,11 @@ public class ConstPlayer {
     /**
      * Part head/body/leg hiển thị khi bị Thỏ Đại Ca biến thành cà rốt.
      *
-     * <p>Bộ sprite trong tài nguyên không có part nào là hình củ cà rốt (bảng {@code part} chỉ có
-     * NPC69 Thỏ Đại Ca → 403/404/405 và NPC75 Thỏ Đỏ → 1098/1099/1100), nên lúc này dùng lại
-     * đúng bộ part của Thỏ Đại Ca để trạng thái biến hình nhìn thấy được. Muốn đổi sang hình
-     * củ cà rốt thật thì cần bổ sung part mới rồi đổi ba số ở đây.
+     * <p>Bộ part 406/407/408 trong bảng {@code part} là hình củ cà rốt: part thân 407 chứa
+     * toàn bộ sprite củ cà rốt, còn part đầu/chân để rỗng. Không dùng bộ 403/404/405 vì đó
+     * là ngoại hình của NPC69 Thỏ Đại Ca.
      */
-    public static final short[] CARROT_PART = {403, 404, 405};
+    public static final short[] CARROT_PART = {406, 407, 408};
 
     public static final byte TRAI_DAT = 0;
     public static final byte NAMEC = 1;
