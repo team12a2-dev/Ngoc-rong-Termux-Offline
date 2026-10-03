@@ -5,6 +5,7 @@ import nro.models.npc.Npc;
 import nro.models.player.Player;
 import nro.models.map.service.NpcService;
 import nro.models.map.service.ChangeMapService;
+import nro.models.services.TaskService;
 
 public class TrongTai extends Npc {
 
@@ -15,6 +16,10 @@ public class TrongTai extends Npc {
     @Override
     public void openBaseMenu(Player player) {
         if (!canOpenNpc(player)) return;
+
+        if (TaskService.gI().checkDoneTaskTalkNpc(player, this)) {
+            return;
+        }
 
         if (mapId == 113) {
             if (SuperRankManager.gI().awaiting(player)) {
