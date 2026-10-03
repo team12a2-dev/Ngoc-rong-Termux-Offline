@@ -107,6 +107,7 @@ public class ThoDaiCa extends Boss {
         }
         costume.itemOptions.add(new Item.ItemOption(116, 1)); // Kháng Thái Dương Hạ San
         costume.itemOptions.add(new Item.ItemOption(114, 25)); // Tốc độ chạy +25%
+        costume.itemOptions.add(new Item.ItemOption(115, 0)); // Biến cà rốt
         costume.itemOptions.add(new Item.ItemOption(30, 0)); // Không thể giao dịch
         if (Util.isTrue(PERMANENT_COSTUME_CHANCE_PERCENT, 100)) {
             costume.itemOptions.add(new Item.ItemOption(73, 0)); // Vĩnh viễn
