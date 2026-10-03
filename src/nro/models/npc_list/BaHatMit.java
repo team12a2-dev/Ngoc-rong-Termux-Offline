@@ -35,19 +35,38 @@ public class BaHatMit extends Npc {
         super(mapId, status, cx, cy, tempId, avartar);
     }
 
+    private boolean hasActivationEquipmentInBag(Player player) {
+        if (player == null || player.inventory == null || player.inventory.itemsBag == null) {
+            return false;
+        }
+        for (Item item : player.inventory.itemsBag) {
+            if (item != null && item.isNotNullItem()
+                    && item.itemOptions != null && item.isSKH()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void openBaseMenu(Player player) {
         if (canOpenNpc(player)) {
             switch (this.mapId) {
-                case 5 ->
+                case 5 -> {
+                    List<String> menu = new ArrayList<>(Arrays.asList(
+                            "Kiểm tra\nGiao dịch\n1 ngọc",
+                            "Chức năng\nPha lê",
+                            "Chuyển hóa\nTrang bị",
+                            "Võ đài\nSinh Tử"
+                    ));
+                    if (hasActivationEquipmentInBag(player)) {
+                        menu.add("Phân rã\ntrang bị\nkích hoạt");
+                        menu.add("Tái tạo\nCapsule\nkích hoạt");
+                    }
                     this.createOtherMenu(player, ConstNpc.BASE_MENU,
                             "Ngươi tìm ta có việc gì?",
-                            "Chức năng\npha lê",
-                            "Chuyển hóa\nTrang bị",
-                            "Phân rã\nSet Kích Hoạt",
-                            "Tái chế\nSet Kích Hoạt",
-                            "Kiểm tra\nGiao dịch",
-                            "Võ đài\nSinh tử");
+                            menu.toArray(new String[0]));
+                }
 
                 case 112 -> {
                     if (Util.isAfterMidnight(player.lastTimePKVoDaiSinhTu)) {
@@ -128,7 +147,8 @@ public class BaHatMit extends Npc {
                 case 5 -> {
                     if (player.idMark.isBaseMenu()) {
                         switch (select) {
-                            case 0 ->
+                            case 0 -> KiemTraGiaoDich.gI().showTradeHistory(player);
+                            case 1 ->
                                 createOtherMenu(player, 3,
                                         "Ta có thể giúp gì cho ngươi ?",
                                         "Ép sao\ntrang bị",
@@ -138,24 +158,28 @@ public class BaHatMit extends Npc {
                                         "Cường hóa\nlỗ sao\npha lê",
                                         "Tạo đá\nHematite"
                                     );
-                            case 1 ->
+                            case 2 ->
                                 createOtherMenu(player, 4,
                                         "Ta có thể giúp gì cho ngươi ?",
                                         "Chuyển hóa\nVàng",
                                         "Chuyển hóa\nNgọc");
-            case 2 ->
-                CombineService.gI().openTabCombine(player, CombineService.PHAN_RA_TRANG_BI_KH);
-            case 3 ->
-                CombineService.gI().openTabCombine(player, CombineService.TAI_TAO_CAPSULE_KH);
-            case 4 ->
-                KiemTraGiaoDich.gI().showTradeHistory(player);
-            case 5 -> {
-                if (!DeathOrAliveArenaService.gI().canJoinVoDaiSinhTu(player)) {
-                    Service.gI().sendThongBao(player, DeathOrAliveArenaService.MSG_POWER_LIMIT);
-                    return;
-                }
-                ChangeMapService.gI().changeMapNonSpaceship(player, 112, 200 + Util.nextInt(-100, 100), 408);
-            }
+                            case 3 -> {
+                                if (!DeathOrAliveArenaService.gI().canJoinVoDaiSinhTu(player)) {
+                                    Service.gI().sendThongBao(player, DeathOrAliveArenaService.MSG_POWER_LIMIT);
+                                    return;
+                                }
+                                ChangeMapService.gI().changeMapNonSpaceship(player, 112, 200 + Util.nextInt(-100, 100), 408);
+                            }
+                            case 4 -> {
+                                if (hasActivationEquipmentInBag(player)) {
+                                    CombineService.gI().openTabCombine(player, CombineService.PHAN_RA_TRANG_BI_KH);
+                                }
+                            }
+                            case 5 -> {
+                                if (hasActivationEquipmentInBag(player)) {
+                                    CombineService.gI().openTabCombine(player, CombineService.TAI_TAO_CAPSULE_KH);
+                                }
+                            }
                         }
                     } else if (player.idMark.getIndexMenu() == 3) {
                         switch (select) {
