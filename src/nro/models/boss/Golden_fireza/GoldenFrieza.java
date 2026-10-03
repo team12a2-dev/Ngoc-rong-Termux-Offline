@@ -56,17 +56,17 @@ public class GoldenFrieza extends Boss {
         super.active();
     }
 
-    /** Spawn ở vùng giữa map, tránh bị dồn sát mép trái của Đông Karin. */
+    /** Spawn ở đầu map Đông Karin, tránh sát biên trái để không bị kẹt địa hình. */
     @Override
     protected int getMapSpawnX() {
         if (this.zone == null || this.zone.map == null) {
             return 0;
         }
         int width = this.zone.map.mapWidth;
-        if (width <= 400) {
+        if (width <= 450) {
             return Math.max(0, width / 2);
         }
-        return Util.nextInt(200, width - 200);
+        return Util.nextInt(120, Math.min(350, width - 120));
     }
 
     @Override
