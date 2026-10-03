@@ -30,6 +30,10 @@
 | **Chạy nền** | Supervisor tách khỏi cửa sổ Termux, tự phục hồi khi server dừng. |
 | **Backup** | Backup database thủ công hoặc định kỳ bằng Termux:API. |
 
+## Project client game
+
+Project client Unity đi kèm server nằm tại [`client/PRJ_2Tab_550K`](client/PRJ_2Tab_550K), dùng Unity `2022.3.62f2`. Mở thư mục này bằng Unity Hub để build client Android/Windows và cấu hình endpoint LAN theo địa chỉ mà `./nro.sh lan` in ra. Các thư mục cache Unity như `Library`, `Logs` và `UserSettings` không đưa lên GitHub; Unity sẽ tự tạo lại khi mở project.
+
 ## Cài đặt nhanh
 
 Cài **Termux chính thức**, sau đó dán **một dòng duy nhất** sau đây. Không cần chạy `cd` trước vì thư mục cài đặt chưa tồn tại ở lần đầu:
