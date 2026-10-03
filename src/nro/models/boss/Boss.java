@@ -571,7 +571,6 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         }
         if (this.zone == null && this.panelSpawnZone != null) {
             this.zone = this.panelSpawnZone;
-            this.panelSpawnZone = null;
         }
         if (this.zone == null) {
             if (this.parentBoss != null) {
@@ -592,38 +591,41 @@ if (prepareBom && Util.canDoWithTime(lastBomTime, 2500)) {
         if (this.zone != null) {
             try {
                                     if (this.currentLevel == 0) {
-                    if (this.parentBoss == null && !this.panelZoneLocked) {
-
+                    if (this.parentBoss == null && (!this.panelZoneLocked || this.panelSpawnZone != null)) {
                         int zoneid = 0;
-                        //this.zone.map.mapId == 80 || this.zone.map.mapId == 103 || this.zone.map.mapId == 97 || this.zone.map.mapId == 102
-                        // Chỉ cho boss xuất hiện từ khu 2 trở lên ở map thường
-                        if (this.isZone01SpawnDisabled && this.zone.map.zones.size() > 2) {
-                            zoneid = Util.nextInt(2, this.zone.map.zones.size() - 1);
-                            while (zoneid < this.zone.map.zones.size() && !this.zone.map.zones.get(zoneid).getBosses().isEmpty()) {
-                                zoneid++;
-                            }
+                        // Boss được panel gán khu cụ thể (Fide Vàng theo từng khu Đông Karin)
+                        // phải giữ nguyên khu đó; chỉ boss thường mới chạy logic chọn khu.
+                        if (this.panelSpawnZone == null) {
+                            //this.zone.map.mapId == 80 || this.zone.map.mapId == 103 || this.zone.map.mapId == 97 || this.zone.map.mapId == 102
+                            // Chỉ cho boss xuất hiện từ khu 2 trở lên ở map thường
+                            if (this.isZone01SpawnDisabled && this.zone.map.zones.size() > 2) {
+                                zoneid = Util.nextInt(2, this.zone.map.zones.size() - 1);
+                                while (zoneid < this.zone.map.zones.size() && !this.zone.map.zones.get(zoneid).getBosses().isEmpty()) {
+                                    zoneid++;
+                                }
 
-                            if (zoneid < this.zone.map.zones.size()) {
-                                this.zone = this.zone.map.zones.get(zoneid);
+                                if (zoneid < this.zone.map.zones.size()) {
+                                    this.zone = this.zone.map.zones.get(zoneid);
+                                } else {
+                                    this.changeStatus(BossStatus.REST);
+                                    this.zone = null;
+                                    this.lastZone = null;
+                                    return;
+                                }
                             } else {
-                                this.changeStatus(BossStatus.REST);
-                                this.zone = null;
-                                this.lastZone = null;
-                                return;
-                            }
-                        } else {
-                            // Check trong khu lớn hơn 10 người chuyển sang khu n + 1
-                            while (zoneid < this.zone.map.zones.size() && this.zone.map.zones.get(zoneid).getNumOfPlayers() > 10) {
-                                zoneid++;
-                            }
-                            // Check trong khu có boss sẽ chuyển sang khu n + 1
-                            while (zoneid < this.zone.map.zones.size() && !this.zone.map.zones.get(zoneid).getBosses().isEmpty()) {
-                                zoneid++;
-                            }
-                            if (zoneid < this.zone.map.zones.size()) {
-                                this.zone = this.zone.map.zones.get(zoneid);
-                            } else {
-                                this.zone = this.zone.map.zones.get(0);
+                                // Check trong khu lớn hơn 10 người chuyển sang khu n + 1
+                                while (zoneid < this.zone.map.zones.size() && this.zone.map.zones.get(zoneid).getNumOfPlayers() > 10) {
+                                    zoneid++;
+                                }
+                                // Check trong khu có boss sẽ chuyển sang khu n + 1
+                                while (zoneid < this.zone.map.zones.size() && !this.zone.map.zones.get(zoneid).getBosses().isEmpty()) {
+                                    zoneid++;
+                                }
+                                if (zoneid < this.zone.map.zones.size()) {
+                                    this.zone = this.zone.map.zones.get(zoneid);
+                                } else {
+                                    this.zone = this.zone.map.zones.get(0);
+                                }
                             }
                         }
                         int x = getMapSpawnX();
