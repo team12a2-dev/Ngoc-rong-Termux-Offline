@@ -202,6 +202,12 @@ async function main() {
     }
     console.log(`[DB_CHECK][OK] Database '${config.database}': ${afterTables.length} bảng; account=${accountCount}, player=${playerCount}.`);
 
+    const markerDir = path.resolve(ROOT, '.runtime');
+    fs.mkdirSync(markerDir, { recursive: true });
+    const markerPath = path.resolve(markerDir, 'sql-imported.sha256');
+    fs.writeFileSync(markerPath, `${sqlHash}  ngocrong.sql\n`);
+    console.log(`[DB_CHECK][OK] Đã ghi marker dump đã nạp: ${markerPath}`);
+
     await conn.end();
     process.exit(0);
   } catch (err) {

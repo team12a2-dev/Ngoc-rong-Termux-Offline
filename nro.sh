@@ -14,6 +14,7 @@ SERVER_LOG="$STATE_DIR/server.log"
 CONFIG="$ROOT/Config.properties"
 SQL_FILE="$ROOT/ngocrong.sql"
 SQL_HASH_FILE="$ROOT/ngocrong.sql.sha256"
+SQL_IMPORTED_MARKER="$STATE_DIR/sql-imported.sha256"
 CLASS_DIR="$STATE_DIR/classes"
 SOURCE_LIST="$STATE_DIR/sources.txt"
 BUILD_INFO="$STATE_DIR/build-info"
@@ -89,7 +90,7 @@ print_endpoints() {
   local game_advertised="$(prop server.ip)"
   local game_bind="${NRO_GAME_LISTEN_HOST:-0.0.0.0}"
   local panel_bind="${NRO_PANEL_BIND:-${PANEL_BIND_HOST:-0.0.0.0}}"
-  local lan sql_hash expected_sql_hash
+  local lan sql_hash expected_sql_hash db_sql_freshness
   lan="$(lan_addresses)"
   say "Endpoint dịch vụ"
   printf '%s\n' "  Game server listen : $game_bind:$GAME_PORT (mọi interface)"
@@ -113,6 +114,18 @@ print_endpoints() {
   expected_sql_hash="$(awk 'NF {print $1; exit}' "$SQL_HASH_FILE" 2>/dev/null || true)"
   printf '%s\n' "  SQL dump SHA-256     : ${sql_hash:-không đọc được}"
   printf '%s\n' "  SQL chuẩn SHA-256    : ${expected_sql_hash:-thiếu manifest}"
+  db_sql_freshness="$(database_sql_freshness)"
+  case "$db_sql_freshness" in
+    match)
+      printf '%s\n' "  Database dump        : khớp snapshot chuẩn (đang chạy luồng database mới)"
+      ;;
+    stale)
+      printf '%s\n' "  Database dump        : CŨ — đang dùng luồng SQL cũ; chạy ./nro.sh replace-database để cập nhật"
+      ;;
+    *)
+      printf '%s\n' "  Database dump        : chưa xác định (thiếu marker sql-imported.sha256)"
+      ;;
+  esac
   if [ -f "$BUILD_INFO" ]; then
     printf '%s\n' "  Java build time     : $(sed -n 's/^built_at=//p' "$BUILD_INFO" | head -n 1)"
   else
@@ -205,6 +218,44 @@ verify_sql_source() {
   return 0
 }
 
+imported_sql_hash() {
+  awk 'NF {print $1; exit}' "$SQL_IMPORTED_MARKER" 2>/dev/null || true
+}
+
+database_sql_freshness() {
+  local current_hash imported_hash
+  current_hash="$(sha256sum "$SQL_FILE" 2>/dev/null | awk '{print $1}' || true)"
+  imported_hash="$(imported_sql_hash)"
+  if [ -z "$imported_hash" ]; then
+    printf 'unknown'
+  elif [ "$current_hash" = "$imported_hash" ]; then
+    printf 'match'
+  else
+    printf 'stale'
+  fi
+}
+
+warn_stale_database_sql() {
+  local current_hash imported_hash freshness
+  current_hash="$(sha256sum "$SQL_FILE" 2>/dev/null | awk '{print $1}' || true)"
+  imported_hash="$(imported_sql_hash)"
+  freshness="$(database_sql_freshness)"
+  case "$freshness" in
+    stale)
+      warn "Database đang chạy dữ liệu từ dump SQL CŨ (SHA-256 ${imported_hash:-không rõ})."
+      warn "Dump chuẩn mới trong source: $SQL_FILE (SHA-256 ${current_hash:-không đọc được})."
+      warn "Đây là luồng dữ liệu SQL cũ — server chưa dùng snapshot database mới."
+      warn "Để chuyển sang luồng dữ liệu database mới một cách an toàn, chạy: ./nro.sh replace-database"
+      warn "(lệnh tự dừng game, backup bắt buộc, xác minh backup rồi mới thay toàn bộ database)."
+      ;;
+    unknown)
+      warn "Không xác định được dump SQL đã nạp vào database hiện tại (thiếu marker $SQL_IMPORTED_MARKER)."
+      warn "Dump chuẩn: $SQL_FILE (SHA-256 ${current_hash:-không đọc được})."
+      warn "Nếu database đang là dữ liệu cũ, chạy ./nro.sh replace-database để áp dụng snapshot mới có backup."
+      ;;
+  esac
+}
+
 auto_update_source() {
   export NRO_SOURCE_UPDATED=0
   if [ "${NRO_FORCE_SOURCE_SYNC:-0}" = "1" ]; then
@@ -229,6 +280,7 @@ auto_update_source() {
   last_check="$(cat "$SOURCE_CHECK_FILE" 2>/dev/null || printf '0')"
   check_interval="${NRO_UPDATE_CHECK_INTERVAL_SEC:-300}"
   if [ "${NRO_FORCE_UPDATE_CHECK:-0}" != "1" ] \
+      && [ "$force_source_sync" != "1" ] \
       && [[ "$last_check" =~ ^[0-9]+$ ]] && [ "$last_check" -gt 0 ] \
       && [ $((now - last_check)) -lt "$check_interval" ]; then
     return 0
@@ -415,6 +467,7 @@ import_database() {
     if ! verify_sql_source; then
       warn "SQL cục bộ không khớp snapshot chuẩn; database live vẫn được giữ nguyên, chưa dùng dump này."
     fi
+    warn_stale_database_sql
     return 0
   fi
   verify_sql_source || die "Từ chối import SQL không khớp snapshot chuẩn. Chạy ./nro.sh check-update rồi thử lại."
