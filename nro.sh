@@ -13,6 +13,7 @@ SERVER_PID="$STATE_DIR/server.pid"
 SERVER_LOG="$STATE_DIR/server.log"
 CONFIG="$ROOT/Config.properties"
 SQL_FILE="$ROOT/ngocrong.sql"
+SQL_HASH_FILE="$ROOT/ngocrong.sql.sha256"
 CLASS_DIR="$STATE_DIR/classes"
 SOURCE_LIST="$STATE_DIR/sources.txt"
 BUILD_INFO="$STATE_DIR/build-info"
@@ -88,7 +89,7 @@ print_endpoints() {
   local game_advertised="$(prop server.ip)"
   local game_bind="${NRO_GAME_LISTEN_HOST:-0.0.0.0}"
   local panel_bind="${NRO_PANEL_BIND:-${PANEL_BIND_HOST:-0.0.0.0}}"
-  local lan
+  local lan sql_hash expected_sql_hash
   lan="$(lan_addresses)"
   say "Endpoint dịch vụ"
   printf '%s\n' "  Game server listen : $game_bind:$GAME_PORT (mọi interface)"
@@ -108,6 +109,10 @@ print_endpoints() {
   else
     printf '%s\n' "  GitHub source commit: chưa có marker"
   fi
+  sql_hash="$(sha256sum "$SQL_FILE" 2>/dev/null | awk '{print $1}' || true)"
+  expected_sql_hash="$(awk 'NF {print $1; exit}' "$SQL_HASH_FILE" 2>/dev/null || true)"
+  printf '%s\n' "  SQL dump SHA-256     : ${sql_hash:-không đọc được}"
+  printf '%s\n' "  SQL chuẩn SHA-256    : ${expected_sql_hash:-thiếu manifest}"
   if [ -f "$BUILD_INFO" ]; then
     printf '%s\n' "  Java build time     : $(sed -n 's/^built_at=//p' "$BUILD_INFO" | head -n 1)"
   else
@@ -187,8 +192,24 @@ ensure_layout() {
   case "$DB_USER" in *[!a-zA-Z0-9_]*|'') die "NRO_DB_USER chỉ được chứa chữ, số và dấu gạch dưới.";; esac
 }
 
+verify_sql_source() {
+  local sql_file="${1:-$SQL_FILE}" hash_file="${2:-$SQL_HASH_FILE}" expected actual
+  [ -s "$sql_file" ] || { warn "Không tìm thấy dump SQL: $sql_file"; return 1; }
+  [ -s "$hash_file" ] || { warn "Không tìm thấy manifest checksum SQL: $hash_file"; return 1; }
+  expected="$(awk 'NF {print $1; exit}' "$hash_file")"
+  actual="$(sha256sum "$sql_file" | awk '{print $1}')"
+  if [[ ! "$expected" =~ ^[0-9a-fA-F]{64}$ ]] || [ "$actual" != "$expected" ]; then
+    warn "Dump SQL không khớp snapshot chuẩn: file=$sql_file sha256=$actual; expected=$expected"
+    return 1
+  fi
+  return 0
+}
+
 auto_update_source() {
   export NRO_SOURCE_UPDATED=0
+  if [ "${NRO_FORCE_SOURCE_SYNC:-0}" = "1" ]; then
+    say "Đồng bộ source được yêu cầu cho thư mục cài đặt: $ROOT"
+  fi
   if [ -e "$ROOT/c.sql" ]; then
     if rm -f "$ROOT/c.sql"; then
       say "Đã xóa c.sql cũ khỏi thư mục cài đặt; nguồn dump chuẩn là ngocrong.sql."
@@ -196,12 +217,14 @@ auto_update_source() {
       warn "Không xóa được c.sql cũ tại $ROOT/c.sql; hãy xóa thủ công sau khi cập nhật."
     fi
   fi
-  [ "${NRO_AUTO_UPDATE:-1}" != "0" ] || return 0
+  if [ "${NRO_AUTO_UPDATE:-1}" = "0" ] && [ "${NRO_FORCE_SOURCE_SYNC:-0}" != "1" ]; then return 0; fi
   command -v curl >/dev/null 2>&1 || { warn "Không có curl; bỏ qua kiểm tra cập nhật GitHub."; return 0; }
   ensure_layout
-  local current_sha remote_sha update_dir archive config_backup env_backup download_url now last_check check_interval
+  local current_sha remote_sha update_dir archive config_backup env_backup download_url now last_check check_interval force_source_sync
   current_sha=""
   [ -f "$SOURCE_COMMIT_FILE" ] && current_sha="$(tr -d '[:space:]' < "$SOURCE_COMMIT_FILE")"
+  force_source_sync="${NRO_FORCE_SOURCE_SYNC:-0}"
+  if ! verify_sql_source; then force_source_sync=1; fi
   now="$(date +%s)"
   last_check="$(cat "$SOURCE_CHECK_FILE" 2>/dev/null || printf '0')"
   check_interval="${NRO_UPDATE_CHECK_INTERVAL_SEC:-300}"
@@ -219,12 +242,16 @@ auto_update_source() {
     warn "Không kiểm tra được commit GitHub; server vẫn tiếp tục với source hiện tại. Log: $SOURCE_UPDATE_LOG"
     return 0
   fi
-  if [ "$current_sha" = "$remote_sha" ]; then
+  if [ "$current_sha" = "$remote_sha" ] && [ "$force_source_sync" != "1" ]; then
     say "Source đã đồng bộ với GitHub commit ${remote_sha:0:12}; bỏ qua tải lại."
     return 0
   fi
 
-  say "Phát hiện source mới trên GitHub: ${current_sha:-chưa có marker} → ${remote_sha:0:12}; cập nhật incremental."
+  if [ "$current_sha" = "$remote_sha" ]; then
+    say "Marker commit trùng nhưng cần xác minh/đồng bộ lại toàn bộ source tại $ROOT."
+  else
+    say "Phát hiện source mới trên GitHub: ${current_sha:-chưa có marker} → ${remote_sha:0:12}; cập nhật incremental."
+  fi
   update_dir="$(mktemp -d "$STATE_DIR/source-update.XXXXXX")" || {
     warn "Không tạo được thư mục cập nhật tạm; giữ source hiện tại."; return 0;
   }
@@ -249,6 +276,11 @@ auto_update_source() {
     rm -rf "$update_dir"
     return 0
   fi
+  if ! verify_sql_source "$update_dir/extracted/ngocrong.sql" "$update_dir/extracted/ngocrong.sql.sha256"; then
+    warn "Archive GitHub không chứa đúng snapshot SQL chuẩn; từ chối cập nhật. Log: $SOURCE_UPDATE_LOG"
+    rm -rf "$update_dir"
+    return 0
+  fi
   if server_alive; then
     say "Archive mới đã được kiểm tra; dừng tiến trình cũ trước khi cập nhật source."
     stop_server
@@ -264,6 +296,11 @@ auto_update_source() {
   fi
   [ -f "$config_backup" ] && cp -p "$config_backup" "$CONFIG"
   [ -f "$env_backup" ] && cp -p "$env_backup" "$PANEL_API_ROOT/.env"
+  if ! verify_sql_source; then
+    warn "SQL sau khi chép không khớp manifest; không ghi nhận source commit. Hãy kiểm tra dung lượng trống/quyền ghi."
+    rm -rf "$update_dir"
+    return 1
+  fi
   printf '%s\n' "$remote_sha" > "$SOURCE_COMMIT_FILE"
   rm -rf "$update_dir"
   export NRO_SOURCE_UPDATED=1
@@ -375,8 +412,12 @@ import_database() {
   if database_has_game_data; then
     say "Database game hiện tại được giữ nguyên; không import lại để tránh ghi đè account/player/shop/item_shop."
     say "SQL nguồn đang có: $SQL_FILE (SHA-256 $sql_hash) — dump này CHƯA được áp dụng vào database hiện tại."
+    if ! verify_sql_source; then
+      warn "SQL cục bộ không khớp snapshot chuẩn; database live vẫn được giữ nguyên, chưa dùng dump này."
+    fi
     return 0
   fi
+  verify_sql_source || die "Từ chối import SQL không khớp snapshot chuẩn. Chạy ./nro.sh check-update rồi thử lại."
   say "Import schema và dữ liệu từ $SQL_FILE (SHA-256 $sql_hash)"
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$SQL_FILE"
   sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
@@ -385,7 +426,7 @@ import_database() {
 backup_database() {
   [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh trong thư mục dự án."
   chmod 700 "$BACKUP_SCRIPT"
-  bash "$BACKUP_SCRIPT"
+  NRO_DB_NAME="$DB_NAME" NRO_DB_RUN_DIR="$DB_RUN_DIR" NRO_DB_SOCKET="$DB_SOCKET" NRO_STATE_DIR="$STATE_DIR" bash "$BACKUP_SCRIPT"
 }
 
 automatic_backup_database() {
@@ -399,7 +440,7 @@ automatic_backup_database() {
   [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh; không thể tiếp tục nếu chưa có backup."
   chmod 700 "$BACKUP_SCRIPT"
   say "Backup database bắt buộc trước setup/start"
-  if ! NRO_BACKUP_REQUIRED=1 bash "$BACKUP_SCRIPT"; then
+  if ! NRO_BACKUP_REQUIRED=1 NRO_DB_NAME="$DB_NAME" NRO_DB_RUN_DIR="$DB_RUN_DIR" NRO_DB_SOCKET="$DB_SOCKET" NRO_STATE_DIR="$STATE_DIR" bash "$BACKUP_SCRIPT"; then
     die "Backup database thất bại; dừng setup/start để bảo vệ dữ liệu."
   fi
   export NRO_BACKUP_DONE=1
@@ -407,9 +448,11 @@ automatic_backup_database() {
 
 replace_database_from_sql() {
   ensure_layout
+  verify_sql_source || die "SQL hiện tại không khớp snapshot chuẩn; chưa thay database. Chạy ./nro.sh check-update rồi thử lại."
   start_database
 
-  local confirmation sql_hash backup_file account_count player_count
+  local confirmation sql_hash backup_file account_count player_count item_template_count shop_count item_shop_count table_count
+  local expected_account_count expected_player_count expected_item_template_count expected_shop_count expected_item_shop_count expected_table_count
   sql_hash="$(sha256sum "$SQL_FILE" | awk '{print $1}')"
   say "CẢNH BÁO: sẽ thay toàn bộ database '$DB_NAME' bằng snapshot từ $SQL_FILE."
   say "SHA-256 SQL: $sql_hash"
@@ -429,7 +472,7 @@ replace_database_from_sql() {
 
   [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh; database chưa bị thay đổi."
   say "Đang tạo backup bắt buộc trước khi thay database..."
-  if ! NRO_BACKUP_REQUIRED=1 bash "$BACKUP_SCRIPT"; then
+  if ! NRO_BACKUP_REQUIRED=1 NRO_DB_NAME="$DB_NAME" NRO_DB_RUN_DIR="$DB_RUN_DIR" NRO_DB_SOCKET="$DB_SOCKET" NRO_STATE_DIR="$STATE_DIR" bash "$BACKUP_SCRIPT"; then
     die "Backup thất bại; database chưa bị thay đổi."
   fi
   backup_file="$(cat "$STATE_DIR/last-database-backup.path" 2>/dev/null || true)"
@@ -460,17 +503,40 @@ SQL
   fi
 
   if ! account_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse "SELECT COUNT(*) FROM \`$DB_NAME\`.\`account\`")" \
-      || ! player_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse "SELECT COUNT(*) FROM \`$DB_NAME\`.\`player\`")"; then
-    warn "Không tìm thấy bảng account/player sau import; đang phục hồi database từ backup."
+      || ! player_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse "SELECT COUNT(*) FROM \`$DB_NAME\`.\`player\`")" \
+      || ! item_template_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse "SELECT COUNT(*) FROM \`$DB_NAME\`.\`item_template\`")" \
+      || ! shop_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse "SELECT COUNT(*) FROM \`$DB_NAME\`.\`shop\`")" \
+      || ! item_shop_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse "SELECT COUNT(*) FROM \`$DB_NAME\`.\`item_shop\`")" \
+      || ! table_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$DB_NAME' AND table_type = 'BASE TABLE'")"; then
+    warn "Không đọc được đầy đủ bảng game sau import; đang phục hồi database từ backup."
     if restore_database_from_backup "$backup_file"; then
-      die "Dump thiếu bảng quan trọng; database cũ đã được phục hồi. Backup: $backup_file"
+      die "Không xác minh được bảng game; database cũ đã được phục hồi. Backup: $backup_file"
     fi
-    die "Dump thiếu bảng quan trọng và tự phục hồi lỗi. Backup: $backup_file"
+    die "Không xác minh được bảng game và tự phục hồi lỗi. Backup: $backup_file"
+  fi
+
+  expected_table_count="$(grep -Eic '^[[:space:]]*CREATE TABLE' "$SQL_FILE" || true)"
+  expected_account_count="$(grep -Ec '^INSERT INTO `account`' "$SQL_FILE" || true)"
+  expected_player_count="$(grep -Ec '^INSERT INTO `player`' "$SQL_FILE" || true)"
+  expected_item_template_count="$(grep -Ec '^INSERT INTO `item_template`' "$SQL_FILE" || true)"
+  expected_shop_count="$(grep -Ec '^INSERT INTO `shop`' "$SQL_FILE" || true)"
+  expected_item_shop_count="$(grep -Ec '^INSERT INTO `item_shop`' "$SQL_FILE" || true)"
+  if [ "$table_count" -ne "$expected_table_count" ] \
+      || [ "$account_count" -ne "$expected_account_count" ] \
+      || [ "$player_count" -ne "$expected_player_count" ] \
+      || [ "$item_template_count" -ne "$expected_item_template_count" ] \
+      || [ "$shop_count" -ne "$expected_shop_count" ] \
+      || [ "$item_shop_count" -ne "$expected_item_shop_count" ]; then
+    warn "Số bảng/bản ghi sau import không khớp dump; đang phục hồi backup."
+    if restore_database_from_backup "$backup_file"; then
+      die "Xác minh dump thất bại; DB cũ đã được phục hồi. Backup: $backup_file"
+    fi
+    die "Xác minh dump thất bại và tự phục hồi lỗi. Giữ backup: $backup_file"
   fi
 
   mkdir -p "$STATE_DIR"
   sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
-  say "Thay database hoàn tất; account=$account_count, player=$player_count."
+  say "Thay database hoàn tất; tables=$table_count, account=$account_count, player=$player_count, item_template=$item_template_count, shop=$shop_count, item_shop=$item_shop_count."
   say "Game đang dừng để kiểm tra dữ liệu. Chạy ./nro.sh start hoặc ./nro.sh lan khi sẵn sàng."
 }
 
@@ -917,15 +983,27 @@ main() {
   local action="${1:-start}"
   case "$action" in
     start|restart|background|background-restart|replace-database)
-      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
       if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
-        exec bash "$ROOT/nro.sh" "$@"
+        export NRO_SOURCE_UPDATED=0
+      else
+        if [ "$action" = "replace-database" ]; then
+          NRO_FORCE_UPDATE_CHECK=1 NRO_FORCE_SOURCE_SYNC=1 auto_update_source
+        else
+          NRO_FORCE_UPDATE_CHECK=1 auto_update_source
+        fi
+        if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
+          exec bash "$ROOT/nro.sh" "$@"
+        fi
       fi
       ;;
     lan)
-      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
       if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
-        exec bash "$ROOT/nro.sh" "$@"
+        export NRO_SOURCE_UPDATED=0
+      else
+        NRO_FORCE_UPDATE_CHECK=1 auto_update_source
+        if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
+          exec bash "$ROOT/nro.sh" "$@"
+        fi
       fi
       ;;
   esac
@@ -986,7 +1064,7 @@ main() {
       NRO_REBUILD=1 build_server
       ;;
     check-update)
-      NRO_FORCE_UPDATE_CHECK=1 auto_update_source
+      NRO_FORCE_UPDATE_CHECK=1 NRO_FORCE_SOURCE_SYNC=1 auto_update_source
       ;;
     panel)
       ensure_layout

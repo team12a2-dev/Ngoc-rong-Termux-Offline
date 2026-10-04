@@ -248,10 +248,11 @@ Muốn áp dụng toàn bộ snapshot SQL lên database đang có, trước tiê
 
 ```bash
 ./nro.sh check-update
+./nro.sh status
 ./nro.sh replace-database
 ```
 
-Lệnh sẽ dừng server, tạo và xác minh backup trong `.runtime/backups/`, yêu cầu nhập chính xác `REPLACE <tên_database>` rồi mới thay toàn bộ database. Thao tác này thay các account/player hiện tại bằng snapshot trong SQL; nếu import lỗi, launcher sẽ thử phục hồi backup. File backup mới nhất được ghi tại `.runtime/last-database-backup.path`.
+`check-update` tải đồng bộ lại toàn bộ source ngay cả khi marker commit nói đã mới; lệnh cũng kiểm tra hash dump và vẫn chạy khi `NRO_AUTO_UPDATE=0`. `status` hiển thị thư mục/source commit và SHA-256 thực tế so với manifest chuẩn. Tiếp tục `replace-database` chỉ khi hai hash khớp. Lệnh sẽ dừng server, tạo và xác minh backup đúng database trong `.runtime/backups/`, yêu cầu nhập chính xác `REPLACE <tên_database>` rồi mới thay toàn bộ database. Sau import, launcher kiểm tra số bảng cùng account/player/item/shop; nếu lệch hoặc lỗi, nó thử phục hồi backup. File backup mới nhất được ghi tại `.runtime/last-database-backup.path`.
 
 Backup định kỳ:
 

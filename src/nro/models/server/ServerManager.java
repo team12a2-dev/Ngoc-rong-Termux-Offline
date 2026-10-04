@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import nro.models.database.HistoryTransactionDAO;
@@ -308,12 +307,9 @@ public class ServerManager {
     }
 
     public void resetNhanQuaHangNgay() {
-        String url = "jdbc:mysql://localhost:3306/ngocrong";
-        String username = "root";
-        String password = "";
         String resetJson = "[1,1,\"1970-01-01T00:00:00\"]";
 
-        try (Connection conn = DriverManager.getConnection(url, username, password)) {
+        try (Connection conn = LocalManager.getConnection()) {
             String sql = "UPDATE player SET checkNhanQua = ? WHERE checkNhanQua != ?";
             PreparedStatement statement = conn.prepareStatement(sql);
 
