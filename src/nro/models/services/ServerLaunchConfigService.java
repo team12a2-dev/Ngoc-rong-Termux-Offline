@@ -118,7 +118,7 @@ public final class ServerLaunchConfigService {
     }
 
     /**
-     * Bản cài Termux cũ có thể đã import sql/ngocrong.sql trước khi bảng này được thêm.
+     * Bản cài cũ có thể đã nạp ngocrong.sql trước khi bảng này được thêm.
      * Tạo bổ sung theo kiểu idempotent để không cần reimport hoặc xóa dữ liệu người chơi.
      */
     private void ensureLaunchTable(Connection con) throws Exception {

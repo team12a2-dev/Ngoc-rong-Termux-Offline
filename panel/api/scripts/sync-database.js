@@ -51,7 +51,8 @@ async function main() {
   }
   if (missing.length) {
     console.warn('⚠ Missing game tables:', missing.join(', '));
-    console.warn('  Import c.sql or fix database.name in Config.properties');
+    console.warn('  Kiểm tra database.name trong Config.properties; dump chuẩn là ngocrong.sql ở thư mục gốc.');
+    console.warn('  Nếu cần thay DB hiện tại, dùng ./nro.sh replace-database để backup rồi áp dụng snapshot.');
   } else {
     console.log('✓ All required game tables present');
   }

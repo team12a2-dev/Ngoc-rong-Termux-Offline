@@ -1,4 +1,4 @@
-/** Column/table mapping synced with live game database (c.sql / ngocrong) */
+/** Column/table mapping synced with the database initialized from the canonical ngocrong.sql dump. */
 
 export const GAME_TABLES = {
   account: {

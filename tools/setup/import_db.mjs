@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createHash } from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -119,7 +120,8 @@ async function main() {
     const isHealthy = tableCount > 0 && missingTables.length === 0;
 
     if (isHealthy && !forceImport) {
-      console.log(`[DB_CHECK][OK] Database '${config.database}' hợp lệ với ${tableCount} bảng (đã có đủ account, player, shop,...).`);
+      console.log(`[DB_CHECK][SKIP] Database '${config.database}' đã có dữ liệu (${tableCount} bảng); không import dump và dữ liệu live được giữ nguyên.`);
+      console.log(`[DB_CHECK][SKIP] Nguồn dump duy nhất là ${path.resolve(ROOT, 'ngocrong.sql')}. Muốn thay DB hiện tại, dùng lệnh replace có backup.`);
       await conn.end();
       process.exit(0);
     }
@@ -132,28 +134,18 @@ async function main() {
 
     // 3. Tiến hành import dữ liệu
     console.log(`[DB_CHECK] Bắt đầu khởi tạo dữ liệu cho database '${config.database}'...`);
-    let sqlPath = path.resolve(ROOT, 'sql/ngocrong.sql');
+    const sqlPath = path.resolve(ROOT, 'ngocrong.sql');
     if (!fs.existsSync(sqlPath)) {
-      sqlPath = path.resolve(ROOT, 'ngocrong.sql');
-    }
-    if (!fs.existsSync(sqlPath)) {
-      sqlPath = path.resolve(ROOT, 'ngocrong10.06.sql');
-    }
-    if (!fs.existsSync(sqlPath)) {
-      sqlPath = path.resolve(ROOT, 'c.sql');
-    }
-
-    if (!fs.existsSync(sqlPath)) {
-      console.error(`[DB_CHECK][ERROR] Không tìm thấy file SQL nào để import trong: sql/ngocrong.sql, ngocrong.sql, ngocrong10.06.sql, c.sql`);
+      console.error('[DB_CHECK][ERROR] Không tìm thấy nguồn SQL chuẩn duy nhất: ngocrong.sql ở thư mục gốc.');
       await conn.end();
       process.exit(1);
     }
 
-    console.log(`[DB_CHECK] Đọc file SQL: ${path.basename(sqlPath)} (${(fs.statSync(sqlPath).size / 1024 / 1024).toFixed(2)} MB)...`);
     const sqlContent = fs.readFileSync(sqlPath, 'utf8');
+    const sqlHash = createHash('sha256').update(sqlContent, 'utf8').digest('hex');
+    console.log(`[DB_CHECK] Nguồn SQL duy nhất: ${path.basename(sqlPath)} (${(Buffer.byteLength(sqlContent, 'utf8') / 1024 / 1024).toFixed(2)} MB; SHA-256 ${sqlHash})`);
 
-    // Chạy từng lệnh hoặc từng block để tránh lỗi giới hạn packet size
-    // Với multipleStatements: true, ta có thể chia thành các chunk statements
+    // Giữ nguyên comment trong từng block vì chúng có thể đứng trước DROP TABLE.
     const rawStatements = sqlContent
       .replace(/\r\n/g, '\n')
       .split(/;\s*[\r\n]+/);
@@ -166,31 +158,49 @@ async function main() {
 
     for (let i = 0; i < total; i++) {
       const stmt = rawStatements[i].trim();
-      if (!stmt || stmt.startsWith('/*') || stmt.startsWith('--')) continue;
+      if (!stmt) continue;
 
       batch += stmt + ';\n';
       executed++;
 
       // Gửi theo lô khoảng 50 câu lệnh hoặc 200KB
-      if (batch.length > 200000 || executed % 50 === 0 || i === total - 1) {
+      if (batch.length > 200000 || executed % 50 === 0) {
         try {
           await conn.query(batch);
         } catch (stmtErr) {
-          // Bỏ qua lỗi duplicate table nếu có
-          if (!stmtErr.message.includes('already exists') && !stmtErr.message.includes('Duplicate key')) {
-            // In warning nhẹ nhưng tiếp tục
-          }
+          throw new Error(`Import lỗi tại lô kết thúc ở block ${i + 1}/${total}: ${stmtErr.message}`);
         }
         batch = '';
         process.stdout.write(`\r[DB_CHECK] Tiến trình import: ${Math.min(100, Math.round((i / total) * 100))}% (${executed} lệnh)`);
       }
     }
 
-    console.log('\n[DB_CHECK] Hoàn tất import SQL!');
+    if (batch.trim()) {
+      try {
+        await conn.query(batch);
+      } catch (stmtErr) {
+        throw new Error(`Import lỗi ở lô cuối: ${stmtErr.message}`);
+      }
+    }
+
+    process.stdout.write(`\r[DB_CHECK] Tiến trình import: 100% (${executed} lệnh)\n`);
+    console.log('[DB_CHECK] Hoàn tất import SQL.');
 
     // Re-check
     const [afterTables] = await conn.query('SHOW TABLES');
-    console.log(`[DB_CHECK][OK] Database '${config.database}' hiện có ${afterTables.length} bảng dữ liệu.`);
+    const afterTableNames = afterTables.map(r => Object.values(r)[0].toLowerCase());
+    const missingAfter = requiredTables.filter(t => !afterTableNames.includes(t));
+    if (missingAfter.length) {
+      throw new Error(`Import thiếu bảng bắt buộc: ${missingAfter.join(', ')}`);
+    }
+    const [accountRows] = await conn.query('SELECT COUNT(*) AS count FROM account');
+    const [playerRows] = await conn.query('SELECT COUNT(*) AS count FROM player');
+    const accountCount = Number(accountRows[0]?.count ?? 0);
+    const playerCount = Number(playerRows[0]?.count ?? 0);
+    if (accountCount === 0 || playerCount === 0) {
+      throw new Error(`Import xong nhưng dữ liệu cốt lõi rỗng: account=${accountCount}, player=${playerCount}`);
+    }
+    console.log(`[DB_CHECK][OK] Database '${config.database}': ${afterTables.length} bảng; account=${accountCount}, player=${playerCount}.`);
 
     await conn.end();
     process.exit(0);
