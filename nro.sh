@@ -363,13 +363,14 @@ database_has_game_data() {
 }
 
 import_database() {
+  local sql_hash
+  sql_hash="$(sha256sum "$SQL_FILE" | awk '{print $1}')"
   if database_has_game_data; then
-    say "Database game đã tồn tại; bỏ qua import seed để bảo toàn player, shop và item_shop."
-    mkdir -p "$STATE_DIR"
-    sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
+    say "Database game hiện tại được giữ nguyên; không import lại để tránh ghi đè account/player/shop/item_shop."
+    say "SQL nguồn đang có: $SQL_FILE (SHA-256 $sql_hash) — dump này CHƯA được áp dụng vào database hiện tại."
     return 0
   fi
-  say "Import schema và dữ liệu mẫu từ ngocrong.sql"
+  say "Import schema và dữ liệu từ $SQL_FILE (SHA-256 $sql_hash)"
   mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$SQL_FILE"
   sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
 }

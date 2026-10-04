@@ -264,6 +264,7 @@ Android có thể trì hoãn job do tối ưu pin. Nên chép `.runtime/backups/
 | Panel không chạy | Xem `.runtime/panel.log`, cài Node.js rồi chạy `./nro.sh panel`. |
 | Android dừng server | Tắt battery optimization, dùng `./nro.sh background`, cài Termux:Boot. |
 | JDBC/collation lỗi | Chạy lại setup để dùng MariaDB Connector/J hiện tại. |
+| SQL mới có trong source nhưng DB vẫn là dữ liệu cũ | Nếu database đã có bảng game, launcher giữ database hiện tại và không áp dụng dump mới. Không ép import khi chưa backup và xác định rõ dữ liệu nào cần thay. |
 | SQL bị import lại | Không xóa `.runtime/sql-imported.sha256` nếu chưa backup. |
 
 ## Cấu trúc chính
