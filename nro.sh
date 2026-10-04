@@ -120,7 +120,7 @@ print_endpoints() {
       printf '%s\n' "  Database dump        : khớp snapshot chuẩn (đang chạy luồng database mới)"
       ;;
     stale)
-      printf '%s\n' "  Database dump        : CŨ — đang dùng luồng SQL cũ; chạy ./nro.sh replace-database để cập nhật"
+      printf '%s\n' "  Database dump        : CŨ — đang dùng luồng SQL cũ; chạy ./nro.sh sync-database để cập nhật"
       ;;
     *)
       printf '%s\n' "  Database dump        : chưa xác định (thiếu marker sql-imported.sha256)"
@@ -245,13 +245,14 @@ warn_stale_database_sql() {
       warn "Database đang chạy dữ liệu từ dump SQL CŨ (SHA-256 ${imported_hash:-không rõ})."
       warn "Dump chuẩn mới trong source: $SQL_FILE (SHA-256 ${current_hash:-không đọc được})."
       warn "Đây là luồng dữ liệu SQL cũ — server chưa dùng snapshot database mới."
-      warn "Để chuyển sang luồng dữ liệu database mới một cách an toàn, chạy: ./nro.sh replace-database"
+      warn "Để chuyển sang luồng dữ liệu database mới một cách an toàn, chạy: ./nro.sh sync-database"
       warn "(lệnh tự dừng game, backup bắt buộc, xác minh backup rồi mới thay toàn bộ database)."
+      warn "Hoặc đặt NRO_AUTO_SYNC_SQL=1 để tự áp dụng mỗi lần ./nro.sh start."
       ;;
     unknown)
       warn "Không xác định được dump SQL đã nạp vào database hiện tại (thiếu marker $SQL_IMPORTED_MARKER)."
       warn "Dump chuẩn: $SQL_FILE (SHA-256 ${current_hash:-không đọc được})."
-      warn "Nếu database đang là dữ liệu cũ, chạy ./nro.sh replace-database để áp dụng snapshot mới có backup."
+      warn "Nếu database đang là dữ liệu cũ, chạy ./nro.sh sync-database để áp dụng snapshot mới có backup."
       ;;
   esac
 }
@@ -468,6 +469,10 @@ import_database() {
       warn "SQL cục bộ không khớp snapshot chuẩn; database live vẫn được giữ nguyên, chưa dùng dump này."
     fi
     warn_stale_database_sql
+    if [ "${NRO_AUTO_SYNC_SQL:-0}" = "1" ] && [ "$(database_sql_freshness)" = "stale" ]; then
+      say "NRO_AUTO_SYNC_SQL=1: tự động áp dụng snapshot SQL chuẩn (có backup bắt buộc + tự phục hồi nếu lỗi)."
+      NRO_ASSUME_YES=1 replace_database_from_sql
+    fi
     return 0
   fi
   verify_sql_source || die "Từ chối import SQL không khớp snapshot chuẩn. Chạy ./nro.sh check-update rồi thử lại."
@@ -510,13 +515,17 @@ replace_database_from_sql() {
   say "CẢNH BÁO: sẽ thay toàn bộ database '$DB_NAME' bằng snapshot từ $SQL_FILE."
   say "SHA-256 SQL: $sql_hash"
   say "Launcher sẽ dừng game, tạo backup bắt buộc và chỉ tiếp tục nếu backup hợp lệ."
-  if ! read -r -p "Nhập chính xác 'REPLACE $DB_NAME' để tiếp tục: " confirmation; then
-    die "Không đọc được xác nhận; database chưa bị thay đổi."
+  if [ "${NRO_ASSUME_YES:-0}" = "1" ]; then
+    say "Đã bỏ qua bước xác nhận thủ công (NRO_ASSUME_YES=1)."
+  else
+    if ! read -r -p "Nhập chính xác 'REPLACE $DB_NAME' để tiếp tục: " confirmation; then
+      die "Không đọc được xác nhận; database chưa bị thay đổi."
+    fi
+    [ "$confirmation" = "REPLACE $DB_NAME" ] || {
+      say "Đã hủy; database chưa bị thay đổi."
+      return 0
+    }
   fi
-  [ "$confirmation" = "REPLACE $DB_NAME" ] || {
-    say "Đã hủy; database chưa bị thay đổi."
-    return 0
-  }
 
   if [ -f "$ROOT/termux-server-service.sh" ]; then
     bash "$ROOT/termux-server-service.sh" stop
@@ -1035,11 +1044,11 @@ setup() {
 main() {
   local action="${1:-start}"
   case "$action" in
-    start|restart|background|background-restart|replace-database)
+    start|restart|background|background-restart|replace-database|sync-database)
       if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
         export NRO_SOURCE_UPDATED=0
       else
-        if [ "$action" = "replace-database" ]; then
+        if [ "$action" = "replace-database" ] || [ "$action" = "sync-database" ]; then
           NRO_FORCE_UPDATE_CHECK=1 NRO_FORCE_SOURCE_SYNC=1 auto_update_source
         else
           NRO_FORCE_UPDATE_CHECK=1 auto_update_source
@@ -1102,6 +1111,9 @@ main() {
     replace-database)
       replace_database_from_sql
       ;;
+    sync-database)
+      NRO_ASSUME_YES=1 replace_database_from_sql
+      ;;
     console)
       ensure_layout
       start_database
@@ -1149,7 +1161,7 @@ main() {
       ;;
     *)
       cat <<'USAGE'
-Sử dụng: ./nro.sh [setup|start|lan|background|background-stop|background-restart|background-status|background-log|restart|stop|status|console|rebuild|panel|panel-password|check-update|backup|replace-database|backup-schedule|backup-cancel|backup-status]
+Sử dụng: ./nro.sh [setup|start|lan|background|background-stop|background-restart|background-status|background-log|restart|stop|status|console|rebuild|panel|panel-password|check-update|backup|replace-database|sync-database|backup-schedule|backup-cancel|backup-status]
 
 Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel.
 LAN Android: `./nro.sh lan` sẽ tự nhận IP Wi-Fi, bind game server trên 0.0.0.0 và cập nhật địa chỉ client; có thể chỉ định `NRO_LAN_IP=192.168.x.x`.
@@ -1157,6 +1169,8 @@ Chạy độc lập: `./nro.sh background`; dừng bằng `background-stop`, xem
 Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT). Xem mật khẩu bằng `./nro.sh panel-password`; đổi mật khẩu bằng `PANEL_ADMIN_PASSWORD='mật_khẩu_mới' ./nro.sh panel`.
 Backup database: `backup` xuất online, `backup-schedule` lập lịch, `backup-cancel` hủy lịch, `backup-status` xem lịch/file/log. `setup` và `start` tự backup trước khi tiếp tục; backup lỗi sẽ dừng thao tác.
 Thay database bằng dump: `replace-database` dừng game, yêu cầu nhập `REPLACE <tên_database>`, tạo/xác minh backup rồi mới thay toàn bộ database bằng `ngocrong.sql`; nếu import lỗi, launcher tự phục hồi backup.
+`sync-database` giống `replace-database` nhưng bỏ bước nhập xác nhận (dùng cho script/CI, backup và tự phục hồi vẫn giữ nguyên).
+Đặt `NRO_AUTO_SYNC_SQL=1` để mỗi lần `./nro.sh start` tự áp dụng snapshot chuẩn khi phát hiện database đang chạy dump cũ (luôn backup + xác minh + tự phục hồi nếu lỗi).
 Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
 NRO_GAME_LISTEN_HOST, NRO_PANEL_PORT, NRO_PANEL_BIND, PANEL_ADMIN_PASSWORD,
 NRO_BACKUP_DIR, NRO_BACKUP_LOG, NRO_BACKUP_KEEP_DAYS, NRO_BACKUP_JOB_ID,

@@ -100,6 +100,7 @@ cd ~/ngocrong-termux
 |---|---|
 | `./nro.sh backup` | Backup database ngay. |
 | `./nro.sh replace-database` | Thay toàn bộ database bằng `ngocrong.sql`; dừng game, bắt buộc backup/xác minh, yêu cầu nhập `REPLACE <tên_database>` và tự phục hồi backup nếu import lỗi. |
+| `./nro.sh sync-database` | Giống `replace-database` nhưng **không cần nhập xác nhận** — dùng khi bạn muốn chuyển server sang luồng dữ liệu database mới ngay (ví dụ DB đang chạy dump cũ: 3 account thay vì 14 account trong SQL chuẩn). Backup + xác minh + tự phục hồi vẫn được giữ nguyên. |
 | `./nro.sh backup-schedule` | Đặt lịch backup định kỳ. |
 | `./nro.sh backup-status` | Xem lịch và file backup. |
 | `./nro.sh backup-cancel` | Hủy lịch backup. |
@@ -275,7 +276,7 @@ Android có thể trì hoãn job do tối ưu pin. Nên chép `.runtime/backups/
 | Panel không chạy | Xem `.runtime/panel.log`, cài Node.js rồi chạy `./nro.sh panel`. |
 | Android dừng server | Tắt battery optimization, dùng `./nro.sh background`, cài Termux:Boot. |
 | JDBC/collation lỗi | Chạy lại setup để dùng MariaDB Connector/J hiện tại. |
-| SQL mới có trong source nhưng DB vẫn là dữ liệu cũ | Nếu database đã có bảng game, launcher giữ database hiện tại và không áp dụng dump mới. Launcher so sánh hash dump đã nạp (`.runtime/sql-imported.sha256`) với `ngocrong.sql` chuẩn và cảnh báo "Database dump: CŨ — đang dùng luồng SQL cũ" khi lệch. Không ép import khi chưa backup và xác định rõ dữ liệu nào cần thay; dùng `./nro.sh replace-database` để chuyển sang luồng database mới an toàn. |
+| SQL mới có trong source nhưng DB vẫn là dữ liệu cũ | Launcher so sánh hash dump đã nạp (`.runtime/sql-imported.sha256`) với `ngocrong.sql` chuẩn và cảnh báo "Database dump: CŨ — đang dùng luồng SQL cũ" khi lệch (thường thấy ở panel: vài account thay vì đủ bộ trong SQL). Chạy `./nro.sh sync-database` để áp dụng ngay, hoặc đặt `NRO_AUTO_SYNC_SQL=1` để mỗi lần `./nro.sh start` tự đồng bộ. Cả hai cách đều backup bắt buộc, xác minh checksum và tự phục hồi nếu import lỗi. |
 | SQL bị import lại | Không xóa `.runtime/sql-imported.sha256` nếu chưa backup. |
 
 ## Cấu trúc chính
