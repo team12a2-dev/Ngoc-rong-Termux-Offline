@@ -398,6 +398,90 @@ automatic_backup_database() {
   export NRO_BACKUP_DONE=1
 }
 
+replace_database_from_sql() {
+  ensure_layout
+  start_database
+
+  local confirmation sql_hash backup_file account_count player_count
+  sql_hash="$(sha256sum "$SQL_FILE" | awk '{print $1}')"
+  say "CẢNH BÁO: sẽ thay toàn bộ database '$DB_NAME' bằng snapshot từ $SQL_FILE."
+  say "SHA-256 SQL: $sql_hash"
+  say "Launcher sẽ dừng game, tạo backup bắt buộc và chỉ tiếp tục nếu backup hợp lệ."
+  if ! read -r -p "Nhập chính xác 'REPLACE $DB_NAME' để tiếp tục: " confirmation; then
+    die "Không đọc được xác nhận; database chưa bị thay đổi."
+  fi
+  [ "$confirmation" = "REPLACE $DB_NAME" ] || {
+    say "Đã hủy; database chưa bị thay đổi."
+    return 0
+  }
+
+  if [ -f "$ROOT/termux-server-service.sh" ]; then
+    bash "$ROOT/termux-server-service.sh" stop
+  fi
+  stop_server
+
+  [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh; database chưa bị thay đổi."
+  say "Đang tạo backup bắt buộc trước khi thay database..."
+  if ! NRO_BACKUP_REQUIRED=1 bash "$BACKUP_SCRIPT"; then
+    die "Backup thất bại; database chưa bị thay đổi."
+  fi
+  backup_file="$(cat "$STATE_DIR/last-database-backup.path" 2>/dev/null || true)"
+  [ -n "$backup_file" ] && [ -s "$backup_file" ] || die "Không xác minh được file backup; database chưa bị thay đổi."
+  gzip -t "$backup_file" || die "Backup không hợp lệ; database chưa bị thay đổi."
+  [ -s "$backup_file.sha256" ] || die "Thiếu checksum backup; database chưa bị thay đổi."
+  sha256sum -c "$backup_file.sha256" || die "Checksum backup không khớp; database chưa bị thay đổi."
+  say "Backup đã xác minh: $backup_file"
+
+  say "Đang thay toàn bộ schema/database cũ bằng snapshot SQL..."
+  if ! mariadb --protocol=socket --socket="$DB_SOCKET" -uroot <<SQL
+DROP DATABASE IF EXISTS \`$DB_NAME\`;
+CREATE DATABASE \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+SQL
+  then
+    warn "Tạo database mới thất bại; đang phục hồi backup đã xác minh."
+    if restore_database_from_backup "$backup_file"; then
+      die "Không thay được database; DB cũ đã được phục hồi. Backup: $backup_file"
+    fi
+    die "Không tạo được DB mới và tự phục hồi lỗi. Giữ backup để khôi phục thủ công: $backup_file"
+  fi
+  if ! ensure_database_user || ! mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME" < "$SQL_FILE"; then
+    warn "Import SQL thất bại; đang phục hồi database từ backup đã xác minh."
+    if restore_database_from_backup "$backup_file"; then
+      die "Import SQL lỗi; database cũ đã được phục hồi từ backup: $backup_file"
+    fi
+    die "Import và tự phục hồi đều lỗi. Giữ nguyên backup để khôi phục thủ công: $backup_file"
+  fi
+
+  if ! account_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse "SELECT COUNT(*) FROM \`$DB_NAME\`.\`account\`")" \
+      || ! player_count="$(mariadb --protocol=socket --socket="$DB_SOCKET" -uroot -Nse "SELECT COUNT(*) FROM \`$DB_NAME\`.\`player\`")"; then
+    warn "Không tìm thấy bảng account/player sau import; đang phục hồi database từ backup."
+    if restore_database_from_backup "$backup_file"; then
+      die "Dump thiếu bảng quan trọng; database cũ đã được phục hồi. Backup: $backup_file"
+    fi
+    die "Dump thiếu bảng quan trọng và tự phục hồi lỗi. Backup: $backup_file"
+  fi
+
+  mkdir -p "$STATE_DIR"
+  sha256sum "$SQL_FILE" > "$STATE_DIR/sql-imported.sha256"
+  say "Thay database hoàn tất; account=$account_count, player=$player_count."
+  say "Game đang dừng để kiểm tra dữ liệu. Chạy ./nro.sh start hoặc ./nro.sh lan khi sẵn sàng."
+}
+
+restore_database_from_backup() {
+  local backup_file="$1"
+  if ! mariadb --protocol=socket --socket="$DB_SOCKET" -uroot <<SQL
+DROP DATABASE IF EXISTS \`$DB_NAME\`;
+CREATE DATABASE \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+SQL
+  then
+    return 1
+  fi
+  if ! gzip -dc "$backup_file" | mariadb --protocol=socket --socket="$DB_SOCKET" -uroot "$DB_NAME"; then
+    return 1
+  fi
+  ensure_database_user
+}
+
 backup_schedule() {
   command -v termux-job-scheduler >/dev/null 2>&1 || die "Thiếu termux-job-scheduler. Hãy cài package termux-api và ứng dụng Termux:API."
   [ -f "$BACKUP_SCRIPT" ] || die "Thiếu backup-database.sh trong thư mục dự án."
@@ -825,7 +909,7 @@ setup() {
 main() {
   local action="${1:-start}"
   case "$action" in
-    start|restart|background|background-restart)
+    start|restart|background|background-restart|replace-database)
       NRO_FORCE_UPDATE_CHECK=1 auto_update_source
       if [ "${NRO_SOURCE_UPDATED:-0}" = "1" ]; then
         exec bash "$ROOT/nro.sh" "$@"
@@ -877,6 +961,9 @@ main() {
     status)
       status
       ;;
+    replace-database)
+      replace_database_from_sql
+      ;;
     console)
       ensure_layout
       start_database
@@ -924,13 +1011,14 @@ main() {
       ;;
     *)
       cat <<'USAGE'
-Sử dụng: ./nro.sh [setup|start|lan|background|background-stop|background-restart|background-status|background-log|restart|stop|status|console|rebuild|panel|panel-password|check-update|backup|backup-schedule|backup-cancel|backup-status]
+Sử dụng: ./nro.sh [setup|start|lan|background|background-stop|background-restart|background-status|background-log|restart|stop|status|console|rebuild|panel|panel-password|check-update|backup|replace-database|backup-schedule|backup-cancel|backup-status]
 
 Mặc định: tự cài lần đầu nếu cần, sau đó khởi động game server và panel.
 LAN Android: `./nro.sh lan` sẽ tự nhận IP Wi-Fi, bind game server trên 0.0.0.0 và cập nhật địa chỉ client; có thể chỉ định `NRO_LAN_IP=192.168.x.x`.
 Chạy độc lập: `./nro.sh background`; dừng bằng `background-stop`, xem trạng thái bằng `background-status`, xem log bằng `background-log`.
 Panel chạy cùng API tại cổng 3001 (có thể đổi bằng NRO_PANEL_PORT). Xem mật khẩu bằng `./nro.sh panel-password`; đổi mật khẩu bằng `PANEL_ADMIN_PASSWORD='mật_khẩu_mới' ./nro.sh panel`.
 Backup database: `backup` xuất online, `backup-schedule` lập lịch, `backup-cancel` hủy lịch, `backup-status` xem lịch/file/log. `setup` và `start` tự backup trước khi tiếp tục; backup lỗi sẽ dừng thao tác.
+Thay database bằng dump: `replace-database` dừng game, yêu cầu nhập `REPLACE <tên_database>`, tạo/xác minh backup rồi mới thay toàn bộ database bằng `ngocrong.sql`; nếu import lỗi, launcher tự phục hồi backup.
 Biến tùy chọn: NRO_DB_PASSWORD, NRO_DB_USER, NRO_DB_NAME, NRO_GAME_PORT,
 NRO_GAME_LISTEN_HOST, NRO_PANEL_PORT, NRO_PANEL_BIND, PANEL_ADMIN_PASSWORD,
 NRO_BACKUP_DIR, NRO_BACKUP_LOG, NRO_BACKUP_KEEP_DAYS, NRO_BACKUP_JOB_ID,

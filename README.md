@@ -99,6 +99,7 @@ cd ~/ngocrong-termux
 | Lệnh | Chức năng |
 |---|---|
 | `./nro.sh backup` | Backup database ngay. |
+| `./nro.sh replace-database` | Thay toàn bộ database bằng `ngocrong.sql`; dừng game, bắt buộc backup/xác minh, yêu cầu nhập `REPLACE <tên_database>` và tự phục hồi backup nếu import lỗi. |
 | `./nro.sh backup-schedule` | Đặt lịch backup định kỳ. |
 | `./nro.sh backup-status` | Xem lịch và file backup. |
 | `./nro.sh backup-cancel` | Hủy lịch backup. |
@@ -242,6 +243,15 @@ Backup thủ công:
 ```bash
 ./nro.sh backup
 ```
+
+Muốn áp dụng toàn bộ snapshot SQL lên database đang có, trước tiên cập nhật launcher rồi chạy lệnh thay:
+
+```bash
+./nro.sh check-update
+./nro.sh replace-database
+```
+
+Lệnh sẽ dừng server, tạo và xác minh backup trong `.runtime/backups/`, yêu cầu nhập chính xác `REPLACE <tên_database>` rồi mới thay toàn bộ database. Thao tác này thay các account/player hiện tại bằng snapshot trong SQL; nếu import lỗi, launcher sẽ thử phục hồi backup. File backup mới nhất được ghi tại `.runtime/last-database-backup.path`.
 
 Backup định kỳ:
 

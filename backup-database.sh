@@ -101,6 +101,8 @@ fi
 test -s "$TMP_FILE"
 mv -f "$TMP_FILE" "$OUT_FILE"
 sha256sum "$OUT_FILE" > "$OUT_FILE.sha256"
+printf '%s\n' "$OUT_FILE" > "$STATE_DIR/last-database-backup.path"
+chmod 600 "$STATE_DIR/last-database-backup.path"
 find "$BACKUP_DIR" -maxdepth 1 -type f -name "$DB_NAME-*.sql.gz" -mtime +"$KEEP_DAYS" -delete
 find "$BACKUP_DIR" -maxdepth 1 -type f -name "$DB_NAME-*.sql.gz.sha256" -mtime +"$KEEP_DAYS" -delete
 
