@@ -189,6 +189,13 @@ ensure_layout() {
 
 auto_update_source() {
   export NRO_SOURCE_UPDATED=0
+  if [ -e "$ROOT/c.sql" ]; then
+    if rm -f "$ROOT/c.sql"; then
+      say "Đã xóa c.sql cũ khỏi thư mục cài đặt; nguồn dump chuẩn là ngocrong.sql."
+    else
+      warn "Không xóa được c.sql cũ tại $ROOT/c.sql; hãy xóa thủ công sau khi cập nhật."
+    fi
+  fi
   [ "${NRO_AUTO_UPDATE:-1}" != "0" ] || return 0
   command -v curl >/dev/null 2>&1 || { warn "Không có curl; bỏ qua kiểm tra cập nhật GitHub."; return 0; }
   ensure_layout
