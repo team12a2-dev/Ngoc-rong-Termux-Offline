@@ -60,7 +60,7 @@ cd ~/ngocrong-termux
 
 Nếu `git pull` báo thư mục không phải Git repository thì có thể bỏ qua; `nro.sh` đã tự cập nhật trực tiếp từ GitHub.
 
-Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL một lần; build Java và web panel. Mỗi lần tạo tiến trình game mới, Java được build sạch trước khi chạy; thời gian build được lưu tại `.runtime/build-info` và hiển thị bằng `./nro.sh status`. Khi source có thay đổi, panel chỉ cài lại dependency nếu thiếu hoặc lockfile thay đổi, rồi build React và restart Node để chức năng mới xuất hiện.
+Lệnh setup sẽ cài Java, MariaDB và Node.js nếu thiếu; khởi tạo database; import SQL mặc định `ngocrong.sql` ở thư mục gốc một lần vào database mới; build Java và web panel. Nếu database hiện tại đã có dữ liệu game, launcher bỏ qua import để giữ dữ liệu người chơi/shop — thay SQL mặc định không tự ghi đè database đang chạy. Mỗi lần tạo tiến trình game mới, Java được build sạch trước khi chạy; thời gian build được lưu tại `.runtime/build-info` và hiển thị bằng `./nro.sh status`. Khi source có thay đổi, panel chỉ cài lại dependency nếu thiếu hoặc lockfile thay đổi, rồi build React và restart Node để chức năng mới xuất hiện.
 
 Sau khi setup xong, chạy server:
 
@@ -271,7 +271,7 @@ Android có thể trì hoãn job do tối ưu pin. Nên chép `.runtime/backups/
 ```text
 src/                         Java source
 data/                        Map và game assets
-sql/ngocrong.sql             Database schema + dữ liệu mẫu
+ngocrong.sql                 SQL mặc định: schema và dữ liệu khởi tạo game
 lib/                         JAR runtime
 panel/api/                   Node.js API
 panel/web/                   React web panel
